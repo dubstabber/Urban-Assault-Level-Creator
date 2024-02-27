@@ -1,3 +1,15 @@
-[gd_scene format=3 uid="uid://ctgiwn3scteuk"]
+[gd_scene load_steps=4 format=3 uid="uid://ctgiwn3scteuk"]
+
+[ext_resource type="Script" path="res://main.gd" id="1_7pb5r"]
+[ext_resource type="Script" path="res://Map.gd" id="2_dum0m"]
+[ext_resource type="PackedScene" uid="uid://bxpgr6q0fq3fb" path="res://ui.tscn" id="3_5x600"]
 
 [node name="Main" type="Node2D"]
+script = ExtResource("1_7pb5r")
+
+[node name="Map" type="Node2D" parent="."]
+script = ExtResource("2_dum0m")
+
+[node name="Camera2D" type="Camera2D" parent="."]
+
+[node name="UI" parent="." instance=ExtResource("3_5x600")]
