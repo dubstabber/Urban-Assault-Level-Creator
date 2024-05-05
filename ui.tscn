@@ -1,19 +1,16 @@
-[gd_scene format=3 uid="uid://bxpgr6q0fq3fb"]
+[gd_scene load_steps=3 format=3 uid="uid://bxpgr6q0fq3fb"]
+
+[ext_resource type="Script" path="res://ui.gd" id="1_6heix"]
+[ext_resource type="Script" path="res://MenuBar.gd" id="1_cguc0"]
 
 [node name="UI" type="CanvasLayer"]
+script = ExtResource("1_6heix")
 
 [node name="MenuBar" type="MenuBar" parent="."]
 offset_right = 40.0
 offset_bottom = 40.0
+script = ExtResource("1_cguc0")
 
-[node name="HBoxContainer" type="HBoxContainer" parent="MenuBar"]
-layout_mode = 0
-offset_right = 40.0
-offset_bottom = 40.0
+[node name="File" type="PopupMenu" parent="MenuBar"]
 
-[node name="MenuButton" type="MenuButton" parent="MenuBar/HBoxContainer"]
-layout_mode = 2
-text = "File"
-item_count = 1
-popup/item_0/text = "New map"
-popup/item_0/id = 0
+[node name="View" type="PopupMenu" parent="MenuBar"]
