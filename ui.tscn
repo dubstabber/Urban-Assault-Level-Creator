@@ -41,6 +41,7 @@ text = "Enter number of sectors for horizontal and vertical space:"
 layout_mode = 2
 size_flags_vertical = 4
 theme_override_constants/margin_left = 100
+theme_override_constants/margin_bottom = 25
 
 [node name="GridContainer" type="GridContainer" parent="NewMapWindow/PanelContainer/MarginContainer2"]
 layout_mode = 2
@@ -72,3 +73,18 @@ allow_greater = true
 
 [node name="MarginContainer3" type="MarginContainer" parent="NewMapWindow/PanelContainer"]
 layout_mode = 2
+size_flags_horizontal = 4
+size_flags_vertical = 8
+theme_override_constants/margin_bottom = 15
+
+[node name="HBoxContainer" type="HBoxContainer" parent="NewMapWindow/PanelContainer/MarginContainer3"]
+layout_mode = 2
+theme_override_constants/separation = 20
+
+[node name="Button" type="Button" parent="NewMapWindow/PanelContainer/MarginContainer3/HBoxContainer"]
+layout_mode = 2
+text = "Cancel"
+
+[node name="Button2" type="Button" parent="NewMapWindow/PanelContainer/MarginContainer3/HBoxContainer"]
+layout_mode = 2
+text = "Create"
