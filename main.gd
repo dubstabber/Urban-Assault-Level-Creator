@@ -2,15 +2,7 @@ extends Node2D
 
 
 #@onready var map = $Map
-@onready var camera = $Camera2D
 @onready var context_menu = $ContextMenu
-
-
-func _ready():
-	#camera.zoom = Vector2(.05,.05)
-	pass
-
-
 
 
 func _input(event):

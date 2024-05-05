@@ -1,0 +1,291 @@
+{
+    "original": {
+        "resistance": {
+            "units": [
+                {"id": 1,"name": "Weasel", "iconName": "weasel.png", "mapIcon": 1},
+                {"id": 16,"name": "Fox", "iconName": "fox.png", "mapIcon": 1},
+                {"id": 2,"name": "Jaguar", "iconName": "jaguar.png", "mapIcon": 1},
+                {"id": 3,"name": "Tiger", "iconName": "tiger.png", "mapIcon": 1},
+                {"id": 12,"name": "Rhino", "iconName": "rhino.png", "mapIcon": 1},
+                {"id": 11,"name": "Rock-Sled", "iconName": "rockSled.png", "mapIcon": 1},
+                {"id": 10,"name": "Firefly", "iconName": "firefly.png", "mapIcon": 2},
+                {"id": 6,"name": "Wasp", "iconName": "wasp.png", "mapIcon": 2},
+                {"id": 15,"name": "Hornet", "iconName": "hornet.png", "mapIcon": 2},
+                {"id": 14,"name": "Dragonfly", "iconName": "dragonfly.png", "mapIcon": 2},
+                {"id": 4,"name": "Falcon", "iconName": "falcon.png", "mapIcon": 3},
+                {"id": 7,"name": "Warhammer", "iconName": "warhammer.png", "mapIcon": 3},
+                {"id": 5,"name": "Marauder", "iconName": "marauder.png", "mapIcon": 3},
+                {"id": 9,"name": "Scout", "iconName": "scout.png", "mapIcon": 4},
+                {"id": 133,"name": "Giant(Blue)", "iconName": "blueGiant.png", "mapIcon": 3},
+                {"id": 134,"name": "Bronsteijn(Blue)", "iconName": "blueBronsteijn.png", "mapIcon": 3}
+            ],
+            "buildings": [
+                {"id": 63, "name": "Power Station 1", "iconName": "powerStation.png", "typMap": 201, "image": "resEnergy1.png"},
+                {"id": 1, "name": "Power Station 1+", "iconName": "powerStation.png", "typMap": 201, "image": "resEnergy2.png"},
+                {"id": 11, "name": "Power Station 2", "iconName": "powerStation.png", "typMap": 201, "image": "resEnergy3.png"},
+                {"id": 64, "name": "Power Station 2+", "iconName": "powerStation.png", "typMap": 201, "image": "resEnergy4.png"},
+                {"id": 28, "name": "Flak Station 1", "iconName": "flakStation.png", "typMap": 205, "image": "resFlak.png"},
+                {"id": 2, "name": "Flak Station 2", "iconName": "flakStation.png", "typMap": 200, "image": "resFlak.png"},
+                {"id": 3, "name": "Radar Station 1", "iconName": "radarStation.png", "typMap": 204, "image": "resRadar.png"},
+                {"id": 54, "name": "Radar Station 2", "iconName": "radarStation.png", "typMap": 204, "image": "resRadar.png"}
+            ]
+        },
+        "ghorkov": {
+            "units": [
+                {"id": 22,"name": "Speedy", "iconName": "speedy.png", "mapIcon": 1},
+                {"id": 26,"name": "Tekh-Trakh", "iconName": "tekhTrakh.png", "mapIcon": 1},
+                {"id": 24,"name": "Ghagoil 1", "iconName": "ghagoil1.png", "mapIcon": 2},
+                {"id": 28,"name": "Ghagoil 2", "iconName": "ghagoil2.png", "mapIcon": 2},
+                {"id": 25,"name": "Ghagoil 3", "iconName": "ghagoil3.png", "mapIcon": 3},
+                {"id": 23,"name": "Ying", "iconName": "ying.png", "mapIcon": 3},
+                {"id": 31,"name": "Ting-Ying", "iconName": "tingYing.png", "mapIcon": 3},
+                {"id": 130,"name": "Yang", "iconName": "yang.png", "mapIcon": 3},
+                {"id": 27,"name": "Giant", "iconName": "giant.png", "mapIcon": 3},
+                {"id": 30,"name": "Giant 2", "iconName": "giant.png", "mapIcon": 3},
+                {"id": 29,"name": "Ormu", "iconName": "ormu.png", "mapIcon": 4}
+            ],
+            "buildings": [
+                {"id": 52, "name": "KYTPOWER", "iconName": "powerStation.png", "typMap": 15, "image": "ghorEnergy1.png"},
+                {"id": 12, "name": "KytPower", "iconName": "powerStation.png", "typMap": 15, "image": "ghorEnergy2.png"},
+                {"id": 30, "name": "KYTFLAK", "iconName": "flakStation.png", "typMap": 207, "image": "ghorFlak.png"},
+                {"id": 71, "name": "Kyt Radar Station", "iconName": "radarStation.png", "typMap": 240, "image": "ghorRadar.png"}
+            ]
+        },
+        "taerkasten": {
+            "units": [
+                {"id": 32,"name": "Eisenhans", "iconName": "eisenhans.png", "mapIcon": 1},
+                {"id": 37,"name": "Leonid", "iconName": "leonid.png", "mapIcon": 1},
+                {"id": 33,"name": "Hetzel", "iconName": "hetzel.png", "mapIcon": 3},
+                {"id": 8,"name": "Phantom", "iconName": "phantom.png", "mapIcon": 3},
+                {"id": 36,"name": "Serp", "iconName": "serp.png", "mapIcon": 3},
+                {"id": 38,"name": "Mnosjetz", "iconName": "mnosjetz.png", "mapIcon": 3},
+                {"id": 131,"name": "Zeppelin", "iconName": "zeppelin.png", "mapIcon": 3},
+                {"id": 34,"name": "Bronsteijn", "iconName": "bronsteijn.png", "mapIcon": 2},
+                {"id": 35,"name": "Otschko", "iconName": "otschko.png", "mapIcon": 4}
+            ],
+            "buildings": [
+                {"id": 53, "name": "TAER POWR", "iconName": "powerStation.png", "typMap": 14, "image": "taerEnergy1.png"},
+                {"id": 17, "name": "TaerPower", "iconName": "powerStation.png", "typMap": 14, "image": "taerEnergy2.png"},
+                {"id": 31, "name": "TAERFLAK", "iconName": "flakStation.png", "typMap": 208, "image": "taerFlak.png"},
+                {"id": 73, "name": "Taer Radar Station", "iconName": "radarStation.png", "typMap": 239, "image": "taerRadar.png"}
+            ]
+        },
+        "mykonian": {
+            "units": [
+                {"id": 65,"name": "5PO-Prisma", "iconName": "prisma.png", "mapIcon": 2},
+                {"id": 64,"name": "X01-Quadda", "iconName": "quadda.png", "mapIcon": 3},
+                {"id": 66,"name": "Static", "iconName": "static.png", "mapIcon": 3},
+                {"id": 68,"name": "0815 Ground", "iconName": "ground.png", "mapIcon": 1},
+                {"id": 63,"name": "Hourglass", "iconName": "hourglass.png", "mapIcon": 2},
+                {"id": 69,"name": "Airstick", "iconName": "airstick.png", "mapIcon": 3},
+                {"id": 70,"name": "Bomber", "iconName": "bomber.png", "mapIcon": 3},
+                {"id": 67,"name": "Radar", "iconName": "radar.png", "mapIcon": 4}
+            ],
+            "buildings": [
+                {"id": 10, "name": "MykoPower", "iconName": "powerStation.png", "typMap": 229, "image": "mykoEnergy1.png"},
+                {"id": 13, "name": "MykoFlak", "iconName": "flakStation.png", "typMap": 228, "image": "mykoFlak.png"},
+                {"id": 72, "name": "Myk Radar Station", "iconName": "radarStation.png", "typMap": 241, "image": "mykoRadar.png"}
+            ]
+        },
+        "sulgogar": {
+            "units": [
+                {"id": 73,"name": "Blue Spore", "iconName": "blueSpore.png", "mapIcon": 3},
+                {"id": 71,"name": "Mean Green", "iconName": "meanGreen.png", "mapIcon": 3},
+                {"id": 72,"name": "Slime Lord", "iconName": "slimeLord.png", "mapIcon": 3},
+                {"id": 74,"name": "Little Brother", "iconName": "littleBrother.png", "mapIcon": 4}
+            ],
+            "buildings": []
+        },
+        "blackSect": {
+            "units": [],
+            "buildings": [
+                {"id": 18, "name": "Flakstation", "iconName": "flakStation.png", "typMap": 200, "image": "blasecFlak.png"}
+            ]
+        },
+        "training": {
+            "units": [
+                {"id": 138,"name": "Target Drone", "iconName": "targetDrone.png", "mapIcon": 3},
+                {"id": 142,"name": "Target Drone 2", "iconName": "targetDrone.png", "mapIcon": 3}
+            ],
+            "buildings": []
+        },
+        "special": {
+            "units": [
+                {"id": 13,"name": "Evilfurz", "iconName": "evilfurz.png", "mapIcon": 1}
+            ],
+            "buildings": []
+        },
+        "other": {
+            "units": [],
+            "buildings": [
+                {"id": 8, "name": "GRASFLAK2", "iconName": "flakStation.png", "typMap": 79, "image": "GRASFLAK2.png"},
+                {"id": 14, "name": "KraftwerkOBL", "iconName": "powerStation.png", "typMap": 201, "image": "kraftwerkOBL.png"},
+                {"id": 19, "name": "Bodenflak", "iconName": "flakStation.png", "typMap": 1, "image": "bodenflak.png"},
+                {"id": 20, "name": "GFLAK-OW", "iconName": "flakStation.png", "typMap": 199, "image": "gflak-ow.png"},
+                {"id": 21, "name": "GFLAK-NS", "iconName": "flakStation.png", "typMap": 198, "image": "gflak-ns.png"},
+                {"id": 62, "name": "STONEHENGE", "iconName": "powerStation.png", "typMap": 96, "image": "stonehenge.png"},
+                {"id": 29, "name": "STIMMG1", "iconName": "flakStation.png", "typMap": 5, "image": "stimmg1.png"},
+                {"id": 33, "name": "STIMMG2", "iconName": "flakStation.png", "typMap": 7, "image": "stimmg2.png"},
+                {"id": 34, "name": "STIMMG3", "iconName": "flakStation.png", "typMap": 17, "image": "stimmg3.png"}
+            ]
+        },
+        "techUpgrade": [
+            {"id": 90, "name": "Resistance flak 1"},
+            {"id": 91, "name": "Resistance flak 2"},
+            {"id": 92, "name": "Resistance flak 3"},
+            {"id": 93, "name": "Resistance flak 4"},
+            {"id": 83, "name": "Ghorkov Small Flak"},
+            {"id": 77, "name": "Ghorkov Big Flak"},
+            {"id": 87, "name": "Taerkasten Flak"}
+        ]
+    },
+    "metropolisDawn": {
+        "resistance": {
+            "units": [
+                {"id": 1,"name": "Weasel", "iconName": "weasel.png", "mapIcon": 1},
+                {"id": 16,"name": "Fox", "iconName": "fox.png", "mapIcon": 1},
+                {"id": 2,"name": "Jaguar", "iconName": "jaguar.png", "mapIcon": 1},
+                {"id": 3,"name": "Tiger", "iconName": "tiger.png", "mapIcon": 1},
+                {"id": 12,"name": "Rhino", "iconName": "rhino.png", "mapIcon": 1},
+                {"id": 11,"name": "Rock-Sled", "iconName": "rockSled.png", "mapIcon": 1},
+                {"id": 10,"name": "Firefly", "iconName": "firefly.png", "mapIcon": 2},
+                {"id": 6,"name": "Wasp", "iconName": "wasp.png", "mapIcon": 2},
+                {"id": 15,"name": "Hornet", "iconName": "hornet.png", "mapIcon": 2},
+                {"id": 14,"name": "Dragonfly", "iconName": "dragonfly.png", "mapIcon": 2},
+                {"id": 4,"name": "Falcon", "iconName": "falcon.png", "mapIcon": 3},
+                {"id": 7,"name": "Warhammer", "iconName": "warhammer.png", "mapIcon": 3},
+                {"id": 5,"name": "Marauder", "iconName": "marauder.png", "mapIcon": 3},
+                {"id": 9,"name": "Scout", "iconName": "scout.png", "mapIcon": 4},
+                {"id": 133,"name": "Giant(Blue)", "iconName": "blueGiant.png", "mapIcon": 3},
+                {"id": 134,"name": "Bronsteijn(Blue)", "iconName": "blueBronsteijn.png", "mapIcon": 3}
+            ],
+            "buildings": [
+                {"id": 63, "name": "Power Station 1", "iconName": "powerStation.png", "typMap": 201, "image": "resEnergy1.png"},
+                {"id": 1, "name": "Power Station 1+", "iconName": "powerStation.png", "typMap": 201, "image": "resEnergy2.png"},
+                {"id": 11, "name": "Power Station 2", "iconName": "powerStation.png", "typMap": 201, "image": "resEnergy3.png"},
+                {"id": 64, "name": "Power Station 2+", "iconName": "powerStation.png", "typMap": 201, "image": "resEnergy4.png"},
+                {"id": 28, "name": "Flak Station 1", "iconName": "flakStation.png", "typMap": 205, "image": "resFlak.png"},
+                {"id": 2, "name": "Flak Station 2", "iconName": "flakStation.png", "typMap": 200, "image": "resFlak.png"},
+                {"id": 3, "name": "Radar Station 1", "iconName": "radarStation.png", "typMap": 204, "image": "resRadar.png"},
+                {"id": 54, "name": "Radar Station 2", "iconName": "radarStation.png", "typMap": 204, "image": "resRadar.png"}
+            ]
+        },
+        "ghorkov": {
+            "units": [
+                {"id": 22,"name": "Speedy", "iconName": "speedy.png", "mapIcon": 1},
+                {"id": 26,"name": "Tekh-Trakh", "iconName": "tekhTrakh.png", "mapIcon": 1},
+                {"id": 24,"name": "Ghagoil 1", "iconName": "ghagoil1.png", "mapIcon": 2},
+                {"id": 28,"name": "Ghagoil 2", "iconName": "ghagoil2.png", "mapIcon": 2},
+                {"id": 25,"name": "Ghagoil 3", "iconName": "ghagoil3.png", "mapIcon": 3},
+                {"id": 23,"name": "Ying", "iconName": "ying.png", "mapIcon": 3},
+                {"id": 31,"name": "Ting-Ying", "iconName": "tingYing.png", "mapIcon": 3},
+                {"id": 130,"name": "Yang", "iconName": "yang.png", "mapIcon": 3},
+                {"id": 27,"name": "Giant", "iconName": "giant.png", "mapIcon": 3},
+                {"id": 30,"name": "Giant 2", "iconName": "giant.png", "mapIcon": 3},
+                {"id": 29,"name": "Ormu", "iconName": "ormu.png", "mapIcon": 4}
+            ],
+            "buildings": [
+                {"id": 52, "name": "KYTPOWER", "iconName": "powerStation.png", "typMap": 15, "image": "ghorEnergy1.png"},
+                {"id": 12, "name": "KytPower", "iconName": "powerStation.png", "typMap": 15, "image": "ghorEnergy2.png"},
+                {"id": 30, "name": "KYTFLAK", "iconName": "flakStation.png", "typMap": 207, "image": "ghorFlak.png"},
+                {"id": 71, "name": "Kyt Radar Station", "iconName": "radarStation.png", "typMap": 240, "image": "ghorRadar.png"}
+            ]
+        },
+        "taerkasten": {
+            "units": [
+                {"id": 32,"name": "Eisenhans", "iconName": "eisenhans.png", "mapIcon": 1},
+                {"id": 144,"name": "Ostwind", "iconName": "ostwind.png", "mapIcon": 1},
+                {"id": 37,"name": "Leonid", "iconName": "leonid.png", "mapIcon": 1},
+                {"id": 143,"name": "Thor's Hammer", "iconName": "thorshammer.png", "mapIcon": 1},
+                {"id": 33,"name": "Hetzel", "iconName": "hetzel.png", "mapIcon": 3},
+                {"id": 8,"name": "Phantom", "iconName": "phantom.png", "mapIcon": 3},
+                {"id": 36,"name": "Serp", "iconName": "serp.png", "mapIcon": 3},
+                {"id": 38,"name": "Mnosjetz", "iconName": "mnosjetz.png", "mapIcon": 3},
+                {"id": 131,"name": "Zeppelin", "iconName": "zeppelin.png", "mapIcon": 3},
+                {"id": 34,"name": "Bronsteijn", "iconName": "bronsteijn.png", "mapIcon": 2},
+                {"id": 35,"name": "Otschko", "iconName": "otschko.png", "mapIcon": 4}
+            ],
+            "buildings": [
+                {"id": 53, "name": "TAER POWR", "iconName": "powerStation.png", "typMap": 14, "image": "taerEnergy1.png"},
+                {"id": 17, "name": "TaerPower", "iconName": "powerStation.png", "typMap": 14, "image": "taerEnergy2.png"},
+                {"id": 31, "name": "TAERFLAK", "iconName": "flakStation.png", "typMap": 208, "image": "taerFlak.png"},
+                {"id": 74, "name": "Flak station", "iconName": "flakStation.png", "typMap": 208, "image": "taerFlak.png"},
+                {"id": 73, "name": "Taer Radar Station", "iconName": "radarStation.png", "typMap": 239, "image": "taerRadar.png"}
+            ]
+        },
+        "mykonian": {
+            "units": [
+                {"id": 65,"name": "5PO-Prisma", "iconName": "prisma.png", "mapIcon": 2},
+                {"id": 64,"name": "X01-Quadda", "iconName": "quadda.png", "mapIcon": 3},
+                {"id": 66,"name": "Static", "iconName": "static.png", "mapIcon": 3},
+                {"id": 68,"name": "0815 Ground", "iconName": "ground.png", "mapIcon": 1},
+                {"id": 63,"name": "Hourglass", "iconName": "hourglass.png", "mapIcon": 2},
+                {"id": 145,"name": "Crusher", "iconName": "crusher.png", "mapIcon": 3},
+                {"id": 69,"name": "Airstick", "iconName": "airstick.png", "mapIcon": 3},
+                {"id": 70,"name": "Bomber", "iconName": "bomber.png", "mapIcon": 3},
+                {"id": 67,"name": "Radar", "iconName": "radar.png", "mapIcon": 4}
+            ],
+            "buildings": [
+                {"id": 10, "name": "MykoPower", "iconName": "powerStation.png", "typMap": 229, "image": "mykoEnergy1.png"},
+                {"id": 13, "name": "MykoFlak", "iconName": "flakStation.png", "typMap": 228, "image": "mykoFlak.png"},
+                {"id": 72, "name": "Myk Radar Station", "iconName": "radarStation.png", "typMap": 241, "image": "mykoRadar.png"}
+            ]
+        },
+        "sulgogar": {
+            "units": [
+                {"id": 73,"name": "Blue Spore", "iconName": "blueSpore.png", "mapIcon": 3},
+                {"id": 71,"name": "Mean Green", "iconName": "meanGreen.png", "mapIcon": 3},
+                {"id": 72,"name": "Slime Lord", "iconName": "slimeLord.png", "mapIcon": 3},
+                {"id": 74,"name": "Little Brother", "iconName": "littleBrother.png", "mapIcon": 4}
+            ],
+            "buildings": []
+        },
+        "blackSect": {
+            "units": [],
+            "buildings": [
+                {"id": 18, "name": "Flakstation", "iconName": "flakStation.png", "typMap": 200, "image": "blasecFlak.png"}
+            ]
+        },
+        "training": {
+            "units": [
+                {"id": 138,"name": "Target Drone", "iconName": "targetDrone.png", "mapIcon": 3},
+                {"id": 142,"name": "Target Drone 2", "iconName": "targetDrone.png", "mapIcon": 3}
+            ],
+            "buildings": []
+        },
+        "special": {
+            "units": [
+                {"id": 13,"name": "Evilfurz", "iconName": "evilfurz.png", "mapIcon": 1}
+            ],
+            "buildings": []
+        },
+        "other": {
+            "units": [],
+            "buildings": [
+                {"id": 8, "name": "GRASFLAK2", "iconName": "flakStation.png", "typMap": 79, "image": "GRASFLAK2.png"},
+                {"id": 14, "name": "KraftwerkOBL", "iconName": "powerStation.png", "typMap": 201, "image": "kraftwerkOBL.png"},
+                {"id": 19, "name": "Bodenflak", "iconName": "flakStation.png", "typMap": 1, "image": "bodenflak.png"},
+                {"id": 20, "name": "GFLAK-OW", "iconName": "flakStation.png", "typMap": 199, "image": "gflak-ow.png"},
+                {"id": 21, "name": "GFLAK-NS", "iconName": "flakStation.png", "typMap": 198, "image": "gflak-ns.png"},
+                {"id": 62, "name": "STONEHENGE", "iconName": "powerStation.png", "typMap": 96, "image": "stonehenge.png"},
+                {"id": 29, "name": "STIMMG1", "iconName": "flakStation.png", "typMap": 5, "image": "stimmg1.png"},
+                {"id": 33, "name": "STIMMG2", "iconName": "flakStation.png", "typMap": 7, "image": "stimmg2.png"},
+                {"id": 34, "name": "STIMMG3", "iconName": "flakStation.png", "typMap": 17, "image": "stimmg3.png"},
+                {"id": 22, "name": "BODENFLAK2", "iconName": "flakStation.png", "typMap": 12, "image": "GRASFLAK2.png"},
+                {"id": 23, "name": "BODENFLAK3", "iconName": "flakStation.png", "typMap": 13, "image": "bodenflak.png"},
+                {"id": 24, "name": "BODENFLAK4", "iconName": "flakStation.png", "typMap": 32, "image": "bodenflak4.png"},
+                {"id": 55, "name": "STEFANS FLAK KREU", "iconName": "flakStation.png", "typMap": 140, "image": "GRASFLAK2.png"}
+            ]
+        },
+        "techUpgrade": [
+            {"id": 40, "name": "Ostwind weapon"},
+            {"id": 90, "name": "Resistance flak 1"},
+            {"id": 91, "name": "Resistance flak 2"},
+            {"id": 92, "name": "Resistance flak 3"},
+            {"id": 93, "name": "Resistance flak 4"},
+            {"id": 83, "name": "Ghorkov Small Flak"},
+            {"id": 77, "name": "Ghorkov Big Flak"},
+            {"id": 87, "name": "Taerkasten Flak"}
+        ]
+    }
+}
