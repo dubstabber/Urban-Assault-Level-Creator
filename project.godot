@@ -16,6 +16,10 @@ config/features=PackedStringArray("4.2", "GL Compatibility")
 run/low_processor_mode=true
 config/icon="res://icon.svg"
 
+[gui]
+
+theme/custom="res://ua_theme.tres"
+
 [input]
 
 zoom_in={
