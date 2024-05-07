@@ -19,13 +19,11 @@ func _physics_process(delta):
 	if Input.is_action_pressed("zoom_in"):
 		if map_camera.zoom > zoom_minimum:
 			map_camera.zoom -= zoom_speed * delta
-			recalculate_size()
 			get_tree().get_root().size_changed.emit()
 			
 	elif Input.is_action_pressed("zoom_out"):
 		if map_camera.zoom < zoom_maximum:
 			map_camera.zoom += zoom_speed * delta
-			recalculate_size()
 			get_tree().get_root().size_changed.emit()
 
 
@@ -50,4 +48,3 @@ func _input(event):
 			var mouse_x = round(get_local_mouse_position().x)
 			var mouse_y = round(get_local_mouse_position().y - 40)
 			prints('right click, x:', mouse_x, " ,y:",mouse_y)
-		#queue_redraw()

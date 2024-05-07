@@ -7,6 +7,8 @@ var submenu1: PopupMenu = PopupMenu.new()
 var submenu2: PopupMenu = PopupMenu.new()
 
 func _ready():
+	for hs in Preloads.ua_data.data[CurrentMapData.game_data_type]:
+		print(hs)
 	submenu1.name = "submenu"
 	add_hoststation_menu.add_child(submenu1)
 	submenu1.add_item("submenu submenu1")

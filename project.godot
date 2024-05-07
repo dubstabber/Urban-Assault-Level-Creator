@@ -13,12 +13,11 @@ config_version=5
 config/name="Urban Assault Level Creator"
 run/main_scene="res://main.tscn"
 config/features=PackedStringArray("4.2", "GL Compatibility")
-run/low_processor_mode=true
-config/icon="res://icon.svg"
 
 [autoload]
 
 CurrentMapData="*res://globals/CurrentMapData.gd"
+Preloads="*res://globals/Preloads.gd"
 
 [gui]
 
