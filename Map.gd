@@ -22,8 +22,13 @@ func _physics_process(delta):
 
 
 func _draw() -> void:
-	draw_rect(Rect2(20,20, 1200,1200), Color.WHITE, false, 35.0)
-
+	var v_grid := 1200
+	for v_sector in CurrentMapData.vertical_sectors:
+		var h_grid := 1200
+		for h_sector in CurrentMapData.horizontal_sectors:
+			draw_rect(Rect2(h_grid,v_grid, 1200,1200), Color.WHITE, false, 35.0)
+			h_grid += 1200
+		v_grid += 1200
 
 func _input(event):
 	if event is InputEventMouseButton:

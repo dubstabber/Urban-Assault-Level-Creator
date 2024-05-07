@@ -45,3 +45,5 @@ anchor_mode = 0
 
 [node name="Map" type="Node2D" parent="SubViewportContainer/SubViewport"]
 script = ExtResource("2_dum0m")
+
+[connection signal="map_created" from="UI" to="." method="_on_ui_map_created"]

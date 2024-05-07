@@ -1,7 +1,7 @@
 extends Node2D
 
 
-#@onready var map = $Map
+@onready var map = $SubViewportContainer/SubViewport/Map
 @onready var context_menu = $ContextMenu
 
 
@@ -13,3 +13,7 @@ func _input(event):
 			context_menu.position = Vector2(mouse_x, mouse_y - context_menu.size.y)
 			context_menu.show_popup()
 			prints('main: right click, x:', mouse_x, " ,y:",mouse_y)
+
+
+func _on_ui_map_created():
+	map.queue_redraw()

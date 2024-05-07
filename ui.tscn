@@ -19,6 +19,8 @@ script = ExtResource("1_cguc0")
 title = "Create a new map"
 initial_position = 1
 size = Vector2i(530, 200)
+visible = false
+exclusive = true
 
 [node name="PanelContainer" type="PanelContainer" parent="NewMapWindow"]
 anchors_preset = 15
@@ -81,10 +83,12 @@ theme_override_constants/margin_bottom = 15
 layout_mode = 2
 theme_override_constants/separation = 20
 
-[node name="Button" type="Button" parent="NewMapWindow/PanelContainer/MarginContainer3/HBoxContainer"]
+[node name="CancelButton" type="Button" parent="NewMapWindow/PanelContainer/MarginContainer3/HBoxContainer"]
 layout_mode = 2
 text = "Cancel"
 
-[node name="Button2" type="Button" parent="NewMapWindow/PanelContainer/MarginContainer3/HBoxContainer"]
+[node name="CreateButton" type="Button" parent="NewMapWindow/PanelContainer/MarginContainer3/HBoxContainer"]
 layout_mode = 2
 text = "Create"
+
+[connection signal="pressed" from="NewMapWindow/PanelContainer/MarginContainer3/HBoxContainer/CreateButton" to="." method="_on_create_button_pressed"]
