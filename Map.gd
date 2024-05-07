@@ -6,6 +6,7 @@ var zoom_maximum = Vector2(.3,.3)
 var zoom_speed = Vector2(.06,.06)
 var map_total_width: int
 var map_total_height: int
+var sector_indent: int = 40
 
 @onready var map_camera = $".."
 
@@ -38,7 +39,7 @@ func _draw() -> void:
 	for v_sector in CurrentMapData.vertical_sectors:
 		var h_grid := 1200
 		for h_sector in CurrentMapData.horizontal_sectors:
-			draw_rect(Rect2(h_grid,v_grid, 1200,1200), Color.WHITE, false, 35.0)
+			draw_rect(Rect2(h_grid,v_grid, 1200-sector_indent,1200-sector_indent), Color.WHITE, false, 25.0)
 			h_grid += 1200
 		v_grid += 1200
 
