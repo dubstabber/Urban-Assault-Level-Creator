@@ -2,7 +2,7 @@
 	"original": {
 		"hoststations": {
 			"resistance": {
-				"icon": "res.png",
+				"icon": "Res.png",
 				"robos": [
 					{"id": 56, "name": "Resistance Host Station", "image": "resistanceHS.png"}
 				],

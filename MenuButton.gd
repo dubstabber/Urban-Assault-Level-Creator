@@ -12,10 +12,8 @@ func _ready():
 	hs_submenu.name = "hoststation"
 	add_hoststation_menu.add_child(hs_submenu)
 	for hs in Preloads.ua_data.data[CurrentMapData.game_data_type].hoststations:
-		hs_submenu.add_item(hs)
-		#Preloads.ua_data.data[CurrentMapData.game_data_type].hoststations.hs.icon
-		#var hs_icon = load()
-		#hs_submenu.add_icon_item()
+		var hs_icon = load("res://resources/img/"+Preloads.ua_data.data[CurrentMapData.game_data_type].hoststations[hs].icon)
+		hs_submenu.add_icon_item(hs_icon, hs)
 	add_hoststation_menu.add_submenu_item("Add host station", "hoststation")
 
 	#submenu1.name = "submenu"
