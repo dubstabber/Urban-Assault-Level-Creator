@@ -30,7 +30,7 @@ text = "
 script = ExtResource("4_ife4a")
 
 [node name="ScrollContainer" type="ScrollContainer" parent="."]
-offset_right = 40.0
+offset_top = 40.0
 offset_bottom = 40.0
 
 [node name="SubViewportContainer" type="SubViewportContainer" parent="ScrollContainer"]
@@ -41,6 +41,7 @@ stretch = true
 [node name="SubViewport" type="SubViewport" parent="ScrollContainer/SubViewportContainer"]
 handle_input_locally = false
 size = Vector2i(2, 2)
+render_target_update_mode = 4
 
 [node name="Map" type="Node2D" parent="ScrollContainer/SubViewportContainer/SubViewport"]
 script = ExtResource("2_dum0m")

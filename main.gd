@@ -1,8 +1,9 @@
 extends Node2D
 
-@onready var map = $ScrollContainer/SubViewportContainer/SubViewport/Map
-@onready var sub_viewport_container = $ScrollContainer/SubViewportContainer
+
 @onready var scroll_container = $ScrollContainer
+@onready var sub_viewport_container = $ScrollContainer/SubViewportContainer
+@onready var map = $ScrollContainer/SubViewportContainer/SubViewport/Map
 @onready var context_menu = $ContextMenu
 
 
@@ -26,7 +27,7 @@ func _on_ui_map_created():
 
 func _on_resize():
 	scroll_container.size.x = DisplayServer.window_get_size().x 
-	scroll_container.size.y = DisplayServer.window_get_size().y 
+	scroll_container.size.y = DisplayServer.window_get_size().y -40
 	map.recalculate_size()
 	sub_viewport_container.custom_minimum_size.x = map.map_visible_width
 	sub_viewport_container.custom_minimum_size.y = map.map_visible_height
