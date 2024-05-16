@@ -34,20 +34,19 @@ offset_right = 40.0
 offset_bottom = 40.0
 
 [node name="SubViewportContainer" type="SubViewportContainer" parent="ScrollContainer"]
+clip_contents = true
 layout_mode = 2
 stretch = true
 
 [node name="SubViewport" type="SubViewport" parent="ScrollContainer/SubViewportContainer"]
 handle_input_locally = false
 size = Vector2i(2, 2)
-render_target_update_mode = 4
 
-[node name="Camera2D" type="Camera2D" parent="ScrollContainer/SubViewportContainer/SubViewport"]
-anchor_mode = 0
-
-[node name="Map" type="Control" parent="ScrollContainer/SubViewportContainer/SubViewport/Camera2D"]
-layout_mode = 3
-anchors_preset = 0
+[node name="Map" type="Node2D" parent="ScrollContainer/SubViewportContainer/SubViewport"]
 script = ExtResource("2_dum0m")
+
+[node name="Camera2D" type="Camera2D" parent="ScrollContainer/SubViewportContainer/SubViewport/Map"]
+anchor_mode = 0
+zoom = Vector2(0.1, 0.1)
 
 [connection signal="map_created" from="UI" to="." method="_on_ui_map_created"]
