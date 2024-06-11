@@ -40,32 +40,41 @@ func _input(event):
 
 
 func _draw():
+	if CurrentMapData.horizontal_sectors == 0 or CurrentMapData.vertical_sectors == 0:
+		return
 	var current_sector := 0
-	var v_grid := 1200
-	for v_sector in CurrentMapData.vertical_sectors:
-		var h_grid := 1200
-		for h_sector in CurrentMapData.horizontal_sectors:
+	var current_border_sector := 0
+	var v_grid := 0
+	for y_sector in CurrentMapData.vertical_sectors+2:
+		var h_grid := 0
+		for x_sector in CurrentMapData.horizontal_sectors+2:
 			var sector_color
-			match CurrentMapData.typ_map[current_sector]:
-				0:
-					sector_color = Color.BLACK
-				1:
-					sector_color = Color.BLUE
-				2:
-					sector_color = Color.GREEN
-				3:
-					sector_color = Color.WHITE
-				4:
-					sector_color = Color.YELLOW
-				5:
-					sector_color = Color.DARK_GRAY
-				6:
-					sector_color = Color.RED
-				7:
-					sector_color = Color.BLACK
-			draw_rect(Rect2(h_grid,v_grid, 1200-sector_indent,1200-sector_indent), sector_color, false, 25.0)
+			if (x_sector > 0 and x_sector < CurrentMapData.horizontal_sectors+1 and 
+				y_sector > 0 and y_sector < CurrentMapData.vertical_sectors+1):
+				match CurrentMapData.typ_map[current_sector]:
+					0:
+						sector_color = Color.BLACK
+					1:
+						sector_color = Color.BLUE
+					2:
+						sector_color = Color.GREEN
+					3:
+						sector_color = Color.WHITE
+					4:
+						sector_color = Color.YELLOW
+					5:
+						sector_color = Color.DARK_GRAY
+					6:
+						sector_color = Color.RED
+					7:
+						sector_color = Color.BLACK
+				draw_rect(Rect2(h_grid,v_grid, 1200-sector_indent,1200-sector_indent), sector_color, false, 25.0)
+				current_sector += 1
+			if current_border_sector == CurrentMapData.border_selected_sector:
+				draw_rect(Rect2(h_grid,v_grid, 1200-sector_indent,1200-sector_indent), Color.DARK_SLATE_GRAY)
 			h_grid += 1200
-			current_sector += 1
+			current_border_sector += 1
+			
 		v_grid += 1200
 
 
@@ -103,4 +112,4 @@ func handle_selection(clicked_x, clicked_y):
 				sector_counter += 1
 		v_size += 1200
 		h_size = 0
-	
+	queue_redraw()
