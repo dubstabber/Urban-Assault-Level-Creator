@@ -10,6 +10,10 @@ var own_map: Array[int] = []
 var hgt_map: Array[int] = []
 var blg_map: Array[int] = []
 
+
+var selected_unit: Sprite2D
+var selected_sector: int
+
 func _ready():
 	game_data_type = Preloads.ua_data.data.keys()[0]
 	for hs in Preloads.ua_data.data[game_data_type].hoststations:

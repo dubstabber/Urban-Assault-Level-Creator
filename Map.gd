@@ -32,10 +32,11 @@ func _physics_process(delta):
 
 
 func _input(event):
+	if event.is_action_pressed("select"):
+		handle_selection(round(get_local_mouse_position().x), round(get_local_mouse_position().y))
 	if event.is_action_pressed("context_menu"):
 		right_clicked_x = round(get_local_mouse_position().x)
 		right_clicked_y = round(get_local_mouse_position().y - 40)
-		#prints('right click, x:', right_clicked_x, " ,y:",right_clicked_y)
 
 
 func _draw():
@@ -81,4 +82,22 @@ func add_hoststation(hs: String):
 	hoststation.position.x = right_clicked_x
 	hoststation.position.y = right_clicked_y
 	hoststation.scale = (Vector2(10,10))
+	
+
+func handle_selection(clicked_x, clicked_y):
+	var sector_counter := 0
+	var h_size := 0
+	var v_size := 0
+	for y_sector in CurrentMapData.vertical_sectors+2:
+		for x_sector in CurrentMapData.horizontal_sectors+2:
+			if clicked_x > h_size and clicked_x < h_size + 1200 and clicked_y > v_size and clicked_y < v_size + 1200:
+				#prints(x_sector,y_sector)
+				CurrentMapData.selected_sector = sector_counter
+				break
+			h_size += 1200
+			if (y_sector > 0 and y_sector < CurrentMapData.vertical_sectors+1 and 
+				x_sector > 0 and x_sector < CurrentMapData.horizontal_sectors+1):
+				sector_counter += 1
+		v_size += 1200
+		h_size = 0
 	
