@@ -13,12 +13,18 @@ var con_delay: int
 var def_budget: int
 var def_delay: int
 
+var pos_to_move: Vector2
+
 @onready var button = $Button
 
 
 func _process(_delta):
 	if dragging:
-		position = get_global_mouse_position() - of
+		pos_to_move = get_global_mouse_position() - of
+		if pos_to_move.x > 1200 and pos_to_move.x < CurrentMapData.horizontal_sectors*1200+1200:
+			position.x = pos_to_move.x
+		if pos_to_move.y > 1200 and pos_to_move.y < CurrentMapData.vertical_sectors*1200+1200:
+			position.y = pos_to_move.y
 
 
 func _on_button_button_down():

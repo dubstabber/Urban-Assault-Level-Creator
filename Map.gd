@@ -36,7 +36,7 @@ func _input(event):
 		if event.is_action_pressed("context_menu"):
 			right_clicked_x = round(get_local_mouse_position().x)
 			right_clicked_y = round(get_local_mouse_position().y - 40)
-			prints('right click, x:', right_clicked_x, " ,y:",right_clicked_y)
+			#prints('right click, x:', right_clicked_x, " ,y:",right_clicked_y)
 
 
 func _draw():
