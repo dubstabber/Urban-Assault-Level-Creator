@@ -32,22 +32,40 @@ func _physics_process(delta):
 
 
 func _input(event):
-	if event is InputEventMouseButton:
-		if event.is_action_pressed("context_menu"):
-			right_clicked_x = round(get_local_mouse_position().x)
-			right_clicked_y = round(get_local_mouse_position().y - 40)
-			#prints('right click, x:', right_clicked_x, " ,y:",right_clicked_y)
+	if event.is_action_pressed("context_menu"):
+		right_clicked_x = round(get_local_mouse_position().x)
+		right_clicked_y = round(get_local_mouse_position().y - 40)
+		#prints('right click, x:', right_clicked_x, " ,y:",right_clicked_y)
 
 
 func _draw():
+	var current_sector := 0
 	var v_grid := 1200
 	for v_sector in CurrentMapData.vertical_sectors:
 		var h_grid := 1200
 		for h_sector in CurrentMapData.horizontal_sectors:
-			draw_rect(Rect2(h_grid,v_grid, 1200-sector_indent,1200-sector_indent), Color.WHITE, false, 25.0)
+			var sector_color
+			match CurrentMapData.typ_map[current_sector]:
+				0:
+					sector_color = Color.BLACK
+				1:
+					sector_color = Color.BLUE
+				2:
+					sector_color = Color.GREEN
+				3:
+					sector_color = Color.WHITE
+				4:
+					sector_color = Color.YELLOW
+				5:
+					sector_color = Color.DARK_GRAY
+				6:
+					sector_color = Color.RED
+				7:
+					sector_color = Color.BLACK
+			draw_rect(Rect2(h_grid,v_grid, 1200-sector_indent,1200-sector_indent), sector_color, false, 25.0)
 			h_grid += 1200
+			current_sector += 1
 		v_grid += 1200
-	
 
 
 func recalculate_size():

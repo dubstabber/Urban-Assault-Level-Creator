@@ -12,3 +12,12 @@ func _on_create_button_pressed():
 	CurrentMapData.vertical_sectors = vertical_sectors.value
 	new_map_window.hide()
 	map_created.emit()
+	var sectors = CurrentMapData.horizontal_sectors * CurrentMapData.vertical_sectors
+	for sector in sectors:
+		CurrentMapData.typ_map.append(0)
+		CurrentMapData.own_map.append(0)
+		CurrentMapData.blg_map.append(0)
+		
+	var sectors_with_borders = (CurrentMapData.horizontal_sectors+2) * (CurrentMapData.vertical_sectors+2)
+	for sector in sectors_with_borders:
+		CurrentMapData.hgt_map.append(0)
