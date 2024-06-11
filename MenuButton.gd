@@ -35,18 +35,5 @@ func _ready():
 
 
 func add_hoststation(idx):
-	match idx:
-		0:
-			map.add_hoststation("Resistance")
-		1:
-			print('add ghorkov')
-		2:
-			print('add taerkasten')
-		3:
-			print('add mykonian')
-		4:
-			print('add sulgogar')
-		5:
-			print('add black sect')
-		6:
-			print('add training hs')
+	map.add_hoststation(hs_submenu.get_item_text(idx))
+
