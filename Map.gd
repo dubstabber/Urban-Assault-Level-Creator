@@ -8,7 +8,11 @@ var map_visible_width: int
 var map_visible_height: int
 var sector_indent: int = 40
 
+var right_clicked_x: int
+var right_clicked_y: int
+
 @onready var map_camera = $Camera2D
+@onready var host_stations = $HostStations
 
 
 func _ready():
@@ -30,9 +34,9 @@ func _physics_process(delta):
 func _input(event):
 	if event is InputEventMouseButton:
 		if event.is_action_pressed("context_menu"):
-			var mouse_x = round(get_local_mouse_position().x)
-			var mouse_y = round(get_local_mouse_position().y - 40)
-			prints('right click, x:', mouse_x, " ,y:",mouse_y)
+			right_clicked_x = round(get_local_mouse_position().x)
+			right_clicked_y = round(get_local_mouse_position().y - 40)
+			prints('right click, x:', right_clicked_x, " ,y:",right_clicked_y)
 
 
 func _draw():
@@ -43,6 +47,7 @@ func _draw():
 			draw_rect(Rect2(h_grid,v_grid, 1200-sector_indent,1200-sector_indent), Color.WHITE, false, 25.0)
 			h_grid += 1200
 		v_grid += 1200
+	
 
 
 func recalculate_size():
@@ -50,3 +55,12 @@ func recalculate_size():
 	map_visible_height = map_camera.zoom.y * ((CurrentMapData.vertical_sectors+2) * 1200)
 
 
+func add_hoststation(hs: String):
+	var hoststation = Preloads.HOSTSTATION.instantiate()
+	host_stations.add_child(hoststation)
+	hoststation.create(Preloads.ua_data.data[CurrentMapData.game_data_type].hoststations[hs].owner,
+		Preloads.ua_data.data[CurrentMapData.game_data_type].hoststations[hs].robos[0].id)
+	hoststation.position.x = right_clicked_x
+	hoststation.position.y = right_clicked_y
+	hoststation.scale = (Vector2(10,10))
+	

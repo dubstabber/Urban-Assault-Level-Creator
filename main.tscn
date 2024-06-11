@@ -50,4 +50,6 @@ script = ExtResource("2_dum0m")
 anchor_mode = 0
 zoom = Vector2(0.1, 0.1)
 
+[node name="HostStations" type="Node2D" parent="ScrollContainer/SubViewportContainer/SubViewport/Map"]
+
 [connection signal="map_created" from="UI" to="." method="_on_ui_map_created"]

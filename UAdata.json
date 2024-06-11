@@ -1,7 +1,8 @@
 {
 	"original": {
 		"hoststations": {
-			"resistance": {
+			"Resistance": {
+				"owner": 1,
 				"icon": "Res.png",
 				"robos": [
 					{"id": 56, "name": "Resistance Host Station", "image": "resistanceHS.png"}
@@ -35,7 +36,8 @@
 					{"id": 54, "name": "Radar Station 2", "iconName": "radarStation.png", "typMap": 204, "image": "resRadar.png"}
 				]
 			},
-			"ghorkov": {
+			"Ghorkov": {
+				"owner": 6,
 				"icon": "Ghor.png",
 				"robos": [
 					{"id": 59, "name": "Turantul I", "image": "ghorkov1HS.png"},
@@ -61,7 +63,8 @@
 					{"id": 71, "name": "Kyt Radar Station", "iconName": "radarStation.png", "typMap": 240, "image": "ghorRadar.png"}
 				]
 			},
-			"taerkasten": {
+			"Taerkasten": {
+				"owner": 4,
 				"icon": "Taer.png",
 				"robos": [
 					{"id": 60, "name": "Taerkasten Flying Fortness", "image": "taerkastenHS.png"}
@@ -84,7 +87,8 @@
 					{"id": 73, "name": "Taer Radar Station", "iconName": "radarStation.png", "typMap": 239, "image": "taerRadar.png"}
 				]
 			},
-			"mykonian": {
+			"Mykonian": {
+				"owner": 3,
 				"icon": "Myko.png",
 				"robos": [
 					{"id": 58, "name": "Myko Station", "image": "mykonianHS.png"}
@@ -105,7 +109,8 @@
 					{"id": 72, "name": "Myk Radar Station", "iconName": "radarStation.png", "typMap": 241, "image": "mykoRadar.png"}
 				]
 			},
-			"sulgogar": {
+			"Sulgogar": {
+				"owner": 2,
 				"icon": "Sulg.png",
 				"robos": [
 					{"id": 61, "name": "Sulgogar Queen", "image": "sulgogarHS.png"}
@@ -118,7 +123,8 @@
 				],
 				"buildings": []
 			},
-			"blackSect": {
+			"BlackSect": {
+				"owner": 5,
 				"icon": "Blacksect.png",
 				"robos": [
 					{"id": 62, "name": "Black Sect Station", "image": "blackSectHS.png"}
@@ -128,7 +134,8 @@
 					{"id": 18, "name": "Flakstation", "iconName": "flakStation.png", "typMap": 200, "image": "blasecFlak.png"}
 				]
 			},
-			"training": {
+			"Training": {
+				"owner": 7,
 				"icon": "Training.png",
 				"robos": [
 					{"id": 132, "name": "Target Host Station", "image": "targetHS.png"}
@@ -168,7 +175,8 @@
 	},
 	"metropolisDawn": {
 		"hoststations": {
-			"resistance": {
+			"Resistance": {
+				"owner": 1,
 				"icon": "res.png",
 				"robos": [
 					{"id": 56, "name": "Resistance Host Station", "image": "resistanceHS.png"}
@@ -202,7 +210,8 @@
 					{"id": 54, "name": "Radar Station 2", "iconName": "radarStation.png", "typMap": 204, "image": "resRadar.png"}
 				]
 		},
-		"ghorkov": {
+		"Ghorkov": {
+			"owner": 6,
 			"icon": "Ghor.png",
 				"robos": [
 					{"id": 59, "playerID": 176, "name": "Turantul I", "image": "ghorkov1HS.png"},
@@ -228,7 +237,8 @@
 				{"id": 71, "name": "Kyt Radar Station", "iconName": "radarStation.png", "typMap": 240, "image": "ghorRadar.png"}
 			]
 		},
-		"taerkasten": {
+		"Taerkasten": {
+			"owner": 4,
 			"robos": [
 				{"id": 60, "playerID": 178, "name": "Taerkasten Flying Fortness", "image": "taerkastenHS.png"}
 			],
@@ -253,7 +263,8 @@
 				{"id": 73, "name": "Taer Radar Station", "iconName": "radarStation.png", "typMap": 239, "image": "taerRadar.png"}
 			]
 		},
-		"mykonian": {
+		"Mykonian": {
+			"owner": 3,
 			"units": [
 				{"id": 65,"name": "5PO-Prisma", "iconName": "prisma.png", "mapIcon": 2},
 				{"id": 64,"name": "X01-Quadda", "iconName": "quadda.png", "mapIcon": 3},
@@ -271,7 +282,8 @@
 				{"id": 72, "name": "Myk Radar Station", "iconName": "radarStation.png", "typMap": 241, "image": "mykoRadar.png"}
 			]
 		},
-		"sulgogar": {
+		"Sulgogar": {
+			"owner": 2,
 			"units": [
 				{"id": 73,"name": "Blue Spore", "iconName": "blueSpore.png", "mapIcon": 3},
 				{"id": 71,"name": "Mean Green", "iconName": "meanGreen.png", "mapIcon": 3},
@@ -280,13 +292,15 @@
 			],
 			"buildings": []
 		},
-		"blackSect": {
+		"BlackSect": {
+			"owner": 5,
 			"units": [],
 			"buildings": [
 				{"id": 18, "name": "Flakstation", "iconName": "flakStation.png", "typMap": 200, "image": "blasecFlak.png"}
 			]
 		},
-		"training": {
+		"Training": {
+			"owner": 7,
 			"units": [
 				{"id": 138,"name": "Target Drone", "iconName": "targetDrone.png", "mapIcon": 3},
 				{"id": 142,"name": "Target Drone 2", "iconName": "targetDrone.png", "mapIcon": 3}
