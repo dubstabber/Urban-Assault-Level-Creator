@@ -86,6 +86,7 @@ func add_hoststation(hs: String):
 
 func handle_selection(clicked_x, clicked_y):
 	var sector_counter := 0
+	var border_sector_counter := 0
 	var h_size := 0
 	var v_size := 0
 	for y_sector in CurrentMapData.vertical_sectors+2:
@@ -93,8 +94,10 @@ func handle_selection(clicked_x, clicked_y):
 			if clicked_x > h_size and clicked_x < h_size + 1200 and clicked_y > v_size and clicked_y < v_size + 1200:
 				#prints(x_sector,y_sector)
 				CurrentMapData.selected_sector = sector_counter
+				CurrentMapData.border_selected_sector = border_sector_counter
 				break
 			h_size += 1200
+			border_sector_counter += 1
 			if (y_sector > 0 and y_sector < CurrentMapData.vertical_sectors+1 and 
 				x_sector > 0 and x_sector < CurrentMapData.horizontal_sectors+1):
 				sector_counter += 1

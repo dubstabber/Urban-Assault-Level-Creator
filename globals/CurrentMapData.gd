@@ -12,7 +12,8 @@ var blg_map: Array[int] = []
 
 
 var selected_unit: Sprite2D
-var selected_sector: int
+var selected_sector: int = -1
+var border_selected_sector: int = -1
 
 func _ready():
 	game_data_type = Preloads.ua_data.data.keys()[0]
