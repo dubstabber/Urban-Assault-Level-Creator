@@ -30,3 +30,4 @@ func _on_resize():
 	map.recalculate_size()
 	sub_viewport_container.custom_minimum_size.x = map.map_visible_width
 	sub_viewport_container.custom_minimum_size.y = map.map_visible_height
+

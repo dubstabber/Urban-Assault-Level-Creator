@@ -53,7 +53,7 @@ func _on_button_button_up():
 
 func _on_button_gui_input(event):
 	if event.is_action_pressed("select"):
-		print("selected")
+		add_to_group("selected")
 
 
 func create(_owner_id, _vehicle):

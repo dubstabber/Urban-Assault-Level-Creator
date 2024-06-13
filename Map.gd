@@ -10,6 +10,7 @@ var sector_indent: int = 40
 
 var right_clicked_x: int
 var right_clicked_y: int
+var is_selection_kept := false
 
 @onready var map_camera = $Camera2D
 @onready var host_stations = $HostStations
@@ -32,11 +33,26 @@ func _physics_process(delta):
 
 
 func _input(event):
+	if event.is_action_pressed("hold"):
+		is_selection_kept = true
+	elif event.is_action_released("hold"):
+		is_selection_kept = false
 	if event.is_action_pressed("select"):
 		handle_selection(round(get_local_mouse_position().x), round(get_local_mouse_position().y))
+		if is_selection_kept:
+			print('selection is kept')
+		#get_tree().call_group("selected")
 	if event.is_action_pressed("context_menu"):
 		right_clicked_x = round(get_local_mouse_position().x)
 		right_clicked_y = round(get_local_mouse_position().y - 40)
+	if event.is_action_pressed("resistance_sector"):
+		if CurrentMapData.selected_sector >= 0:
+			CurrentMapData.typ_map[CurrentMapData.selected_sector] = 1
+			queue_redraw()
+	if event.is_action_pressed("ghorkov_sector"):
+		if CurrentMapData.selected_sector >= 0:
+			CurrentMapData.typ_map[CurrentMapData.selected_sector] = 6
+			queue_redraw()
 
 
 func _draw():
@@ -113,3 +129,5 @@ func handle_selection(clicked_x, clicked_y):
 		v_size += 1200
 		h_size = 0
 	queue_redraw()
+
+
