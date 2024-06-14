@@ -12,6 +12,10 @@ func _ready():
 
 
 func _input(event):
+	if event.is_action_pressed("select"):
+		CurrentMapData.border_selected_sector = -1
+		CurrentMapData.selected_sector = -1
+		map.queue_redraw()
 	if event.is_action_pressed("context_menu"):
 		var mouse_x = round(get_local_mouse_position().x)
 		var mouse_y = round(get_local_mouse_position().y)
