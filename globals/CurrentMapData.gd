@@ -2,9 +2,9 @@ extends Node
 
 var hs_images := {}
 var game_data_type:String
+
 var horizontal_sectors := 0
 var vertical_sectors := 0
-
 var typ_map: Array[int] = []
 var own_map: Array[int] = []
 var hgt_map: Array[int] = []

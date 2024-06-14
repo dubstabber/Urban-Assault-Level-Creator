@@ -1,12 +1,12 @@
 extends Node2D
 
 
-var zoom_minimum = Vector2(.03,.03)
-var zoom_maximum = Vector2(.3,.3)
-var zoom_speed = Vector2(.06,.06)
+var zoom_minimum := Vector2(.03,.03)
+var zoom_maximum := Vector2(.3,.3)
+var zoom_speed := Vector2(.06,.06)
 var map_visible_width: int
 var map_visible_height: int
-var sector_indent: int = 40
+var sector_indent := 40
 
 var right_clicked_x: int
 var right_clicked_y: int
@@ -38,7 +38,6 @@ func _input(event):
 	elif event.is_action_released("hold"):
 		is_selection_kept = false
 	if event.is_action_pressed("select"):
-		CurrentMapData.selected_unit = null
 		handle_selection(round(get_local_mouse_position().x), round(get_local_mouse_position().y))
 		if is_selection_kept:
 			print('selection is kept')

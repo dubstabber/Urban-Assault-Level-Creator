@@ -13,6 +13,7 @@ func _ready():
 
 func _input(event):
 	if event.is_action_pressed("select"):
+		CurrentMapData.selected_unit = null
 		CurrentMapData.border_selected_sector = -1
 		CurrentMapData.selected_sector = -1
 		map.queue_redraw()
