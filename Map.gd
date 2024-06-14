@@ -38,10 +38,10 @@ func _input(event):
 	elif event.is_action_released("hold"):
 		is_selection_kept = false
 	if event.is_action_pressed("select"):
+		CurrentMapData.selected_unit = null
 		handle_selection(round(get_local_mouse_position().x), round(get_local_mouse_position().y))
 		if is_selection_kept:
 			print('selection is kept')
-		#get_tree().call_group("selected")
 	if event.is_action_pressed("context_menu"):
 		right_clicked_x = round(get_local_mouse_position().x)
 		right_clicked_y = round(get_local_mouse_position().y - 40)

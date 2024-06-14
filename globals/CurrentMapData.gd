@@ -11,7 +11,7 @@ var hgt_map: Array[int] = []
 var blg_map: Array[int] = []
 
 
-var selected_unit: Sprite2D
+var selected_unit
 var selected_sector: int = -1
 var border_selected_sector: int = -1
 

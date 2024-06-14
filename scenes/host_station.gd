@@ -53,7 +53,7 @@ func _on_button_button_up():
 
 func _on_button_gui_input(event):
 	if event.is_action_pressed("select"):
-		add_to_group("selected")
+		CurrentMapData.selected_unit = self
 
 
 func create(_owner_id, _vehicle):
