@@ -75,7 +75,7 @@ func _draw():
 					4:
 						sector_color = Color.YELLOW
 					5:
-						sector_color = Color.DARK_GRAY
+						sector_color = Color.DIM_GRAY
 					6:
 						sector_color = Color.RED
 					7:
@@ -105,7 +105,7 @@ func add_hoststation(hs: String):
 	hoststation.scale = (Vector2(10,10))
 	
 
-func handle_selection(clicked_x, clicked_y):
+func handle_selection(clicked_x: int, clicked_y: int):
 	var sector_counter := 0
 	var border_sector_counter := 0
 	var h_size := 0
@@ -127,7 +127,7 @@ func handle_selection(clicked_x, clicked_y):
 	queue_redraw()
 
 
-func change_sector_owner(owner_id):
+func change_sector_owner(owner_id: int):
 	if CurrentMapData.selected_sector >= 0:
 		CurrentMapData.typ_map[CurrentMapData.selected_sector] = owner_id
 		queue_redraw()
