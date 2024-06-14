@@ -45,14 +45,10 @@ func _input(event):
 	if event.is_action_pressed("context_menu"):
 		right_clicked_x = round(get_local_mouse_position().x)
 		right_clicked_y = round(get_local_mouse_position().y - 40)
-	if event.is_action_pressed("resistance_sector"):
-		if CurrentMapData.selected_sector >= 0:
-			CurrentMapData.typ_map[CurrentMapData.selected_sector] = 1
-			queue_redraw()
-	if event.is_action_pressed("ghorkov_sector"):
-		if CurrentMapData.selected_sector >= 0:
-			CurrentMapData.typ_map[CurrentMapData.selected_sector] = 6
-			queue_redraw()
+	if event is InputEventKey and event.pressed:
+		var number_key = event.unicode - KEY_0
+		if number_key >= 0 and number_key <= 7:
+			change_sector_owner(number_key)
 
 
 func _draw():
@@ -131,3 +127,7 @@ func handle_selection(clicked_x, clicked_y):
 	queue_redraw()
 
 
+func change_sector_owner(owner_id):
+	if CurrentMapData.selected_sector >= 0:
+		CurrentMapData.typ_map[CurrentMapData.selected_sector] = owner_id
+		queue_redraw()
