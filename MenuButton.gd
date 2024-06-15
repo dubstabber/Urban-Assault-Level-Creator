@@ -9,7 +9,7 @@ var submenu2: PopupMenu = PopupMenu.new()
 
 var hs_submenu: PopupMenu = PopupMenu.new()
 
-@onready var map = $"../ScrollContainer/SubViewportContainer/SubViewport/Map"
+@onready var map = $"../PanelContainer/MarginContainer/VBoxContainer/HBoxContainer/MapContainer/SubViewportContainer/SubViewport/Map"
 
 
 func _ready():

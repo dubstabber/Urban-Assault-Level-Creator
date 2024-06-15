@@ -5,22 +5,32 @@
 [ext_resource type="PackedScene" uid="uid://bxpgr6q0fq3fb" path="res://ui.tscn" id="3_5x600"]
 [ext_resource type="Script" path="res://MenuButton.gd" id="4_ife4a"]
 
-[node name="Main" type="Node2D"]
+[node name="Main" type="Control"]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
 script = ExtResource("1_7pb5r")
 
 [node name="Camera2D" type="Camera2D" parent="."]
+visible = false
 anchor_mode = 0
 
 [node name="UI" parent="." instance=ExtResource("3_5x600")]
 
 [node name="ContextMenu" type="MenuButton" parent="."]
+layout_mode = 1
 anchors_preset = 8
 anchor_left = 0.5
 anchor_top = 0.5
 anchor_right = 0.5
 anchor_bottom = 0.5
-offset_right = 8.0
-offset_bottom = 31.0
+offset_left = -20.0
+offset_top = -20.0
+offset_right = -12.0
+offset_bottom = 11.0
 grow_horizontal = 2
 grow_vertical = 2
 size_flags_horizontal = 0
@@ -29,29 +39,60 @@ text = "
 "
 script = ExtResource("4_ife4a")
 
-[node name="ScrollContainer" type="ScrollContainer" parent="."]
-offset_top = 40.0
-offset_bottom = 40.0
+[node name="PanelContainer" type="PanelContainer" parent="."]
+layout_mode = 1
+anchors_preset = -1
+anchor_top = 0.062
+anchor_right = 1.0
+anchor_bottom = 0.937
+offset_top = -0.176003
+offset_bottom = -0.176025
+grow_horizontal = 2
+grow_vertical = 2
 
-[node name="SubViewportContainer" type="SubViewportContainer" parent="ScrollContainer"]
+[node name="MarginContainer" type="MarginContainer" parent="PanelContainer"]
+layout_mode = 2
+
+[node name="VBoxContainer" type="VBoxContainer" parent="PanelContainer/MarginContainer"]
+layout_mode = 2
+
+[node name="HBoxContainer" type="HBoxContainer" parent="PanelContainer/MarginContainer/VBoxContainer"]
+layout_mode = 2
+
+[node name="MapContainer" type="ScrollContainer" parent="PanelContainer/MarginContainer/VBoxContainer/HBoxContainer"]
+custom_minimum_size = Vector2(200, 200)
+layout_mode = 2
+
+[node name="SubViewportContainer" type="SubViewportContainer" parent="PanelContainer/MarginContainer/VBoxContainer/HBoxContainer/MapContainer"]
 clip_contents = true
 layout_mode = 2
 stretch = true
 
-[node name="SubViewport" type="SubViewport" parent="ScrollContainer/SubViewportContainer"]
+[node name="SubViewport" type="SubViewport" parent="PanelContainer/MarginContainer/VBoxContainer/HBoxContainer/MapContainer/SubViewportContainer"]
 handle_input_locally = false
 size = Vector2i(2, 2)
 render_target_update_mode = 4
 
-[node name="Map" type="Node2D" parent="ScrollContainer/SubViewportContainer/SubViewport"]
+[node name="Map" type="Node2D" parent="PanelContainer/MarginContainer/VBoxContainer/HBoxContainer/MapContainer/SubViewportContainer/SubViewport"]
 script = ExtResource("2_dum0m")
 
-[node name="Camera2D" type="Camera2D" parent="ScrollContainer/SubViewportContainer/SubViewport/Map"]
+[node name="Camera2D" type="Camera2D" parent="PanelContainer/MarginContainer/VBoxContainer/HBoxContainer/MapContainer/SubViewportContainer/SubViewport/Map"]
 anchor_mode = 0
 zoom = Vector2(0.1, 0.1)
 
-[node name="HostStations" type="Node2D" parent="ScrollContainer/SubViewportContainer/SubViewport/Map"]
+[node name="HostStations" type="Node2D" parent="PanelContainer/MarginContainer/VBoxContainer/HBoxContainer/MapContainer/SubViewportContainer/SubViewport/Map"]
 
-[node name="Squad" type="Node2D" parent="ScrollContainer/SubViewportContainer/SubViewport/Map"]
+[node name="Squad" type="Node2D" parent="PanelContainer/MarginContainer/VBoxContainer/HBoxContainer/MapContainer/SubViewportContainer/SubViewport/Map"]
+
+[node name="RightPanelContainer" type="ScrollContainer" parent="PanelContainer/MarginContainer/VBoxContainer/HBoxContainer"]
+custom_minimum_size = Vector2(200, 200)
+layout_mode = 2
+
+[node name="VBoxContainer" type="VBoxContainer" parent="PanelContainer/MarginContainer/VBoxContainer/HBoxContainer/RightPanelContainer"]
+layout_mode = 2
+
+[node name="Label" type="Label" parent="PanelContainer/MarginContainer/VBoxContainer/HBoxContainer/RightPanelContainer/VBoxContainer"]
+layout_mode = 2
+text = "TEST"
 
 [connection signal="map_created" from="UI" to="." method="_on_ui_map_created"]
