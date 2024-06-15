@@ -2,7 +2,7 @@ extends MenuButton
 
 
 var add_hoststation_menu: PopupMenu = get_popup()
-var add_squad: PopupMenu = get_popup()
+var add_squad_menu: PopupMenu = get_popup()
 
 var hs_submenu: PopupMenu = PopupMenu.new()
 var squad_submenu: PopupMenu = PopupMenu.new()
@@ -20,7 +20,7 @@ func _ready():
 	add_hoststation_menu.add_submenu_item("Add host station", "hoststation")
 	
 	squad_submenu.name = "squad"
-	add_squad.add_child(squad_submenu)
+	add_squad_menu.add_child(squad_submenu)
 	
 	for hs in Preloads.ua_data.data[CurrentMapData.game_data_type].hoststations:
 		var squads: PopupMenu = PopupMenu.new()
@@ -31,6 +31,7 @@ func _ready():
 				var squad_icon = load("res://resources/img/icons/"+squad.iconName)
 				squads.add_icon_item(squad_icon, squad.name)
 			squad_submenu.add_submenu_item(hs+" units", squads.name)
+		squads.connect("index_pressed", add_squad.bind(squads, hs))
 	
 	if Preloads.ua_data.data[CurrentMapData.game_data_type].other.units.size() > 0:
 		var _squads: PopupMenu = PopupMenu.new()
@@ -40,10 +41,18 @@ func _ready():
 			var squad_icon = load("res://resources/img/icons/"+squad.iconName)
 			_squads.add_icon_item(squad_icon, squad.name)
 		squad_submenu.add_submenu_item("Special units", _squads.name)
-
-	add_squad.add_submenu_item("Add squad", "squad")
+	add_squad_menu.add_submenu_item("Add squad", "squad")
 
 
 func add_hoststation(idx):
 	map.add_hoststation(hs_submenu.get_item_text(idx))
+
+
+func add_squad(idx: int, squads_menu: PopupMenu, faction: String):
+	var squad_name = squads_menu.get_item_text(idx)
+	var squad_data: Dictionary 
+	for sq in Preloads.ua_data.data[CurrentMapData.game_data_type].hoststations[faction].units:
+		if sq.name == squad_name:
+			squad_data = sq
+	map.add_squad(squad_data, faction)
 

@@ -102,7 +102,12 @@ func add_hoststation(hs: String):
 	hoststation.position.x = right_clicked_x
 	hoststation.position.y = right_clicked_y
 	hoststation.scale = (Vector2(10,10))
-	
+
+
+func add_squad(sq: Dictionary, default_faction: String):
+	prints(sq,default_faction)
+	var squad
+
 
 func handle_selection(clicked_x: int, clicked_y: int):
 	var sector_counter := 0
