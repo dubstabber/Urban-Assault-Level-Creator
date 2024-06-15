@@ -4,10 +4,8 @@ extends MenuButton
 var add_hoststation_menu: PopupMenu = get_popup()
 var add_squad: PopupMenu = get_popup()
 
-var submenu1: PopupMenu = PopupMenu.new()
-var submenu2: PopupMenu = PopupMenu.new()
-
 var hs_submenu: PopupMenu = PopupMenu.new()
+var squad_submenu: PopupMenu = PopupMenu.new()
 
 @onready var map = $"../PanelContainer/MarginContainer/VBoxContainer/HBoxContainer/MapContainer/SubViewportContainer/SubViewport/Map"
 
@@ -20,18 +18,30 @@ func _ready():
 		hs_submenu.add_icon_item(hs_icon, hs)
 	hs_submenu.connect("index_pressed", add_hoststation)
 	add_hoststation_menu.add_submenu_item("Add host station", "hoststation")
-
-	#submenu1.name = "submenu"
-	#add_hoststation_menu.add_child(submenu1)
-	#submenu1.add_item("syb")
-	#submenu1.add_item("syb2")
-
-	submenu2.name = "submenu2"
-	add_squad.add_child(submenu2)
-	submenu2.add_item("The newer item")
 	
-	#add_hoststation_menu.add_submenu_item("Add host station", "submenu")
-	add_squad.add_submenu_item("Add squad", "submenu2")
+	squad_submenu.name = "squad"
+	add_squad.add_child(squad_submenu)
+	
+	for hs in Preloads.ua_data.data[CurrentMapData.game_data_type].hoststations:
+		var squads: PopupMenu = PopupMenu.new()
+		squads.name = hs+"-squads"
+		squad_submenu.add_child(squads)
+		if Preloads.ua_data.data[CurrentMapData.game_data_type].hoststations[hs].units.size() > 0:
+			for squad in Preloads.ua_data.data[CurrentMapData.game_data_type].hoststations[hs].units:
+				var squad_icon = load("res://resources/img/icons/"+squad.iconName)
+				squads.add_icon_item(squad_icon, squad.name)
+			squad_submenu.add_submenu_item(hs+" units", squads.name)
+	
+	if Preloads.ua_data.data[CurrentMapData.game_data_type].other.units.size() > 0:
+		var _squads: PopupMenu = PopupMenu.new()
+		_squads.name = "special-squads"
+		squad_submenu.add_child(_squads)
+		for squad in Preloads.ua_data.data[CurrentMapData.game_data_type].other.units:
+			var squad_icon = load("res://resources/img/icons/"+squad.iconName)
+			_squads.add_icon_item(squad_icon, squad.name)
+		squad_submenu.add_submenu_item("Special units", _squads.name)
+
+	add_squad.add_submenu_item("Add squad", "squad")
 
 
 func add_hoststation(idx):
