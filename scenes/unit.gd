@@ -1,10 +1,11 @@
-class_name HostStation extends Sprite2D
+class_name Unit extends Sprite2D
 
 var dragging := false
 var of := Vector2(0,0)
 
 var owner_id: int
 var vehicle: int
+var mb_status := false
 
 var pos_to_move: Vector2
 var top_limit := 1200
@@ -36,14 +37,6 @@ func _on_button_button_up():
 func _on_button_gui_input(event):
 	if event.is_action_pressed("select"):
 		CurrentMapData.selected_unit = self
-
-
-func create(_owner_id, _vehicle):
-	owner_id = _owner_id
-	vehicle = _vehicle
-	texture = CurrentMapData.hs_images[str(owner_id)]
-	button.position -= Vector2(texture.get_width()/2.0, texture.get_height()/2.0)
-	button.size = Vector2(texture.get_width(), texture.get_height())
 
 
 func recalculate_limits():

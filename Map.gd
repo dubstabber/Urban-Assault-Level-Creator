@@ -106,7 +106,7 @@ func add_hoststation(hs: String):
 
 func add_squad(sq: Dictionary, default_faction: String):
 	prints(sq,default_faction)
-	var squad
+	#var squad
 
 
 func handle_selection(clicked_x: int, clicked_y: int):
