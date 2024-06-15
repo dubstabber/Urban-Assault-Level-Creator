@@ -15,7 +15,6 @@ grow_vertical = 2
 script = ExtResource("1_7pb5r")
 
 [node name="Camera2D" type="Camera2D" parent="."]
-visible = false
 anchor_mode = 0
 
 [node name="UI" parent="." instance=ExtResource("3_5x600")]
