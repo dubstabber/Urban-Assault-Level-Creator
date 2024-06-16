@@ -10,8 +10,6 @@ func create(_owner_id: int, squad_data: Dictionary):
 	vehicle = squad_data.id
 	map_icon = squad_data.mapIcon
 	change_faction(_owner_id)
-	button.position -= Vector2(texture.get_width()/2.0, texture.get_height()/2.0)
-	button.size = Vector2(texture.get_width(), texture.get_height())
 
 
 func change_faction(_owner_id: int):
@@ -31,3 +29,5 @@ func change_faction(_owner_id: int):
 			texture = CurrentMapData.squad_images[map_icon].red
 		7:
 			texture = CurrentMapData.squad_images["square"].red2
+	button.position -= Vector2(texture.get_width()/2.0, texture.get_height()/2.0)
+	button.size = Vector2(texture.get_width(), texture.get_height())
