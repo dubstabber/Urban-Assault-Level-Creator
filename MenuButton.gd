@@ -61,9 +61,11 @@ func add_squad(idx: int, squads_menu: PopupMenu, faction: String, owner_id: int,
 		for sq in Preloads.ua_data.data[CurrentMapData.game_data_type].hoststations[faction].units:
 			if sq.name == squad_name:
 				squad_data = sq
+				break
 	else:
 		for sq in Preloads.ua_data.data[CurrentMapData.game_data_type].other.units:
 			if sq.name == squad_name:
 				squad_data = sq
+				break
 	
 	map.add_squad(squad_data, owner_id)
