@@ -14,6 +14,7 @@ var is_selection_kept := false
 
 @onready var map_camera = $Camera2D
 @onready var host_stations = $HostStations
+@onready var squads = $Squads
 
 
 func _ready():
@@ -106,7 +107,9 @@ func add_hoststation(hs: String):
 
 func add_squad(sq: Dictionary, default_faction: String):
 	prints(sq,default_faction)
-	#var squad
+	var squad = Preloads.SQUAD.instantiate()
+	squads.add_child(squad)
+	#squad.create()
 
 
 func handle_selection(clicked_x: int, clicked_y: int):

@@ -1,7 +1,6 @@
 extends Control
 
 
-@onready var panel_container = $PanelContainer
 @onready var map_container = $PanelContainer/MarginContainer/VBoxContainer/HBoxContainer/MapContainer
 @onready var sub_viewport_container = $PanelContainer/MarginContainer/VBoxContainer/HBoxContainer/MapContainer/SubViewportContainer
 @onready var map = $PanelContainer/MarginContainer/VBoxContainer/HBoxContainer/MapContainer/SubViewportContainer/SubViewport/Map

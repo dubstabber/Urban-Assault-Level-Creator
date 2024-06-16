@@ -81,7 +81,7 @@ zoom = Vector2(0.1, 0.1)
 
 [node name="HostStations" type="Node2D" parent="PanelContainer/MarginContainer/VBoxContainer/HBoxContainer/MapContainer/SubViewportContainer/SubViewport/Map"]
 
-[node name="Squad" type="Node2D" parent="PanelContainer/MarginContainer/VBoxContainer/HBoxContainer/MapContainer/SubViewportContainer/SubViewport/Map"]
+[node name="Squads" type="Node2D" parent="PanelContainer/MarginContainer/VBoxContainer/HBoxContainer/MapContainer/SubViewportContainer/SubViewport/Map"]
 
 [node name="RightPanelContainer" type="ScrollContainer" parent="PanelContainer/MarginContainer/VBoxContainer/HBoxContainer"]
 custom_minimum_size = Vector2(200, 200)
