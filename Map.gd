@@ -102,14 +102,16 @@ func add_hoststation(hs: String):
 		Preloads.ua_data.data[CurrentMapData.game_data_type].hoststations[hs].robos[0].id)
 	hoststation.position.x = right_clicked_x
 	hoststation.position.y = right_clicked_y
-	hoststation.scale = (Vector2(10,10))
+	hoststation.scale = Vector2(10,10)
 
 
-func add_squad(sq: Dictionary, default_faction: String):
-	prints(sq,default_faction)
+func add_squad(sq: Dictionary, owner_id: int):
 	var squad = Preloads.SQUAD.instantiate()
 	squads.add_child(squad)
-	#squad.create()
+	squad.create(owner_id, sq)
+	squad.position.x = right_clicked_x
+	squad.position.y = right_clicked_y
+	squad.scale = Vector2(5,5)
 
 
 func handle_selection(clicked_x: int, clicked_y: int):
