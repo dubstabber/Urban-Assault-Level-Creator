@@ -15,6 +15,9 @@ func _ready():
 		for squad in ua_data.data[CurrentMapData.game_data_type].hoststations[hs].units:
 			squad_images[str(squad.id)] = load("res://resources/img/squadImages/" + squad.image_file)
 	
+	for squad in ua_data.data[CurrentMapData.game_data_type].other.units:
+		squad_images[str(squad.id)] = load("res://resources/img/squadImages/" + squad.image_file)
+	
 	squad_icons.square = {
 		"blue": load("res://resources/img/squadIcons/BlueUnit1.png"),
 		"red": load("res://resources/img/squadIcons/RedUnit1.png"),

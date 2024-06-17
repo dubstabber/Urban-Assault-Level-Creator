@@ -15,8 +15,8 @@ func _ready():
 	add_hoststation_menu.add_child(hs_submenu)
 	for hs in Preloads.ua_data.data[CurrentMapData.game_data_type].hoststations:
 		var hs_owner_id = str(Preloads.ua_data.data[CurrentMapData.game_data_type].hoststations[hs].owner)
-		var hs_icon = Preloads.hs_images[hs_owner_id]
-		hs_submenu.add_icon_item(hs_icon, hs)
+		var hs_image = Preloads.hs_images[hs_owner_id]
+		hs_submenu.add_icon_item(hs_image, hs)
 	hs_submenu.connect("index_pressed", add_hoststation)
 	add_hoststation_menu.add_submenu_item("Add host station", "hoststation")
 	
@@ -29,8 +29,8 @@ func _ready():
 		squad_submenu.add_child(squads)
 		if Preloads.ua_data.data[CurrentMapData.game_data_type].hoststations[hs].units.size() > 0:
 			for squad in Preloads.ua_data.data[CurrentMapData.game_data_type].hoststations[hs].units:
-				var squad_icon = load("res://resources/img/squadImages/"+squad.image_file)
-				squads.add_icon_item(squad_icon, squad.name)
+				var squad_image = Preloads.squad_images[str(squad.id)]
+				squads.add_icon_item(squad_image, squad.name)
 			squad_submenu.add_submenu_item(hs+" units", squads.name)
 		
 		squads.connect("index_pressed", add_squad.bind(squads, hs, 
@@ -41,8 +41,8 @@ func _ready():
 		squads.name = "special-squads"
 		squad_submenu.add_child(squads)
 		for squad in Preloads.ua_data.data[CurrentMapData.game_data_type].other.units:
-			var squad_icon = load("res://resources/img/squadImages/"+squad.image_file)
-			squads.add_icon_item(squad_icon, squad.name)
+			var squad_image = Preloads.squad_images[str(squad.id)]
+			squads.add_icon_item(squad_image, squad.name)
 		squad_submenu.add_submenu_item("Special units", squads.name)
 		squads.connect("index_pressed", add_squad.bind(squads, 
 			Preloads.ua_data.data[CurrentMapData.game_data_type].hoststations.keys()[0], 
