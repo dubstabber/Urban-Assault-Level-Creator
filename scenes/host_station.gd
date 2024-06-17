@@ -1,4 +1,4 @@
-extends Unit
+class_name HostStation extends Unit
 
 var pos_y := 500
 var energy := 460000
@@ -25,6 +25,6 @@ var cpl_delay := 0
 func create(_owner_id, _vehicle):
 	owner_id = _owner_id
 	vehicle = _vehicle
-	texture = CurrentMapData.hs_images[str(owner_id)]
+	texture = Preloads.hs_images[str(owner_id)]
 	button.position -= Vector2(texture.get_width()/2.0, texture.get_height()/2.0)
 	button.size = Vector2(texture.get_width(), texture.get_height())

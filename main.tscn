@@ -83,15 +83,83 @@ zoom = Vector2(0.1, 0.1)
 
 [node name="Squads" type="Node2D" parent="PanelContainer/MarginContainer/VBoxContainer/HBoxContainer/MapContainer/SubViewportContainer/SubViewport/Map"]
 
-[node name="RightPanelContainer" type="ScrollContainer" parent="PanelContainer/MarginContainer/VBoxContainer/HBoxContainer"]
+[node name="PropertiesContainer" type="ScrollContainer" parent="PanelContainer/MarginContainer/VBoxContainer/HBoxContainer"]
 custom_minimum_size = Vector2(200, 200)
 layout_mode = 2
+size_flags_horizontal = 3
 
-[node name="VBoxContainer" type="VBoxContainer" parent="PanelContainer/MarginContainer/VBoxContainer/HBoxContainer/RightPanelContainer"]
+[node name="TabContainer" type="TabContainer" parent="PanelContainer/MarginContainer/VBoxContainer/HBoxContainer/PropertiesContainer"]
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_vertical = 3
+clip_tabs = false
+
+[node name="Unit" type="TabBar" parent="PanelContainer/MarginContainer/VBoxContainer/HBoxContainer/PropertiesContainer/TabContainer"]
+layout_mode = 2
+tab_alignment = 1
+
+[node name="MarginContainer" type="MarginContainer" parent="PanelContainer/MarginContainer/VBoxContainer/HBoxContainer/PropertiesContainer/TabContainer/Unit"]
+layout_mode = 1
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -68.5
+offset_top = -10.0
+offset_right = 68.5
+offset_bottom = 10.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="NoUnitLabel" type="Label" parent="PanelContainer/MarginContainer/VBoxContainer/HBoxContainer/PropertiesContainer/TabContainer/Unit/MarginContainer"]
+layout_mode = 2
+text = "No unit selected"
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[node name="HostStationProperties" type="VBoxContainer" parent="PanelContainer/MarginContainer/VBoxContainer/HBoxContainer/PropertiesContainer/TabContainer/Unit/MarginContainer"]
+visible = false
 layout_mode = 2
 
-[node name="Label" type="Label" parent="PanelContainer/MarginContainer/VBoxContainer/HBoxContainer/RightPanelContainer/VBoxContainer"]
+[node name="HBoxContainer" type="HBoxContainer" parent="PanelContainer/MarginContainer/VBoxContainer/HBoxContainer/PropertiesContainer/TabContainer/Unit/MarginContainer/HostStationProperties"]
 layout_mode = 2
-text = "TEST"
+
+[node name="HSnumber" type="Label" parent="PanelContainer/MarginContainer/VBoxContainer/HBoxContainer/PropertiesContainer/TabContainer/Unit/MarginContainer/HostStationProperties/HBoxContainer"]
+layout_mode = 2
+text = "Host station N:"
+
+[node name="HSname" type="Label" parent="PanelContainer/MarginContainer/VBoxContainer/HBoxContainer/PropertiesContainer/TabContainer/Unit/MarginContainer/HostStationProperties/HBoxContainer"]
+layout_mode = 2
+text = "HostStationName"
+
+[node name="SquadProperties" type="VBoxContainer" parent="PanelContainer/MarginContainer/VBoxContainer/HBoxContainer/PropertiesContainer/TabContainer/Unit/MarginContainer"]
+visible = false
+layout_mode = 2
+
+[node name="Sector" type="TabBar" parent="PanelContainer/MarginContainer/VBoxContainer/HBoxContainer/PropertiesContainer/TabContainer"]
+visible = false
+layout_mode = 2
+
+[node name="MarginContainer" type="MarginContainer" parent="PanelContainer/MarginContainer/VBoxContainer/HBoxContainer/PropertiesContainer/TabContainer/Sector"]
+layout_mode = 1
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -79.0
+offset_top = -20.0
+offset_right = 79.0
+offset_bottom = 20.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="NoSectorLabel" type="Label" parent="PanelContainer/MarginContainer/VBoxContainer/HBoxContainer/PropertiesContainer/TabContainer/Sector/MarginContainer"]
+layout_mode = 2
+text = "No sector selected"
+
+[node name="VBoxContainer" type="VBoxContainer" parent="PanelContainer/MarginContainer/VBoxContainer/HBoxContainer/PropertiesContainer/TabContainer/Sector/MarginContainer"]
+layout_mode = 2
 
 [connection signal="map_created" from="UI" to="." method="_on_ui_map_created"]

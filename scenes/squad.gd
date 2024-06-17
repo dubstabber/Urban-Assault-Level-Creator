@@ -1,8 +1,8 @@
-extends Unit
+class_name Squad extends Unit
 
 var map_icon: String
 
-var num := 1
+var quantity := 1
 var useable := false
 
 
@@ -16,18 +16,18 @@ func change_faction(_owner_id: int):
 	owner_id = _owner_id
 	match owner_id:
 		1:
-			texture = CurrentMapData.squad_images[map_icon].blue
+			texture = Preloads.squad_images[map_icon].blue
 		2:
-			texture = CurrentMapData.squad_images[map_icon].green
+			texture = Preloads.squad_images[map_icon].green
 		3:
-			texture = CurrentMapData.squad_images[map_icon].white
+			texture = Preloads.squad_images[map_icon].white
 		4:
-			texture = CurrentMapData.squad_images[map_icon].yellow
+			texture = Preloads.squad_images[map_icon].yellow
 		5:
-			texture = CurrentMapData.squad_images[map_icon].gray
+			texture = Preloads.squad_images[map_icon].gray
 		6:
-			texture = CurrentMapData.squad_images[map_icon].red
+			texture = Preloads.squad_images[map_icon].red
 		7:
-			texture = CurrentMapData.squad_images["square"].red2
+			texture = Preloads.squad_images["square"].red2
 	button.position -= Vector2(texture.get_width()/2.0, texture.get_height()/2.0)
 	button.size = Vector2(texture.get_width(), texture.get_height())

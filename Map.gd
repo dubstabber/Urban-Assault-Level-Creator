@@ -40,7 +40,9 @@ func _input(event):
 		is_selection_kept = false
 	if event.is_action_pressed("select"):
 		handle_selection(round(get_local_mouse_position().x), round(get_local_mouse_position().y))
+		CurrentMapData.selected_unit = null
 		if is_selection_kept:
+			#TODO: Implement multi-sector selection
 			print('selection is kept')
 	if event.is_action_pressed("context_menu"):
 		right_clicked_x = round(get_local_mouse_position().x)
@@ -103,6 +105,7 @@ func add_hoststation(hs: String):
 	hoststation.position.x = right_clicked_x
 	hoststation.position.y = right_clicked_y
 	hoststation.scale = Vector2(10,10)
+	CurrentMapData.selected_unit = hoststation
 
 
 func add_squad(sq: Dictionary, owner_id: int):
@@ -112,6 +115,7 @@ func add_squad(sq: Dictionary, owner_id: int):
 	squad.position.x = right_clicked_x
 	squad.position.y = right_clicked_y
 	squad.scale = Vector2(5,5)
+	CurrentMapData.selected_unit = squad
 
 
 func handle_selection(clicked_x: int, clicked_y: int):

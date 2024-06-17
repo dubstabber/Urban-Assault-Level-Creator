@@ -4,12 +4,20 @@ extends Control
 @onready var map_container = $PanelContainer/MarginContainer/VBoxContainer/HBoxContainer/MapContainer
 @onready var sub_viewport_container = $PanelContainer/MarginContainer/VBoxContainer/HBoxContainer/MapContainer/SubViewportContainer
 @onready var map = $PanelContainer/MarginContainer/VBoxContainer/HBoxContainer/MapContainer/SubViewportContainer/SubViewport/Map
-@onready var right_panel_container = $PanelContainer/MarginContainer/VBoxContainer/HBoxContainer/RightPanelContainer
+
 @onready var context_menu = $ContextMenu
+
+@onready var properties_container = $PanelContainer/MarginContainer/VBoxContainer/HBoxContainer/PropertiesContainer
+@onready var no_unit_label = $PanelContainer/MarginContainer/VBoxContainer/HBoxContainer/PropertiesContainer/TabContainer/Unit/MarginContainer/NoUnitLabel
+@onready var host_station_properties = $PanelContainer/MarginContainer/VBoxContainer/HBoxContainer/PropertiesContainer/TabContainer/Unit/MarginContainer/HostStationProperties
+
+@onready var host_stations = $PanelContainer/MarginContainer/VBoxContainer/HBoxContainer/MapContainer/SubViewportContainer/SubViewport/Map/HostStations
+@onready var squads = $PanelContainer/MarginContainer/VBoxContainer/HBoxContainer/MapContainer/SubViewportContainer/SubViewport/Map/Squads
 
 
 func _ready():
 	get_tree().get_root().connect("size_changed",_on_resize)
+	CurrentMapData.connect("selected", _update_properties)
 
 
 func _input(event):
@@ -26,10 +34,29 @@ func _on_ui_map_created():
 
 
 func _on_resize():
-	map_container.custom_minimum_size.x = DisplayServer.window_get_size().x - right_panel_container.size.x
+	properties_container.size.x = DisplayServer.window_get_size().x/3.0
+	map_container.custom_minimum_size.x = DisplayServer.window_get_size().x - properties_container.size.x
 	map_container.custom_minimum_size.y = DisplayServer.window_get_size().y - 70
 	
 	map.recalculate_size()
 	sub_viewport_container.custom_minimum_size.x = map.map_visible_width
 	sub_viewport_container.custom_minimum_size.y = map.map_visible_height
 
+
+
+func _update_properties():
+	if CurrentMapData.selected_unit:
+		no_unit_label.hide()
+		var i = 1
+		for hs in host_stations.get_children():
+			if CurrentMapData.selected_unit == hs:
+				break
+			else:
+				i += 1
+		host_station_properties.get_node("HBoxContainer/HSnumber").text = "Host station " + str(i) + ": "
+		host_station_properties.get_node("HBoxContainer/HSname").text = Preloads.get_hoststation_name(CurrentMapData.selected_unit.owner_id)
+		
+		host_station_properties.show()
+	else:
+		no_unit_label.show()
+		host_station_properties.hide()

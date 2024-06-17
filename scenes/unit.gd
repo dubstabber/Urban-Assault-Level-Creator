@@ -1,5 +1,6 @@
 class_name Unit extends Sprite2D
 
+
 var dragging := false
 var of := Vector2(0,0)
 
@@ -37,6 +38,7 @@ func _on_button_button_up():
 func _on_button_gui_input(event):
 	if event.is_action_pressed("select"):
 		CurrentMapData.selected_unit = self
+
 
 
 func recalculate_limits():
