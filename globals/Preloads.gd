@@ -45,9 +45,3 @@ func _ready():
 		"gray": load("res://resources/img/GrayUnit4.png"),
 	}
 
-
-func get_hoststation_name(owner_id: int) -> String:
-	for hs in ua_data.data[CurrentMapData.game_data_type].hoststations:
-		if ua_data.data[CurrentMapData.game_data_type].hoststations[hs].owner == owner_id:
-			return hs
-	return "Unknown host station"
