@@ -10,6 +10,7 @@ extends Control
 @onready var properties_container = $PanelContainer/MarginContainer/VBoxContainer/HBoxContainer/PropertiesContainer
 @onready var no_unit_label = $PanelContainer/MarginContainer/VBoxContainer/HBoxContainer/PropertiesContainer/TabContainer/Unit/MarginContainer/NoUnitLabel
 @onready var host_station_properties = $PanelContainer/MarginContainer/VBoxContainer/HBoxContainer/PropertiesContainer/TabContainer/Unit/MarginContainer/HostStationProperties
+@onready var squad_properties = $PanelContainer/MarginContainer/VBoxContainer/HBoxContainer/PropertiesContainer/TabContainer/Unit/MarginContainer/SquadProperties
 
 @onready var host_stations = $PanelContainer/MarginContainer/VBoxContainer/HBoxContainer/MapContainer/SubViewportContainer/SubViewport/Map/HostStations
 @onready var squads = $PanelContainer/MarginContainer/VBoxContainer/HBoxContainer/MapContainer/SubViewportContainer/SubViewport/Map/Squads
@@ -48,15 +49,23 @@ func _update_properties():
 	if CurrentMapData.selected_unit:
 		no_unit_label.hide()
 		var i = 1
-		for hs in host_stations.get_children():
-			if CurrentMapData.selected_unit == hs:
-				break
-			else:
-				i += 1
-		host_station_properties.get_node("HBoxContainer/HSnumber").text = "Host station " + str(i) + ": "
-		host_station_properties.get_node("HBoxContainer/HSname").text = Preloads.get_hoststation_name(CurrentMapData.selected_unit.owner_id)
-		
-		host_station_properties.show()
+		if CurrentMapData.selected_unit is HostStation:
+			for hs in host_stations.get_children():
+				if CurrentMapData.selected_unit == hs: break
+				else: i += 1
+			squad_properties.hide()
+			host_station_properties.get_node("HBoxContainer/HSnumberLabel").text = "Host station " + str(i) + ": "
+			host_station_properties.get_node("HBoxContainer/HSnameLabel").text = CurrentMapData.selected_unit.unit_name
+			host_station_properties.show()
+		elif CurrentMapData.selected_unit is Squad:
+			for squad in squads.get_children():
+				if CurrentMapData.selected_unit == squad: break
+				else: i += 1
+			host_station_properties.hide()
+			squad_properties.get_node("HBoxContainer/SquadNumberLabel").text = "Squad " + str(i) + ": "
+			squad_properties.get_node("HBoxContainer/SquadNameLabel").text = CurrentMapData.selected_unit.unit_name
+			squad_properties.show()
 	else:
 		no_unit_label.show()
 		host_station_properties.hide()
+		squad_properties.hide()

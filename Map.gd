@@ -101,7 +101,7 @@ func add_hoststation(hs: String):
 	var hoststation = Preloads.HOSTSTATION.instantiate()
 	host_stations.add_child(hoststation)
 	hoststation.create(Preloads.ua_data.data[CurrentMapData.game_data_type].hoststations[hs].owner,
-		Preloads.ua_data.data[CurrentMapData.game_data_type].hoststations[hs].robos[0].id)
+		Preloads.ua_data.data[CurrentMapData.game_data_type].hoststations[hs].robos[0].id, hs)
 	hoststation.position.x = right_clicked_x
 	hoststation.position.y = right_clicked_y
 	hoststation.scale = Vector2(10,10)

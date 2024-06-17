@@ -3,6 +3,7 @@ class_name Unit extends Sprite2D
 
 var dragging := false
 var of := Vector2(0,0)
+var unit_name: String
 
 var owner_id: int
 var vehicle: int

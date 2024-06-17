@@ -9,6 +9,7 @@ var useable := false
 func create(_owner_id: int, squad_data: Dictionary):
 	vehicle = squad_data.id
 	map_icon = squad_data.mapIcon
+	unit_name = squad_data.name
 	change_faction(_owner_id)
 
 

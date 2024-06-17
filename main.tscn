@@ -125,17 +125,28 @@ layout_mode = 2
 [node name="HBoxContainer" type="HBoxContainer" parent="PanelContainer/MarginContainer/VBoxContainer/HBoxContainer/PropertiesContainer/TabContainer/Unit/MarginContainer/HostStationProperties"]
 layout_mode = 2
 
-[node name="HSnumber" type="Label" parent="PanelContainer/MarginContainer/VBoxContainer/HBoxContainer/PropertiesContainer/TabContainer/Unit/MarginContainer/HostStationProperties/HBoxContainer"]
+[node name="HSnumberLabel" type="Label" parent="PanelContainer/MarginContainer/VBoxContainer/HBoxContainer/PropertiesContainer/TabContainer/Unit/MarginContainer/HostStationProperties/HBoxContainer"]
 layout_mode = 2
 text = "Host station N:"
 
-[node name="HSname" type="Label" parent="PanelContainer/MarginContainer/VBoxContainer/HBoxContainer/PropertiesContainer/TabContainer/Unit/MarginContainer/HostStationProperties/HBoxContainer"]
+[node name="HSnameLabel" type="Label" parent="PanelContainer/MarginContainer/VBoxContainer/HBoxContainer/PropertiesContainer/TabContainer/Unit/MarginContainer/HostStationProperties/HBoxContainer"]
 layout_mode = 2
 text = "HostStationName"
 
 [node name="SquadProperties" type="VBoxContainer" parent="PanelContainer/MarginContainer/VBoxContainer/HBoxContainer/PropertiesContainer/TabContainer/Unit/MarginContainer"]
 visible = false
 layout_mode = 2
+
+[node name="HBoxContainer" type="HBoxContainer" parent="PanelContainer/MarginContainer/VBoxContainer/HBoxContainer/PropertiesContainer/TabContainer/Unit/MarginContainer/SquadProperties"]
+layout_mode = 2
+
+[node name="SquadNumberLabel" type="Label" parent="PanelContainer/MarginContainer/VBoxContainer/HBoxContainer/PropertiesContainer/TabContainer/Unit/MarginContainer/SquadProperties/HBoxContainer"]
+layout_mode = 2
+text = "Squad N:"
+
+[node name="SquadNameLabel" type="Label" parent="PanelContainer/MarginContainer/VBoxContainer/HBoxContainer/PropertiesContainer/TabContainer/Unit/MarginContainer/SquadProperties/HBoxContainer"]
+layout_mode = 2
+text = "SquadName"
 
 [node name="Sector" type="TabBar" parent="PanelContainer/MarginContainer/VBoxContainer/HBoxContainer/PropertiesContainer/TabContainer"]
 visible = false
