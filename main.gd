@@ -56,12 +56,15 @@ func _update_properties():
 			squad_properties.hide()
 			host_station_properties.get_node("HBoxContainer/HSnumberLabel").text = "Host station " + str(i) + ": "
 			host_station_properties.get_node("HBoxContainer/HSnameLabel").text = CurrentMapData.selected_unit.unit_name
+			
+			
 			host_station_properties.show()
 		elif CurrentMapData.selected_unit is Squad:
 			for squad in squads.get_children():
 				if CurrentMapData.selected_unit == squad: break
 				else: i += 1
 			host_station_properties.hide()
+			#squad_properties.get_node("HBoxContainer/SquadIcon").texture
 			squad_properties.get_node("HBoxContainer/SquadNumberLabel").text = "Squad " + str(i) + ": "
 			squad_properties.get_node("HBoxContainer/SquadNameLabel").text = CurrentMapData.selected_unit.unit_name
 			squad_properties.show()

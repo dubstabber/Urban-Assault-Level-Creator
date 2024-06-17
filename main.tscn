@@ -140,6 +140,9 @@ layout_mode = 2
 [node name="HBoxContainer" type="HBoxContainer" parent="PanelContainer/MarginContainer/VBoxContainer/HBoxContainer/PropertiesContainer/TabContainer/Unit/MarginContainer/SquadProperties"]
 layout_mode = 2
 
+[node name="SquadIcon" type="TextureRect" parent="PanelContainer/MarginContainer/VBoxContainer/HBoxContainer/PropertiesContainer/TabContainer/Unit/MarginContainer/SquadProperties/HBoxContainer"]
+layout_mode = 2
+
 [node name="SquadNumberLabel" type="Label" parent="PanelContainer/MarginContainer/VBoxContainer/HBoxContainer/PropertiesContainer/TabContainer/Unit/MarginContainer/SquadProperties/HBoxContainer"]
 layout_mode = 2
 text = "Squad N:"
