@@ -1,7 +1,7 @@
 class_name HostStation extends Unit
 
 var pos_y := 500
-var energy := 460000
+var energy := 300000
 var view_angle := -1
 var reload_const := -1
 var con_budget := 30

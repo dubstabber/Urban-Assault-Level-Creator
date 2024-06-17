@@ -44,7 +44,6 @@ func _on_resize():
 	sub_viewport_container.custom_minimum_size.y = map.map_visible_height
 
 
-
 func _update_properties():
 	if CurrentMapData.selected_unit:
 		no_unit_label.hide()
@@ -56,7 +55,13 @@ func _update_properties():
 			squad_properties.hide()
 			host_station_properties.get_node("HBoxContainer/HSnumberLabel").text = "Host station " + str(i) + ": "
 			host_station_properties.get_node("HBoxContainer/HSnameLabel").text = CurrentMapData.selected_unit.unit_name
-			
+			host_station_properties.get_node("HBoxContainer2/EnergyLineEdit").text = str(CurrentMapData.selected_unit.energy/400)
+			host_station_properties.get_node("HBoxContainer2/EnergyLineEdit").text_changed.connect(func(new_value: String):
+				var validated_value = int(new_value)
+				if validated_value == 0: validated_value = 1
+				if validated_value < 1: validated_value = -validated_value
+				CurrentMapData.selected_unit.energy = validated_value * 400
+				)
 			
 			host_station_properties.show()
 		elif CurrentMapData.selected_unit is Squad:

@@ -113,13 +113,13 @@ grow_horizontal = 2
 grow_vertical = 2
 
 [node name="NoUnitLabel" type="Label" parent="PanelContainer/MarginContainer/VBoxContainer/HBoxContainer/PropertiesContainer/TabContainer/Unit/MarginContainer"]
+visible = false
 layout_mode = 2
 text = "No unit selected"
 horizontal_alignment = 1
 vertical_alignment = 1
 
 [node name="HostStationProperties" type="VBoxContainer" parent="PanelContainer/MarginContainer/VBoxContainer/HBoxContainer/PropertiesContainer/TabContainer/Unit/MarginContainer"]
-visible = false
 layout_mode = 2
 
 [node name="HBoxContainer" type="HBoxContainer" parent="PanelContainer/MarginContainer/VBoxContainer/HBoxContainer/PropertiesContainer/TabContainer/Unit/MarginContainer/HostStationProperties"]
@@ -132,6 +132,18 @@ text = "Host station N:"
 [node name="HSnameLabel" type="Label" parent="PanelContainer/MarginContainer/VBoxContainer/HBoxContainer/PropertiesContainer/TabContainer/Unit/MarginContainer/HostStationProperties/HBoxContainer"]
 layout_mode = 2
 text = "HostStationName"
+
+[node name="HBoxContainer2" type="HBoxContainer" parent="PanelContainer/MarginContainer/VBoxContainer/HBoxContainer/PropertiesContainer/TabContainer/Unit/MarginContainer/HostStationProperties"]
+layout_mode = 2
+
+[node name="Label" type="Label" parent="PanelContainer/MarginContainer/VBoxContainer/HBoxContainer/PropertiesContainer/TabContainer/Unit/MarginContainer/HostStationProperties/HBoxContainer2"]
+layout_mode = 2
+text = "Energy: "
+
+[node name="EnergyLineEdit" type="LineEdit" parent="PanelContainer/MarginContainer/VBoxContainer/HBoxContainer/PropertiesContainer/TabContainer/Unit/MarginContainer/HostStationProperties/HBoxContainer2"]
+layout_mode = 2
+text = "0000"
+shortcut_keys_enabled = false
 
 [node name="SquadProperties" type="VBoxContainer" parent="PanelContainer/MarginContainer/VBoxContainer/HBoxContainer/PropertiesContainer/TabContainer/Unit/MarginContainer"]
 visible = false
