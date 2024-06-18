@@ -83,8 +83,8 @@ zoom = Vector2(0.1, 0.1)
 
 [node name="Squads" type="Node2D" parent="PanelContainer/MarginContainer/VBoxContainer/HBoxContainer/MapContainer/SubViewportContainer/SubViewport/Map"]
 
-[node name="PropertiesContainer" type="ScrollContainer" parent="PanelContainer/MarginContainer/VBoxContainer/HBoxContainer"]
-custom_minimum_size = Vector2(200, 200)
+[node name="PropertiesContainer" type="PanelContainer" parent="PanelContainer/MarginContainer/VBoxContainer/HBoxContainer"]
+custom_minimum_size = Vector2(200, 550)
 layout_mode = 2
 size_flags_horizontal = 3
 
@@ -98,68 +98,558 @@ clip_tabs = false
 layout_mode = 2
 tab_alignment = 1
 
-[node name="MarginContainer" type="MarginContainer" parent="PanelContainer/MarginContainer/VBoxContainer/HBoxContainer/PropertiesContainer/TabContainer/Unit"]
+[node name="ScrollContainer" type="ScrollContainer" parent="PanelContainer/MarginContainer/VBoxContainer/HBoxContainer/PropertiesContainer/TabContainer/Unit"]
 layout_mode = 1
-anchors_preset = 8
-anchor_left = 0.5
-anchor_top = 0.5
-anchor_right = 0.5
-anchor_bottom = 0.5
-offset_left = -68.5
-offset_top = -10.0
-offset_right = 68.5
-offset_bottom = 10.0
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
 
-[node name="NoUnitLabel" type="Label" parent="PanelContainer/MarginContainer/VBoxContainer/HBoxContainer/PropertiesContainer/TabContainer/Unit/MarginContainer"]
+[node name="MarginContainer" type="MarginContainer" parent="PanelContainer/MarginContainer/VBoxContainer/HBoxContainer/PropertiesContainer/TabContainer/Unit/ScrollContainer"]
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_vertical = 3
+theme_override_constants/margin_left = 20
+theme_override_constants/margin_top = 10
+theme_override_constants/margin_right = 20
+theme_override_constants/margin_bottom = 10
+
+[node name="NoUnitLabel" type="Label" parent="PanelContainer/MarginContainer/VBoxContainer/HBoxContainer/PropertiesContainer/TabContainer/Unit/ScrollContainer/MarginContainer"]
 visible = false
 layout_mode = 2
 text = "No unit selected"
 horizontal_alignment = 1
 vertical_alignment = 1
 
-[node name="HostStationProperties" type="VBoxContainer" parent="PanelContainer/MarginContainer/VBoxContainer/HBoxContainer/PropertiesContainer/TabContainer/Unit/MarginContainer"]
+[node name="HostStationProperties" type="VBoxContainer" parent="PanelContainer/MarginContainer/VBoxContainer/HBoxContainer/PropertiesContainer/TabContainer/Unit/ScrollContainer/MarginContainer"]
 layout_mode = 2
 
-[node name="HBoxContainer" type="HBoxContainer" parent="PanelContainer/MarginContainer/VBoxContainer/HBoxContainer/PropertiesContainer/TabContainer/Unit/MarginContainer/HostStationProperties"]
+[node name="HBoxContainer" type="HBoxContainer" parent="PanelContainer/MarginContainer/VBoxContainer/HBoxContainer/PropertiesContainer/TabContainer/Unit/ScrollContainer/MarginContainer/HostStationProperties"]
 layout_mode = 2
+alignment = 1
 
-[node name="HSnumberLabel" type="Label" parent="PanelContainer/MarginContainer/VBoxContainer/HBoxContainer/PropertiesContainer/TabContainer/Unit/MarginContainer/HostStationProperties/HBoxContainer"]
+[node name="HSnumberLabel" type="Label" parent="PanelContainer/MarginContainer/VBoxContainer/HBoxContainer/PropertiesContainer/TabContainer/Unit/ScrollContainer/MarginContainer/HostStationProperties/HBoxContainer"]
 layout_mode = 2
 text = "Host station N:"
 
-[node name="HSnameLabel" type="Label" parent="PanelContainer/MarginContainer/VBoxContainer/HBoxContainer/PropertiesContainer/TabContainer/Unit/MarginContainer/HostStationProperties/HBoxContainer"]
+[node name="HSnameLabel" type="Label" parent="PanelContainer/MarginContainer/VBoxContainer/HBoxContainer/PropertiesContainer/TabContainer/Unit/ScrollContainer/MarginContainer/HostStationProperties/HBoxContainer"]
 layout_mode = 2
 text = "HostStationName"
 
-[node name="HBoxContainer2" type="HBoxContainer" parent="PanelContainer/MarginContainer/VBoxContainer/HBoxContainer/PropertiesContainer/TabContainer/Unit/MarginContainer/HostStationProperties"]
+[node name="HSeparator3" type="HSeparator" parent="PanelContainer/MarginContainer/VBoxContainer/HBoxContainer/PropertiesContainer/TabContainer/Unit/ScrollContainer/MarginContainer/HostStationProperties"]
 layout_mode = 2
 
-[node name="Label" type="Label" parent="PanelContainer/MarginContainer/VBoxContainer/HBoxContainer/PropertiesContainer/TabContainer/Unit/MarginContainer/HostStationProperties/HBoxContainer2"]
+[node name="HBoxContainer5" type="HBoxContainer" parent="PanelContainer/MarginContainer/VBoxContainer/HBoxContainer/PropertiesContainer/TabContainer/Unit/ScrollContainer/MarginContainer/HostStationProperties"]
 layout_mode = 2
+alignment = 1
+
+[node name="VBoxContainer" type="VBoxContainer" parent="PanelContainer/MarginContainer/VBoxContainer/HBoxContainer/PropertiesContainer/TabContainer/Unit/ScrollContainer/MarginContainer/HostStationProperties/HBoxContainer5"]
+layout_mode = 2
+theme_override_constants/separation = 14
+alignment = 1
+
+[node name="EnergyLabel" type="Label" parent="PanelContainer/MarginContainer/VBoxContainer/HBoxContainer/PropertiesContainer/TabContainer/Unit/ScrollContainer/MarginContainer/HostStationProperties/HBoxContainer5/VBoxContainer"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 12
 text = "Energy: "
 
-[node name="EnergyLineEdit" type="LineEdit" parent="PanelContainer/MarginContainer/VBoxContainer/HBoxContainer/PropertiesContainer/TabContainer/Unit/MarginContainer/HostStationProperties/HBoxContainer2"]
+[node name="ViewAngleLabel" type="Label" parent="PanelContainer/MarginContainer/VBoxContainer/HBoxContainer/PropertiesContainer/TabContainer/Unit/ScrollContainer/MarginContainer/HostStationProperties/HBoxContainer5/VBoxContainer"]
 layout_mode = 2
+theme_override_font_sizes/font_size = 12
+text = "View angle: "
+
+[node name="ReloadConstLabel" type="Label" parent="PanelContainer/MarginContainer/VBoxContainer/HBoxContainer/PropertiesContainer/TabContainer/Unit/ScrollContainer/MarginContainer/HostStationProperties/HBoxContainer5/VBoxContainer"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 12
+text = "Reload const: "
+
+[node name="VBoxContainer2" type="VBoxContainer" parent="PanelContainer/MarginContainer/VBoxContainer/HBoxContainer/PropertiesContainer/TabContainer/Unit/ScrollContainer/MarginContainer/HostStationProperties/HBoxContainer5"]
+layout_mode = 2
+
+[node name="EnergyLineEdit" type="LineEdit" parent="PanelContainer/MarginContainer/VBoxContainer/HBoxContainer/PropertiesContainer/TabContainer/Unit/ScrollContainer/MarginContainer/HostStationProperties/HBoxContainer5/VBoxContainer2"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 12
 text = "0000"
 shortcut_keys_enabled = false
 
-[node name="SquadProperties" type="VBoxContainer" parent="PanelContainer/MarginContainer/VBoxContainer/HBoxContainer/PropertiesContainer/TabContainer/Unit/MarginContainer"]
+[node name="ViewAngleLineEdit" type="LineEdit" parent="PanelContainer/MarginContainer/VBoxContainer/HBoxContainer/PropertiesContainer/TabContainer/Unit/ScrollContainer/MarginContainer/HostStationProperties/HBoxContainer5/VBoxContainer2"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 12
+text = "000"
+
+[node name="ReloadConstLineEdit" type="LineEdit" parent="PanelContainer/MarginContainer/VBoxContainer/HBoxContainer/PropertiesContainer/TabContainer/Unit/ScrollContainer/MarginContainer/HostStationProperties/HBoxContainer5/VBoxContainer2"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 12
+text = "00000"
+
+[node name="HSeparator" type="HSeparator" parent="PanelContainer/MarginContainer/VBoxContainer/HBoxContainer/PropertiesContainer/TabContainer/Unit/ScrollContainer/MarginContainer/HostStationProperties"]
+layout_mode = 2
+
+[node name="HBoxContainer2" type="HBoxContainer" parent="PanelContainer/MarginContainer/VBoxContainer/HBoxContainer/PropertiesContainer/TabContainer/Unit/ScrollContainer/MarginContainer/HostStationProperties"]
+layout_mode = 2
+alignment = 1
+
+[node name="XposLabel" type="Label" parent="PanelContainer/MarginContainer/VBoxContainer/HBoxContainer/PropertiesContainer/TabContainer/Unit/ScrollContainer/MarginContainer/HostStationProperties/HBoxContainer2"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 12
+text = "x: "
+
+[node name="XposLineEdit" type="LineEdit" parent="PanelContainer/MarginContainer/VBoxContainer/HBoxContainer/PropertiesContainer/TabContainer/Unit/ScrollContainer/MarginContainer/HostStationProperties/HBoxContainer2"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 12
+text = "0000"
+
+[node name="YposLabel" type="Label" parent="PanelContainer/MarginContainer/VBoxContainer/HBoxContainer/PropertiesContainer/TabContainer/Unit/ScrollContainer/MarginContainer/HostStationProperties/HBoxContainer2"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 12
+text = "y: "
+
+[node name="YposLineEdit" type="LineEdit" parent="PanelContainer/MarginContainer/VBoxContainer/HBoxContainer/PropertiesContainer/TabContainer/Unit/ScrollContainer/MarginContainer/HostStationProperties/HBoxContainer2"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 12
+text = "0000"
+
+[node name="ZposLabel" type="Label" parent="PanelContainer/MarginContainer/VBoxContainer/HBoxContainer/PropertiesContainer/TabContainer/Unit/ScrollContainer/MarginContainer/HostStationProperties/HBoxContainer2"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 12
+text = "z: "
+
+[node name="ZposLineEdit" type="LineEdit" parent="PanelContainer/MarginContainer/VBoxContainer/HBoxContainer/PropertiesContainer/TabContainer/Unit/ScrollContainer/MarginContainer/HostStationProperties/HBoxContainer2"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 12
+text = "0000"
+
+[node name="HSeparator2" type="HSeparator" parent="PanelContainer/MarginContainer/VBoxContainer/HBoxContainer/PropertiesContainer/TabContainer/Unit/ScrollContainer/MarginContainer/HostStationProperties"]
+layout_mode = 2
+
+[node name="Label" type="Label" parent="PanelContainer/MarginContainer/VBoxContainer/HBoxContainer/PropertiesContainer/TabContainer/Unit/ScrollContainer/MarginContainer/HostStationProperties"]
+layout_mode = 2
+size_flags_horizontal = 4
+theme_override_font_sizes/font_size = 12
+text = "Enemy behavior (AI only):"
+
+[node name="GridContainer" type="GridContainer" parent="PanelContainer/MarginContainer/VBoxContainer/HBoxContainer/PropertiesContainer/TabContainer/Unit/ScrollContainer/MarginContainer/HostStationProperties"]
+layout_mode = 2
+columns = 4
+
+[node name="Label" type="Label" parent="PanelContainer/MarginContainer/VBoxContainer/HBoxContainer/PropertiesContainer/TabContainer/Unit/ScrollContainer/MarginContainer/HostStationProperties/GridContainer"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 12
+text = "Conquering sectors:"
+
+[node name="HSlider" type="HSlider" parent="PanelContainer/MarginContainer/VBoxContainer/HBoxContainer/PropertiesContainer/TabContainer/Unit/ScrollContainer/MarginContainer/HostStationProperties/GridContainer"]
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_vertical = 4
+
+[node name="LineEdit" type="LineEdit" parent="PanelContainer/MarginContainer/VBoxContainer/HBoxContainer/PropertiesContainer/TabContainer/Unit/ScrollContainer/MarginContainer/HostStationProperties/GridContainer"]
+layout_mode = 2
+size_flags_horizontal = 8
+theme_override_constants/minimum_character_width = 2
+theme_override_font_sizes/font_size = 12
+text = "000"
+
+[node name="Label2" type="Label" parent="PanelContainer/MarginContainer/VBoxContainer/HBoxContainer/PropertiesContainer/TabContainer/Unit/ScrollContainer/MarginContainer/HostStationProperties/GridContainer"]
+layout_mode = 2
+size_flags_horizontal = 0
+theme_override_font_sizes/font_size = 12
+text = "%"
+
+[node name="Label3" type="Label" parent="PanelContainer/MarginContainer/VBoxContainer/HBoxContainer/PropertiesContainer/TabContainer/Unit/ScrollContainer/MarginContainer/HostStationProperties/GridContainer"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 12
+text = "Conquering delay:"
+
+[node name="LineEdit2" type="LineEdit" parent="PanelContainer/MarginContainer/VBoxContainer/HBoxContainer/PropertiesContainer/TabContainer/Unit/ScrollContainer/MarginContainer/HostStationProperties/GridContainer"]
+layout_mode = 2
+theme_override_constants/minimum_character_width = 2
+theme_override_font_sizes/font_size = 12
+text = "000"
+
+[node name="Label4" type="Label" parent="PanelContainer/MarginContainer/VBoxContainer/HBoxContainer/PropertiesContainer/TabContainer/Unit/ScrollContainer/MarginContainer/HostStationProperties/GridContainer"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 12
+text = "sec"
+
+[node name="Label11" type="Label" parent="PanelContainer/MarginContainer/VBoxContainer/HBoxContainer/PropertiesContainer/TabContainer/Unit/ScrollContainer/MarginContainer/HostStationProperties/GridContainer"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 12
+
+[node name="Label5" type="Label" parent="PanelContainer/MarginContainer/VBoxContainer/HBoxContainer/PropertiesContainer/TabContainer/Unit/ScrollContainer/MarginContainer/HostStationProperties/GridContainer"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 12
+text = "Defense:"
+
+[node name="HSlider3" type="HSlider" parent="PanelContainer/MarginContainer/VBoxContainer/HBoxContainer/PropertiesContainer/TabContainer/Unit/ScrollContainer/MarginContainer/HostStationProperties/GridContainer"]
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_vertical = 4
+
+[node name="LineEdit3" type="LineEdit" parent="PanelContainer/MarginContainer/VBoxContainer/HBoxContainer/PropertiesContainer/TabContainer/Unit/ScrollContainer/MarginContainer/HostStationProperties/GridContainer"]
+layout_mode = 2
+size_flags_horizontal = 8
+theme_override_constants/minimum_character_width = 2
+theme_override_font_sizes/font_size = 12
+text = "000"
+
+[node name="Label6" type="Label" parent="PanelContainer/MarginContainer/VBoxContainer/HBoxContainer/PropertiesContainer/TabContainer/Unit/ScrollContainer/MarginContainer/HostStationProperties/GridContainer"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 12
+text = "%"
+
+[node name="Label7" type="Label" parent="PanelContainer/MarginContainer/VBoxContainer/HBoxContainer/PropertiesContainer/TabContainer/Unit/ScrollContainer/MarginContainer/HostStationProperties/GridContainer"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 12
+text = "Defense delay:"
+
+[node name="LineEdit4" type="LineEdit" parent="PanelContainer/MarginContainer/VBoxContainer/HBoxContainer/PropertiesContainer/TabContainer/Unit/ScrollContainer/MarginContainer/HostStationProperties/GridContainer"]
+layout_mode = 2
+theme_override_constants/minimum_character_width = 2
+theme_override_font_sizes/font_size = 12
+text = "000"
+
+[node name="Label8" type="Label" parent="PanelContainer/MarginContainer/VBoxContainer/HBoxContainer/PropertiesContainer/TabContainer/Unit/ScrollContainer/MarginContainer/HostStationProperties/GridContainer"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 12
+text = "sec"
+
+[node name="Label12" type="Label" parent="PanelContainer/MarginContainer/VBoxContainer/HBoxContainer/PropertiesContainer/TabContainer/Unit/ScrollContainer/MarginContainer/HostStationProperties/GridContainer"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 12
+
+[node name="Label9" type="Label" parent="PanelContainer/MarginContainer/VBoxContainer/HBoxContainer/PropertiesContainer/TabContainer/Unit/ScrollContainer/MarginContainer/HostStationProperties/GridContainer"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 12
+text = "Reconnaissance:"
+
+[node name="HSlider5" type="HSlider" parent="PanelContainer/MarginContainer/VBoxContainer/HBoxContainer/PropertiesContainer/TabContainer/Unit/ScrollContainer/MarginContainer/HostStationProperties/GridContainer"]
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_vertical = 4
+
+[node name="LineEdit5" type="LineEdit" parent="PanelContainer/MarginContainer/VBoxContainer/HBoxContainer/PropertiesContainer/TabContainer/Unit/ScrollContainer/MarginContainer/HostStationProperties/GridContainer"]
+layout_mode = 2
+size_flags_horizontal = 8
+theme_override_constants/minimum_character_width = 2
+theme_override_font_sizes/font_size = 12
+text = "000"
+
+[node name="Label10" type="Label" parent="PanelContainer/MarginContainer/VBoxContainer/HBoxContainer/PropertiesContainer/TabContainer/Unit/ScrollContainer/MarginContainer/HostStationProperties/GridContainer"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 12
+text = "%"
+
+[node name="Label13" type="Label" parent="PanelContainer/MarginContainer/VBoxContainer/HBoxContainer/PropertiesContainer/TabContainer/Unit/ScrollContainer/MarginContainer/HostStationProperties/GridContainer"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 12
+text = "Reconnaissance delay:"
+
+[node name="LineEdit6" type="LineEdit" parent="PanelContainer/MarginContainer/VBoxContainer/HBoxContainer/PropertiesContainer/TabContainer/Unit/ScrollContainer/MarginContainer/HostStationProperties/GridContainer"]
+layout_mode = 2
+theme_override_constants/minimum_character_width = 2
+theme_override_font_sizes/font_size = 12
+text = "000"
+
+[node name="Label14" type="Label" parent="PanelContainer/MarginContainer/VBoxContainer/HBoxContainer/PropertiesContainer/TabContainer/Unit/ScrollContainer/MarginContainer/HostStationProperties/GridContainer"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 12
+text = "sec"
+
+[node name="Label15" type="Label" parent="PanelContainer/MarginContainer/VBoxContainer/HBoxContainer/PropertiesContainer/TabContainer/Unit/ScrollContainer/MarginContainer/HostStationProperties/GridContainer"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 12
+
+[node name="Label16" type="Label" parent="PanelContainer/MarginContainer/VBoxContainer/HBoxContainer/PropertiesContainer/TabContainer/Unit/ScrollContainer/MarginContainer/HostStationProperties/GridContainer"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 12
+text = "Attacking:"
+
+[node name="HSlider6" type="HSlider" parent="PanelContainer/MarginContainer/VBoxContainer/HBoxContainer/PropertiesContainer/TabContainer/Unit/ScrollContainer/MarginContainer/HostStationProperties/GridContainer"]
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_vertical = 4
+
+[node name="LineEdit7" type="LineEdit" parent="PanelContainer/MarginContainer/VBoxContainer/HBoxContainer/PropertiesContainer/TabContainer/Unit/ScrollContainer/MarginContainer/HostStationProperties/GridContainer"]
+layout_mode = 2
+size_flags_horizontal = 8
+theme_override_constants/minimum_character_width = 2
+theme_override_font_sizes/font_size = 12
+text = "000"
+
+[node name="Label17" type="Label" parent="PanelContainer/MarginContainer/VBoxContainer/HBoxContainer/PropertiesContainer/TabContainer/Unit/ScrollContainer/MarginContainer/HostStationProperties/GridContainer"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 12
+text = "%"
+
+[node name="Label18" type="Label" parent="PanelContainer/MarginContainer/VBoxContainer/HBoxContainer/PropertiesContainer/TabContainer/Unit/ScrollContainer/MarginContainer/HostStationProperties/GridContainer"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 12
+text = "Attacking delay:"
+
+[node name="LineEdit8" type="LineEdit" parent="PanelContainer/MarginContainer/VBoxContainer/HBoxContainer/PropertiesContainer/TabContainer/Unit/ScrollContainer/MarginContainer/HostStationProperties/GridContainer"]
+layout_mode = 2
+theme_override_constants/minimum_character_width = 2
+theme_override_font_sizes/font_size = 12
+text = "000"
+
+[node name="Label19" type="Label" parent="PanelContainer/MarginContainer/VBoxContainer/HBoxContainer/PropertiesContainer/TabContainer/Unit/ScrollContainer/MarginContainer/HostStationProperties/GridContainer"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 12
+text = "sec"
+
+[node name="Label20" type="Label" parent="PanelContainer/MarginContainer/VBoxContainer/HBoxContainer/PropertiesContainer/TabContainer/Unit/ScrollContainer/MarginContainer/HostStationProperties/GridContainer"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 12
+
+[node name="Label21" type="Label" parent="PanelContainer/MarginContainer/VBoxContainer/HBoxContainer/PropertiesContainer/TabContainer/Unit/ScrollContainer/MarginContainer/HostStationProperties/GridContainer"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 12
+text = "Power building:"
+
+[node name="HSlider7" type="HSlider" parent="PanelContainer/MarginContainer/VBoxContainer/HBoxContainer/PropertiesContainer/TabContainer/Unit/ScrollContainer/MarginContainer/HostStationProperties/GridContainer"]
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_vertical = 4
+
+[node name="LineEdit9" type="LineEdit" parent="PanelContainer/MarginContainer/VBoxContainer/HBoxContainer/PropertiesContainer/TabContainer/Unit/ScrollContainer/MarginContainer/HostStationProperties/GridContainer"]
+layout_mode = 2
+size_flags_horizontal = 8
+theme_override_constants/minimum_character_width = 2
+theme_override_font_sizes/font_size = 12
+text = "000"
+
+[node name="Label22" type="Label" parent="PanelContainer/MarginContainer/VBoxContainer/HBoxContainer/PropertiesContainer/TabContainer/Unit/ScrollContainer/MarginContainer/HostStationProperties/GridContainer"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 12
+text = "%"
+
+[node name="Label23" type="Label" parent="PanelContainer/MarginContainer/VBoxContainer/HBoxContainer/PropertiesContainer/TabContainer/Unit/ScrollContainer/MarginContainer/HostStationProperties/GridContainer"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 12
+text = "Power building delay:"
+
+[node name="LineEdit10" type="LineEdit" parent="PanelContainer/MarginContainer/VBoxContainer/HBoxContainer/PropertiesContainer/TabContainer/Unit/ScrollContainer/MarginContainer/HostStationProperties/GridContainer"]
+layout_mode = 2
+theme_override_constants/minimum_character_width = 2
+theme_override_font_sizes/font_size = 12
+text = "000"
+
+[node name="Label24" type="Label" parent="PanelContainer/MarginContainer/VBoxContainer/HBoxContainer/PropertiesContainer/TabContainer/Unit/ScrollContainer/MarginContainer/HostStationProperties/GridContainer"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 12
+text = "sec"
+
+[node name="Label25" type="Label" parent="PanelContainer/MarginContainer/VBoxContainer/HBoxContainer/PropertiesContainer/TabContainer/Unit/ScrollContainer/MarginContainer/HostStationProperties/GridContainer"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 12
+
+[node name="Label26" type="Label" parent="PanelContainer/MarginContainer/VBoxContainer/HBoxContainer/PropertiesContainer/TabContainer/Unit/ScrollContainer/MarginContainer/HostStationProperties/GridContainer"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 12
+text = "Radar building:"
+
+[node name="HSlider8" type="HSlider" parent="PanelContainer/MarginContainer/VBoxContainer/HBoxContainer/PropertiesContainer/TabContainer/Unit/ScrollContainer/MarginContainer/HostStationProperties/GridContainer"]
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_vertical = 4
+
+[node name="LineEdit11" type="LineEdit" parent="PanelContainer/MarginContainer/VBoxContainer/HBoxContainer/PropertiesContainer/TabContainer/Unit/ScrollContainer/MarginContainer/HostStationProperties/GridContainer"]
+layout_mode = 2
+size_flags_horizontal = 8
+theme_override_constants/minimum_character_width = 2
+theme_override_font_sizes/font_size = 12
+text = "000"
+
+[node name="Label27" type="Label" parent="PanelContainer/MarginContainer/VBoxContainer/HBoxContainer/PropertiesContainer/TabContainer/Unit/ScrollContainer/MarginContainer/HostStationProperties/GridContainer"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 12
+text = "%"
+
+[node name="Label28" type="Label" parent="PanelContainer/MarginContainer/VBoxContainer/HBoxContainer/PropertiesContainer/TabContainer/Unit/ScrollContainer/MarginContainer/HostStationProperties/GridContainer"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 12
+text = "Radar building delay:"
+
+[node name="LineEdit12" type="LineEdit" parent="PanelContainer/MarginContainer/VBoxContainer/HBoxContainer/PropertiesContainer/TabContainer/Unit/ScrollContainer/MarginContainer/HostStationProperties/GridContainer"]
+layout_mode = 2
+theme_override_constants/minimum_character_width = 2
+theme_override_font_sizes/font_size = 12
+text = "000"
+
+[node name="Label29" type="Label" parent="PanelContainer/MarginContainer/VBoxContainer/HBoxContainer/PropertiesContainer/TabContainer/Unit/ScrollContainer/MarginContainer/HostStationProperties/GridContainer"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 12
+text = "sec"
+
+[node name="Label30" type="Label" parent="PanelContainer/MarginContainer/VBoxContainer/HBoxContainer/PropertiesContainer/TabContainer/Unit/ScrollContainer/MarginContainer/HostStationProperties/GridContainer"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 12
+
+[node name="Label31" type="Label" parent="PanelContainer/MarginContainer/VBoxContainer/HBoxContainer/PropertiesContainer/TabContainer/Unit/ScrollContainer/MarginContainer/HostStationProperties/GridContainer"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 12
+text = "Flak building:"
+
+[node name="HSlider9" type="HSlider" parent="PanelContainer/MarginContainer/VBoxContainer/HBoxContainer/PropertiesContainer/TabContainer/Unit/ScrollContainer/MarginContainer/HostStationProperties/GridContainer"]
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_vertical = 4
+
+[node name="LineEdit13" type="LineEdit" parent="PanelContainer/MarginContainer/VBoxContainer/HBoxContainer/PropertiesContainer/TabContainer/Unit/ScrollContainer/MarginContainer/HostStationProperties/GridContainer"]
+layout_mode = 2
+size_flags_horizontal = 8
+theme_override_constants/minimum_character_width = 2
+theme_override_font_sizes/font_size = 12
+text = "000"
+
+[node name="Label32" type="Label" parent="PanelContainer/MarginContainer/VBoxContainer/HBoxContainer/PropertiesContainer/TabContainer/Unit/ScrollContainer/MarginContainer/HostStationProperties/GridContainer"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 12
+text = "%"
+
+[node name="Label33" type="Label" parent="PanelContainer/MarginContainer/VBoxContainer/HBoxContainer/PropertiesContainer/TabContainer/Unit/ScrollContainer/MarginContainer/HostStationProperties/GridContainer"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 12
+text = "Flak building delay:"
+
+[node name="LineEdit14" type="LineEdit" parent="PanelContainer/MarginContainer/VBoxContainer/HBoxContainer/PropertiesContainer/TabContainer/Unit/ScrollContainer/MarginContainer/HostStationProperties/GridContainer"]
+layout_mode = 2
+theme_override_constants/minimum_character_width = 2
+theme_override_font_sizes/font_size = 12
+text = "000"
+
+[node name="Label34" type="Label" parent="PanelContainer/MarginContainer/VBoxContainer/HBoxContainer/PropertiesContainer/TabContainer/Unit/ScrollContainer/MarginContainer/HostStationProperties/GridContainer"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 12
+text = "sec"
+
+[node name="Label35" type="Label" parent="PanelContainer/MarginContainer/VBoxContainer/HBoxContainer/PropertiesContainer/TabContainer/Unit/ScrollContainer/MarginContainer/HostStationProperties/GridContainer"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 12
+
+[node name="Label36" type="Label" parent="PanelContainer/MarginContainer/VBoxContainer/HBoxContainer/PropertiesContainer/TabContainer/Unit/ScrollContainer/MarginContainer/HostStationProperties/GridContainer"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 12
+text = "Moving station:"
+
+[node name="HSlider10" type="HSlider" parent="PanelContainer/MarginContainer/VBoxContainer/HBoxContainer/PropertiesContainer/TabContainer/Unit/ScrollContainer/MarginContainer/HostStationProperties/GridContainer"]
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_vertical = 4
+
+[node name="LineEdit15" type="LineEdit" parent="PanelContainer/MarginContainer/VBoxContainer/HBoxContainer/PropertiesContainer/TabContainer/Unit/ScrollContainer/MarginContainer/HostStationProperties/GridContainer"]
+layout_mode = 2
+size_flags_horizontal = 8
+theme_override_constants/minimum_character_width = 2
+theme_override_font_sizes/font_size = 12
+text = "000"
+
+[node name="Label37" type="Label" parent="PanelContainer/MarginContainer/VBoxContainer/HBoxContainer/PropertiesContainer/TabContainer/Unit/ScrollContainer/MarginContainer/HostStationProperties/GridContainer"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 12
+text = "%"
+
+[node name="Label38" type="Label" parent="PanelContainer/MarginContainer/VBoxContainer/HBoxContainer/PropertiesContainer/TabContainer/Unit/ScrollContainer/MarginContainer/HostStationProperties/GridContainer"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 12
+text = "Moving station delay:"
+
+[node name="LineEdit16" type="LineEdit" parent="PanelContainer/MarginContainer/VBoxContainer/HBoxContainer/PropertiesContainer/TabContainer/Unit/ScrollContainer/MarginContainer/HostStationProperties/GridContainer"]
+layout_mode = 2
+theme_override_constants/minimum_character_width = 2
+theme_override_font_sizes/font_size = 12
+text = "000"
+
+[node name="Label39" type="Label" parent="PanelContainer/MarginContainer/VBoxContainer/HBoxContainer/PropertiesContainer/TabContainer/Unit/ScrollContainer/MarginContainer/HostStationProperties/GridContainer"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 12
+text = "sec"
+
+[node name="Label40" type="Label" parent="PanelContainer/MarginContainer/VBoxContainer/HBoxContainer/PropertiesContainer/TabContainer/Unit/ScrollContainer/MarginContainer/HostStationProperties/GridContainer"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 12
+
+[node name="HSeparator4" type="HSeparator" parent="PanelContainer/MarginContainer/VBoxContainer/HBoxContainer/PropertiesContainer/TabContainer/Unit/ScrollContainer/MarginContainer/HostStationProperties"]
+layout_mode = 2
+
+[node name="Label2" type="Label" parent="PanelContainer/MarginContainer/VBoxContainer/HBoxContainer/PropertiesContainer/TabContainer/Unit/ScrollContainer/MarginContainer/HostStationProperties"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 12
+text = "MB status:"
+horizontal_alignment = 1
+
+[node name="CheckBox" type="CheckBox" parent="PanelContainer/MarginContainer/VBoxContainer/HBoxContainer/PropertiesContainer/TabContainer/Unit/ScrollContainer/MarginContainer/HostStationProperties"]
+layout_mode = 2
+size_flags_horizontal = 0
+theme_override_font_sizes/font_size = 12
+text = "Make this host station invisible in the Mission Briefing"
+
+[node name="HSeparator6" type="HSeparator" parent="PanelContainer/MarginContainer/VBoxContainer/HBoxContainer/PropertiesContainer/TabContainer/Unit/ScrollContainer/MarginContainer/HostStationProperties"]
+layout_mode = 2
+
+[node name="Label3" type="Label" parent="PanelContainer/MarginContainer/VBoxContainer/HBoxContainer/PropertiesContainer/TabContainer/Unit/ScrollContainer/MarginContainer/HostStationProperties"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 12
+text = "Host station type:"
+horizontal_alignment = 1
+
+[node name="HBoxContainer3" type="HBoxContainer" parent="PanelContainer/MarginContainer/VBoxContainer/HBoxContainer/PropertiesContainer/TabContainer/Unit/ScrollContainer/MarginContainer/HostStationProperties"]
+layout_mode = 2
+alignment = 1
+
+[node name="TextureRect" type="TextureRect" parent="PanelContainer/MarginContainer/VBoxContainer/HBoxContainer/PropertiesContainer/TabContainer/Unit/ScrollContainer/MarginContainer/HostStationProperties/HBoxContainer3"]
+custom_minimum_size = Vector2(30, 30)
+layout_mode = 2
+
+[node name="OptionButton" type="OptionButton" parent="PanelContainer/MarginContainer/VBoxContainer/HBoxContainer/PropertiesContainer/TabContainer/Unit/ScrollContainer/MarginContainer/HostStationProperties/HBoxContainer3"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 12
+item_count = 2
+selected = 0
+popup/item_0/text = "test1"
+popup/item_0/id = 0
+popup/item_1/text = "test2"
+popup/item_1/id = 1
+
+[node name="HSeparator5" type="HSeparator" parent="PanelContainer/MarginContainer/VBoxContainer/HBoxContainer/PropertiesContainer/TabContainer/Unit/ScrollContainer/MarginContainer/HostStationProperties"]
+layout_mode = 2
+
+[node name="Label4" type="Label" parent="PanelContainer/MarginContainer/VBoxContainer/HBoxContainer/PropertiesContainer/TabContainer/Unit/ScrollContainer/MarginContainer/HostStationProperties"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 12
+text = "Host station behavior in file"
+horizontal_alignment = 1
+
+[node name="HBoxContainer4" type="HBoxContainer" parent="PanelContainer/MarginContainer/VBoxContainer/HBoxContainer/PropertiesContainer/TabContainer/Unit/ScrollContainer/MarginContainer/HostStationProperties"]
+layout_mode = 2
+alignment = 1
+
+[node name="Button" type="Button" parent="PanelContainer/MarginContainer/VBoxContainer/HBoxContainer/PropertiesContainer/TabContainer/Unit/ScrollContainer/MarginContainer/HostStationProperties/HBoxContainer4"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 12
+text = "Load behavior from file"
+
+[node name="Button2" type="Button" parent="PanelContainer/MarginContainer/VBoxContainer/HBoxContainer/PropertiesContainer/TabContainer/Unit/ScrollContainer/MarginContainer/HostStationProperties/HBoxContainer4"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 12
+text = "Save behavior to file"
+
+[node name="SquadProperties" type="VBoxContainer" parent="PanelContainer/MarginContainer/VBoxContainer/HBoxContainer/PropertiesContainer/TabContainer/Unit/ScrollContainer/MarginContainer"]
 visible = false
 layout_mode = 2
 
-[node name="HBoxContainer" type="HBoxContainer" parent="PanelContainer/MarginContainer/VBoxContainer/HBoxContainer/PropertiesContainer/TabContainer/Unit/MarginContainer/SquadProperties"]
+[node name="HBoxContainer" type="HBoxContainer" parent="PanelContainer/MarginContainer/VBoxContainer/HBoxContainer/PropertiesContainer/TabContainer/Unit/ScrollContainer/MarginContainer/SquadProperties"]
 layout_mode = 2
 
-[node name="SquadIcon" type="TextureRect" parent="PanelContainer/MarginContainer/VBoxContainer/HBoxContainer/PropertiesContainer/TabContainer/Unit/MarginContainer/SquadProperties/HBoxContainer"]
+[node name="SquadIcon" type="TextureRect" parent="PanelContainer/MarginContainer/VBoxContainer/HBoxContainer/PropertiesContainer/TabContainer/Unit/ScrollContainer/MarginContainer/SquadProperties/HBoxContainer"]
 layout_mode = 2
 
-[node name="SquadNumberLabel" type="Label" parent="PanelContainer/MarginContainer/VBoxContainer/HBoxContainer/PropertiesContainer/TabContainer/Unit/MarginContainer/SquadProperties/HBoxContainer"]
+[node name="SquadNumberLabel" type="Label" parent="PanelContainer/MarginContainer/VBoxContainer/HBoxContainer/PropertiesContainer/TabContainer/Unit/ScrollContainer/MarginContainer/SquadProperties/HBoxContainer"]
 layout_mode = 2
 text = "Squad N:"
 
-[node name="SquadNameLabel" type="Label" parent="PanelContainer/MarginContainer/VBoxContainer/HBoxContainer/PropertiesContainer/TabContainer/Unit/MarginContainer/SquadProperties/HBoxContainer"]
+[node name="SquadNameLabel" type="Label" parent="PanelContainer/MarginContainer/VBoxContainer/HBoxContainer/PropertiesContainer/TabContainer/Unit/ScrollContainer/MarginContainer/SquadProperties/HBoxContainer"]
 layout_mode = 2
 text = "SquadName"
 
