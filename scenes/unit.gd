@@ -1,5 +1,6 @@
 class_name Unit extends Sprite2D
 
+signal position_changed
 
 var dragging := false
 var of := Vector2(0,0)
@@ -25,6 +26,7 @@ func _process(_delta):
 			position.x = pos_to_move.x
 		if pos_to_move.y > top_limit and pos_to_move.y < bottom_limit:
 			position.y = pos_to_move.y
+		position_changed.emit()
 
 
 func _on_button_button_down():

@@ -6,15 +6,21 @@ const HOSTSTATION = preload("res://scenes/host_station.tscn")
 const SQUAD = preload("res://scenes/squad.tscn")
 
 var hs_images := {}
+var hs_robo_images := {}
 var squad_images := {}
 var squad_icons := {}
 
 func _ready():
 	for hs in ua_data.data[CurrentMapData.game_data_type].hoststations:
 		hs_images[str(ua_data.data[CurrentMapData.game_data_type].hoststations[hs].owner)] = load("res://resources/img/hostStationImages/"+ ua_data.data[CurrentMapData.game_data_type].hoststations[hs].image_file)
+		for robo in ua_data.data[CurrentMapData.game_data_type].hoststations[hs].robos:
+			hs_robo_images[robo.id] = {
+				"name": robo.name,
+				"image": load("res://resources/img/hostStationRoboImages/"+robo.image_file)
+			}
 		for squad in ua_data.data[CurrentMapData.game_data_type].hoststations[hs].units:
 			squad_images[str(squad.id)] = load("res://resources/img/squadImages/" + squad.image_file)
-	
+	print(hs_robo_images)
 	for squad in ua_data.data[CurrentMapData.game_data_type].other.units:
 		squad_images[str(squad.id)] = load("res://resources/img/squadImages/" + squad.image_file)
 	
