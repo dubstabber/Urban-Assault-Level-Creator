@@ -1,10 +1,11 @@
-[gd_scene load_steps=6 format=3 uid="uid://ctgiwn3scteuk"]
+[gd_scene load_steps=7 format=3 uid="uid://ctgiwn3scteuk"]
 
-[ext_resource type="Script" path="res://main.gd" id="1_7pb5r"]
-[ext_resource type="Script" path="res://Map.gd" id="2_dum0m"]
-[ext_resource type="PackedScene" uid="uid://bxpgr6q0fq3fb" path="res://ui.tscn" id="3_5x600"]
-[ext_resource type="Script" path="res://MenuButton.gd" id="4_ife4a"]
-[ext_resource type="Theme" uid="uid://cdrs6kxi0mn0v" path="res://ua_theme.tres" id="5_sk7qs"]
+[ext_resource type="Script" path="res://scenes/main.gd" id="1_7pb5r"]
+[ext_resource type="Script" path="res://scripts/Map.gd" id="2_dum0m"]
+[ext_resource type="PackedScene" uid="uid://bxpgr6q0fq3fb" path="res://scenes/ui.tscn" id="3_5x600"]
+[ext_resource type="Script" path="res://scripts/MenuButton.gd" id="4_ife4a"]
+[ext_resource type="Script" path="res://scripts/Properties.gd" id="5_opyij"]
+[ext_resource type="Theme" uid="uid://cdrs6kxi0mn0v" path="res://resources/ua_theme.tres" id="5_sk7qs"]
 
 [node name="Main" type="Control"]
 layout_mode = 3
@@ -104,6 +105,7 @@ zoom = Vector2(0.1, 0.1)
 custom_minimum_size = Vector2(200, 550)
 layout_mode = 2
 size_flags_horizontal = 3
+script = ExtResource("5_opyij")
 
 [node name="TabContainer" type="TabContainer" parent="PanelContainer/MarginContainer/VBoxContainer/HBoxContainer/PropertiesContainer"]
 layout_mode = 2

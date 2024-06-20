@@ -11,7 +11,7 @@ config_version=5
 [application]
 
 config/name="Urban Assault Level Creator"
-run/main_scene="res://main.tscn"
+run/main_scene="res://scenes/main.tscn"
 config/features=PackedStringArray("4.2", "GL Compatibility")
 run/low_processor_mode=true
 config/icon="res://resources/img/icon.png"
@@ -27,7 +27,7 @@ window/dpi/allow_hidpi=false
 
 [gui]
 
-theme/custom="res://ua_theme.tres"
+theme/custom="res://resources/ua_theme.tres"
 
 [input]
 
