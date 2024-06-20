@@ -95,6 +95,78 @@ func _ready():
 	%MBstatusCheckBox.toggled.connect(func(toggled: bool):
 		CurrentMapData.selected_unit.mb_status = toggled
 	)
+	for hs_robo in Preloads.hs_robo_images:
+		%HostStationRoboOptionButton.add_item(Preloads.hs_robo_images[hs_robo].name,hs_robo)
+	%HostStationRoboOptionButton.item_selected.connect(func(index: int):
+		CurrentMapData.selected_unit.vehicle = %HostStationRoboOptionButton.get_item_id(index)
+		%HostStationRoboTextureRect.texture = Preloads.hs_robo_images[%HostStationRoboOptionButton.get_item_id(index)].image
+	)
+	%LoadBehaviorFileButton.pressed.connect(func():
+		%LoadBehaviorFileDialog.show()
+	)
+	%SaveBehaviorFileButton.pressed.connect(func():
+		%SaveBehaviorFileDialog.show()
+	)
+	%LoadBehaviorFileDialog.file_selected.connect(func(path: String):
+		var file = FileAccess.open(path, FileAccess.READ)
+		var behavior_json = file.get_line()
+		var behavior_data = JSON.parse_string(behavior_json)
+		CurrentMapData.selected_unit.con_budget = behavior_data.con_budget
+		%ConqueringHSlider.value = int(behavior_data.con_budget)
+		CurrentMapData.selected_unit.con_delay = behavior_data.con_delay
+		%ConqueringDelayLineEdit.text = str(behavior_data.con_delay)
+		CurrentMapData.selected_unit.def_budget = behavior_data.def_budget
+		%DefenseHSlider.value = int(behavior_data.def_budget)
+		CurrentMapData.selected_unit.def_delay = behavior_data.def_delay
+		%DefenseDelayLineEdit.text = str(behavior_data.def_delay)
+		CurrentMapData.selected_unit.rec_budget = behavior_data.rec_budget
+		%ReconnaissanceHSlider.value = int(behavior_data.rec_budget)
+		CurrentMapData.selected_unit.rec_delay = behavior_data.rec_delay
+		%ReconnaissanceDelayLineEdit.text = str(behavior_data.rec_delay)
+		CurrentMapData.selected_unit.rob_budget = behavior_data.rob_budget
+		%AttackingHSlider.value = int(behavior_data.rob_budget)
+		CurrentMapData.selected_unit.rob_delay = behavior_data.rob_delay
+		%AttackingDelayLineEdit.text = str(behavior_data.rob_delay)
+		CurrentMapData.selected_unit.pow_budget = behavior_data.pow_budget
+		%PowerBuildingHSlider.value = int(behavior_data.pow_budget)
+		CurrentMapData.selected_unit.pow_delay = behavior_data.pow_delay
+		%PowerBuildingDelayLineEdit.text = str(behavior_data.pow_delay)
+		CurrentMapData.selected_unit.rad_budget = behavior_data.rad_budget
+		%RadarBuildingHSlider.value = int(behavior_data.rad_budget)
+		CurrentMapData.selected_unit.rad_delay = behavior_data.rad_delay
+		%RadarBuildingDelayLineEdit.text = str(behavior_data.rad_delay)
+		CurrentMapData.selected_unit.saf_budget = behavior_data.saf_budget
+		%FlakBuildingHSlider.value = int(behavior_data.saf_budget)
+		CurrentMapData.selected_unit.saf_delay = behavior_data.saf_delay
+		%FlakBuildingDelayLineEdit.text = str(behavior_data.saf_delay)
+		CurrentMapData.selected_unit.cpl_budget = behavior_data.cpl_budget
+		%MovingStationHSlider.value = int(behavior_data.cpl_budget)
+		CurrentMapData.selected_unit.cpl_delay = behavior_data.cpl_delay
+		%MovingStationDelayLineEdit.text = str(behavior_data.cpl_delay)
+	)
+	%SaveBehaviorFileDialog.file_selected.connect(func(path: String):
+		var file = FileAccess.open(path, FileAccess.WRITE)
+		var behavior_data := {
+			con_budget = CurrentMapData.selected_unit.con_budget,
+			con_delay = CurrentMapData.selected_unit.con_delay,
+			def_budget = CurrentMapData.selected_unit.def_budget,
+			def_delay = CurrentMapData.selected_unit.def_delay,
+			rec_budget = CurrentMapData.selected_unit.rec_budget,
+			rec_delay = CurrentMapData.selected_unit.rec_delay,
+			rob_budget = CurrentMapData.selected_unit.rob_budget,
+			rob_delay = CurrentMapData.selected_unit.rob_delay,
+			pow_budget = CurrentMapData.selected_unit.pow_budget,
+			pow_delay = CurrentMapData.selected_unit.pow_delay,
+			rad_budget = CurrentMapData.selected_unit.rad_budget,
+			rad_delay = CurrentMapData.selected_unit.rad_delay,
+			saf_budget = CurrentMapData.selected_unit.saf_budget,
+			saf_delay = CurrentMapData.selected_unit.saf_delay,
+			cpl_budget = CurrentMapData.selected_unit.cpl_budget,
+			cpl_delay = CurrentMapData.selected_unit.cpl_delay
+		}
+		var behavior_data_json = JSON.stringify(behavior_data)
+		file.store_line(behavior_data_json)
+	)
 
 
 func _input(event):
@@ -175,6 +247,10 @@ func _update_properties():
 			
 			%MBstatusCheckBox.button_pressed = CurrentMapData.selected_unit.mb_status
 			
+			%HostStationRoboTextureRect.texture = Preloads.hs_robo_images[CurrentMapData.selected_unit.vehicle].image
+			%HostStationRoboOptionButton.select(%HostStationRoboOptionButton.get_item_index(CurrentMapData.selected_unit.vehicle))
+			
+			
 			%HostStationProperties.show()
 		elif CurrentMapData.selected_unit is Squad:
 			%HostStationProperties.hide()
@@ -189,8 +265,7 @@ func _update_properties():
 
 
 func _update_coordinates():
-	if CurrentMapData.selected_unit:
-		if CurrentMapData.selected_unit is HostStation:
-			%XposHostStationLineEdit.text = str(round(CurrentMapData.selected_unit.position.x))
-			%ZposHostStationLineEdit.text = str(round(-CurrentMapData.selected_unit.position.y))
+	if CurrentMapData.selected_unit is HostStation:
+		%XposHostStationLineEdit.text = str(round(CurrentMapData.selected_unit.position.x))
+		%ZposHostStationLineEdit.text = str(round(-CurrentMapData.selected_unit.position.y))
 

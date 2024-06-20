@@ -39,6 +39,22 @@ text = "
 "
 script = ExtResource("4_ife4a")
 
+[node name="LoadBehaviorFileDialog" type="FileDialog" parent="."]
+unique_name_in_owner = true
+title = "Open a File"
+initial_position = 2
+size = Vector2i(810, 450)
+ok_button_text = "Open"
+file_mode = 0
+access = 2
+
+[node name="SaveBehaviorFileDialog" type="FileDialog" parent="."]
+unique_name_in_owner = true
+initial_position = 2
+size = Vector2i(810, 450)
+ok_button_text = "Save"
+access = 2
+
 [node name="PanelContainer" type="PanelContainer" parent="."]
 layout_mode = 1
 anchors_preset = -1
@@ -621,7 +637,7 @@ text = "Make this host station invisible in the Mission Briefing"
 [node name="HSeparator6" type="HSeparator" parent="PanelContainer/MarginContainer/VBoxContainer/HBoxContainer/PropertiesContainer/TabContainer/Unit/ScrollContainer/MarginContainer/HostStationProperties"]
 layout_mode = 2
 
-[node name="Label3" type="Label" parent="PanelContainer/MarginContainer/VBoxContainer/HBoxContainer/PropertiesContainer/TabContainer/Unit/ScrollContainer/MarginContainer/HostStationProperties"]
+[node name="HostStationLabel" type="Label" parent="PanelContainer/MarginContainer/VBoxContainer/HBoxContainer/PropertiesContainer/TabContainer/Unit/ScrollContainer/MarginContainer/HostStationProperties"]
 layout_mode = 2
 theme_override_font_sizes/font_size = 12
 text = "Host station type:"
@@ -631,19 +647,15 @@ horizontal_alignment = 1
 layout_mode = 2
 alignment = 1
 
-[node name="TextureRect" type="TextureRect" parent="PanelContainer/MarginContainer/VBoxContainer/HBoxContainer/PropertiesContainer/TabContainer/Unit/ScrollContainer/MarginContainer/HostStationProperties/HBoxContainer3"]
+[node name="HostStationRoboTextureRect" type="TextureRect" parent="PanelContainer/MarginContainer/VBoxContainer/HBoxContainer/PropertiesContainer/TabContainer/Unit/ScrollContainer/MarginContainer/HostStationProperties/HBoxContainer3"]
+unique_name_in_owner = true
 custom_minimum_size = Vector2(30, 30)
 layout_mode = 2
 
-[node name="OptionButton" type="OptionButton" parent="PanelContainer/MarginContainer/VBoxContainer/HBoxContainer/PropertiesContainer/TabContainer/Unit/ScrollContainer/MarginContainer/HostStationProperties/HBoxContainer3"]
+[node name="HostStationRoboOptionButton" type="OptionButton" parent="PanelContainer/MarginContainer/VBoxContainer/HBoxContainer/PropertiesContainer/TabContainer/Unit/ScrollContainer/MarginContainer/HostStationProperties/HBoxContainer3"]
+unique_name_in_owner = true
 layout_mode = 2
 theme_override_font_sizes/font_size = 12
-item_count = 2
-selected = 0
-popup/item_0/text = "test1"
-popup/item_0/id = 4
-popup/item_1/text = "test2"
-popup/item_1/id = 2
 
 [node name="HSeparator5" type="HSeparator" parent="PanelContainer/MarginContainer/VBoxContainer/HBoxContainer/PropertiesContainer/TabContainer/Unit/ScrollContainer/MarginContainer/HostStationProperties"]
 layout_mode = 2
@@ -658,12 +670,14 @@ horizontal_alignment = 1
 layout_mode = 2
 alignment = 1
 
-[node name="Button" type="Button" parent="PanelContainer/MarginContainer/VBoxContainer/HBoxContainer/PropertiesContainer/TabContainer/Unit/ScrollContainer/MarginContainer/HostStationProperties/HBoxContainer4"]
+[node name="LoadBehaviorFileButton" type="Button" parent="PanelContainer/MarginContainer/VBoxContainer/HBoxContainer/PropertiesContainer/TabContainer/Unit/ScrollContainer/MarginContainer/HostStationProperties/HBoxContainer4"]
+unique_name_in_owner = true
 layout_mode = 2
 theme_override_font_sizes/font_size = 12
 text = "Load behavior from file"
 
-[node name="Button2" type="Button" parent="PanelContainer/MarginContainer/VBoxContainer/HBoxContainer/PropertiesContainer/TabContainer/Unit/ScrollContainer/MarginContainer/HostStationProperties/HBoxContainer4"]
+[node name="SaveBehaviorFileButton" type="Button" parent="PanelContainer/MarginContainer/VBoxContainer/HBoxContainer/PropertiesContainer/TabContainer/Unit/ScrollContainer/MarginContainer/HostStationProperties/HBoxContainer4"]
+unique_name_in_owner = true
 layout_mode = 2
 theme_override_font_sizes/font_size = 12
 text = "Save behavior to file"
