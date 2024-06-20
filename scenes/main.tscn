@@ -98,8 +98,10 @@ anchor_mode = 0
 zoom = Vector2(0.1, 0.1)
 
 [node name="HostStations" type="Node2D" parent="PanelContainer/MarginContainer/VBoxContainer/HBoxContainer/MapContainer/SubViewportContainer/SubViewport/Map"]
+unique_name_in_owner = true
 
 [node name="Squads" type="Node2D" parent="PanelContainer/MarginContainer/VBoxContainer/HBoxContainer/MapContainer/SubViewportContainer/SubViewport/Map"]
+unique_name_in_owner = true
 
 [node name="PropertiesContainer" type="PanelContainer" parent="PanelContainer/MarginContainer/VBoxContainer/HBoxContainer"]
 custom_minimum_size = Vector2(200, 550)
