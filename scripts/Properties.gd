@@ -78,7 +78,7 @@ func _ready():
 	%MovingStationDelayLineEdit.text_changed.connect(func(value_changed: String):
 		CurrentMapData.selected_unit.cpl_delay = abs(int(value_changed))
 	)
-	%MBstatusCheckBox.toggled.connect(func(toggled: bool):
+	%MBstatusHostStationCheckBox.toggled.connect(func(toggled: bool):
 		CurrentMapData.selected_unit.mb_status = toggled
 	)
 	for hs_robo in Preloads.hs_robo_images:
@@ -208,7 +208,7 @@ func _update_properties():
 			%MovingStationValueLabel.text = str(CurrentMapData.selected_unit.cpl_budget)
 			%MovingStationDelayLineEdit.text = str(CurrentMapData.selected_unit.cpl_delay)
 			
-			%MBstatusCheckBox.button_pressed = CurrentMapData.selected_unit.mb_status
+			%MBstatusHostStationCheckBox.button_pressed = CurrentMapData.selected_unit.mb_status
 			
 			%HostStationRoboTextureRect.texture = Preloads.hs_robo_images[CurrentMapData.selected_unit.vehicle].image
 			%HostStationRoboOptionButton.select(%HostStationRoboOptionButton.get_item_index(CurrentMapData.selected_unit.vehicle))

@@ -1,8 +1,0 @@
-[gd_resource type="Theme" load_steps=2 format=3 uid="uid://cdrs6kxi0mn0v"]
-
-[ext_resource type="FontFile" uid="uid://b5bou0wtu243w" path="res://resources/Xolonium-Regular.ttf" id="1_wjuhk"]
-
-[resource]
-Button/fonts/font = ExtResource("1_wjuhk")
-Label/fonts/font = ExtResource("1_wjuhk")
-LineEdit/font_sizes/font_size = 12

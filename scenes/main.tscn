@@ -5,7 +5,7 @@
 [ext_resource type="PackedScene" uid="uid://bxpgr6q0fq3fb" path="res://scenes/ui.tscn" id="3_5x600"]
 [ext_resource type="Script" path="res://scripts/MenuButton.gd" id="4_ife4a"]
 [ext_resource type="Script" path="res://scripts/Properties.gd" id="5_opyij"]
-[ext_resource type="Theme" uid="uid://cdrs6kxi0mn0v" path="res://resources/ua_theme.tres" id="5_sk7qs"]
+[ext_resource type="Theme" uid="uid://cdrs6kxi0mn0v" path="res://resources/themes/ua_theme.tres" id="5_sk7qs"]
 
 [node name="Main" type="Control"]
 layout_mode = 3
@@ -138,7 +138,6 @@ theme_override_constants/margin_bottom = 10
 
 [node name="NoUnitLabel" type="Label" parent="PanelContainer/MarginContainer/VBoxContainer/HBoxContainer/PropertiesContainer/TabContainer/Unit/ScrollContainer/MarginContainer"]
 unique_name_in_owner = true
-visible = false
 layout_mode = 2
 text = "No unit selected"
 horizontal_alignment = 1
@@ -146,6 +145,7 @@ vertical_alignment = 1
 
 [node name="HostStationProperties" type="VBoxContainer" parent="PanelContainer/MarginContainer/VBoxContainer/HBoxContainer/PropertiesContainer/TabContainer/Unit/ScrollContainer/MarginContainer"]
 unique_name_in_owner = true
+visible = false
 layout_mode = 2
 
 [node name="HBoxContainer" type="HBoxContainer" parent="PanelContainer/MarginContainer/VBoxContainer/HBoxContainer/PropertiesContainer/TabContainer/Unit/ScrollContainer/MarginContainer/HostStationProperties"]
@@ -169,56 +169,53 @@ layout_mode = 2
 layout_mode = 2
 alignment = 1
 
-[node name="VBoxContainer2" type="VBoxContainer" parent="PanelContainer/MarginContainer/VBoxContainer/HBoxContainer/PropertiesContainer/TabContainer/Unit/ScrollContainer/MarginContainer/HostStationProperties/HBoxContainer5"]
-layout_mode = 2
-
-[node name="GridContainer" type="GridContainer" parent="PanelContainer/MarginContainer/VBoxContainer/HBoxContainer/PropertiesContainer/TabContainer/Unit/ScrollContainer/MarginContainer/HostStationProperties/HBoxContainer5"]
+[node name="GridContainer2" type="GridContainer" parent="PanelContainer/MarginContainer/VBoxContainer/HBoxContainer/PropertiesContainer/TabContainer/Unit/ScrollContainer/MarginContainer/HostStationProperties/HBoxContainer5"]
 layout_mode = 2
 columns = 3
 
-[node name="EnergyLabel" type="Label" parent="PanelContainer/MarginContainer/VBoxContainer/HBoxContainer/PropertiesContainer/TabContainer/Unit/ScrollContainer/MarginContainer/HostStationProperties/HBoxContainer5/GridContainer"]
+[node name="EnergyLabel" type="Label" parent="PanelContainer/MarginContainer/VBoxContainer/HBoxContainer/PropertiesContainer/TabContainer/Unit/ScrollContainer/MarginContainer/HostStationProperties/HBoxContainer5/GridContainer2"]
 layout_mode = 2
 theme_override_font_sizes/font_size = 12
 text = "Energy: "
 
-[node name="EnergyLineEdit" type="LineEdit" parent="PanelContainer/MarginContainer/VBoxContainer/HBoxContainer/PropertiesContainer/TabContainer/Unit/ScrollContainer/MarginContainer/HostStationProperties/HBoxContainer5/GridContainer"]
+[node name="EnergyLineEdit" type="LineEdit" parent="PanelContainer/MarginContainer/VBoxContainer/HBoxContainer/PropertiesContainer/TabContainer/Unit/ScrollContainer/MarginContainer/HostStationProperties/HBoxContainer5/GridContainer2"]
 unique_name_in_owner = true
 layout_mode = 2
 theme_override_font_sizes/font_size = 12
 text = "0000"
 shortcut_keys_enabled = false
 
-[node name="Control" type="Control" parent="PanelContainer/MarginContainer/VBoxContainer/HBoxContainer/PropertiesContainer/TabContainer/Unit/ScrollContainer/MarginContainer/HostStationProperties/HBoxContainer5/GridContainer"]
+[node name="Control" type="Control" parent="PanelContainer/MarginContainer/VBoxContainer/HBoxContainer/PropertiesContainer/TabContainer/Unit/ScrollContainer/MarginContainer/HostStationProperties/HBoxContainer5/GridContainer2"]
 layout_mode = 2
 
-[node name="ViewAngleLabel" type="Label" parent="PanelContainer/MarginContainer/VBoxContainer/HBoxContainer/PropertiesContainer/TabContainer/Unit/ScrollContainer/MarginContainer/HostStationProperties/HBoxContainer5/GridContainer"]
+[node name="ViewAngleLabel" type="Label" parent="PanelContainer/MarginContainer/VBoxContainer/HBoxContainer/PropertiesContainer/TabContainer/Unit/ScrollContainer/MarginContainer/HostStationProperties/HBoxContainer5/GridContainer2"]
 layout_mode = 2
 theme_override_font_sizes/font_size = 12
 text = "View angle: "
 
-[node name="ViewAngleLineEdit" type="LineEdit" parent="PanelContainer/MarginContainer/VBoxContainer/HBoxContainer/PropertiesContainer/TabContainer/Unit/ScrollContainer/MarginContainer/HostStationProperties/HBoxContainer5/GridContainer"]
+[node name="ViewAngleLineEdit" type="LineEdit" parent="PanelContainer/MarginContainer/VBoxContainer/HBoxContainer/PropertiesContainer/TabContainer/Unit/ScrollContainer/MarginContainer/HostStationProperties/HBoxContainer5/GridContainer2"]
 unique_name_in_owner = true
 layout_mode = 2
 theme_override_font_sizes/font_size = 12
 text = "000"
 
-[node name="ViewAngleCheckButton" type="CheckButton" parent="PanelContainer/MarginContainer/VBoxContainer/HBoxContainer/PropertiesContainer/TabContainer/Unit/ScrollContainer/MarginContainer/HostStationProperties/HBoxContainer5/GridContainer"]
+[node name="ViewAngleCheckButton" type="CheckButton" parent="PanelContainer/MarginContainer/VBoxContainer/HBoxContainer/PropertiesContainer/TabContainer/Unit/ScrollContainer/MarginContainer/HostStationProperties/HBoxContainer5/GridContainer2"]
 unique_name_in_owner = true
 layout_mode = 2
 theme_override_font_sizes/font_size = 12
 
-[node name="ReloadConstLabel" type="Label" parent="PanelContainer/MarginContainer/VBoxContainer/HBoxContainer/PropertiesContainer/TabContainer/Unit/ScrollContainer/MarginContainer/HostStationProperties/HBoxContainer5/GridContainer"]
+[node name="ReloadConstLabel" type="Label" parent="PanelContainer/MarginContainer/VBoxContainer/HBoxContainer/PropertiesContainer/TabContainer/Unit/ScrollContainer/MarginContainer/HostStationProperties/HBoxContainer5/GridContainer2"]
 layout_mode = 2
 theme_override_font_sizes/font_size = 12
 text = "Reload const: "
 
-[node name="ReloadConstLineEdit" type="LineEdit" parent="PanelContainer/MarginContainer/VBoxContainer/HBoxContainer/PropertiesContainer/TabContainer/Unit/ScrollContainer/MarginContainer/HostStationProperties/HBoxContainer5/GridContainer"]
+[node name="ReloadConstLineEdit" type="LineEdit" parent="PanelContainer/MarginContainer/VBoxContainer/HBoxContainer/PropertiesContainer/TabContainer/Unit/ScrollContainer/MarginContainer/HostStationProperties/HBoxContainer5/GridContainer2"]
 unique_name_in_owner = true
 layout_mode = 2
 theme_override_font_sizes/font_size = 12
 text = "00000"
 
-[node name="ReloadConstCheckButton" type="CheckButton" parent="PanelContainer/MarginContainer/VBoxContainer/HBoxContainer/PropertiesContainer/TabContainer/Unit/ScrollContainer/MarginContainer/HostStationProperties/HBoxContainer5/GridContainer"]
+[node name="ReloadConstCheckButton" type="CheckButton" parent="PanelContainer/MarginContainer/VBoxContainer/HBoxContainer/PropertiesContainer/TabContainer/Unit/ScrollContainer/MarginContainer/HostStationProperties/HBoxContainer5/GridContainer2"]
 unique_name_in_owner = true
 layout_mode = 2
 theme_override_font_sizes/font_size = 12
@@ -631,7 +628,7 @@ theme_override_font_sizes/font_size = 12
 text = "MB status:"
 horizontal_alignment = 1
 
-[node name="MBstatusCheckBox" type="CheckBox" parent="PanelContainer/MarginContainer/VBoxContainer/HBoxContainer/PropertiesContainer/TabContainer/Unit/ScrollContainer/MarginContainer/HostStationProperties"]
+[node name="MBstatusHostStationCheckBox" type="CheckBox" parent="PanelContainer/MarginContainer/VBoxContainer/HBoxContainer/PropertiesContainer/TabContainer/Unit/ScrollContainer/MarginContainer/HostStationProperties"]
 unique_name_in_owner = true
 layout_mode = 2
 size_flags_horizontal = 0
@@ -690,12 +687,15 @@ text = "Save behavior to file"
 unique_name_in_owner = true
 visible = false
 layout_mode = 2
+alignment = 1
 
 [node name="HBoxContainer" type="HBoxContainer" parent="PanelContainer/MarginContainer/VBoxContainer/HBoxContainer/PropertiesContainer/TabContainer/Unit/ScrollContainer/MarginContainer/SquadProperties"]
 layout_mode = 2
+alignment = 1
 
 [node name="SquadIcon" type="TextureRect" parent="PanelContainer/MarginContainer/VBoxContainer/HBoxContainer/PropertiesContainer/TabContainer/Unit/ScrollContainer/MarginContainer/SquadProperties/HBoxContainer"]
 unique_name_in_owner = true
+custom_minimum_size = Vector2(20, 20)
 layout_mode = 2
 
 [node name="SquadNumberLabel" type="Label" parent="PanelContainer/MarginContainer/VBoxContainer/HBoxContainer/PropertiesContainer/TabContainer/Unit/ScrollContainer/MarginContainer/SquadProperties/HBoxContainer"]
@@ -707,6 +707,105 @@ text = "Squad N:"
 unique_name_in_owner = true
 layout_mode = 2
 text = "SquadName"
+
+[node name="HSeparator" type="HSeparator" parent="PanelContainer/MarginContainer/VBoxContainer/HBoxContainer/PropertiesContainer/TabContainer/Unit/ScrollContainer/MarginContainer/SquadProperties"]
+layout_mode = 2
+
+[node name="HBoxContainer2" type="HBoxContainer" parent="PanelContainer/MarginContainer/VBoxContainer/HBoxContainer/PropertiesContainer/TabContainer/Unit/ScrollContainer/MarginContainer/SquadProperties"]
+layout_mode = 2
+alignment = 1
+
+[node name="GridContainer" type="GridContainer" parent="PanelContainer/MarginContainer/VBoxContainer/HBoxContainer/PropertiesContainer/TabContainer/Unit/ScrollContainer/MarginContainer/SquadProperties/HBoxContainer2"]
+layout_mode = 2
+columns = 2
+
+[node name="QuantityLabel" type="Label" parent="PanelContainer/MarginContainer/VBoxContainer/HBoxContainer/PropertiesContainer/TabContainer/Unit/ScrollContainer/MarginContainer/SquadProperties/HBoxContainer2/GridContainer"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 12
+text = "Number of units: "
+
+[node name="QuantitySpinBox" type="SpinBox" parent="PanelContainer/MarginContainer/VBoxContainer/HBoxContainer/PropertiesContainer/TabContainer/Unit/ScrollContainer/MarginContainer/SquadProperties/HBoxContainer2/GridContainer"]
+unique_name_in_owner = true
+layout_mode = 2
+theme = ExtResource("5_sk7qs")
+min_value = 1.0
+max_value = 80.0
+value = 1.0
+
+[node name="FactionLabel" type="Label" parent="PanelContainer/MarginContainer/VBoxContainer/HBoxContainer/PropertiesContainer/TabContainer/Unit/ScrollContainer/MarginContainer/SquadProperties/HBoxContainer2/GridContainer"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 12
+text = "Unit faction: "
+
+[node name="FactionOptionButton" type="OptionButton" parent="PanelContainer/MarginContainer/VBoxContainer/HBoxContainer/PropertiesContainer/TabContainer/Unit/ScrollContainer/MarginContainer/SquadProperties/HBoxContainer2/GridContainer"]
+unique_name_in_owner = true
+layout_mode = 2
+theme_override_font_sizes/font_size = 12
+item_count = 2
+selected = 0
+popup/item_0/text = "test 1"
+popup/item_0/id = 0
+popup/item_1/text = "test 2"
+popup/item_1/id = 1
+
+[node name="HSeparator2" type="HSeparator" parent="PanelContainer/MarginContainer/VBoxContainer/HBoxContainer/PropertiesContainer/TabContainer/Unit/ScrollContainer/MarginContainer/SquadProperties"]
+layout_mode = 2
+
+[node name="HBoxContainer3" type="HBoxContainer" parent="PanelContainer/MarginContainer/VBoxContainer/HBoxContainer/PropertiesContainer/TabContainer/Unit/ScrollContainer/MarginContainer/SquadProperties"]
+layout_mode = 2
+alignment = 1
+
+[node name="XposLabel" type="Label" parent="PanelContainer/MarginContainer/VBoxContainer/HBoxContainer/PropertiesContainer/TabContainer/Unit/ScrollContainer/MarginContainer/SquadProperties/HBoxContainer3"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 12
+text = "x: "
+
+[node name="XposSquadLineEdit" type="LineEdit" parent="PanelContainer/MarginContainer/VBoxContainer/HBoxContainer/PropertiesContainer/TabContainer/Unit/ScrollContainer/MarginContainer/SquadProperties/HBoxContainer3"]
+unique_name_in_owner = true
+layout_mode = 2
+theme_override_font_sizes/font_size = 12
+text = "000"
+
+[node name="YposLabel" type="Label" parent="PanelContainer/MarginContainer/VBoxContainer/HBoxContainer/PropertiesContainer/TabContainer/Unit/ScrollContainer/MarginContainer/SquadProperties/HBoxContainer3"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 12
+text = "y: "
+
+[node name="YposSquadLineEdit" type="LineEdit" parent="PanelContainer/MarginContainer/VBoxContainer/HBoxContainer/PropertiesContainer/TabContainer/Unit/ScrollContainer/MarginContainer/SquadProperties/HBoxContainer3"]
+unique_name_in_owner = true
+layout_mode = 2
+theme_override_font_sizes/font_size = 12
+text = "000"
+
+[node name="HSeparator3" type="HSeparator" parent="PanelContainer/MarginContainer/VBoxContainer/HBoxContainer/PropertiesContainer/TabContainer/Unit/ScrollContainer/MarginContainer/SquadProperties"]
+layout_mode = 2
+
+[node name="UseableLabel" type="Label" parent="PanelContainer/MarginContainer/VBoxContainer/HBoxContainer/PropertiesContainer/TabContainer/Unit/ScrollContainer/MarginContainer/SquadProperties"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 12
+text = "Useable:"
+horizontal_alignment = 1
+
+[node name="UseableCheckBox" type="CheckBox" parent="PanelContainer/MarginContainer/VBoxContainer/HBoxContainer/PropertiesContainer/TabContainer/Unit/ScrollContainer/MarginContainer/SquadProperties"]
+unique_name_in_owner = true
+layout_mode = 2
+theme_override_font_sizes/font_size = 12
+text = "AI may use this squad as normal units"
+
+[node name="HSeparator4" type="HSeparator" parent="PanelContainer/MarginContainer/VBoxContainer/HBoxContainer/PropertiesContainer/TabContainer/Unit/ScrollContainer/MarginContainer/SquadProperties"]
+layout_mode = 2
+
+[node name="MBstatusLabel" type="Label" parent="PanelContainer/MarginContainer/VBoxContainer/HBoxContainer/PropertiesContainer/TabContainer/Unit/ScrollContainer/MarginContainer/SquadProperties"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 12
+text = "MB status: "
+horizontal_alignment = 1
+
+[node name="MBstatusSquadCheckBox" type="CheckBox" parent="PanelContainer/MarginContainer/VBoxContainer/HBoxContainer/PropertiesContainer/TabContainer/Unit/ScrollContainer/MarginContainer/SquadProperties"]
+unique_name_in_owner = true
+layout_mode = 2
+theme_override_font_sizes/font_size = 12
+text = "Make this squad invisible in the Missing Briefing"
 
 [node name="Sector" type="TabBar" parent="PanelContainer/MarginContainer/VBoxContainer/HBoxContainer/PropertiesContainer/TabContainer"]
 visible = false

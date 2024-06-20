@@ -27,7 +27,7 @@ window/dpi/allow_hidpi=false
 
 [gui]
 
-theme/custom="res://resources/ua_theme.tres"
+theme/custom="res://resources/themes/ua_theme.tres"
 
 [input]
 
