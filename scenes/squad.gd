@@ -30,5 +30,5 @@ func change_faction(_owner_id: int):
 			texture = Preloads.squad_icons[map_icon].red
 		7:
 			texture = Preloads.squad_icons["square"].red2
-	button.position -= Vector2(texture.get_width()/2.0, texture.get_height()/2.0)
-	button.size = Vector2(texture.get_width(), texture.get_height())
+	size = Vector2.ZERO
+	pivot_offset = Vector2(texture.get_width()/2.0, texture.get_height()/2.0)

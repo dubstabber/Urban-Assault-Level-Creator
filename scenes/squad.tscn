@@ -2,13 +2,17 @@
 
 [ext_resource type="Script" path="res://scenes/squad.gd" id="1_lsxyl"]
 
-[node name="Squad" type="Sprite2D"]
+[node name="Squad" type="TextureRect"]
 script = ExtResource("1_lsxyl")
 
 [node name="Button" type="Button" parent="."]
 show_behind_parent = true
-offset_right = 8.0
-offset_bottom = 8.0
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
 
 [connection signal="button_down" from="Button" to="." method="_on_button_button_down"]
 [connection signal="button_up" from="Button" to="." method="_on_button_button_up"]

@@ -1,4 +1,4 @@
-class_name Unit extends Sprite2D
+class_name Unit extends TextureRect
 
 signal position_changed
 
@@ -31,7 +31,7 @@ func _process(_delta):
 
 func _on_button_button_down():
 	dragging = true
-	of = get_global_mouse_position() - global_position
+	of = get_global_mouse_position() - position
 
 
 func _on_button_button_up():
@@ -43,9 +43,7 @@ func _on_button_gui_input(event):
 		CurrentMapData.selected_unit = self
 
 
-
 func recalculate_limits():
 	bottom_limit = CurrentMapData.vertical_sectors*1200+1200
 	right_limit = CurrentMapData.horizontal_sectors*1200+1200
-
 

@@ -2,13 +2,20 @@
 
 [ext_resource type="Script" path="res://scenes/host_station.gd" id="1_fpxdb"]
 
-[node name="Host station" type="Sprite2D"]
+[node name="Host station" type="TextureRect"]
+custom_minimum_size = Vector2(32, 32)
+offset_right = 32.0
+offset_bottom = 32.0
 script = ExtResource("1_fpxdb")
 
 [node name="Button" type="Button" parent="."]
 show_behind_parent = true
-offset_right = 8.0
-offset_bottom = 8.0
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
 
 [connection signal="button_down" from="Button" to="." method="_on_button_button_down"]
 [connection signal="button_up" from="Button" to="." method="_on_button_button_up"]

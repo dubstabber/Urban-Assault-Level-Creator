@@ -29,5 +29,4 @@ func create(_owner_id, _vehicle, _name):
 	vehicle = _vehicle
 	unit_name = _name
 	texture = Preloads.hs_images[str(owner_id)]
-	button.position -= Vector2(texture.get_width()/2.0, texture.get_height()/2.0)
-	button.size = Vector2(texture.get_width(), texture.get_height())
+	pivot_offset = Vector2(texture.get_width()/2.0, texture.get_height()/2.0)

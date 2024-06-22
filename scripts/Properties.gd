@@ -153,6 +153,15 @@ func _ready():
 		var behavior_data_json = JSON.stringify(behavior_data)
 		file.store_line(behavior_data_json)
 	)
+	%QuantitySpinBox.value_changed.connect(func(value: float):
+		CurrentMapData.selected_unit.quantity = value
+	)
+	for hs in Preloads.ua_data.data[CurrentMapData.game_data_type].hoststations.keys():
+		%FactionOptionButton.add_item(hs, Preloads.ua_data.data[CurrentMapData.game_data_type].hoststations[hs].owner)
+	%FactionOptionButton.item_selected.connect(func(index: int):
+		CurrentMapData.selected_unit.change_faction(%FactionOptionButton.get_item_id(index))
+	)
+	
 
 
 func _update_properties():
@@ -213,13 +222,15 @@ func _update_properties():
 			%HostStationRoboTextureRect.texture = Preloads.hs_robo_images[CurrentMapData.selected_unit.vehicle].image
 			%HostStationRoboOptionButton.select(%HostStationRoboOptionButton.get_item_index(CurrentMapData.selected_unit.vehicle))
 			
-			
 			%HostStationProperties.show()
 		elif CurrentMapData.selected_unit is Squad:
 			%HostStationProperties.hide()
 			%SquadIcon.texture = Preloads.squad_images[str(CurrentMapData.selected_unit.vehicle)]
 			%SquadNumberLabel.text = "Squad: "
 			%SquadNameLabel.text = CurrentMapData.selected_unit.unit_name
+			%QuantitySpinBox.value = CurrentMapData.selected_unit.quantity
+			%FactionOptionButton.select(%FactionOptionButton.get_item_index(CurrentMapData.selected_unit.owner_id))
+			
 			%SquadProperties.show()
 	else:
 		%NoUnitLabel.show()
