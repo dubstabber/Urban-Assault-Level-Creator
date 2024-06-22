@@ -760,12 +760,13 @@ layout_mode = 2
 theme_override_font_sizes/font_size = 12
 text = "000"
 
-[node name="YposLabel" type="Label" parent="PanelContainer/MarginContainer/VBoxContainer/HBoxContainer/PropertiesContainer/TabContainer/Unit/ScrollContainer/MarginContainer/SquadProperties/HBoxContainer3"]
+[node name="ZposLabel" type="Label" parent="PanelContainer/MarginContainer/VBoxContainer/HBoxContainer/PropertiesContainer/TabContainer/Unit/ScrollContainer/MarginContainer/SquadProperties/HBoxContainer3"]
 layout_mode = 2
 theme_override_font_sizes/font_size = 12
-text = "y: "
+text = "z: 
+"
 
-[node name="YposSquadLineEdit" type="LineEdit" parent="PanelContainer/MarginContainer/VBoxContainer/HBoxContainer/PropertiesContainer/TabContainer/Unit/ScrollContainer/MarginContainer/SquadProperties/HBoxContainer3"]
+[node name="ZposSquadLineEdit" type="LineEdit" parent="PanelContainer/MarginContainer/VBoxContainer/HBoxContainer/PropertiesContainer/TabContainer/Unit/ScrollContainer/MarginContainer/SquadProperties/HBoxContainer3"]
 unique_name_in_owner = true
 layout_mode = 2
 theme_override_font_sizes/font_size = 12

@@ -161,7 +161,12 @@ func _ready():
 	%FactionOptionButton.item_selected.connect(func(index: int):
 		CurrentMapData.selected_unit.change_faction(%FactionOptionButton.get_item_id(index))
 	)
-	
+	%UseableCheckBox.toggled.connect(func(toggled: bool):
+		CurrentMapData.selected_unit.useable = toggled
+	)
+	%MBstatusSquadCheckBox.toggled.connect(func(toggled: bool):
+		CurrentMapData.selected_unit.mb_status = toggled
+	)
 
 
 func _update_properties():
@@ -231,6 +236,14 @@ func _update_properties():
 			%QuantitySpinBox.value = CurrentMapData.selected_unit.quantity
 			%FactionOptionButton.select(%FactionOptionButton.get_item_index(CurrentMapData.selected_unit.owner_id))
 			
+			%XposSquadLineEdit.text = str(round(CurrentMapData.selected_unit.position.x))
+			%ZposSquadLineEdit.text = str(round(-CurrentMapData.selected_unit.position.y))
+			if not CurrentMapData.selected_unit.position_changed.is_connected(_update_coordinates):
+				CurrentMapData.selected_unit.position_changed.connect(_update_coordinates)
+			
+			%UseableCheckBox.button_pressed = CurrentMapData.selected_unit.useable
+			%MBstatusSquadCheckBox.button_pressed = CurrentMapData.selected_unit.mb_status
+			
 			%SquadProperties.show()
 	else:
 		%NoUnitLabel.show()
@@ -242,4 +255,7 @@ func _update_coordinates():
 	if CurrentMapData.selected_unit is HostStation:
 		%XposHostStationLineEdit.text = str(round(CurrentMapData.selected_unit.position.x))
 		%ZposHostStationLineEdit.text = str(round(-CurrentMapData.selected_unit.position.y))
+	elif CurrentMapData.selected_unit is Squad:
+		%XposSquadLineEdit.text = str(round(CurrentMapData.selected_unit.position.x))
+		%ZposSquadLineEdit.text = str(round(-CurrentMapData.selected_unit.position.y))
 
