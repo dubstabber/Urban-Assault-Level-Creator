@@ -1,12 +1,7 @@
 extends Control
 
-@onready var panel_container: PanelContainer = $PanelContainer
-
-@onready var map_container = $PanelContainer/MarginContainer/VBoxContainer/HBoxContainer/MapContainer
-@onready var sub_viewport_container = $PanelContainer/MarginContainer/VBoxContainer/HBoxContainer/MapContainer/SubViewportContainer
+@onready var sub_viewport_map_container = %SubViewportMapContainer
 @onready var map = %Map
-
-@onready var properties_container = %PropertiesContainer
 
 
 func _ready():
@@ -28,10 +23,6 @@ func _on_ui_map_created():
 
 
 func _on_resize():
-	properties_container.size.x = DisplayServer.window_get_size().x/3.0
-	panel_container.custom_minimum_size.y = DisplayServer.window_get_size().y
-	map_container.custom_minimum_size.x = DisplayServer.window_get_size().x - properties_container.size.x
-	
 	map.recalculate_size()
-	sub_viewport_container.custom_minimum_size.x = map.map_visible_width
-	sub_viewport_container.custom_minimum_size.y = map.map_visible_height
+	sub_viewport_map_container.custom_minimum_size.x = map.map_visible_width
+	sub_viewport_map_container.custom_minimum_size.y = map.map_visible_height
