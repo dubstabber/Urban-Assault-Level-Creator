@@ -5,7 +5,6 @@ func _ready():
 	var hs_submenu: PopupMenu = PopupMenu.new()
 	hs_submenu.name = "hoststation"
 	add_child(hs_submenu)
-	
 	for hs in Preloads.ua_data.data[CurrentMapData.game_data_type].hoststations:
 		var hs_owner_id = str(Preloads.ua_data.data[CurrentMapData.game_data_type].hoststations[hs].owner)
 		var hs_image = Preloads.hs_images[hs_owner_id]
@@ -16,7 +15,6 @@ func _ready():
 	var squad_submenu: PopupMenu = PopupMenu.new()
 	squad_submenu.name = "squad"
 	add_child(squad_submenu)
-	
 	for hs in Preloads.ua_data.data[CurrentMapData.game_data_type].hoststations:
 		var squads: PopupMenu = PopupMenu.new()
 		squads.name = hs+"-squads"
@@ -43,6 +41,18 @@ func _ready():
 			Preloads.ua_data.data[CurrentMapData.game_data_type].hoststations.values()[0].owner, 
 			true))
 	add_submenu_item("Add squad", "squad")
+	
+	var sector_faction_submenu: PopupMenu = PopupMenu.new()
+	sector_faction_submenu.name = "sector_faction"
+	add_child(sector_faction_submenu)
+	for hs in Preloads.ua_data.data[CurrentMapData.game_data_type].hoststations:
+		sector_faction_submenu.add_item(hs, Preloads.ua_data.data[CurrentMapData.game_data_type].hoststations[hs].owner)
+	sector_faction_submenu.add_item("Neutral", 0)
+	sector_faction_submenu.id_pressed.connect(
+		func(id): 
+			Signals.sector_faction_changed.emit(id))
+	
+	add_submenu_item("Change sector faction", "sector_faction")
 	
 
 

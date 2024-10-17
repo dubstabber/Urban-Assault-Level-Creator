@@ -19,3 +19,11 @@ func _on_create_button_pressed() -> void:
 	for sector in sectors_with_borders:
 		CurrentMapData.hgt_map.append(127)
 	Signals.map_created.emit()
+
+
+func _on_cancel_button_pressed() -> void:
+	hide()
+
+
+func _on_close_requested() -> void:
+	hide()

@@ -19,6 +19,9 @@ size_flags_horizontal = 3
 size_flags_vertical = 3
 script = ExtResource("1_7pb5r")
 
+[node name="Camera2D" type="Camera2D" parent="."]
+anchor_mode = 0
+
 [node name="ContextMenu" type="PopupMenu" parent="."]
 unique_name_in_owner = true
 script = ExtResource("4_ife4a")
@@ -103,9 +106,6 @@ text = "Cancel"
 [node name="CreateButton" type="Button" parent="NewMapWindow/PanelContainer/MarginContainer3/HBoxContainer"]
 layout_mode = 2
 text = "Create"
-
-[node name="Camera2D" type="Camera2D" parent="."]
-anchor_mode = 0
 
 [node name="LoadBehaviorFileDialog" type="FileDialog" parent="."]
 unique_name_in_owner = true
@@ -887,7 +887,7 @@ horizontal_alignment = 1
 unique_name_in_owner = true
 layout_mode = 2
 theme_override_font_sizes/font_size = 12
-text = "Make this squad invisible in the Missing Briefing"
+text = "Make this squad invisible in the Mission Briefing"
 
 [node name="Sector" type="TabBar" parent="PanelContainer/MarginContainer/VBoxContainer/HSplitContainer/PropertiesContainer/TabContainer"]
 visible = false
@@ -915,4 +915,6 @@ text = "No sector selected"
 [node name="VBoxContainer" type="VBoxContainer" parent="PanelContainer/MarginContainer/VBoxContainer/HSplitContainer/PropertiesContainer/TabContainer/Sector/MarginContainer"]
 layout_mode = 2
 
+[connection signal="close_requested" from="NewMapWindow" to="NewMapWindow" method="_on_close_requested"]
+[connection signal="pressed" from="NewMapWindow/PanelContainer/MarginContainer3/HBoxContainer/CancelButton" to="NewMapWindow" method="_on_cancel_button_pressed"]
 [connection signal="pressed" from="NewMapWindow/PanelContainer/MarginContainer3/HBoxContainer/CreateButton" to="NewMapWindow" method="_on_create_button_pressed"]

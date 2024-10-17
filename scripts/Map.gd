@@ -22,7 +22,7 @@ var is_selection_kept := false
 func _ready():
 	Signals.hoststation_added.connect(add_hoststation)
 	Signals.squad_added.connect(add_squad)
-	
+	Signals.sector_faction_changed.connect(change_sector_owner)
 
 
 func _physics_process(delta):
