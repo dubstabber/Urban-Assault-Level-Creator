@@ -1,4 +1,4 @@
-extends Node2D
+extends Control
 
 
 var zoom_minimum := Vector2(.03,.03)
@@ -8,6 +8,8 @@ var map_visible_width: int
 var map_visible_height: int
 var sector_indent := 40
 
+var right_clicked_x_global: int
+var right_clicked_y_global: int
 var right_clicked_x: int
 var right_clicked_y: int
 var is_selection_kept := false
@@ -45,8 +47,13 @@ func _input(event):
 			#TODO: Implement multi-sector selection
 			print('selection is kept')
 	if event.is_action_pressed("context_menu"):
+		print('input from map')
 		right_clicked_x = round(get_local_mouse_position().x)
 		right_clicked_y = round(get_local_mouse_position().y - 40)
+
+		%ContextMenu.position = Vector2(right_clicked_x_global, right_clicked_y_global)
+		%ContextMenu.popup()
+		#accept_event()
 	if event is InputEventKey and event.pressed:
 		var number_key = event.unicode - KEY_0
 		if number_key >= 0 and number_key <= 7:

@@ -16,29 +16,14 @@ grow_horizontal = 2
 grow_vertical = 2
 script = ExtResource("1_7pb5r")
 
+[node name="ContextMenu" type="PopupMenu" parent="."]
+unique_name_in_owner = true
+script = ExtResource("4_ife4a")
+
 [node name="Camera2D" type="Camera2D" parent="."]
 anchor_mode = 0
 
 [node name="UI" parent="." instance=ExtResource("3_5x600")]
-
-[node name="ContextMenu" type="MenuButton" parent="."]
-layout_mode = 1
-anchors_preset = 8
-anchor_left = 0.5
-anchor_top = 0.5
-anchor_right = 0.5
-anchor_bottom = 0.5
-offset_left = -20.0
-offset_top = -20.0
-offset_right = -12.0
-offset_bottom = 11.0
-grow_horizontal = 2
-grow_vertical = 2
-size_flags_horizontal = 0
-size_flags_vertical = 0
-text = "
-"
-script = ExtResource("4_ife4a")
 
 [node name="LoadBehaviorFileDialog" type="FileDialog" parent="."]
 unique_name_in_owner = true
@@ -66,6 +51,7 @@ offset_top = -0.176003
 offset_bottom = -0.176025
 grow_horizontal = 2
 grow_vertical = 2
+mouse_filter = 1
 
 [node name="MarginContainer" type="MarginContainer" parent="PanelContainer"]
 layout_mode = 2
@@ -90,18 +76,23 @@ handle_input_locally = false
 size = Vector2i(2, 2)
 render_target_update_mode = 4
 
-[node name="Map" type="Node2D" parent="PanelContainer/MarginContainer/VBoxContainer/HBoxContainer/MapContainer/SubViewportContainer/SubViewport"]
+[node name="Map" type="Control" parent="PanelContainer/MarginContainer/VBoxContainer/HBoxContainer/MapContainer/SubViewportContainer/SubViewport"]
+unique_name_in_owner = true
+layout_mode = 3
+anchors_preset = 0
 script = ExtResource("2_dum0m")
 
 [node name="Camera2D" type="Camera2D" parent="PanelContainer/MarginContainer/VBoxContainer/HBoxContainer/MapContainer/SubViewportContainer/SubViewport/Map"]
 anchor_mode = 0
 zoom = Vector2(0.1, 0.1)
 
-[node name="HostStations" type="Node2D" parent="PanelContainer/MarginContainer/VBoxContainer/HBoxContainer/MapContainer/SubViewportContainer/SubViewport/Map"]
+[node name="HostStations" type="Control" parent="PanelContainer/MarginContainer/VBoxContainer/HBoxContainer/MapContainer/SubViewportContainer/SubViewport/Map"]
 unique_name_in_owner = true
+anchors_preset = 0
 
-[node name="Squads" type="Node2D" parent="PanelContainer/MarginContainer/VBoxContainer/HBoxContainer/MapContainer/SubViewportContainer/SubViewport/Map"]
+[node name="Squads" type="Control" parent="PanelContainer/MarginContainer/VBoxContainer/HBoxContainer/MapContainer/SubViewportContainer/SubViewport/Map"]
 unique_name_in_owner = true
+anchors_preset = 0
 
 [node name="PropertiesContainer" type="PanelContainer" parent="PanelContainer/MarginContainer/VBoxContainer/HBoxContainer"]
 custom_minimum_size = Vector2(200, 550)
@@ -113,11 +104,13 @@ script = ExtResource("5_opyij")
 layout_mode = 2
 size_flags_horizontal = 3
 size_flags_vertical = 3
+current_tab = 0
 clip_tabs = false
 
 [node name="Unit" type="TabBar" parent="PanelContainer/MarginContainer/VBoxContainer/HBoxContainer/PropertiesContainer/TabContainer"]
 layout_mode = 2
 tab_alignment = 1
+metadata/_tab_index = 0
 
 [node name="ScrollContainer" type="ScrollContainer" parent="PanelContainer/MarginContainer/VBoxContainer/HBoxContainer/PropertiesContainer/TabContainer/Unit"]
 layout_mode = 1
@@ -805,6 +798,7 @@ text = "Make this squad invisible in the Missing Briefing"
 [node name="Sector" type="TabBar" parent="PanelContainer/MarginContainer/VBoxContainer/HBoxContainer/PropertiesContainer/TabContainer"]
 visible = false
 layout_mode = 2
+metadata/_tab_index = 1
 
 [node name="MarginContainer" type="MarginContainer" parent="PanelContainer/MarginContainer/VBoxContainer/HBoxContainer/PropertiesContainer/TabContainer/Sector"]
 layout_mode = 1

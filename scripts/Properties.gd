@@ -154,7 +154,8 @@ func _ready():
 		file.store_line(behavior_data_json)
 	)
 	%QuantitySpinBox.value_changed.connect(func(value: float):
-		CurrentMapData.selected_unit.quantity = value
+		if CurrentMapData.selected_unit:
+			CurrentMapData.selected_unit.quantity = value
 	)
 	for hs in Preloads.ua_data.data[CurrentMapData.game_data_type].hoststations.keys():
 		%FactionOptionButton.add_item(hs, Preloads.ua_data.data[CurrentMapData.game_data_type].hoststations[hs].owner)
@@ -258,4 +259,3 @@ func _update_coordinates():
 	elif CurrentMapData.selected_unit is Squad:
 		%XposSquadLineEdit.text = str(round(CurrentMapData.selected_unit.position.x))
 		%ZposSquadLineEdit.text = str(round(-CurrentMapData.selected_unit.position.y))
-

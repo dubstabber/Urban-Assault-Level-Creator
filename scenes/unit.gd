@@ -46,4 +46,3 @@ func _on_button_gui_input(event):
 func recalculate_limits():
 	bottom_limit = CurrentMapData.vertical_sectors*1200+1200
 	right_limit = CurrentMapData.horizontal_sectors*1200+1200
-

@@ -57,4 +57,3 @@ func _ready():
 		"green": load("res://resources/img/squadIcons/GreenUnit4.png"),
 		"gray": load("res://resources/img/squadIcons/GrayUnit4.png"),
 	}
-
