@@ -1,5 +1,6 @@
 extends Node
 
+
 signal map_created
 
 signal hoststation_added(hs_name: String)

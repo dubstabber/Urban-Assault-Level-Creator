@@ -22,6 +22,10 @@ CurrentMapData="*res://globals/CurrentMapData.gd"
 Preloads="*res://globals/Preloads.gd"
 Signals="*res://globals/Signals.gd"
 
+[debug]
+
+gdscript/warnings/unused_signal=0
+
 [display]
 
 window/dpi/allow_hidpi=false
