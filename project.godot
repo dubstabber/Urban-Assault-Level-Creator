@@ -20,6 +20,7 @@ config/icon="res://resources/img/icon.png"
 
 CurrentMapData="*res://globals/CurrentMapData.gd"
 Preloads="*res://globals/Preloads.gd"
+Signals="*res://globals/Signals.gd"
 
 [display]
 

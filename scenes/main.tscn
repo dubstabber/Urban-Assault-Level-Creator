@@ -1,8 +1,9 @@
-[gd_scene load_steps=7 format=3 uid="uid://ctgiwn3scteuk"]
+[gd_scene load_steps=8 format=3 uid="uid://ctgiwn3scteuk"]
 
 [ext_resource type="Script" path="res://scenes/main.gd" id="1_7pb5r"]
 [ext_resource type="Script" path="res://scripts/Map.gd" id="2_dum0m"]
-[ext_resource type="PackedScene" uid="uid://bxpgr6q0fq3fb" path="res://scenes/ui.tscn" id="3_5x600"]
+[ext_resource type="Script" path="res://scripts/new_map_window.gd" id="3_hjjsa"]
+[ext_resource type="Script" path="res://scripts/MenuBar.gd" id="4_8sl2r"]
 [ext_resource type="Script" path="res://scripts/MenuButton.gd" id="4_ife4a"]
 [ext_resource type="Script" path="res://scripts/Properties.gd" id="5_opyij"]
 [ext_resource type="Theme" uid="uid://cdrs6kxi0mn0v" path="res://resources/themes/ua_theme.tres" id="5_sk7qs"]
@@ -14,16 +15,95 @@ anchor_right = 1.0
 anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
+size_flags_horizontal = 3
+size_flags_vertical = 3
 script = ExtResource("1_7pb5r")
 
 [node name="ContextMenu" type="PopupMenu" parent="."]
 unique_name_in_owner = true
 script = ExtResource("4_ife4a")
 
+[node name="NewMapWindow" type="Window" parent="."]
+unique_name_in_owner = true
+auto_translate_mode = 1
+title = "Create a new map"
+initial_position = 1
+size = Vector2i(530, 200)
+visible = false
+exclusive = true
+script = ExtResource("3_hjjsa")
+
+[node name="PanelContainer" type="PanelContainer" parent="NewMapWindow"]
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="MarginContainer" type="MarginContainer" parent="NewMapWindow/PanelContainer"]
+layout_mode = 2
+theme_override_constants/margin_top = 8
+
+[node name="Label" type="Label" parent="NewMapWindow/PanelContainer/MarginContainer"]
+layout_mode = 2
+size_flags_horizontal = 4
+size_flags_vertical = 0
+text = "Enter number of sectors for horizontal and vertical space:"
+
+[node name="MarginContainer2" type="MarginContainer" parent="NewMapWindow/PanelContainer"]
+layout_mode = 2
+size_flags_vertical = 4
+theme_override_constants/margin_left = 100
+theme_override_constants/margin_bottom = 25
+
+[node name="GridContainer" type="GridContainer" parent="NewMapWindow/PanelContainer/MarginContainer2"]
+layout_mode = 2
+columns = 2
+
+[node name="Label" type="Label" parent="NewMapWindow/PanelContainer/MarginContainer2/GridContainer"]
+layout_mode = 2
+text = "Horizontal sectors:"
+horizontal_alignment = 2
+
+[node name="SpinBox" type="SpinBox" parent="NewMapWindow/PanelContainer/MarginContainer2/GridContainer"]
+layout_mode = 2
+min_value = 1.0
+max_value = 1000.0
+value = 6.0
+allow_greater = true
+
+[node name="Label2" type="Label" parent="NewMapWindow/PanelContainer/MarginContainer2/GridContainer"]
+layout_mode = 2
+text = "Vertical sectors:"
+horizontal_alignment = 2
+
+[node name="SpinBox2" type="SpinBox" parent="NewMapWindow/PanelContainer/MarginContainer2/GridContainer"]
+layout_mode = 2
+min_value = 1.0
+max_value = 1000.0
+value = 6.0
+allow_greater = true
+
+[node name="MarginContainer3" type="MarginContainer" parent="NewMapWindow/PanelContainer"]
+layout_mode = 2
+size_flags_horizontal = 4
+size_flags_vertical = 8
+theme_override_constants/margin_bottom = 15
+
+[node name="HBoxContainer" type="HBoxContainer" parent="NewMapWindow/PanelContainer/MarginContainer3"]
+layout_mode = 2
+theme_override_constants/separation = 20
+
+[node name="CancelButton" type="Button" parent="NewMapWindow/PanelContainer/MarginContainer3/HBoxContainer"]
+layout_mode = 2
+text = "Cancel"
+
+[node name="CreateButton" type="Button" parent="NewMapWindow/PanelContainer/MarginContainer3/HBoxContainer"]
+layout_mode = 2
+text = "Create"
+
 [node name="Camera2D" type="Camera2D" parent="."]
 anchor_mode = 0
-
-[node name="UI" parent="." instance=ExtResource("3_5x600")]
 
 [node name="LoadBehaviorFileDialog" type="FileDialog" parent="."]
 unique_name_in_owner = true
@@ -43,12 +123,9 @@ access = 2
 
 [node name="PanelContainer" type="PanelContainer" parent="."]
 layout_mode = 1
-anchors_preset = -1
-anchor_top = 0.062
+anchors_preset = 15
 anchor_right = 1.0
-anchor_bottom = 0.937
-offset_top = -0.176003
-offset_bottom = -0.176025
+anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
 mouse_filter = 1
@@ -59,15 +136,26 @@ layout_mode = 2
 [node name="VBoxContainer" type="VBoxContainer" parent="PanelContainer/MarginContainer"]
 layout_mode = 2
 
+[node name="MenuBar" type="MenuBar" parent="PanelContainer/MarginContainer/VBoxContainer"]
+custom_minimum_size = Vector2(0, 33)
+layout_mode = 2
+script = ExtResource("4_8sl2r")
+
+[node name="File" type="PopupMenu" parent="PanelContainer/MarginContainer/VBoxContainer/MenuBar"]
+auto_translate_mode = 1
+
+[node name="View" type="PopupMenu" parent="PanelContainer/MarginContainer/VBoxContainer/MenuBar"]
+auto_translate_mode = 1
+
 [node name="HBoxContainer" type="HBoxContainer" parent="PanelContainer/MarginContainer/VBoxContainer"]
 layout_mode = 2
+size_flags_vertical = 3
 
 [node name="MapContainer" type="ScrollContainer" parent="PanelContainer/MarginContainer/VBoxContainer/HBoxContainer"]
 custom_minimum_size = Vector2(200, 200)
 layout_mode = 2
 
 [node name="SubViewportContainer" type="SubViewportContainer" parent="PanelContainer/MarginContainer/VBoxContainer/HBoxContainer/MapContainer"]
-clip_contents = true
 layout_mode = 2
 stretch = true
 
@@ -95,7 +183,7 @@ unique_name_in_owner = true
 anchors_preset = 0
 
 [node name="PropertiesContainer" type="PanelContainer" parent="PanelContainer/MarginContainer/VBoxContainer/HBoxContainer"]
-custom_minimum_size = Vector2(200, 550)
+unique_name_in_owner = true
 layout_mode = 2
 size_flags_horizontal = 3
 script = ExtResource("5_opyij")
@@ -821,4 +909,4 @@ text = "No sector selected"
 [node name="VBoxContainer" type="VBoxContainer" parent="PanelContainer/MarginContainer/VBoxContainer/HBoxContainer/PropertiesContainer/TabContainer/Sector/MarginContainer"]
 layout_mode = 2
 
-[connection signal="map_created" from="UI" to="." method="_on_ui_map_created"]
+[connection signal="pressed" from="NewMapWindow/PanelContainer/MarginContainer3/HBoxContainer/CreateButton" to="NewMapWindow" method="_on_create_button_pressed"]

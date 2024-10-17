@@ -6,7 +6,7 @@ var submenu2: PopupMenu = PopupMenu.new()
 @onready var file_menu = $File
 @onready var view_menu = $View
 
-@onready var new_map_window = $"../NewMapWindow"
+@onready var new_map_window = %NewMapWindow
 
 
 func _ready():

@@ -1,7 +1,5 @@
 extends PopupMenu
 
-@onready var map = %Map
-
 
 func _ready():
 	var hs_submenu: PopupMenu = PopupMenu.new()
@@ -49,7 +47,7 @@ func _ready():
 
 
 func add_hoststation(idx, submenu):
-	map.add_hoststation(submenu.get_item_text(idx))
+	Signals.hoststation_added.emit(submenu.get_item_text(idx))
 
 
 func add_squad(idx: int, squads_menu: PopupMenu, faction: String, owner_id: int, is_other := false):
@@ -65,5 +63,4 @@ func add_squad(idx: int, squads_menu: PopupMenu, faction: String, owner_id: int,
 			if sq.name == squad_name:
 				squad_data = sq
 				break
-	
-	map.add_squad(squad_data, owner_id)
+	Signals.squad_added.emit(squad_data, owner_id)

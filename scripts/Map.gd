@@ -20,7 +20,9 @@ var is_selection_kept := false
 
 
 func _ready():
-	pass
+	Signals.hoststation_added.connect(add_hoststation)
+	Signals.squad_added.connect(add_squad)
+	
 
 
 func _physics_process(delta):
@@ -47,7 +49,6 @@ func _input(event):
 			#TODO: Implement multi-sector selection
 			print('selection is kept')
 	if event.is_action_pressed("context_menu"):
-		print('input from map')
 		right_clicked_x = round(get_local_mouse_position().x)
 		right_clicked_y = round(get_local_mouse_position().y - 40)
 
