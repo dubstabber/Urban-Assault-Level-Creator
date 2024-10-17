@@ -54,6 +54,18 @@ func _ready():
 	add_submenu_item("Change sector faction", "sector_faction")
 	
 	add_item("Change sector height")
+	
+	var special_buildings_submenu: PopupMenu = PopupMenu.new()
+	special_buildings_submenu.name = "special_buildings"
+	add_child(special_buildings_submenu)
+	for hs in Preloads.ua_data.data[CurrentMapData.game_data_type].hoststations:
+		for building: Dictionary in Preloads.ua_data.data[CurrentMapData.game_data_type].hoststations[hs].buildings:
+			#special_buildings_submenu.add_icon_item(building.name)
+			pass
+	for building in Preloads.ua_data.data[CurrentMapData.game_data_type].other.buildings:
+		special_buildings_submenu.add_item(building.name)
+		
+	add_submenu_item("Add special building", "special_buildings")
 
 
 func add_hoststation(idx, submenu):

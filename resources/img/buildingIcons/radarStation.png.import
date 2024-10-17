@@ -2,16 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
-uid="uid://cqqg08xj22yb6"
-path="res://.godot/imported/flakStation.png-7ffd8ac6e56d3e86f62cbd4628f8bfdd.ctex"
+uid="uid://d2yiaobgn118h"
+path="res://.godot/imported/radarStation.png-f76bcec14fab2c2c6f926f0378637fed.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://resources/img/squadImages/flakStation.png"
-dest_files=["res://.godot/imported/flakStation.png-7ffd8ac6e56d3e86f62cbd4628f8bfdd.ctex"]
+source_file="res://resources/img/buildingIcons/radarStation.png"
+dest_files=["res://.godot/imported/radarStation.png-f76bcec14fab2c2c6f926f0378637fed.ctex"]
 
 [params]
 

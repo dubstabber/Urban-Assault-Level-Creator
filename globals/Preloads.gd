@@ -9,6 +9,7 @@ var hs_images := {}
 var hs_robo_images := {}
 var squad_images := {}
 var squad_icons := {}
+var building_icons := {}
 
 func _ready():
 	for hs in ua_data.data[CurrentMapData.game_data_type].hoststations:
@@ -20,7 +21,7 @@ func _ready():
 			}
 		for squad in ua_data.data[CurrentMapData.game_data_type].hoststations[hs].units:
 			squad_images[str(squad.id)] = load("res://resources/img/squadImages/" + squad.image_file)
-	#print(hs_robo_images)
+	
 	for squad in ua_data.data[CurrentMapData.game_data_type].other.units:
 		squad_images[str(squad.id)] = load("res://resources/img/squadImages/" + squad.image_file)
 	
@@ -57,3 +58,4 @@ func _ready():
 		"green": load("res://resources/img/squadIcons/GreenUnit4.png"),
 		"gray": load("res://resources/img/squadIcons/GrayUnit4.png"),
 	}
+	

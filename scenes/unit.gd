@@ -16,8 +16,6 @@ var bottom_limit := CurrentMapData.vertical_sectors*1200+1200
 var left_limit := 1200
 var right_limit := CurrentMapData.horizontal_sectors*1200+1200
 
-@onready var button = $Button
-
 
 func _process(_delta):
 	if dragging:

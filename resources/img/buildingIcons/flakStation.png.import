@@ -2,16 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
-uid="uid://b6s8y22ngq5e1"
-path="res://.godot/imported/powerStation.png-47c9bd26d5e1f609746628d571d2cd56.ctex"
+uid="uid://cqqg08xj22yb6"
+path="res://.godot/imported/flakStation.png-a24fc45a459ce0d07589deafb1287ec5.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://resources/img/squadImages/powerStation.png"
-dest_files=["res://.godot/imported/powerStation.png-47c9bd26d5e1f609746628d571d2cd56.ctex"]
+source_file="res://resources/img/buildingIcons/flakStation.png"
+dest_files=["res://.godot/imported/flakStation.png-a24fc45a459ce0d07589deafb1287ec5.ctex"]
 
 [params]
 
