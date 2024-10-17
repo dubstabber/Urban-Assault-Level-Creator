@@ -1,9 +1,10 @@
-[gd_scene load_steps=8 format=3 uid="uid://ctgiwn3scteuk"]
+[gd_scene load_steps=9 format=3 uid="uid://ctgiwn3scteuk"]
 
 [ext_resource type="Script" path="res://scenes/main.gd" id="1_7pb5r"]
 [ext_resource type="Script" path="res://scripts/Map.gd" id="2_dum0m"]
 [ext_resource type="Script" path="res://scripts/new_map_window.gd" id="3_hjjsa"]
 [ext_resource type="Script" path="res://scripts/MenuBar.gd" id="4_8sl2r"]
+[ext_resource type="Script" path="res://scripts/sector_height_window.gd" id="4_362xh"]
 [ext_resource type="Script" path="res://scripts/MenuButton.gd" id="4_ife4a"]
 [ext_resource type="Script" path="res://scripts/Properties.gd" id="5_opyij"]
 [ext_resource type="Theme" uid="uid://cdrs6kxi0mn0v" path="res://resources/themes/ua_theme.tres" id="5_sk7qs"]
@@ -106,6 +107,63 @@ text = "Cancel"
 [node name="CreateButton" type="Button" parent="NewMapWindow/PanelContainer/MarginContainer3/HBoxContainer"]
 layout_mode = 2
 text = "Create"
+
+[node name="SectorHeightWindow" type="Window" parent="."]
+unique_name_in_owner = true
+title = "Change sector height"
+initial_position = 1
+size = Vector2i(350, 120)
+visible = false
+transient = true
+exclusive = true
+unresizable = true
+script = ExtResource("4_362xh")
+
+[node name="PanelContainer" type="PanelContainer" parent="SectorHeightWindow"]
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="MarginContainer" type="MarginContainer" parent="SectorHeightWindow/PanelContainer"]
+layout_mode = 2
+theme_override_constants/margin_top = 8
+
+[node name="Label" type="Label" parent="SectorHeightWindow/PanelContainer/MarginContainer"]
+layout_mode = 2
+size_flags_horizontal = 4
+size_flags_vertical = 0
+text = "Enter a height value from 0 to 255"
+
+[node name="MarginContainer2" type="MarginContainer" parent="SectorHeightWindow/PanelContainer"]
+layout_mode = 2
+theme_override_constants/margin_left = 100
+theme_override_constants/margin_right = 100
+theme_override_constants/margin_bottom = 13
+
+[node name="SpinBox" type="SpinBox" parent="SectorHeightWindow/PanelContainer/MarginContainer2"]
+layout_mode = 2
+size_flags_vertical = 4
+max_value = 255.0
+
+[node name="MarginContainer3" type="MarginContainer" parent="SectorHeightWindow/PanelContainer"]
+layout_mode = 2
+size_flags_horizontal = 4
+size_flags_vertical = 8
+theme_override_constants/margin_bottom = 10
+
+[node name="HBoxContainer" type="HBoxContainer" parent="SectorHeightWindow/PanelContainer/MarginContainer3"]
+layout_mode = 2
+theme_override_constants/separation = 20
+
+[node name="CancelButton" type="Button" parent="SectorHeightWindow/PanelContainer/MarginContainer3/HBoxContainer"]
+layout_mode = 2
+text = "Cancel"
+
+[node name="OKButton" type="Button" parent="SectorHeightWindow/PanelContainer/MarginContainer3/HBoxContainer"]
+layout_mode = 2
+text = "OK"
 
 [node name="LoadBehaviorFileDialog" type="FileDialog" parent="."]
 unique_name_in_owner = true
@@ -915,6 +973,10 @@ text = "No sector selected"
 [node name="VBoxContainer" type="VBoxContainer" parent="PanelContainer/MarginContainer/VBoxContainer/HSplitContainer/PropertiesContainer/TabContainer/Sector/MarginContainer"]
 layout_mode = 2
 
-[connection signal="close_requested" from="NewMapWindow" to="NewMapWindow" method="_on_close_requested"]
-[connection signal="pressed" from="NewMapWindow/PanelContainer/MarginContainer3/HBoxContainer/CancelButton" to="NewMapWindow" method="_on_cancel_button_pressed"]
+[connection signal="index_pressed" from="ContextMenu" to="ContextMenu" method="_on_index_pressed"]
+[connection signal="close_requested" from="NewMapWindow" to="NewMapWindow" method="hide"]
+[connection signal="pressed" from="NewMapWindow/PanelContainer/MarginContainer3/HBoxContainer/CancelButton" to="NewMapWindow" method="hide"]
 [connection signal="pressed" from="NewMapWindow/PanelContainer/MarginContainer3/HBoxContainer/CreateButton" to="NewMapWindow" method="_on_create_button_pressed"]
+[connection signal="close_requested" from="SectorHeightWindow" to="SectorHeightWindow" method="close"]
+[connection signal="pressed" from="SectorHeightWindow/PanelContainer/MarginContainer3/HBoxContainer/CancelButton" to="SectorHeightWindow" method="close"]
+[connection signal="pressed" from="SectorHeightWindow/PanelContainer/MarginContainer3/HBoxContainer/OKButton" to="SectorHeightWindow" method="_on_ok_button_pressed"]

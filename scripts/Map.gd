@@ -23,6 +23,7 @@ func _ready():
 	Signals.hoststation_added.connect(add_hoststation)
 	Signals.squad_added.connect(add_squad)
 	Signals.sector_faction_changed.connect(change_sector_owner)
+	Signals.sector_height_changed.connect(change_sector_height)
 
 
 func _physics_process(delta):
@@ -73,7 +74,7 @@ func _draw():
 			var sector_color
 			if (x_sector > 0 and x_sector < CurrentMapData.horizontal_sectors+1 and 
 				y_sector > 0 and y_sector < CurrentMapData.vertical_sectors+1):
-				match CurrentMapData.typ_map[current_sector]:
+				match CurrentMapData.own_map[current_sector]:
 					0:
 						sector_color = Color.BLACK
 					1:
@@ -148,7 +149,13 @@ func handle_selection(clicked_x: int, clicked_y: int):
 	queue_redraw()
 
 
-func change_sector_owner(owner_id: int):
-	if CurrentMapData.selected_sector >= 0:
-		CurrentMapData.typ_map[CurrentMapData.selected_sector] = owner_id
+func change_sector_owner(owner_id: int) -> void:
+	if CurrentMapData.selected_sector >= 0 and CurrentMapData.own_map.size() > 0:
+		CurrentMapData.own_map[CurrentMapData.selected_sector] = owner_id
+		queue_redraw()
+
+
+func change_sector_height(height_value: int) -> void:
+	if CurrentMapData.border_selected_sector >= 0 and CurrentMapData.hgt_map.size() > 0:
+		CurrentMapData.hgt_map[CurrentMapData.border_selected_sector] = height_value
 		queue_redraw()

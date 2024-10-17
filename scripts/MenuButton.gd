@@ -51,9 +51,9 @@ func _ready():
 	sector_faction_submenu.id_pressed.connect(
 		func(id): 
 			Signals.sector_faction_changed.emit(id))
-	
 	add_submenu_item("Change sector faction", "sector_faction")
 	
+	add_item("Change sector height")
 
 
 func add_hoststation(idx, submenu):
@@ -74,3 +74,11 @@ func add_squad(idx: int, squads_menu: PopupMenu, faction: String, owner_id: int,
 				squad_data = sq
 				break
 	Signals.squad_added.emit(squad_data, owner_id)
+
+
+func _on_index_pressed(index: int) -> void:
+	if CurrentMapData.border_selected_sector >= 0 and CurrentMapData.hgt_map.size() > 0:
+		match index:
+			3:
+				%SectorHeightWindow.popup()
+	
