@@ -15,4 +15,4 @@ func _ready() -> void:
 
 
 func add_hoststation(idx, submenu):
-	Signals.hoststation_added.emit(submenu.get_item_text(idx))
+	EventSystem.hoststation_added.emit(submenu.get_item_text(idx))

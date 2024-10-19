@@ -11,5 +11,5 @@ func _ready() -> void:
 	sector_faction_submenu.add_item("Neutral", 0)
 	sector_faction_submenu.id_pressed.connect(
 		func(id): 
-			Signals.sector_faction_changed.emit(id))
+			EventSystem.sector_faction_changed.emit(id))
 	get_parent().add_submenu_item("Change sector faction", "sector_faction")

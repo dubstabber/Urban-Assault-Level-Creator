@@ -47,4 +47,4 @@ func add_squad(idx: int, squads_menu: PopupMenu, faction: String, owner_id: int,
 			if sq.name == squad_name:
 				squad_data = sq
 				break
-	Signals.squad_added.emit(squad_data, owner_id)
+	EventSystem.squad_added.emit(squad_data, owner_id)

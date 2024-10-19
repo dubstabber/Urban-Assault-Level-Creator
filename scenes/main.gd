@@ -6,7 +6,7 @@ extends Control
 
 func _ready():
 	get_tree().root.size_changed.connect(_on_resize)
-	Signals.map_created.connect(_on_ui_map_created)
+	EventSystem.map_created.connect(_on_ui_map_created)
 	_on_resize()
 
 

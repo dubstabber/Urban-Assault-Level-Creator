@@ -7,6 +7,8 @@ var zoom_speed := Vector2(.06,.06)
 var map_visible_width: int
 var map_visible_height: int
 var sector_indent := 40
+var font: Font
+var sector_font_size := 160
 
 var right_clicked_x_global: int
 var right_clicked_y_global: int
@@ -14,16 +16,23 @@ var right_clicked_x: int
 var right_clicked_y: int
 var is_selection_kept := false
 
+var typ_map_values_visible := false
+var own_map_values_visible := false
+var hgt_map_values_visible := false
+var blg_map_values_visible := false
+
 @onready var map_camera = $Camera2D
 @onready var host_stations = $HostStations
 @onready var squads = $Squads
 
 
-func _ready():
-	Signals.hoststation_added.connect(add_hoststation)
-	Signals.squad_added.connect(add_squad)
-	Signals.sector_faction_changed.connect(change_sector_owner)
-	Signals.sector_height_changed.connect(change_sector_height)
+func _ready() -> void:
+	font = ThemeDB.fallback_font
+	EventSystem.hoststation_added.connect(add_hoststation)
+	EventSystem.squad_added.connect(add_squad)
+	EventSystem.sector_faction_changed.connect(change_sector_owner)
+	EventSystem.sector_height_changed.connect(change_sector_height)
+	EventSystem.toggled_values_visibility.connect(toggle_values_visibility)
 
 
 func _physics_process(delta):
@@ -71,6 +80,9 @@ func _draw():
 	for y_sector in CurrentMapData.vertical_sectors+2:
 		var h_grid := 0
 		for x_sector in CurrentMapData.horizontal_sectors+2:
+			if current_border_sector == CurrentMapData.border_selected_sector: 
+				# Highlight for selection
+				draw_rect(Rect2(h_grid,v_grid, 1200-sector_indent,1200-sector_indent), Color.DARK_SLATE_GRAY)
 			var sector_color
 			if (x_sector > 0 and x_sector < CurrentMapData.horizontal_sectors+1 and 
 				y_sector > 0 and y_sector < CurrentMapData.vertical_sectors+1):
@@ -92,9 +104,15 @@ func _draw():
 					7:
 						sector_color = Color.BLACK
 				draw_rect(Rect2(h_grid,v_grid, 1200-sector_indent,1200-sector_indent), sector_color, false, 25.0)
+				if typ_map_values_visible:
+					draw_string(font, Vector2(h_grid+40, v_grid+sector_font_size), "typ_map: "+ str(CurrentMapData.typ_map[current_sector]), HORIZONTAL_ALIGNMENT_LEFT, -1, sector_font_size)
+				if own_map_values_visible:
+					draw_string(font, Vector2(h_grid+40, v_grid+sector_font_size*2), "own_map: "+ str(CurrentMapData.own_map[current_sector]), HORIZONTAL_ALIGNMENT_LEFT, -1, sector_font_size)
+				if blg_map_values_visible:
+					draw_string(font, Vector2(h_grid+40, v_grid+sector_font_size*4), "blg_map: "+ str(CurrentMapData.blg_map[current_sector]), HORIZONTAL_ALIGNMENT_LEFT, -1, sector_font_size)
 				current_sector += 1
-			if current_border_sector == CurrentMapData.border_selected_sector:
-				draw_rect(Rect2(h_grid,v_grid, 1200-sector_indent,1200-sector_indent), Color.DARK_SLATE_GRAY)
+			if hgt_map_values_visible:
+				draw_string(font, Vector2(h_grid+40, v_grid+sector_font_size*3), "hgt_map: "+ str(CurrentMapData.hgt_map[current_border_sector]), HORIZONTAL_ALIGNMENT_LEFT, -1, sector_font_size)
 			h_grid += 1200
 			current_border_sector += 1
 			
@@ -159,3 +177,16 @@ func change_sector_height(height_value: int) -> void:
 	if CurrentMapData.border_selected_sector >= 0 and CurrentMapData.hgt_map.size() > 0:
 		CurrentMapData.hgt_map[CurrentMapData.border_selected_sector] = height_value
 		queue_redraw()
+
+
+func toggle_values_visibility(type: String) -> void:
+	match type:
+		"typ_map":
+			typ_map_values_visible = not typ_map_values_visible
+		"own_map":
+			own_map_values_visible = not own_map_values_visible
+		"hgt_map":
+			hgt_map_values_visible = not hgt_map_values_visible
+		"blg_map":
+			blg_map_values_visible = not blg_map_values_visible
+	queue_redraw()

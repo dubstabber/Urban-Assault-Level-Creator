@@ -1,4 +1,4 @@
-[gd_scene load_steps=13 format=3 uid="uid://ctgiwn3scteuk"]
+[gd_scene load_steps=14 format=3 uid="uid://ctgiwn3scteuk"]
 
 [ext_resource type="Script" path="res://scenes/main.gd" id="1_7pb5r"]
 [ext_resource type="Script" path="res://scripts/Map.gd" id="2_dum0m"]
@@ -12,6 +12,7 @@
 [ext_resource type="Script" path="res://scripts/menu_bar_file.gd" id="6_i86yq"]
 [ext_resource type="Script" path="res://scripts/map_change_height.gd" id="6_tt5fx"]
 [ext_resource type="Script" path="res://scripts/map_add_special_building.gd" id="7_tn0yk"]
+[ext_resource type="Script" path="res://scripts/menu_bar_view.gd" id="10_vou7b"]
 
 [node name="Main" type="Control"]
 layout_mode = 3
@@ -223,6 +224,7 @@ script = ExtResource("6_i86yq")
 
 [node name="View" type="PopupMenu" parent="PanelContainer/MarginContainer/VBoxContainer/MenuBar"]
 auto_translate_mode = 1
+script = ExtResource("10_vou7b")
 
 [node name="HSplitContainer" type="HSplitContainer" parent="PanelContainer/MarginContainer/VBoxContainer"]
 layout_mode = 2
