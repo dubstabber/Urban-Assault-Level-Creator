@@ -3,11 +3,11 @@
 [ext_resource type="Script" path="res://scenes/main.gd" id="1_7pb5r"]
 [ext_resource type="Script" path="res://scripts/Map.gd" id="2_dum0m"]
 [ext_resource type="Script" path="res://scripts/new_map_window.gd" id="3_hjjsa"]
-[ext_resource type="Script" path="res://scripts/MenuBar.gd" id="4_8sl2r"]
 [ext_resource type="Script" path="res://scripts/sector_height_window.gd" id="4_362xh"]
 [ext_resource type="Script" path="res://scripts/MenuButton.gd" id="4_ife4a"]
 [ext_resource type="Script" path="res://scripts/Properties.gd" id="5_opyij"]
 [ext_resource type="Theme" uid="uid://cdrs6kxi0mn0v" path="res://resources/themes/ua_theme.tres" id="5_sk7qs"]
+[ext_resource type="Script" path="res://scripts/menu_bar_file.gd" id="6_i86yq"]
 
 [node name="Main" type="Control"]
 layout_mode = 3
@@ -198,10 +198,10 @@ layout_mode = 2
 [node name="MenuBar" type="MenuBar" parent="PanelContainer/MarginContainer/VBoxContainer"]
 custom_minimum_size = Vector2(0, 33)
 layout_mode = 2
-script = ExtResource("4_8sl2r")
 
 [node name="File" type="PopupMenu" parent="PanelContainer/MarginContainer/VBoxContainer/MenuBar"]
 auto_translate_mode = 1
+script = ExtResource("6_i86yq")
 
 [node name="View" type="PopupMenu" parent="PanelContainer/MarginContainer/VBoxContainer/MenuBar"]
 auto_translate_mode = 1
