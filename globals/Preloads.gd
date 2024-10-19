@@ -58,4 +58,6 @@ func _ready():
 		"green": load("res://resources/img/squadIcons/GreenUnit4.png"),
 		"gray": load("res://resources/img/squadIcons/GrayUnit4.png"),
 	}
-	
+	building_icons.power_station = load("res://resources/img/buildingIcons/powerStation.png")
+	building_icons.flak_station = load("res://resources/img/buildingIcons/flakStation.png")
+	building_icons.radar_station = load("res://resources/img/buildingIcons/radarStation.png")

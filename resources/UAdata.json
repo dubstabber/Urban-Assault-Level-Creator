@@ -26,14 +26,14 @@
 					{"id": 134,"name": "Bronsteijn(Blue)", "image_file": "blueBronsteijn.png", "map_icon": "left_triangle"}
 				],
 				"buildings": [
-					{"id": 63, "name": "Power Station 1", "icon_file": "powerStation.png", "typMap": 201, "image_file": "resEnergy1.png"},
-					{"id": 1, "name": "Power Station 1+", "icon_file": "powerStation.png", "typMap": 201, "image_file": "resEnergy2.png"},
-					{"id": 11, "name": "Power Station 2", "icon_file": "powerStation.png", "typMap": 201, "image_file": "resEnergy3.png"},
-					{"id": 64, "name": "Power Station 2+", "icon_file": "powerStation.png", "typMap": 201, "image_file": "resEnergy4.png"},
-					{"id": 28, "name": "Flak Station 1", "icon_file": "flakStation.png", "typMap": 205, "image_file": "resFlak.png"},
-					{"id": 2, "name": "Flak Station 2", "icon_file": "flakStation.png", "typMap": 200, "image_file": "resFlak.png"},
-					{"id": 3, "name": "Radar Station 1", "icon_file": "radarStation.png", "typMap": 204, "image_file": "resRadar.png"},
-					{"id": 54, "name": "Radar Station 2", "icon_file": "radarStation.png", "typMap": 204, "image_file": "resRadar.png"}
+					{"id": 63, "name": "Power Station 1", "icon_type": "power_station", "typ_map": 201, "image_file": "resEnergy1.png"},
+					{"id": 1, "name": "Power Station 1+", "icon_type": "power_station", "typ_map": 201, "image_file": "resEnergy2.png"},
+					{"id": 11, "name": "Power Station 2", "icon_type": "power_station", "typ_map": 201, "image_file": "resEnergy3.png"},
+					{"id": 64, "name": "Power Station 2+", "icon_type": "power_station", "typ_map": 201, "image_file": "resEnergy4.png"},
+					{"id": 28, "name": "Flak Station 1", "icon_type": "flak_station", "typ_map": 205, "image_file": "resFlak.png"},
+					{"id": 2, "name": "Flak Station 2", "icon_type": "flak_station", "typ_map": 200, "image_file": "resFlak.png"},
+					{"id": 3, "name": "Radar Station 1", "icon_type": "radar_station", "typ_map": 204, "image_file": "resRadar.png"},
+					{"id": 54, "name": "Radar Station 2", "icon_type": "radar_station", "typ_map": 204, "image_file": "resRadar.png"}
 				]
 			},
 			"Ghorkov": {
@@ -57,10 +57,10 @@
 					{"id": 29,"name": "Ormu", "image_file": "ormu.png", "map_icon": "down_triangle"}
 				],
 				"buildings": [
-					{"id": 52, "name": "KYTPOWER", "icon_file": "powerStation.png", "typMap": 15, "image_file": "ghorEnergy1.png"},
-					{"id": 12, "name": "KytPower", "icon_file": "powerStation.png", "typMap": 15, "image_file": "ghorEnergy2.png"},
-					{"id": 30, "name": "KYTFLAK", "icon_file": "flakStation.png", "typMap": 207, "image_file": "ghorFlak.png"},
-					{"id": 71, "name": "Kyt Radar Station", "icon_file": "radarStation.png", "typMap": 240, "image_file": "ghorRadar.png"}
+					{"id": 52, "name": "KYTPOWER", "icon_type": "power_station", "typ_map": 15, "image_file": "ghorEnergy1.png"},
+					{"id": 12, "name": "KytPower", "icon_type": "power_station", "typ_map": 15, "image_file": "ghorEnergy2.png"},
+					{"id": 30, "name": "KYTFLAK", "icon_type": "flak_station", "typ_map": 207, "image_file": "ghorFlak.png"},
+					{"id": 71, "name": "Kyt Radar Station", "icon_type": "radar_station", "typ_map": 240, "image_file": "ghorRadar.png"}
 				]
 			},
 			"Taerkasten": {
@@ -81,10 +81,10 @@
 					{"id": 35,"name": "Otschko", "image_file": "otschko.png", "map_icon": "down_triangle"}
 				],
 				"buildings": [
-					{"id": 53, "name": "TAER POWR", "icon_file": "powerStation.png", "typMap": 14, "image_file": "taerEnergy1.png"},
-					{"id": 17, "name": "TaerPower", "icon_file": "powerStation.png", "typMap": 14, "image_file": "taerEnergy2.png"},
-					{"id": 31, "name": "TAERFLAK", "icon_file": "flakStation.png", "typMap": 208, "image_file": "taerFlak.png"},
-					{"id": 73, "name": "Taer Radar Station", "icon_file": "radarStation.png", "typMap": 239, "image_file": "taerRadar.png"}
+					{"id": 53, "name": "TAER POWR", "icon_type": "power_station", "typ_map": 14, "image_file": "taerEnergy1.png"},
+					{"id": 17, "name": "TaerPower", "icon_type": "power_station", "typ_map": 14, "image_file": "taerEnergy2.png"},
+					{"id": 31, "name": "TAERFLAK", "icon_type": "flak_station", "typ_map": 208, "image_file": "taerFlak.png"},
+					{"id": 73, "name": "Taer Radar Station", "icon_type": "radar_station", "typ_map": 239, "image_file": "taerRadar.png"}
 				]
 			},
 			"Mykonian": {
@@ -104,9 +104,9 @@
 					{"id": 67,"name": "Radar", "image_file": "radar.png", "map_icon": "down_triangle"}
 				],
 				"buildings": [
-					{"id": 10, "name": "MykoPower", "icon_file": "powerStation.png", "typMap": 229, "image_file": "mykoEnergy1.png"},
-					{"id": 13, "name": "MykoFlak", "icon_file": "flakStation.png", "typMap": 228, "image_file": "mykoFlak.png"},
-					{"id": 72, "name": "Myk Radar Station", "icon_file": "radarStation.png", "typMap": 241, "image_file": "mykoRadar.png"}
+					{"id": 10, "name": "MykoPower", "icon_type": "power_station", "typ_map": 229, "image_file": "mykoEnergy1.png"},
+					{"id": 13, "name": "MykoFlak", "icon_type": "flak_station", "typ_map": 228, "image_file": "mykoFlak.png"},
+					{"id": 72, "name": "Myk Radar Station", "icon_type": "radar_station", "typ_map": 241, "image_file": "mykoRadar.png"}
 				]
 			},
 			"Sulgogar": {
@@ -131,7 +131,7 @@
 				],
 				"units": [],
 				"buildings": [
-					{"id": 18, "name": "Flakstation", "icon_file": "flakStation.png", "typMap": 200, "image_file": "blasecFlak.png"}
+					{"id": 18, "name": "Flakstation", "icon_type": "flak_station", "typ_map": 200, "image_file": "blasecFlak.png"}
 				]
 			},
 			"Training": {
@@ -152,15 +152,15 @@
 				{"id": 13,"name": "Evilfurz", "image_file": "evilfurz.png", "map_icon": "square"}
 			],
 			"buildings": [
-				{"id": 8, "name": "GRASFLAK2", "icon_file": "flakStation.png", "typMap": 79, "image_file": "grasflak2.png"},
-				{"id": 14, "name": "KraftwerkOBL", "icon_file": "powerStation.png", "typMap": 201, "image_file": "kraftwerkOBL.png"},
-				{"id": 19, "name": "Bodenflak", "icon_file": "flakStation.png", "typMap": 1, "image_file": "bodenflak.png"},
-				{"id": 20, "name": "GFLAK-OW", "icon_file": "flakStation.png", "typMap": 199, "image_file": "gflak-ow.png"},
-				{"id": 21, "name": "GFLAK-NS", "icon_file": "flakStation.png", "typMap": 198, "image_file": "gflak-ns.png"},
-				{"id": 62, "name": "STONEHENGE", "icon_file": "powerStation.png", "typMap": 96, "image_file": "stonehenge.png"},
-				{"id": 29, "name": "STIMMG1", "icon_file": "flakStation.png", "typMap": 5, "image_file": "stimmg1.png"},
-				{"id": 33, "name": "STIMMG2", "icon_file": "flakStation.png", "typMap": 7, "image_file": "stimmg2.png"},
-				{"id": 34, "name": "STIMMG3", "icon_file": "flakStation.png", "typMap": 17, "image_file": "stimmg3.png"}
+				{"id": 8, "name": "GRASFLAK2", "icon_type": "flak_station", "typ_map": 79, "image_file": "grasflak2.png"},
+				{"id": 14, "name": "KraftwerkOBL", "icon_type": "power_station", "typ_map": 201, "image_file": "kraftwerkOBL.png"},
+				{"id": 19, "name": "Bodenflak", "icon_type": "flak_station", "typ_map": 1, "image_file": "bodenflak.png"},
+				{"id": 20, "name": "GFLAK-OW", "icon_type": "flak_station", "typ_map": 199, "image_file": "gflak-ow.png"},
+				{"id": 21, "name": "GFLAK-NS", "icon_type": "flak_station", "typ_map": 198, "image_file": "gflak-ns.png"},
+				{"id": 62, "name": "STONEHENGE", "icon_type": "power_station", "typ_map": 96, "image_file": "stonehenge.png"},
+				{"id": 29, "name": "STIMMG1", "icon_type": "flak_station", "typ_map": 5, "image_file": "stimmg1.png"},
+				{"id": 33, "name": "STIMMG2", "icon_type": "flak_station", "typ_map": 7, "image_file": "stimmg2.png"},
+				{"id": 34, "name": "STIMMG3", "icon_type": "flak_station", "typ_map": 17, "image_file": "stimmg3.png"}
 			]
 		},
 		"techUpgrade": [
@@ -200,14 +200,14 @@
 					{"id": 134,"name": "Bronsteijn(Blue)", "image_file": "blueBronsteijn.png", "map_icon": "left_triangle"}
 				],
 				"buildings": [
-					{"id": 63, "name": "Power Station 1", "icon_file": "powerStation.png", "typMap": 201, "image_file": "resEnergy1.png"},
-					{"id": 1, "name": "Power Station 1+", "icon_file": "powerStation.png", "typMap": 201, "image_file": "resEnergy2.png"},
-					{"id": 11, "name": "Power Station 2", "icon_file": "powerStation.png", "typMap": 201, "image_file": "resEnergy3.png"},
-					{"id": 64, "name": "Power Station 2+", "icon_file": "powerStation.png", "typMap": 201, "image_file": "resEnergy4.png"},
-					{"id": 28, "name": "Flak Station 1", "icon_file": "flakStation.png", "typMap": 205, "image_file": "resFlak.png"},
-					{"id": 2, "name": "Flak Station 2", "icon_file": "flakStation.png", "typMap": 200, "image_file": "resFlak.png"},
-					{"id": 3, "name": "Radar Station 1", "icon_file": "radarStation.png", "typMap": 204, "image_file": "resRadar.png"},
-					{"id": 54, "name": "Radar Station 2", "icon_file": "radarStation.png", "typMap": 204, "image_file": "resRadar.png"}
+					{"id": 63, "name": "Power Station 1", "icon_type": "power_station", "typ_map": 201, "image_file": "resEnergy1.png"},
+					{"id": 1, "name": "Power Station 1+", "icon_type": "power_station", "typ_map": 201, "image_file": "resEnergy2.png"},
+					{"id": 11, "name": "Power Station 2", "icon_type": "power_station", "typ_map": 201, "image_file": "resEnergy3.png"},
+					{"id": 64, "name": "Power Station 2+", "icon_type": "power_station", "typ_map": 201, "image_file": "resEnergy4.png"},
+					{"id": 28, "name": "Flak Station 1", "icon_type": "flak_station", "typ_map": 205, "image_file": "resFlak.png"},
+					{"id": 2, "name": "Flak Station 2", "icon_type": "flak_station", "typ_map": 200, "image_file": "resFlak.png"},
+					{"id": 3, "name": "Radar Station 1", "icon_type": "radar_station", "typ_map": 204, "image_file": "resRadar.png"},
+					{"id": 54, "name": "Radar Station 2", "icon_type": "radar_station", "typ_map": 204, "image_file": "resRadar.png"}
 				]
 		},
 		"Ghorkov": {
@@ -231,10 +231,10 @@
 				{"id": 29,"name": "Ormu", "image_file": "ormu.png", "map_icon": "down_triangle"}
 			],
 			"buildings": [
-				{"id": 52, "name": "KYTPOWER", "icon_file": "powerStation.png", "typMap": 15, "image_file": "ghorEnergy1.png"},
-				{"id": 12, "name": "KytPower", "icon_file": "powerStation.png", "typMap": 15, "image_file": "ghorEnergy2.png"},
-				{"id": 30, "name": "KYTFLAK", "icon_file": "flakStation.png", "typMap": 207, "image_file": "ghorFlak.png"},
-				{"id": 71, "name": "Kyt Radar Station", "icon_file": "radarStation.png", "typMap": 240, "image_file": "ghorRadar.png"}
+				{"id": 52, "name": "KYTPOWER", "icon_type": "power_station", "typ_map": 15, "image_file": "ghorEnergy1.png"},
+				{"id": 12, "name": "KytPower", "icon_type": "power_station", "typ_map": 15, "image_file": "ghorEnergy2.png"},
+				{"id": 30, "name": "KYTFLAK", "icon_type": "flak_station", "typ_map": 207, "image_file": "ghorFlak.png"},
+				{"id": 71, "name": "Kyt Radar Station", "icon_type": "radar_station", "typ_map": 240, "image_file": "ghorRadar.png"}
 			]
 		},
 		"Taerkasten": {
@@ -257,11 +257,11 @@
 				{"id": 35,"name": "Otschko", "image_file": "otschko.png", "map_icon": "down_triangle"}
 			],
 			"buildings": [
-				{"id": 53, "name": "TAER POWR", "icon_file": "powerStation.png", "typMap": 14, "image_file": "taerEnergy1.png"},
-				{"id": 17, "name": "TaerPower", "icon_file": "powerStation.png", "typMap": 14, "image_file": "taerEnergy2.png"},
-				{"id": 31, "name": "TAERFLAK", "icon_file": "flakStation.png", "typMap": 208, "image_file": "taerFlak.png"},
-				{"id": 74, "name": "Flak station", "icon_file": "flakStation.png", "typMap": 208, "image_file": "taerFlak.png"},
-				{"id": 73, "name": "Taer Radar Station", "icon_file": "radarStation.png", "typMap": 239, "image_file": "taerRadar.png"}
+				{"id": 53, "name": "TAER POWR", "icon_type": "power_station", "typ_map": 14, "image_file": "taerEnergy1.png"},
+				{"id": 17, "name": "TaerPower", "icon_type": "power_station", "typ_map": 14, "image_file": "taerEnergy2.png"},
+				{"id": 31, "name": "TAERFLAK", "icon_type": "flak_station", "typ_map": 208, "image_file": "taerFlak.png"},
+				{"id": 74, "name": "Flak station", "icon_type": "flak_station", "typ_map": 208, "image_file": "taerFlak.png"},
+				{"id": 73, "name": "Taer Radar Station", "icon_type": "radar_station", "typ_map": 239, "image_file": "taerRadar.png"}
 			]
 		},
 		"Mykonian": {
@@ -279,9 +279,9 @@
 				{"id": 67,"name": "Radar", "image_file": "radar.png", "map_icon": "down_triangle"}
 			],
 			"buildings": [
-				{"id": 10, "name": "MykoPower", "icon_file": "powerStation.png", "typMap": 229, "image_file": "mykoEnergy1.png"},
-				{"id": 13, "name": "MykoFlak", "icon_file": "flakStation.png", "typMap": 228, "image_file": "mykoFlak.png"},
-				{"id": 72, "name": "Myk Radar Station", "icon_file": "radarStation.png", "typMap": 241, "image_file": "mykoRadar.png"}
+				{"id": 10, "name": "MykoPower", "icon_type": "power_station", "typ_map": 229, "image_file": "mykoEnergy1.png"},
+				{"id": 13, "name": "MykoFlak", "icon_type": "flak_station", "typ_map": 228, "image_file": "mykoFlak.png"},
+				{"id": 72, "name": "Myk Radar Station", "icon_type": "radar_station", "typ_map": 241, "image_file": "mykoRadar.png"}
 			]
 		},
 		"Sulgogar": {
@@ -300,7 +300,7 @@
 			"image_file": "Blacksect.png",
 			"units": [],
 			"buildings": [
-				{"id": 18, "name": "Flakstation", "icon_file": "flakStation.png", "typMap": 200, "image_file": "blasecFlak.png"}
+				{"id": 18, "name": "Flakstation", "icon_type": "flak_station", "typ_map": 200, "image_file": "blasecFlak.png"}
 			]
 		},
 		"Training": {
@@ -318,19 +318,19 @@
 				{"id": 13,"name": "Evilfurz", "image_file": "evilfurz.png", "map_icon": "square"}
 			],
 			"buildings": [
-				{"id": 8, "name": "GRASFLAK2", "icon_file": "flakStation.png", "typMap": 79, "image_file": "grasflak2.png"},
-				{"id": 14, "name": "KraftwerkOBL", "icon_file": "powerStation.png", "typMap": 201, "image_file": "kraftwerkOBL.png"},
-				{"id": 19, "name": "Bodenflak", "icon_file": "flakStation.png", "typMap": 1, "image_file": "bodenflak.png"},
-				{"id": 20, "name": "GFLAK-OW", "icon_file": "flakStation.png", "typMap": 199, "image_file": "gflak-ow.png"},
-				{"id": 21, "name": "GFLAK-NS", "icon_file": "flakStation.png", "typMap": 198, "image_file": "gflak-ns.png"},
-				{"id": 62, "name": "STONEHENGE", "icon_file": "powerStation.png", "typMap": 96, "image_file": "stonehenge.png"},
-				{"id": 29, "name": "STIMMG1", "icon_file": "flakStation.png", "typMap": 5, "image_file": "stimmg1.png"},
-				{"id": 33, "name": "STIMMG2", "icon_file": "flakStation.png", "typMap": 7, "image_file": "stimmg2.png"},
-				{"id": 34, "name": "STIMMG3", "icon_file": "flakStation.png", "typMap": 17, "image_file": "stimmg3.png"},
-				{"id": 22, "name": "BODENFLAK2", "icon_file": "flakStation.png", "typMap": 12, "image_file": "grasflak2.png"},
-				{"id": 23, "name": "BODENFLAK3", "icon_file": "flakStation.png", "typMap": 13, "image_file": "bodenflak.png"},
-				{"id": 24, "name": "BODENFLAK4", "icon_file": "flakStation.png", "typMap": 32, "image_file": "bodenflak4.png"},
-				{"id": 55, "name": "STEFANS FLAK KREU", "icon_file": "flakStation.png", "typMap": 140, "image_file": "grasflak2.png"}
+				{"id": 8, "name": "GRASFLAK2", "icon_type": "flak_station", "typ_map": 79, "image_file": "grasflak2.png"},
+				{"id": 14, "name": "KraftwerkOBL", "icon_type": "power_station", "typ_map": 201, "image_file": "kraftwerkOBL.png"},
+				{"id": 19, "name": "Bodenflak", "icon_type": "flak_station", "typ_map": 1, "image_file": "bodenflak.png"},
+				{"id": 20, "name": "GFLAK-OW", "icon_type": "flak_station", "typ_map": 199, "image_file": "gflak-ow.png"},
+				{"id": 21, "name": "GFLAK-NS", "icon_type": "flak_station", "typ_map": 198, "image_file": "gflak-ns.png"},
+				{"id": 62, "name": "STONEHENGE", "icon_type": "power_station", "typ_map": 96, "image_file": "stonehenge.png"},
+				{"id": 29, "name": "STIMMG1", "icon_type": "flak_station", "typ_map": 5, "image_file": "stimmg1.png"},
+				{"id": 33, "name": "STIMMG2", "icon_type": "flak_station", "typ_map": 7, "image_file": "stimmg2.png"},
+				{"id": 34, "name": "STIMMG3", "icon_type": "flak_station", "typ_map": 17, "image_file": "stimmg3.png"},
+				{"id": 22, "name": "BODENFLAK2", "icon_type": "flak_station", "typ_map": 12, "image_file": "grasflak2.png"},
+				{"id": 23, "name": "BODENFLAK3", "icon_type": "flak_station", "typ_map": 13, "image_file": "bodenflak.png"},
+				{"id": 24, "name": "BODENFLAK4", "icon_type": "flak_station", "typ_map": 32, "image_file": "bodenflak4.png"},
+				{"id": 55, "name": "STEFANS FLAK KREU", "icon_type": "flak_station", "typ_map": 140, "image_file": "grasflak2.png"}
 			]
 		},
 		"techUpgrade": [
