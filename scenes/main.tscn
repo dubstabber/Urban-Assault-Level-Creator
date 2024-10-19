@@ -1,13 +1,17 @@
-[gd_scene load_steps=9 format=3 uid="uid://ctgiwn3scteuk"]
+[gd_scene load_steps=13 format=3 uid="uid://ctgiwn3scteuk"]
 
 [ext_resource type="Script" path="res://scenes/main.gd" id="1_7pb5r"]
 [ext_resource type="Script" path="res://scripts/Map.gd" id="2_dum0m"]
 [ext_resource type="Script" path="res://scripts/new_map_window.gd" id="3_hjjsa"]
+[ext_resource type="Script" path="res://scripts/map_add_host_station.gd" id="3_u1dll"]
 [ext_resource type="Script" path="res://scripts/sector_height_window.gd" id="4_362xh"]
-[ext_resource type="Script" path="res://scripts/MenuButton.gd" id="4_ife4a"]
+[ext_resource type="Script" path="res://scripts/map_add_squad.gd" id="4_cqc5q"]
+[ext_resource type="Script" path="res://scripts/map_change_faction.gd" id="5_gscij"]
 [ext_resource type="Script" path="res://scripts/Properties.gd" id="5_opyij"]
 [ext_resource type="Theme" uid="uid://cdrs6kxi0mn0v" path="res://resources/themes/ua_theme.tres" id="5_sk7qs"]
 [ext_resource type="Script" path="res://scripts/menu_bar_file.gd" id="6_i86yq"]
+[ext_resource type="Script" path="res://scripts/map_change_height.gd" id="6_tt5fx"]
+[ext_resource type="Script" path="res://scripts/map_add_special_building.gd" id="7_tn0yk"]
 
 [node name="Main" type="Control"]
 layout_mode = 3
@@ -25,7 +29,21 @@ anchor_mode = 0
 
 [node name="ContextMenu" type="PopupMenu" parent="."]
 unique_name_in_owner = true
-script = ExtResource("4_ife4a")
+
+[node name="AddHostStation" type="Node" parent="ContextMenu"]
+script = ExtResource("3_u1dll")
+
+[node name="AddSquad" type="Node" parent="ContextMenu"]
+script = ExtResource("4_cqc5q")
+
+[node name="ChangeFaction" type="Node" parent="ContextMenu"]
+script = ExtResource("5_gscij")
+
+[node name="ChangeHeight" type="Node" parent="ContextMenu"]
+script = ExtResource("6_tt5fx")
+
+[node name="AddSpecialBuilding" type="Node" parent="ContextMenu"]
+script = ExtResource("7_tn0yk")
 
 [node name="NewMapWindow" type="Window" parent="."]
 unique_name_in_owner = true
@@ -973,7 +991,6 @@ text = "No sector selected"
 [node name="VBoxContainer" type="VBoxContainer" parent="PanelContainer/MarginContainer/VBoxContainer/HSplitContainer/PropertiesContainer/TabContainer/Sector/MarginContainer"]
 layout_mode = 2
 
-[connection signal="index_pressed" from="ContextMenu" to="ContextMenu" method="_on_index_pressed"]
 [connection signal="close_requested" from="NewMapWindow" to="NewMapWindow" method="hide"]
 [connection signal="pressed" from="NewMapWindow/PanelContainer/MarginContainer3/HBoxContainer/CancelButton" to="NewMapWindow" method="hide"]
 [connection signal="pressed" from="NewMapWindow/PanelContainer/MarginContainer3/HBoxContainer/CreateButton" to="NewMapWindow" method="_on_create_button_pressed"]
