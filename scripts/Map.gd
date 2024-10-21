@@ -70,11 +70,13 @@ func _input(event):
 		if number_key >= 0 and number_key <= 7:
 			change_sector_owner(number_key)
 	if (event.is_action_pressed("increment_height") and 
+		CurrentMapData.hgt_map.size() > 0 and
 		CurrentMapData.border_selected_sector >= 0 and
 		CurrentMapData.hgt_map[CurrentMapData.border_selected_sector] < 255):
 		CurrentMapData.hgt_map[CurrentMapData.border_selected_sector] += 1
 		queue_redraw()
 	if (event.is_action_pressed("decrement_height") and 
+		CurrentMapData.hgt_map.size() > 0 and
 		CurrentMapData.border_selected_sector >= 0 and
 		CurrentMapData.hgt_map[CurrentMapData.border_selected_sector] > 0):
 		CurrentMapData.hgt_map[CurrentMapData.border_selected_sector] -= 1
