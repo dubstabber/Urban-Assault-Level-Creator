@@ -69,6 +69,16 @@ func _input(event):
 		var number_key = event.unicode - KEY_0
 		if number_key >= 0 and number_key <= 7:
 			change_sector_owner(number_key)
+	if (event.is_action_pressed("increment_height") and 
+		CurrentMapData.border_selected_sector >= 0 and
+		CurrentMapData.hgt_map[CurrentMapData.border_selected_sector] < 255):
+		CurrentMapData.hgt_map[CurrentMapData.border_selected_sector] += 1
+		queue_redraw()
+	if (event.is_action_pressed("decrement_height") and 
+		CurrentMapData.border_selected_sector >= 0 and
+		CurrentMapData.hgt_map[CurrentMapData.border_selected_sector] > 0):
+		CurrentMapData.hgt_map[CurrentMapData.border_selected_sector] -= 1
+		queue_redraw()
 
 
 func _draw():
@@ -83,9 +93,10 @@ func _draw():
 			if current_border_sector == CurrentMapData.border_selected_sector: 
 				# Highlight for selection
 				draw_rect(Rect2(h_grid,v_grid, 1200-sector_indent,1200-sector_indent), Color.DARK_SLATE_GRAY)
-			var sector_color
+			
 			if (x_sector > 0 and x_sector < CurrentMapData.horizontal_sectors+1 and 
 				y_sector > 0 and y_sector < CurrentMapData.vertical_sectors+1):
+				var sector_color
 				match CurrentMapData.own_map[current_sector]:
 					0:
 						sector_color = Color.BLACK
