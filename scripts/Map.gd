@@ -6,9 +6,9 @@ var zoom_maximum := Vector2(.3,.3)
 var zoom_speed := Vector2(.06,.06)
 var map_visible_width: int
 var map_visible_height: int
-var sector_indent := 40
+var sector_indent := 50.0
 var font: Font
-var sector_font_size := 160
+var sector_font_size := 170
 
 var right_clicked_x_global: int
 var right_clicked_y_global: int
@@ -94,7 +94,7 @@ func _draw():
 		for x_sector in CurrentMapData.horizontal_sectors+2:
 			if current_border_sector == CurrentMapData.border_selected_sector: 
 				# Highlight for selection
-				draw_rect(Rect2(h_grid,v_grid, 1200-sector_indent,1200-sector_indent), Color.DARK_SLATE_GRAY)
+				draw_rect(Rect2(h_grid,v_grid, 1200,1200), Color.DARK_SLATE_GRAY)
 			
 			if (x_sector > 0 and x_sector < CurrentMapData.horizontal_sectors+1 and 
 				y_sector > 0 and y_sector < CurrentMapData.vertical_sectors+1):
@@ -116,16 +116,33 @@ func _draw():
 						sector_color = Color.RED
 					7:
 						sector_color = Color.BLACK
-				draw_rect(Rect2(h_grid,v_grid, 1200-sector_indent,1200-sector_indent), sector_color, false, 25.0)
+				draw_rect(Rect2(h_grid+sector_indent,v_grid+sector_indent, 1200-(sector_indent*2),1200-(sector_indent*2)), sector_color, false, 30.0)
+				
+				if (y_sector > 1 and
+					CurrentMapData.hgt_map[current_border_sector - (CurrentMapData.horizontal_sectors+2)] - CurrentMapData.hgt_map[current_border_sector] > 4):
+					draw_line(Vector2(h_grid+sector_indent,v_grid+sector_indent/3.0), Vector2(h_grid+1200-sector_indent,v_grid+sector_indent/3.0), Color.AQUA, sector_indent/2)
+				
+				if (x_sector < CurrentMapData.horizontal_sectors and
+					CurrentMapData.hgt_map[current_border_sector+1] - CurrentMapData.hgt_map[current_border_sector] > 4):
+					draw_line(Vector2(h_grid+1200-sector_indent/3.0,v_grid+sector_indent), Vector2(h_grid+1200-sector_indent/3.0,v_grid+1200-sector_indent), Color.AQUA, sector_indent/2)
+				
+				if (y_sector < CurrentMapData.vertical_sectors and
+					CurrentMapData.hgt_map[current_border_sector + (CurrentMapData.horizontal_sectors+2)] - CurrentMapData.hgt_map[current_border_sector] > 4):
+					draw_line(Vector2(h_grid+sector_indent,v_grid+1200-sector_indent/3.0), Vector2(h_grid+1200-sector_indent,v_grid+1200-sector_indent/3.0), Color.AQUA, sector_indent/2)
+				
+				if (x_sector > 1 and
+					CurrentMapData.hgt_map[current_border_sector-1] - CurrentMapData.hgt_map[current_border_sector] > 4):
+					draw_line(Vector2(h_grid+sector_indent/3.0,v_grid+sector_indent), Vector2(h_grid+sector_indent/3.0,v_grid+1200-sector_indent), Color.AQUA, sector_indent/2)
+				
 				if typ_map_values_visible:
-					draw_string(font, Vector2(h_grid+40, v_grid+sector_font_size), "typ_map: "+ str(CurrentMapData.typ_map[current_sector]), HORIZONTAL_ALIGNMENT_LEFT, -1, sector_font_size)
+					draw_string(font, Vector2(h_grid+50, v_grid+sector_font_size), "typ_map: "+ str(CurrentMapData.typ_map[current_sector]), HORIZONTAL_ALIGNMENT_LEFT, -1, sector_font_size)
 				if own_map_values_visible:
-					draw_string(font, Vector2(h_grid+40, v_grid+sector_font_size*2), "own_map: "+ str(CurrentMapData.own_map[current_sector]), HORIZONTAL_ALIGNMENT_LEFT, -1, sector_font_size)
+					draw_string(font, Vector2(h_grid+50, v_grid+sector_font_size*2), "own_map: "+ str(CurrentMapData.own_map[current_sector]), HORIZONTAL_ALIGNMENT_LEFT, -1, sector_font_size)
 				if blg_map_values_visible:
-					draw_string(font, Vector2(h_grid+40, v_grid+sector_font_size*4), "blg_map: "+ str(CurrentMapData.blg_map[current_sector]), HORIZONTAL_ALIGNMENT_LEFT, -1, sector_font_size)
+					draw_string(font, Vector2(h_grid+50, v_grid+sector_font_size*4), "blg_map: "+ str(CurrentMapData.blg_map[current_sector]), HORIZONTAL_ALIGNMENT_LEFT, -1, sector_font_size)
 				current_sector += 1
 			if hgt_map_values_visible:
-				draw_string(font, Vector2(h_grid+40, v_grid+sector_font_size*3), "hgt_map: "+ str(CurrentMapData.hgt_map[current_border_sector]), HORIZONTAL_ALIGNMENT_LEFT, -1, sector_font_size)
+				draw_string(font, Vector2(h_grid+50, v_grid+sector_font_size*3), "hgt_map: "+ str(CurrentMapData.hgt_map[current_border_sector]), HORIZONTAL_ALIGNMENT_LEFT, -1, sector_font_size)
 			h_grid += 1200
 			current_border_sector += 1
 			
