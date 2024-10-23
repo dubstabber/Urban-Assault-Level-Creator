@@ -35,6 +35,10 @@ func _new_item(index:int, new_item_submenu: PopupMenu) -> void:
 	match item_text:
 		'Beam Gate':
 			print('add beam gate here')
+			
+			CurrentMapData.beam_gates.append(BeamGate.new(1,2))
+			print(CurrentMapData.beam_gates[0].sec_x)
+			print(CurrentMapData.beam_gates[0].sec_y)
 		'Stoudson Bomb':
 			print('add stoudson bomb here')
 		'Tech Upgrade':

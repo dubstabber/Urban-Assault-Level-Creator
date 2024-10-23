@@ -30,11 +30,8 @@ func _ready() -> void:
 	font = ThemeDB.fallback_font
 	EventSystem.hoststation_added.connect(add_hoststation)
 	EventSystem.squad_added.connect(add_squad)
-	EventSystem.sector_faction_changed.connect(change_sector_owner)
-	EventSystem.sector_height_changed.connect(change_sector_height)
+	EventSystem.map_updated.connect(queue_redraw)
 	EventSystem.toggled_values_visibility.connect(toggle_values_visibility)
-	EventSystem.special_building_added.connect(add_special_building)
-	EventSystem.building_added.connect(add_building)
 
 
 func _physics_process(delta):
@@ -67,21 +64,17 @@ func _input(event):
 		%MapContextMenu.position = Vector2(right_clicked_x_global, right_clicked_y_global)
 		%MapContextMenu.popup()
 		#accept_event()
-	if event is InputEventKey and event.pressed:
-		var number_key = event.unicode - KEY_0
-		if number_key >= 0 and number_key <= 7:
-			change_sector_owner(number_key)
 	if (event.is_action_pressed("increment_height") and 
 		CurrentMapData.hgt_map.size() > 0 and
-		CurrentMapData.border_selected_sector >= 0 and
-		CurrentMapData.hgt_map[CurrentMapData.border_selected_sector] < 255):
-		CurrentMapData.hgt_map[CurrentMapData.border_selected_sector] += 1
+		CurrentMapData.border_selected_sector_idx >= 0 and
+		CurrentMapData.hgt_map[CurrentMapData.border_selected_sector_idx] < 255):
+		CurrentMapData.hgt_map[CurrentMapData.border_selected_sector_idx] += 1
 		queue_redraw()
 	if (event.is_action_pressed("decrement_height") and 
 		CurrentMapData.hgt_map.size() > 0 and
-		CurrentMapData.border_selected_sector >= 0 and
-		CurrentMapData.hgt_map[CurrentMapData.border_selected_sector] > 0):
-		CurrentMapData.hgt_map[CurrentMapData.border_selected_sector] -= 1
+		CurrentMapData.border_selected_sector_idx >= 0 and
+		CurrentMapData.hgt_map[CurrentMapData.border_selected_sector_idx] > 0):
+		CurrentMapData.hgt_map[CurrentMapData.border_selected_sector_idx] -= 1
 		queue_redraw()
 
 
@@ -94,7 +87,7 @@ func _draw():
 	for y_sector in CurrentMapData.vertical_sectors+2:
 		var h_grid := 0
 		for x_sector in CurrentMapData.horizontal_sectors+2:
-			if current_border_sector == CurrentMapData.border_selected_sector: 
+			if current_border_sector == CurrentMapData.border_selected_sector_idx: 
 				# Highlight for selection
 				draw_rect(Rect2(h_grid,v_grid, 1200,1200), Color.DARK_SLATE_GRAY)
 			if (x_sector > 0 and x_sector < CurrentMapData.horizontal_sectors+1 and 
@@ -186,9 +179,10 @@ func handle_selection(clicked_x: int, clicked_y: int):
 	for y_sector in CurrentMapData.vertical_sectors+2:
 		for x_sector in CurrentMapData.horizontal_sectors+2:
 			if clicked_x > h_size and clicked_x < h_size + 1200 and clicked_y > v_size and clicked_y < v_size + 1200:
-				#prints(x_sector,y_sector)
-				CurrentMapData.selected_sector = sector_counter
-				CurrentMapData.border_selected_sector = border_sector_counter
+				CurrentMapData.selected_sector_idx = sector_counter
+				CurrentMapData.border_selected_sector_idx = border_sector_counter
+				CurrentMapData.selected_sector_x = x_sector
+				CurrentMapData.selected_sector_y = y_sector
 				break
 			h_size += 1200
 			border_sector_counter += 1
@@ -198,32 +192,6 @@ func handle_selection(clicked_x: int, clicked_y: int):
 		v_size += 1200
 		h_size = 0
 	queue_redraw()
-
-
-func change_sector_owner(owner_id: int) -> void:
-	if CurrentMapData.selected_sector >= 0 and CurrentMapData.own_map.size() > 0:
-		CurrentMapData.own_map[CurrentMapData.selected_sector] = owner_id
-		queue_redraw()
-
-
-func change_sector_height(height_value: int) -> void:
-	if CurrentMapData.border_selected_sector >= 0 and CurrentMapData.hgt_map.size() > 0:
-		CurrentMapData.hgt_map[CurrentMapData.border_selected_sector] = height_value
-		queue_redraw()
-
-
-func add_special_building(building_id: int, typ_map: int, own_map: int) -> void:
-	if CurrentMapData.selected_sector >= 0 and CurrentMapData.blg_map.size() > 0:
-		CurrentMapData.blg_map[CurrentMapData.selected_sector] = building_id
-		CurrentMapData.typ_map[CurrentMapData.selected_sector] = typ_map
-		CurrentMapData.own_map[CurrentMapData.selected_sector] = own_map
-		queue_redraw()
-
-
-func add_building(typ_map: int) -> void:
-	if CurrentMapData.selected_sector >= 0 and CurrentMapData.typ_map.size() > 0:
-		CurrentMapData.typ_map[CurrentMapData.selected_sector] = typ_map
-		queue_redraw()
 
 
 func toggle_values_visibility(type: String) -> void:

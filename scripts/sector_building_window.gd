@@ -7,7 +7,9 @@ func _on_ok_button_pressed() -> void:
 	hide()
 	
 	if typ_map_spin_box.value >= 0 and typ_map_spin_box.value < 256:
-		EventSystem.building_added.emit(typ_map_spin_box.value)
+		if CurrentMapData.selected_sector_idx >= 0 and CurrentMapData.typ_map.size() > 0:
+			CurrentMapData.typ_map[CurrentMapData.selected_sector_idx] = typ_map_spin_box.value
+			EventSystem.map_updated.emit()
 	else:
 		printerr("Wrong typ_map value: ", typ_map_spin_box.value)
 

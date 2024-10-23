@@ -16,6 +16,10 @@ func _input(event):
 		var mouse_y = round(get_global_mouse_position().y)
 		map.right_clicked_x_global = mouse_x
 		map.right_clicked_y_global = mouse_y
+	if event is InputEventKey and event.pressed:
+		var number_key = event.unicode - KEY_0
+		if number_key >= 0 and number_key <= 7:
+			change_sector_owner(number_key)
 
 
 func _on_ui_map_created():
@@ -26,3 +30,9 @@ func _on_resize():
 	map.recalculate_size()
 	sub_viewport_map_container.custom_minimum_size.x = map.map_visible_width
 	sub_viewport_map_container.custom_minimum_size.y = map.map_visible_height
+
+
+func change_sector_owner(number_key) -> void:
+	if CurrentMapData.selected_sector_idx >= 0 and CurrentMapData.own_map.size() > 0:
+		CurrentMapData.own_map[CurrentMapData.selected_sector_idx] = number_key
+		EventSystem.map_updated.emit()
