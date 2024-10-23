@@ -10,7 +10,6 @@ func _on_ok_button_pressed() -> void:
 		EventSystem.building_added.emit(typ_map_spin_box.value)
 	else:
 		printerr("Wrong typ_map value: ", typ_map_spin_box.value)
-		
 
 
 func close() -> void:

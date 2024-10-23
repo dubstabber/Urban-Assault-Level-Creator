@@ -62,8 +62,8 @@ func _input(event):
 			print('selection is kept')
 	if event.is_action_pressed("context_menu"):
 		right_clicked_x = round(get_local_mouse_position().x)
-		right_clicked_y = round(get_local_mouse_position().y - 40)
-
+		right_clicked_y = round(get_local_mouse_position().y)
+		handle_selection(right_clicked_x, right_clicked_y)
 		%MapContextMenu.position = Vector2(right_clicked_x_global, right_clicked_y_global)
 		%MapContextMenu.popup()
 		#accept_event()
