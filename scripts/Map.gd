@@ -33,6 +33,7 @@ func _ready() -> void:
 	EventSystem.sector_faction_changed.connect(change_sector_owner)
 	EventSystem.sector_height_changed.connect(change_sector_height)
 	EventSystem.toggled_values_visibility.connect(toggle_values_visibility)
+	EventSystem.special_building_added.connect(add_special_building)
 
 
 func _physics_process(delta):
@@ -95,9 +96,10 @@ func _draw():
 			if current_border_sector == CurrentMapData.border_selected_sector: 
 				# Highlight for selection
 				draw_rect(Rect2(h_grid,v_grid, 1200,1200), Color.DARK_SLATE_GRAY)
-			
 			if (x_sector > 0 and x_sector < CurrentMapData.horizontal_sectors+1 and 
 				y_sector > 0 and y_sector < CurrentMapData.vertical_sectors+1):
+				if Preloads.special_building_images.has(str(CurrentMapData.blg_map[current_sector])):
+					draw_texture_rect(Preloads.special_building_images[str(CurrentMapData.blg_map[current_sector])], Rect2(h_grid+sector_indent,v_grid+sector_indent, 1200-(sector_indent*2),1200-(sector_indent*2)),false)
 				var sector_color
 				match CurrentMapData.own_map[current_sector]:
 					0:
@@ -206,6 +208,13 @@ func change_sector_owner(owner_id: int) -> void:
 func change_sector_height(height_value: int) -> void:
 	if CurrentMapData.border_selected_sector >= 0 and CurrentMapData.hgt_map.size() > 0:
 		CurrentMapData.hgt_map[CurrentMapData.border_selected_sector] = height_value
+		queue_redraw()
+
+
+func add_special_building(building_id: int, typ_map: int) -> void:
+	if CurrentMapData.selected_sector >= 0 and CurrentMapData.blg_map.size() > 0:
+		CurrentMapData.blg_map[CurrentMapData.selected_sector] = building_id
+		CurrentMapData.typ_map[CurrentMapData.selected_sector] = typ_map
 		queue_redraw()
 
 
