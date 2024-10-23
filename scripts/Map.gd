@@ -143,6 +143,11 @@ func _draw():
 			current_border_sector += 1
 			
 		v_grid += 1200
+	for beam_gate in CurrentMapData.beam_gates:
+		var pos_x = beam_gate.sec_x * 1200 + sector_indent
+		var pos_y = beam_gate.sec_y * 1200 + sector_indent
+		draw_texture_rect(Preloads.sector_item_images.beam_gate, Rect2(pos_x, pos_y,1200-(sector_indent*2),1200-(sector_indent*2)), false)
+		
 
 
 func recalculate_size():

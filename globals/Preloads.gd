@@ -11,6 +11,7 @@ var squad_images := {}
 var squad_icons := {}
 var building_icons := {}
 var special_building_images := {}
+var sector_item_images := {}
 
 
 func _ready():
@@ -68,3 +69,6 @@ func _ready():
 	building_icons.power_station = load("res://resources/img/buildingIcons/powerStation.png")
 	building_icons.flak_station = load("res://resources/img/buildingIcons/flakStation.png")
 	building_icons.radar_station = load("res://resources/img/buildingIcons/radarStation.png")
+	
+	sector_item_images.beam_gate = load("res://resources/img/sectorItems/beamgate.png")
+	

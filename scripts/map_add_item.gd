@@ -34,12 +34,17 @@ func _new_item(index:int, new_item_submenu: PopupMenu) -> void:
 	var item_text = new_item_submenu.get_item_text(index)
 	match item_text:
 		'Beam Gate':
-			print('add beam gate here')
+			var is_added := false
+			for bg in CurrentMapData.beam_gates:
+				if bg.sec_x == CurrentMapData.selected_sector_x and bg.sec_y == CurrentMapData.selected_sector_y:
+					is_added = true
+					break
 			
-			CurrentMapData.beam_gates.append(BeamGate.new(1,2))
-			print(CurrentMapData.beam_gates[0].sec_x)
-			print(CurrentMapData.beam_gates[0].sec_y)
+			if not is_added:
+				var bg = BeamGate.new(CurrentMapData.selected_sector_x,CurrentMapData.selected_sector_y)
+				CurrentMapData.beam_gates.append(bg)
 		'Stoudson Bomb':
 			print('add stoudson bomb here')
 		'Tech Upgrade':
 			print('add tech upgrade here')
+	EventSystem.map_updated.emit()
