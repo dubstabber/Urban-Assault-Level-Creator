@@ -19,12 +19,12 @@ func _id_pressed(id: int) -> void:
 	for hs in Preloads.ua_data.data[CurrentMapData.game_data_type].hoststations:
 		for special_building in Preloads.ua_data.data[CurrentMapData.game_data_type].hoststations[hs].buildings:
 			if special_building.id == id:
-				EventSystem.special_building_added.emit(id, special_building.typ_map)
+				EventSystem.special_building_added.emit(id, special_building.typ_map, Preloads.ua_data.data[CurrentMapData.game_data_type].hoststations[hs].owner)
 				return
 	
 	for special_building in Preloads.ua_data.data[CurrentMapData.game_data_type].other.buildings:
 		if special_building.id == id:
-			EventSystem.special_building_added.emit(id, special_building.typ_map)
+			EventSystem.special_building_added.emit(id, special_building.typ_map, 7)
 			return
 	
 	

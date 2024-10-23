@@ -211,10 +211,11 @@ func change_sector_height(height_value: int) -> void:
 		queue_redraw()
 
 
-func add_special_building(building_id: int, typ_map: int) -> void:
+func add_special_building(building_id: int, typ_map: int, own_map: int) -> void:
 	if CurrentMapData.selected_sector >= 0 and CurrentMapData.blg_map.size() > 0:
 		CurrentMapData.blg_map[CurrentMapData.selected_sector] = building_id
 		CurrentMapData.typ_map[CurrentMapData.selected_sector] = typ_map
+		CurrentMapData.own_map[CurrentMapData.selected_sector] = own_map
 		queue_redraw()
 
 
