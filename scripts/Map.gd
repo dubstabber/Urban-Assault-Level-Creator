@@ -34,6 +34,7 @@ func _ready() -> void:
 	EventSystem.sector_height_changed.connect(change_sector_height)
 	EventSystem.toggled_values_visibility.connect(toggle_values_visibility)
 	EventSystem.special_building_added.connect(add_special_building)
+	EventSystem.building_added.connect(add_building)
 
 
 func _physics_process(delta):
@@ -63,8 +64,8 @@ func _input(event):
 		right_clicked_x = round(get_local_mouse_position().x)
 		right_clicked_y = round(get_local_mouse_position().y - 40)
 
-		%ContextMenu.position = Vector2(right_clicked_x_global, right_clicked_y_global)
-		%ContextMenu.popup()
+		%MapContextMenu.position = Vector2(right_clicked_x_global, right_clicked_y_global)
+		%MapContextMenu.popup()
 		#accept_event()
 	if event is InputEventKey and event.pressed:
 		var number_key = event.unicode - KEY_0
@@ -216,6 +217,12 @@ func add_special_building(building_id: int, typ_map: int, own_map: int) -> void:
 		CurrentMapData.blg_map[CurrentMapData.selected_sector] = building_id
 		CurrentMapData.typ_map[CurrentMapData.selected_sector] = typ_map
 		CurrentMapData.own_map[CurrentMapData.selected_sector] = own_map
+		queue_redraw()
+
+
+func add_building(typ_map: int) -> void:
+	if CurrentMapData.selected_sector >= 0 and CurrentMapData.typ_map.size() > 0:
+		CurrentMapData.typ_map[CurrentMapData.selected_sector] = typ_map
 		queue_redraw()
 
 

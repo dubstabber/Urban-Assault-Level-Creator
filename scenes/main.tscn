@@ -1,4 +1,4 @@
-[gd_scene load_steps=14 format=3 uid="uid://ctgiwn3scteuk"]
+[gd_scene load_steps=16 format=3 uid="uid://ctgiwn3scteuk"]
 
 [ext_resource type="Script" path="res://scenes/main.gd" id="1_7pb5r"]
 [ext_resource type="Script" path="res://scripts/Map.gd" id="2_dum0m"]
@@ -11,7 +11,9 @@
 [ext_resource type="Theme" uid="uid://cdrs6kxi0mn0v" path="res://resources/themes/ua_theme.tres" id="5_sk7qs"]
 [ext_resource type="Script" path="res://scripts/menu_bar_file.gd" id="6_i86yq"]
 [ext_resource type="Script" path="res://scripts/map_change_height.gd" id="6_tt5fx"]
+[ext_resource type="Script" path="res://scripts/map_add_building.gd" id="7_i78ot"]
 [ext_resource type="Script" path="res://scripts/map_add_special_building.gd" id="7_tn0yk"]
+[ext_resource type="Script" path="res://scripts/sector_building_window.gd" id="10_6xmol"]
 [ext_resource type="Script" path="res://scripts/menu_bar_view.gd" id="10_vou7b"]
 
 [node name="Main" type="Control"]
@@ -28,22 +30,25 @@ script = ExtResource("1_7pb5r")
 [node name="Camera2D" type="Camera2D" parent="."]
 anchor_mode = 0
 
-[node name="ContextMenu" type="PopupMenu" parent="."]
+[node name="MapContextMenu" type="PopupMenu" parent="."]
 unique_name_in_owner = true
 
-[node name="AddHostStation" type="Node" parent="ContextMenu"]
+[node name="AddHostStation" type="Node" parent="MapContextMenu"]
 script = ExtResource("3_u1dll")
 
-[node name="AddSquad" type="Node" parent="ContextMenu"]
+[node name="AddSquad" type="Node" parent="MapContextMenu"]
 script = ExtResource("4_cqc5q")
 
-[node name="ChangeFaction" type="Node" parent="ContextMenu"]
+[node name="ChangeFaction" type="Node" parent="MapContextMenu"]
 script = ExtResource("5_gscij")
 
-[node name="ChangeHeight" type="Node" parent="ContextMenu"]
+[node name="ChangeHeight" type="Node" parent="MapContextMenu"]
 script = ExtResource("6_tt5fx")
 
-[node name="AddSpecialBuilding" type="Node" parent="ContextMenu"]
+[node name="AddBuilding" type="Node" parent="MapContextMenu"]
+script = ExtResource("7_i78ot")
+
+[node name="AddSpecialBuilding" type="Node" parent="MapContextMenu"]
 script = ExtResource("7_tn0yk")
 
 [node name="NewMapWindow" type="Window" parent="."]
@@ -165,6 +170,7 @@ theme_override_constants/margin_bottom = 13
 layout_mode = 2
 size_flags_vertical = 4
 max_value = 255.0
+alignment = 1
 
 [node name="MarginContainer3" type="MarginContainer" parent="SectorHeightWindow/PanelContainer"]
 layout_mode = 2
@@ -181,6 +187,64 @@ layout_mode = 2
 text = "Cancel"
 
 [node name="OKButton" type="Button" parent="SectorHeightWindow/PanelContainer/MarginContainer3/HBoxContainer"]
+layout_mode = 2
+text = "OK"
+
+[node name="SectorBuildingWindow" type="Window" parent="."]
+unique_name_in_owner = true
+title = "Add building"
+initial_position = 1
+size = Vector2i(350, 120)
+visible = false
+transient = true
+exclusive = true
+unresizable = true
+script = ExtResource("10_6xmol")
+
+[node name="PanelContainer" type="PanelContainer" parent="SectorBuildingWindow"]
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="VBoxContainer" type="VBoxContainer" parent="SectorBuildingWindow/PanelContainer"]
+layout_mode = 2
+theme_override_constants/separation = 12
+alignment = 1
+
+[node name="MarginContainer" type="MarginContainer" parent="SectorBuildingWindow/PanelContainer/VBoxContainer"]
+layout_mode = 2
+
+[node name="Label" type="Label" parent="SectorBuildingWindow/PanelContainer/VBoxContainer/MarginContainer"]
+layout_mode = 2
+text = "Please enter a value between 0 and 255"
+horizontal_alignment = 1
+
+[node name="MarginContainer2" type="MarginContainer" parent="SectorBuildingWindow/PanelContainer/VBoxContainer"]
+layout_mode = 2
+theme_override_constants/margin_left = 100
+theme_override_constants/margin_right = 100
+
+[node name="SpinBox" type="SpinBox" parent="SectorBuildingWindow/PanelContainer/VBoxContainer/MarginContainer2"]
+layout_mode = 2
+size_flags_vertical = 4
+max_value = 255.0
+alignment = 1
+
+[node name="MarginContainer3" type="MarginContainer" parent="SectorBuildingWindow/PanelContainer/VBoxContainer"]
+layout_mode = 2
+
+[node name="HBoxContainer" type="HBoxContainer" parent="SectorBuildingWindow/PanelContainer/VBoxContainer/MarginContainer3"]
+layout_mode = 2
+theme_override_constants/separation = 15
+alignment = 1
+
+[node name="CancelButton" type="Button" parent="SectorBuildingWindow/PanelContainer/VBoxContainer/MarginContainer3/HBoxContainer"]
+layout_mode = 2
+text = "Cancel"
+
+[node name="OKButton" type="Button" parent="SectorBuildingWindow/PanelContainer/VBoxContainer/MarginContainer3/HBoxContainer"]
 layout_mode = 2
 text = "OK"
 
@@ -999,3 +1063,6 @@ layout_mode = 2
 [connection signal="close_requested" from="SectorHeightWindow" to="SectorHeightWindow" method="close"]
 [connection signal="pressed" from="SectorHeightWindow/PanelContainer/MarginContainer3/HBoxContainer/CancelButton" to="SectorHeightWindow" method="close"]
 [connection signal="pressed" from="SectorHeightWindow/PanelContainer/MarginContainer3/HBoxContainer/OKButton" to="SectorHeightWindow" method="_on_ok_button_pressed"]
+[connection signal="close_requested" from="SectorBuildingWindow" to="SectorBuildingWindow" method="close"]
+[connection signal="pressed" from="SectorBuildingWindow/PanelContainer/VBoxContainer/MarginContainer3/HBoxContainer/CancelButton" to="SectorBuildingWindow" method="close"]
+[connection signal="pressed" from="SectorBuildingWindow/PanelContainer/VBoxContainer/MarginContainer3/HBoxContainer/OKButton" to="SectorBuildingWindow" method="_on_ok_button_pressed"]
