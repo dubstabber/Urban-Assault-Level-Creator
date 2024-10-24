@@ -11,6 +11,7 @@ var own_map: Array[int] = []
 var hgt_map: Array[int] = []
 var blg_map: Array[int] = []
 var beam_gates: Array[BeamGate] = []
+var stoudson_bombs: Array[StoudsonBomb] = []
 
 
 var selected_unit:

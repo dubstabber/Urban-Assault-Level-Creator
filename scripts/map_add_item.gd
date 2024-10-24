@@ -44,7 +44,15 @@ func _new_item(index:int, new_item_submenu: PopupMenu) -> void:
 				var bg = BeamGate.new(CurrentMapData.selected_sector_x,CurrentMapData.selected_sector_y)
 				CurrentMapData.beam_gates.append(bg)
 		'Stoudson Bomb':
-			print('add stoudson bomb here')
+			var is_added := false
+			for bomb in CurrentMapData.stoudson_bombs:
+				if bomb.sec_x == CurrentMapData.selected_sector_x and bomb.sec_y == CurrentMapData.selected_sector_y:
+					is_added = true
+					break
+			
+			if not is_added:
+				var bomb = StoudsonBomb.new(CurrentMapData.selected_sector_x,CurrentMapData.selected_sector_y)
+				CurrentMapData.stoudson_bombs.append(bomb)
 		'Tech Upgrade':
 			print('add tech upgrade here')
 	EventSystem.map_updated.emit()

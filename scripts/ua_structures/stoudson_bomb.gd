@@ -1,12 +1,13 @@
-class_name BeamGate
+class_name StoudsonBomb
 
 var sec_x: int
 var sec_y: int
-var closed_bp := 5
-var opened_bp := 6
+var inactive_bp := 35
+var active_bp := 36
+var trigger_bp := 37
+var type := 1
+var countdown := 614400
 var key_sectors: Array[Vector2] = []
-var target_levels: Array[int] = []
-var mb_status := false
 
 
 func _init(x: int, y: int) -> void:

@@ -960,7 +960,7 @@ unique_name_in_owner = true
 layout_mode = 2
 theme = ExtResource("5_sk7qs")
 min_value = 1.0
-max_value = 80.0
+max_value = 32.0
 value = 1.0
 update_on_text_changed = true
 

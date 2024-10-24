@@ -71,4 +71,5 @@ func _ready():
 	building_icons.radar_station = load("res://resources/img/buildingIcons/radarStation.png")
 	
 	sector_item_images.beam_gate = load("res://resources/img/sectorItems/beamgate.png")
+	sector_item_images.stoudson_bomb = load("res://resources/img/sectorItems/mainbomb.png")
 	
