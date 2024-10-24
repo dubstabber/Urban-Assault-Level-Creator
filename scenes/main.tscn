@@ -962,6 +962,7 @@ theme = ExtResource("5_sk7qs")
 min_value = 1.0
 max_value = 80.0
 value = 1.0
+update_on_text_changed = true
 
 [node name="FactionLabel" type="Label" parent="PanelContainer/MarginContainer/VBoxContainer/HSplitContainer/PropertiesContainer/TabContainer/Unit/ScrollContainer/MarginContainer/SquadProperties/HBoxContainer2/GridContainer"]
 layout_mode = 2

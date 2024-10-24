@@ -154,7 +154,7 @@ func _ready():
 		file.store_line(behavior_data_json)
 	)
 	%QuantitySpinBox.value_changed.connect(func(value: float):
-		if CurrentMapData.selected_unit:
+		if CurrentMapData.selected_unit is Squad:
 			CurrentMapData.selected_unit.quantity = value
 	)
 	for hs in Preloads.ua_data.data[CurrentMapData.game_data_type].hoststations.keys():
