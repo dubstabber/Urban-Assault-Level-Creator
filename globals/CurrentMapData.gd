@@ -12,6 +12,7 @@ var hgt_map: Array[int] = []
 var blg_map: Array[int] = []
 var beam_gates: Array[BeamGate] = []
 var stoudson_bombs: Array[StoudsonBomb] = []
+var tech_upgrades: Array[TechUpgrade] = []
 
 
 var selected_unit:

@@ -54,5 +54,13 @@ func _new_item(index:int, new_item_submenu: PopupMenu) -> void:
 				var bomb = StoudsonBomb.new(CurrentMapData.selected_sector_x,CurrentMapData.selected_sector_y)
 				CurrentMapData.stoudson_bombs.append(bomb)
 		'Tech Upgrade':
-			print('add tech upgrade here')
+			var is_added := false
+			for tu in CurrentMapData.tech_upgrades:
+				if tu.sec_x == CurrentMapData.selected_sector_x and tu.sec_y == CurrentMapData.selected_sector_y:
+					is_added = true
+					break
+			
+			if not is_added:
+				var tu = TechUpgrade.new(CurrentMapData.selected_sector_x,CurrentMapData.selected_sector_y)
+				CurrentMapData.tech_upgrades.append(tu)
 	EventSystem.map_updated.emit()

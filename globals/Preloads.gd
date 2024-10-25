@@ -72,4 +72,17 @@ func _ready():
 	
 	sector_item_images.beam_gate = load("res://resources/img/sectorItems/beamgate.png")
 	sector_item_images.stoudson_bomb = load("res://resources/img/sectorItems/mainbomb.png")
+	sector_item_images.tech_upgrades = {
+		"60" = load("res://resources/img/sectorItems/techupgradesphinx.png"),
+		"61" = load("res://resources/img/sectorItems/techupgrademoreroboflak.png"),
+		"4" = load("res://resources/img/sectorItems/techupgradenewvehiclesmall.png"),
+		"7" = load("res://resources/img/sectorItems/techupgradenewvehicleheavy.png"),
+		"15" = load("res://resources/img/sectorItems/techupgrademoreweaponvehicle.png"),
+		"51" = load("res://resources/img/sectorItems/techupgrademorepowerweapon.png"),
+		"50" = load("res://resources/img/sectorItems/techupgrademoreshieldvehicle.png"),
+		"16" = load("res://resources/img/sectorItems/techupgradenewbuilding.png"),
+		"65" = load("res://resources/img/sectorItems/techupgradenewvehicletower.png"),
+	}
 	
+	sector_item_images.key_sector = load("res://resources/img/sectorItems/keysector.png")
+	sector_item_images.bomb_key_sector = load("res://resources/img/sectorItems/sectorbomb.png")
