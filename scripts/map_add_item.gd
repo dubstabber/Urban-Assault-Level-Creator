@@ -1,5 +1,7 @@
 extends Node
 
+var add_bg_key_sector_submenu: PopupMenu
+
 
 func _ready() -> void:
 	await get_parent().ready
@@ -14,53 +16,77 @@ func _ready() -> void:
 	var new_beam_gate: PopupMenu = PopupMenu.new()
 	new_beam_gate.name = 'beam_gate'
 	new_item_submenu.add_item('Beam Gate')
-	
 	var new_stoudson_bomb: PopupMenu = PopupMenu.new()
 	new_stoudson_bomb.name = 'stoudson_bomb'
 	new_item_submenu.add_item('Stoudson Bomb')
-	
 	var new_tech_upgrade: PopupMenu = PopupMenu.new()
 	new_tech_upgrade.name = 'tech_upgrade'
 	new_item_submenu.add_item('Tech Upgrade')
 	
+	add_bg_key_sector_submenu = PopupMenu.new()
+	add_bg_key_sector_submenu.name = 'add_beam_gate_key_sector'
+	add_item_submenu.add_child(add_bg_key_sector_submenu)
+	
 	new_item_submenu.index_pressed.connect(_new_item.bind(new_item_submenu))
+	add_bg_key_sector_submenu.id_pressed.connect(add_beam_gate_key_sector)
 	
 	add_item_submenu.add_submenu_item('New item', 'new_item')
+	add_item_submenu.add_submenu_item('Add beam gate key sector to', 'add_beam_gate_key_sector')
 	
 	get_parent().add_submenu_item('Add sector item', 'add_item')
 
 
 func _new_item(index:int, new_item_submenu: PopupMenu) -> void:
+	if not(CurrentMapData.selected_sector_x > 0 and 
+	CurrentMapData.selected_sector_x < CurrentMapData.horizontal_sectors+1 and
+	CurrentMapData.selected_sector_y > 0 and 
+	CurrentMapData.selected_sector_y < CurrentMapData.vertical_sectors+1):
+		return
 	var item_text = new_item_submenu.get_item_text(index)
 	match item_text:
 		'Beam Gate':
-			var is_added := false
 			for bg in CurrentMapData.beam_gates:
 				if bg.sec_x == CurrentMapData.selected_sector_x and bg.sec_y == CurrentMapData.selected_sector_y:
-					is_added = true
-					break
+					return
 			
-			if not is_added:
-				var bg = BeamGate.new(CurrentMapData.selected_sector_x,CurrentMapData.selected_sector_y)
-				CurrentMapData.beam_gates.append(bg)
+			var bg = BeamGate.new(CurrentMapData.selected_sector_x,CurrentMapData.selected_sector_y)
+			CurrentMapData.beam_gates.append(bg)
+			update_beam_gate_key_sector_submenu()
 		'Stoudson Bomb':
-			var is_added := false
 			for bomb in CurrentMapData.stoudson_bombs:
 				if bomb.sec_x == CurrentMapData.selected_sector_x and bomb.sec_y == CurrentMapData.selected_sector_y:
-					is_added = true
-					break
+					return
 			
-			if not is_added:
-				var bomb = StoudsonBomb.new(CurrentMapData.selected_sector_x,CurrentMapData.selected_sector_y)
-				CurrentMapData.stoudson_bombs.append(bomb)
+			var bomb = StoudsonBomb.new(CurrentMapData.selected_sector_x,CurrentMapData.selected_sector_y)
+			CurrentMapData.stoudson_bombs.append(bomb)
 		'Tech Upgrade':
-			var is_added := false
 			for tu in CurrentMapData.tech_upgrades:
 				if tu.sec_x == CurrentMapData.selected_sector_x and tu.sec_y == CurrentMapData.selected_sector_y:
-					is_added = true
-					break
+					return
 			
-			if not is_added:
-				var tu = TechUpgrade.new(CurrentMapData.selected_sector_x,CurrentMapData.selected_sector_y)
-				CurrentMapData.tech_upgrades.append(tu)
+			var tu = TechUpgrade.new(CurrentMapData.selected_sector_x,CurrentMapData.selected_sector_y)
+			CurrentMapData.tech_upgrades.append(tu)
 	EventSystem.map_updated.emit()
+
+
+func add_beam_gate_key_sector(id: int) -> void:
+	if not(CurrentMapData.selected_sector_x > 0 and 
+	CurrentMapData.selected_sector_x < CurrentMapData.horizontal_sectors+1 and
+	CurrentMapData.selected_sector_y > 0 and 
+	CurrentMapData.selected_sector_y < CurrentMapData.vertical_sectors+1):
+		return
+	
+	for ks in CurrentMapData.beam_gates[id].key_sectors:
+		if ks.x == CurrentMapData.selected_sector_x and ks.y == CurrentMapData.selected_sector_y:
+			return
+	
+	CurrentMapData.beam_gates[id].key_sectors.append(Vector2(CurrentMapData.selected_sector_x, CurrentMapData.selected_sector_y))
+	EventSystem.map_updated.emit()
+
+
+func update_beam_gate_key_sector_submenu() -> void:
+	add_bg_key_sector_submenu.clear(true)
+	var counter := 0
+	for _i in CurrentMapData.beam_gates.size():
+		add_bg_key_sector_submenu.add_item('Beam Gate '+str(counter+1), counter)
+		counter += 1

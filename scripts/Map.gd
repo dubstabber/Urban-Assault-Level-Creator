@@ -147,6 +147,10 @@ func _draw():
 		var pos_x = beam_gate.sec_x * 1200 + sector_indent
 		var pos_y = beam_gate.sec_y * 1200 + sector_indent
 		draw_texture_rect(Preloads.sector_item_images.beam_gate, Rect2(pos_x, pos_y,1200-(sector_indent*2),1200-(sector_indent*2)), false)
+		for key_sector in beam_gate.key_sectors:
+			var kpos_x = key_sector.x * 1200 + sector_indent
+			var kpos_y = key_sector.y * 1200 + sector_indent
+			draw_texture_rect(Preloads.sector_item_images.key_sector, Rect2(kpos_x, kpos_y,1200-(sector_indent*2),1200-(sector_indent*2)), false)
 	for bomb in CurrentMapData.stoudson_bombs:
 		var pos_x = bomb.sec_x * 1200 + sector_indent
 		var pos_y = bomb.sec_y * 1200 + sector_indent
