@@ -1,6 +1,7 @@
 extends Node
 
 var add_bg_key_sector_submenu: PopupMenu
+var add_bomb_key_sector_submenu: PopupMenu
 
 
 func _ready() -> void:
@@ -27,11 +28,17 @@ func _ready() -> void:
 	add_bg_key_sector_submenu.name = 'add_beam_gate_key_sector'
 	add_item_submenu.add_child(add_bg_key_sector_submenu)
 	
+	add_bomb_key_sector_submenu = PopupMenu.new()
+	add_bomb_key_sector_submenu.name = 'add_bomb_key_sector'
+	add_item_submenu.add_child(add_bomb_key_sector_submenu)
+	
 	new_item_submenu.index_pressed.connect(_new_item.bind(new_item_submenu))
-	add_bg_key_sector_submenu.id_pressed.connect(add_beam_gate_key_sector)
+	add_bg_key_sector_submenu.index_pressed.connect(_add_beam_gate_key_sector)
+	add_bomb_key_sector_submenu.index_pressed.connect(_add_bomb_key_sector)
 	
 	add_item_submenu.add_submenu_item('New item', 'new_item')
 	add_item_submenu.add_submenu_item('Add beam gate key sector to', 'add_beam_gate_key_sector')
+	add_item_submenu.add_submenu_item('Add stoudson bomb key sector to', 'add_bomb_key_sector')
 	
 	get_parent().add_submenu_item('Add sector item', 'add_item')
 
@@ -59,6 +66,7 @@ func _new_item(index:int, new_item_submenu: PopupMenu) -> void:
 			
 			var bomb = StoudsonBomb.new(CurrentMapData.selected_sector_x,CurrentMapData.selected_sector_y)
 			CurrentMapData.stoudson_bombs.append(bomb)
+			update_bomb_key_sector_submenu()
 		'Tech Upgrade':
 			for tu in CurrentMapData.tech_upgrades:
 				if tu.sec_x == CurrentMapData.selected_sector_x and tu.sec_y == CurrentMapData.selected_sector_y:
@@ -69,24 +77,47 @@ func _new_item(index:int, new_item_submenu: PopupMenu) -> void:
 	EventSystem.map_updated.emit()
 
 
-func add_beam_gate_key_sector(id: int) -> void:
+func _add_beam_gate_key_sector(index: int) -> void:
 	if not(CurrentMapData.selected_sector_x > 0 and 
 	CurrentMapData.selected_sector_x < CurrentMapData.horizontal_sectors+1 and
 	CurrentMapData.selected_sector_y > 0 and 
 	CurrentMapData.selected_sector_y < CurrentMapData.vertical_sectors+1):
 		return
 	
-	for ks in CurrentMapData.beam_gates[id].key_sectors:
+	for ks in CurrentMapData.beam_gates[index].key_sectors:
 		if ks.x == CurrentMapData.selected_sector_x and ks.y == CurrentMapData.selected_sector_y:
 			return
 	
-	CurrentMapData.beam_gates[id].key_sectors.append(Vector2(CurrentMapData.selected_sector_x, CurrentMapData.selected_sector_y))
+	CurrentMapData.beam_gates[index].key_sectors.append(Vector2(CurrentMapData.selected_sector_x, CurrentMapData.selected_sector_y))
+	EventSystem.map_updated.emit()
+
+
+func _add_bomb_key_sector(index: int) -> void:
+	if not(CurrentMapData.selected_sector_x > 0 and 
+	CurrentMapData.selected_sector_x < CurrentMapData.horizontal_sectors+1 and
+	CurrentMapData.selected_sector_y > 0 and 
+	CurrentMapData.selected_sector_y < CurrentMapData.vertical_sectors+1):
+		return
+		
+	for ks in CurrentMapData.stoudson_bombs[index].key_sectors:
+		if ks.x == CurrentMapData.selected_sector_x and ks.y == CurrentMapData.selected_sector_y:
+			return
+	
+	CurrentMapData.stoudson_bombs[index].key_sectors.append(Vector2(CurrentMapData.selected_sector_x, CurrentMapData.selected_sector_y))
 	EventSystem.map_updated.emit()
 
 
 func update_beam_gate_key_sector_submenu() -> void:
 	add_bg_key_sector_submenu.clear(true)
-	var counter := 0
+	var counter := 1
 	for _i in CurrentMapData.beam_gates.size():
-		add_bg_key_sector_submenu.add_item('Beam Gate '+str(counter+1), counter)
+		add_bg_key_sector_submenu.add_item('Beam Gate '+str(counter))
+		counter += 1
+
+
+func update_bomb_key_sector_submenu() -> void:
+	add_bomb_key_sector_submenu.clear(true)
+	var counter := 1
+	for _i in CurrentMapData.stoudson_bombs.size():
+		add_bomb_key_sector_submenu.add_item('Stoudson Bomb '+str(counter))
 		counter += 1

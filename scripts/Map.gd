@@ -150,11 +150,15 @@ func _draw():
 		for key_sector in beam_gate.key_sectors:
 			var kpos_x = key_sector.x * 1200 + sector_indent
 			var kpos_y = key_sector.y * 1200 + sector_indent
-			draw_texture_rect(Preloads.sector_item_images.key_sector, Rect2(kpos_x, kpos_y,1200-(sector_indent*2),1200-(sector_indent*2)), false)
+			draw_texture_rect(Preloads.sector_item_images.beam_gate_key_sector, Rect2(kpos_x, kpos_y,1200-(sector_indent*2),1200-(sector_indent*2)), false)
 	for bomb in CurrentMapData.stoudson_bombs:
 		var pos_x = bomb.sec_x * 1200 + sector_indent
 		var pos_y = bomb.sec_y * 1200 + sector_indent
 		draw_texture_rect(Preloads.sector_item_images.stoudson_bomb, Rect2(pos_x, pos_y,1200-(sector_indent*2),1200-(sector_indent*2)), false)
+		for key_sector in bomb.key_sectors:
+			var kpos_x = key_sector.x * 1200 + sector_indent
+			var kpos_y = key_sector.y * 1200 + sector_indent
+			draw_texture_rect(Preloads.sector_item_images.bomb_key_sector, Rect2(kpos_x, kpos_y,1200-(sector_indent*2),1200-(sector_indent*2)), false)
 	for tech_upgrade in CurrentMapData.tech_upgrades:
 		var pos_x = tech_upgrade.sec_x * 1200 + sector_indent
 		var pos_y = tech_upgrade.sec_y * 1200 + sector_indent

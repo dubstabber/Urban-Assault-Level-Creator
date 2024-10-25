@@ -84,5 +84,5 @@ func _ready():
 		"65" = load("res://resources/img/sectorItems/techupgradenewvehicletower.png"),
 	}
 	
-	sector_item_images.key_sector = load("res://resources/img/sectorItems/keysector.png")
+	sector_item_images.beam_gate_key_sector = load("res://resources/img/sectorItems/keysector.png")
 	sector_item_images.bomb_key_sector = load("res://resources/img/sectorItems/sectorbomb.png")
