@@ -202,8 +202,8 @@ func handle_selection(clicked_x: int, clicked_y: int):
 			if clicked_x > h_size and clicked_x < h_size + 1200 and clicked_y > v_size and clicked_y < v_size + 1200:
 				CurrentMapData.selected_sector_idx = sector_counter
 				CurrentMapData.border_selected_sector_idx = border_sector_counter
-				CurrentMapData.selected_sector_x = x_sector
-				CurrentMapData.selected_sector_y = y_sector
+				CurrentMapData.selected_sector.x = x_sector
+				CurrentMapData.selected_sector.y = y_sector
 				break
 			h_size += 1200
 			border_sector_counter += 1
@@ -212,6 +212,28 @@ func handle_selection(clicked_x: int, clicked_y: int):
 				sector_counter += 1
 		v_size += 1200
 		h_size = 0
+	
+	CurrentMapData.selected_beam_gate = null
+	CurrentMapData.selected_bomb = null
+	CurrentMapData.selected_bg_key_sector = Vector2i(-1, -1)
+	CurrentMapData.selected_bomb_key_sector = Vector2i(-1, -1)
+	CurrentMapData.selected_tech_upgrade = null
+	
+	for bg in CurrentMapData.beam_gates:
+		if bg.sec_x == CurrentMapData.selected_sector.x and bg.sec_y == CurrentMapData.selected_sector.y:
+			CurrentMapData.selected_beam_gate = bg
+		for ks in bg.key_sectors:
+			if ks.x == CurrentMapData.selected_sector.x and ks.y == CurrentMapData.selected_sector.y:
+				CurrentMapData.selected_bg_key_sector = ks
+	for bomb in CurrentMapData.stoudson_bombs:
+		if bomb.sec_x == CurrentMapData.selected_sector.x and bomb.sec_y == CurrentMapData.selected_sector.y:
+			CurrentMapData.selected_bomb = bomb
+		for ks in bomb.key_sectors:
+			if ks.x == CurrentMapData.selected_sector.x and ks.y == CurrentMapData.selected_sector.y:
+				CurrentMapData.selected_bomb_key_sector = ks
+	for tu in CurrentMapData.tech_upgrades:
+		if tu.sec_x == CurrentMapData.selected_sector.x and tu.sec_y == CurrentMapData.selected_sector.y:
+			CurrentMapData.selected_tech_upgrade = tu
 	queue_redraw()
 
 

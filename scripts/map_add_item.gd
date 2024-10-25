@@ -44,66 +44,67 @@ func _ready() -> void:
 
 
 func _new_item(index:int, new_item_submenu: PopupMenu) -> void:
-	if not(CurrentMapData.selected_sector_x > 0 and 
-	CurrentMapData.selected_sector_x < CurrentMapData.horizontal_sectors+1 and
-	CurrentMapData.selected_sector_y > 0 and 
-	CurrentMapData.selected_sector_y < CurrentMapData.vertical_sectors+1):
+	if not(CurrentMapData.selected_sector.x > 0 and 
+	CurrentMapData.selected_sector.x < CurrentMapData.horizontal_sectors+1 and
+	CurrentMapData.selected_sector.y > 0 and 
+	CurrentMapData.selected_sector.y < CurrentMapData.vertical_sectors+1):
 		return
 	var item_text = new_item_submenu.get_item_text(index)
 	match item_text:
 		'Beam Gate':
 			for bg in CurrentMapData.beam_gates:
-				if bg.sec_x == CurrentMapData.selected_sector_x and bg.sec_y == CurrentMapData.selected_sector_y:
+				if bg.sec_x == CurrentMapData.selected_sector.x and bg.sec_y == CurrentMapData.selected_sector.y:
 					return
 			
-			var bg = BeamGate.new(CurrentMapData.selected_sector_x,CurrentMapData.selected_sector_y)
+			var bg = BeamGate.new(CurrentMapData.selected_sector.x,CurrentMapData.selected_sector.y)
 			CurrentMapData.beam_gates.append(bg)
+			CurrentMapData.selected_beam_gate = bg
 			update_beam_gate_key_sector_submenu()
 		'Stoudson Bomb':
 			for bomb in CurrentMapData.stoudson_bombs:
-				if bomb.sec_x == CurrentMapData.selected_sector_x and bomb.sec_y == CurrentMapData.selected_sector_y:
+				if bomb.sec_x == CurrentMapData.selected_sector.x and bomb.sec_y == CurrentMapData.selected_sector.y:
 					return
 			
-			var bomb = StoudsonBomb.new(CurrentMapData.selected_sector_x,CurrentMapData.selected_sector_y)
+			var bomb = StoudsonBomb.new(CurrentMapData.selected_sector.x,CurrentMapData.selected_sector.y)
 			CurrentMapData.stoudson_bombs.append(bomb)
 			update_bomb_key_sector_submenu()
 		'Tech Upgrade':
 			for tu in CurrentMapData.tech_upgrades:
-				if tu.sec_x == CurrentMapData.selected_sector_x and tu.sec_y == CurrentMapData.selected_sector_y:
+				if tu.sec_x == CurrentMapData.selected_sector.x and tu.sec_y == CurrentMapData.selected_sector.y:
 					return
 			
-			var tu = TechUpgrade.new(CurrentMapData.selected_sector_x,CurrentMapData.selected_sector_y)
+			var tu = TechUpgrade.new(CurrentMapData.selected_sector.x,CurrentMapData.selected_sector.y)
 			CurrentMapData.tech_upgrades.append(tu)
 	EventSystem.map_updated.emit()
 
 
 func _add_beam_gate_key_sector(index: int) -> void:
-	if not(CurrentMapData.selected_sector_x > 0 and 
-	CurrentMapData.selected_sector_x < CurrentMapData.horizontal_sectors+1 and
-	CurrentMapData.selected_sector_y > 0 and 
-	CurrentMapData.selected_sector_y < CurrentMapData.vertical_sectors+1):
+	if not(CurrentMapData.selected_sector.x > 0 and 
+	CurrentMapData.selected_sector.x < CurrentMapData.horizontal_sectors+1 and
+	CurrentMapData.selected_sector.y > 0 and 
+	CurrentMapData.selected_sector.y < CurrentMapData.vertical_sectors+1):
 		return
 	
 	for ks in CurrentMapData.beam_gates[index].key_sectors:
-		if ks.x == CurrentMapData.selected_sector_x and ks.y == CurrentMapData.selected_sector_y:
+		if ks.x == CurrentMapData.selected_sector.x and ks.y == CurrentMapData.selected_sector.y:
 			return
 	
-	CurrentMapData.beam_gates[index].key_sectors.append(Vector2(CurrentMapData.selected_sector_x, CurrentMapData.selected_sector_y))
+	CurrentMapData.beam_gates[index].key_sectors.append(Vector2i(CurrentMapData.selected_sector.x, CurrentMapData.selected_sector.y))
 	EventSystem.map_updated.emit()
 
 
 func _add_bomb_key_sector(index: int) -> void:
-	if not(CurrentMapData.selected_sector_x > 0 and 
-	CurrentMapData.selected_sector_x < CurrentMapData.horizontal_sectors+1 and
-	CurrentMapData.selected_sector_y > 0 and 
-	CurrentMapData.selected_sector_y < CurrentMapData.vertical_sectors+1):
+	if not(CurrentMapData.selected_sector.x > 0 and 
+	CurrentMapData.selected_sector.x < CurrentMapData.horizontal_sectors+1 and
+	CurrentMapData.selected_sector.y > 0 and 
+	CurrentMapData.selected_sector.y < CurrentMapData.vertical_sectors+1):
 		return
 		
 	for ks in CurrentMapData.stoudson_bombs[index].key_sectors:
-		if ks.x == CurrentMapData.selected_sector_x and ks.y == CurrentMapData.selected_sector_y:
+		if ks.x == CurrentMapData.selected_sector.x and ks.y == CurrentMapData.selected_sector.y:
 			return
 	
-	CurrentMapData.stoudson_bombs[index].key_sectors.append(Vector2(CurrentMapData.selected_sector_x, CurrentMapData.selected_sector_y))
+	CurrentMapData.stoudson_bombs[index].key_sectors.append(Vector2i(CurrentMapData.selected_sector.x, CurrentMapData.selected_sector.y))
 	EventSystem.map_updated.emit()
 
 

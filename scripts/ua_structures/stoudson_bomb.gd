@@ -7,7 +7,7 @@ var active_bp := 36
 var trigger_bp := 37
 var type := 1
 var countdown := 614400
-var key_sectors: Array[Vector2] = []
+var key_sectors: Array[Vector2i] = []
 
 
 func _init(x: int, y: int) -> void:

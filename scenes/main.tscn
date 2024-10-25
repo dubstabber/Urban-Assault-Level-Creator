@@ -1,4 +1,4 @@
-[gd_scene load_steps=17 format=3 uid="uid://ctgiwn3scteuk"]
+[gd_scene load_steps=18 format=3 uid="uid://ctgiwn3scteuk"]
 
 [ext_resource type="Script" path="res://scenes/main.gd" id="1_7pb5r"]
 [ext_resource type="Script" path="res://scripts/Map.gd" id="2_dum0m"]
@@ -14,6 +14,7 @@
 [ext_resource type="Script" path="res://scripts/map_add_building.gd" id="7_i78ot"]
 [ext_resource type="Script" path="res://scripts/map_add_special_building.gd" id="7_tn0yk"]
 [ext_resource type="Script" path="res://scripts/map_add_item.gd" id="8_jye6k"]
+[ext_resource type="Script" path="res://scripts/map_clean_sector.gd" id="9_gtrn7"]
 [ext_resource type="Script" path="res://scripts/sector_building_window.gd" id="10_6xmol"]
 [ext_resource type="Script" path="res://scripts/menu_bar_view.gd" id="10_vou7b"]
 
@@ -54,6 +55,9 @@ script = ExtResource("7_tn0yk")
 
 [node name="AddItem" type="Node" parent="MapContextMenu"]
 script = ExtResource("8_jye6k")
+
+[node name="CleanSector" type="Node" parent="MapContextMenu"]
+script = ExtResource("9_gtrn7")
 
 [node name="NewMapWindow" type="Window" parent="."]
 unique_name_in_owner = true

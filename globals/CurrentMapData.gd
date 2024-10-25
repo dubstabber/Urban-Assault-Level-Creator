@@ -24,8 +24,12 @@ var border_selected_sector_idx: int = -1:
 	set(value):
 		border_selected_sector_idx = value
 		selected.emit()
-var selected_sector_x: int = -1
-var selected_sector_y: int = -1
+var selected_sector: Vector2i = Vector2i(-1, -1)
+var selected_beam_gate: BeamGate = null
+var selected_bomb: StoudsonBomb = null
+var selected_tech_upgrade: TechUpgrade = null
+var selected_bg_key_sector: Vector2i = Vector2i(-1, -1)
+var selected_bomb_key_sector: Vector2i = Vector2i(-1, -1)
 
 func _ready():
 	game_data_type = Preloads.ua_data.data.keys()[0]
