@@ -39,6 +39,9 @@ func _on_button_button_up():
 func _on_button_gui_input(event):
 	if event.is_action_pressed("select"):
 		CurrentMapData.selected_unit = self
+	elif event.is_action_pressed("context_menu"):
+		CurrentMapData.selected_unit = self
+		CurrentMapData.right_selected.emit()
 
 
 func recalculate_limits():

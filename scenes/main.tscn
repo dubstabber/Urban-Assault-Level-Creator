@@ -1,4 +1,4 @@
-[gd_scene load_steps=18 format=3 uid="uid://ctgiwn3scteuk"]
+[gd_scene load_steps=19 format=3 uid="uid://ctgiwn3scteuk"]
 
 [ext_resource type="Script" path="res://scenes/main.gd" id="1_7pb5r"]
 [ext_resource type="Script" path="res://scripts/Map.gd" id="2_dum0m"]
@@ -16,6 +16,7 @@
 [ext_resource type="Script" path="res://scripts/map_add_item.gd" id="8_jye6k"]
 [ext_resource type="Script" path="res://scripts/map_clean_sector.gd" id="9_gtrn7"]
 [ext_resource type="Script" path="res://scripts/sector_building_window.gd" id="10_6xmol"]
+[ext_resource type="Script" path="res://scripts/context_menu_remove_unit.gd" id="10_ip5i1"]
 [ext_resource type="Script" path="res://scripts/menu_bar_view.gd" id="10_vou7b"]
 
 [node name="Main" type="Control"]
@@ -58,6 +59,13 @@ script = ExtResource("8_jye6k")
 
 [node name="CleanSector" type="Node" parent="MapContextMenu"]
 script = ExtResource("9_gtrn7")
+
+[node name="UnitContextMenu" type="PopupMenu" parent="."]
+unique_name_in_owner = true
+size = Vector2i(100, 20)
+
+[node name="RemoveUnit" type="Node" parent="UnitContextMenu"]
+script = ExtResource("10_ip5i1")
 
 [node name="NewMapWindow" type="Window" parent="."]
 unique_name_in_owner = true

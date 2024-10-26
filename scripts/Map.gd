@@ -63,7 +63,6 @@ func _input(event):
 		handle_selection(right_clicked_x, right_clicked_y)
 		%MapContextMenu.position = Vector2(right_clicked_x_global, right_clicked_y_global)
 		%MapContextMenu.popup()
-		#accept_event()
 	if (event.is_action_pressed("increment_height") and 
 		CurrentMapData.hgt_map.size() > 0 and
 		CurrentMapData.border_selected_sector_idx >= 0 and

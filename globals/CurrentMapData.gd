@@ -1,6 +1,7 @@
 extends Node
 
 signal selected
+signal right_selected
 
 var game_data_type:String
 

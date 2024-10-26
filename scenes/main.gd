@@ -7,6 +7,7 @@ extends Control
 func _ready():
 	get_tree().root.size_changed.connect(_on_resize)
 	EventSystem.map_created.connect(_on_ui_map_created)
+	CurrentMapData.right_selected.connect(_on_unit_selected)
 	_on_resize()
 
 
@@ -36,3 +37,10 @@ func change_sector_owner(number_key) -> void:
 	if CurrentMapData.selected_sector_idx >= 0 and CurrentMapData.own_map.size() > 0:
 		CurrentMapData.own_map[CurrentMapData.selected_sector_idx] = number_key
 		EventSystem.map_updated.emit()
+
+
+func _on_unit_selected() -> void:
+	if CurrentMapData.selected_unit:
+		%MapContextMenu.hide()
+		%UnitContextMenu.position = %MapContextMenu.position
+		%UnitContextMenu.popup()
