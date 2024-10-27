@@ -1,4 +1,4 @@
-[gd_scene load_steps=19 format=3 uid="uid://ctgiwn3scteuk"]
+[gd_scene load_steps=24 format=3 uid="uid://ctgiwn3scteuk"]
 
 [ext_resource type="Script" path="res://scenes/main.gd" id="1_7pb5r"]
 [ext_resource type="Script" path="res://scripts/Map.gd" id="2_dum0m"]
@@ -7,7 +7,6 @@
 [ext_resource type="Script" path="res://scripts/sector_height_window.gd" id="4_362xh"]
 [ext_resource type="Script" path="res://scripts/map_add_squad.gd" id="4_cqc5q"]
 [ext_resource type="Script" path="res://scripts/map_change_faction.gd" id="5_gscij"]
-[ext_resource type="Script" path="res://scripts/Properties.gd" id="5_opyij"]
 [ext_resource type="Theme" uid="uid://cdrs6kxi0mn0v" path="res://resources/themes/ua_theme.tres" id="5_sk7qs"]
 [ext_resource type="Script" path="res://scripts/menu_bar_file.gd" id="6_i86yq"]
 [ext_resource type="Script" path="res://scripts/map_change_height.gd" id="6_tt5fx"]
@@ -18,6 +17,14 @@
 [ext_resource type="Script" path="res://scripts/sector_building_window.gd" id="10_6xmol"]
 [ext_resource type="Script" path="res://scripts/context_menu_remove_unit.gd" id="10_ip5i1"]
 [ext_resource type="Script" path="res://scripts/menu_bar_view.gd" id="10_vou7b"]
+[ext_resource type="Script" path="res://scripts/unit_properties.gd" id="17_a4oqg"]
+[ext_resource type="Script" path="res://scripts/sector_properties.gd" id="19_3h4ps"]
+[ext_resource type="PackedScene" uid="uid://1tb0vcurfq8p" path="res://scenes/tech_upgrade_modifiers/tech_upgrade_modifier_1.tscn" id="20_gggi6"]
+[ext_resource type="PackedScene" uid="uid://cr4k2w8eq5ovg" path="res://scenes/tech_upgrade_modifiers/tech_upgrade_modifier_2.tscn" id="21_0gryv"]
+
+[sub_resource type="PlaceholderTexture2D" id="PlaceholderTexture2D_37be0"]
+
+[sub_resource type="PlaceholderTexture2D" id="PlaceholderTexture2D_0xn5w"]
 
 [node name="Main" type="Control"]
 layout_mode = 3
@@ -338,33 +345,31 @@ anchor_mode = 0
 zoom = Vector2(0.1, 0.1)
 
 [node name="HostStations" type="Control" parent="PanelContainer/MarginContainer/VBoxContainer/HSplitContainer/MapContainer/SubViewportMapContainer/SubViewport/Map"]
-unique_name_in_owner = true
 anchors_preset = 0
 
 [node name="Squads" type="Control" parent="PanelContainer/MarginContainer/VBoxContainer/HSplitContainer/MapContainer/SubViewportMapContainer/SubViewport/Map"]
-unique_name_in_owner = true
 anchors_preset = 0
 
 [node name="PropertiesContainer" type="PanelContainer" parent="PanelContainer/MarginContainer/VBoxContainer/HSplitContainer"]
 layout_mode = 2
 size_flags_horizontal = 3
-script = ExtResource("5_opyij")
 
 [node name="TabContainer" type="TabContainer" parent="PanelContainer/MarginContainer/VBoxContainer/HSplitContainer/PropertiesContainer"]
 layout_mode = 2
 size_flags_horizontal = 3
 size_flags_vertical = 3
-current_tab = 0
+current_tab = 1
 clip_tabs = false
 
 [node name="Unit" type="TabBar" parent="PanelContainer/MarginContainer/VBoxContainer/HSplitContainer/PropertiesContainer/TabContainer"]
+visible = false
 layout_mode = 2
 tab_alignment = 1
+script = ExtResource("17_a4oqg")
 metadata/_tab_index = 0
 
 [node name="ScrollContainer" type="ScrollContainer" parent="PanelContainer/MarginContainer/VBoxContainer/HSplitContainer/PropertiesContainer/TabContainer/Unit"]
-layout_mode = 1
-anchors_preset = 15
+layout_mode = 2
 anchor_right = 1.0
 anchor_bottom = 1.0
 grow_horizontal = 2
@@ -940,6 +945,7 @@ alignment = 1
 unique_name_in_owner = true
 custom_minimum_size = Vector2(20, 20)
 layout_mode = 2
+texture = SubResource("PlaceholderTexture2D_37be0")
 
 [node name="SquadNumberLabel" type="Label" parent="PanelContainer/MarginContainer/VBoxContainer/HSplitContainer/PropertiesContainer/TabContainer/Unit/ScrollContainer/MarginContainer/SquadProperties/HBoxContainer"]
 unique_name_in_owner = true
@@ -1047,30 +1053,444 @@ theme_override_font_sizes/font_size = 12
 text = "Make this squad invisible in the Mission Briefing"
 
 [node name="Sector" type="TabBar" parent="PanelContainer/MarginContainer/VBoxContainer/HSplitContainer/PropertiesContainer/TabContainer"]
-visible = false
 layout_mode = 2
+script = ExtResource("19_3h4ps")
 metadata/_tab_index = 1
 
-[node name="MarginContainer" type="MarginContainer" parent="PanelContainer/MarginContainer/VBoxContainer/HSplitContainer/PropertiesContainer/TabContainer/Sector"]
+[node name="ScrollContainer" type="ScrollContainer" parent="PanelContainer/MarginContainer/VBoxContainer/HSplitContainer/PropertiesContainer/TabContainer/Sector"]
 layout_mode = 1
-anchors_preset = 8
-anchor_left = 0.5
-anchor_top = 0.5
-anchor_right = 0.5
-anchor_bottom = 0.5
-offset_left = -79.0
-offset_top = -20.0
-offset_right = 79.0
-offset_bottom = 20.0
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
 
-[node name="NoSectorLabel" type="Label" parent="PanelContainer/MarginContainer/VBoxContainer/HSplitContainer/PropertiesContainer/TabContainer/Sector/MarginContainer"]
+[node name="MarginContainer" type="MarginContainer" parent="PanelContainer/MarginContainer/VBoxContainer/HSplitContainer/PropertiesContainer/TabContainer/Sector/ScrollContainer"]
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_vertical = 3
+theme_override_constants/margin_left = 20
+theme_override_constants/margin_top = 10
+theme_override_constants/margin_right = 20
+theme_override_constants/margin_bottom = 10
+
+[node name="NoSectorLabel" type="Label" parent="PanelContainer/MarginContainer/VBoxContainer/HSplitContainer/PropertiesContainer/TabContainer/Sector/ScrollContainer/MarginContainer"]
+unique_name_in_owner = true
+visible = false
 layout_mode = 2
 text = "No sector selected"
+horizontal_alignment = 1
+vertical_alignment = 1
 
-[node name="VBoxContainer" type="VBoxContainer" parent="PanelContainer/MarginContainer/VBoxContainer/HSplitContainer/PropertiesContainer/TabContainer/Sector/MarginContainer"]
+[node name="VBoxContainer" type="VBoxContainer" parent="PanelContainer/MarginContainer/VBoxContainer/HSplitContainer/PropertiesContainer/TabContainer/Sector/ScrollContainer/MarginContainer"]
 layout_mode = 2
+alignment = 1
+
+[node name="SectorPositionLabel" type="Label" parent="PanelContainer/MarginContainer/VBoxContainer/HSplitContainer/PropertiesContainer/TabContainer/Sector/ScrollContainer/MarginContainer/VBoxContainer"]
+unique_name_in_owner = true
+layout_mode = 2
+text = "Sector X:x Y:y"
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[node name="HSeparator" type="HSeparator" parent="PanelContainer/MarginContainer/VBoxContainer/HSplitContainer/PropertiesContainer/TabContainer/Sector/ScrollContainer/MarginContainer/VBoxContainer"]
+layout_mode = 2
+
+[node name="GridContainer" type="GridContainer" parent="PanelContainer/MarginContainer/VBoxContainer/HSplitContainer/PropertiesContainer/TabContainer/Sector/ScrollContainer/MarginContainer/VBoxContainer"]
+layout_mode = 2
+size_flags_horizontal = 4
+columns = 2
+
+[node name="SectorOwnerTextLabel" type="Label" parent="PanelContainer/MarginContainer/VBoxContainer/HSplitContainer/PropertiesContainer/TabContainer/Sector/ScrollContainer/MarginContainer/VBoxContainer/GridContainer"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 12
+text = "Sector owner:"
+
+[node name="SectorOwnerLabel" type="Label" parent="PanelContainer/MarginContainer/VBoxContainer/HSplitContainer/PropertiesContainer/TabContainer/Sector/ScrollContainer/MarginContainer/VBoxContainer/GridContainer"]
+unique_name_in_owner = true
+layout_mode = 2
+theme_override_font_sizes/font_size = 12
+text = "Faction"
+
+[node name="SpecialBuildingTextLabel" type="Label" parent="PanelContainer/MarginContainer/VBoxContainer/HSplitContainer/PropertiesContainer/TabContainer/Sector/ScrollContainer/MarginContainer/VBoxContainer/GridContainer"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 12
+text = "Special building:"
+
+[node name="SpecialBuildingLabel" type="Label" parent="PanelContainer/MarginContainer/VBoxContainer/HSplitContainer/PropertiesContainer/TabContainer/Sector/ScrollContainer/MarginContainer/VBoxContainer/GridContainer"]
+unique_name_in_owner = true
+layout_mode = 2
+theme_override_font_sizes/font_size = 12
+text = "Special Building Name"
+
+[node name="HSeparator2" type="HSeparator" parent="PanelContainer/MarginContainer/VBoxContainer/HSplitContainer/PropertiesContainer/TabContainer/Sector/ScrollContainer/MarginContainer/VBoxContainer"]
+layout_mode = 2
+
+[node name="BuildingTextLabel" type="Label" parent="PanelContainer/MarginContainer/VBoxContainer/HSplitContainer/PropertiesContainer/TabContainer/Sector/ScrollContainer/MarginContainer/VBoxContainer"]
+unique_name_in_owner = true
+layout_mode = 2
+text = "Building N"
+horizontal_alignment = 1
+
+[node name="BuildingTexture" type="TextureRect" parent="PanelContainer/MarginContainer/VBoxContainer/HSplitContainer/PropertiesContainer/TabContainer/Sector/ScrollContainer/MarginContainer/VBoxContainer"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(250, 250)
+layout_mode = 2
+size_flags_horizontal = 4
+size_flags_vertical = 4
+texture = SubResource("PlaceholderTexture2D_0xn5w")
+
+[node name="BeamGateSection" type="VBoxContainer" parent="PanelContainer/MarginContainer/VBoxContainer/HSplitContainer/PropertiesContainer/TabContainer/Sector/ScrollContainer/MarginContainer/VBoxContainer"]
+unique_name_in_owner = true
+layout_mode = 2
+alignment = 1
+
+[node name="HSeparator" type="HSeparator" parent="PanelContainer/MarginContainer/VBoxContainer/HSplitContainer/PropertiesContainer/TabContainer/Sector/ScrollContainer/MarginContainer/VBoxContainer/BeamGateSection"]
+layout_mode = 2
+
+[node name="BeamGateInfoLabel" type="Label" parent="PanelContainer/MarginContainer/VBoxContainer/HSplitContainer/PropertiesContainer/TabContainer/Sector/ScrollContainer/MarginContainer/VBoxContainer/BeamGateSection"]
+unique_name_in_owner = true
+layout_mode = 2
+text = "Beam gate N"
+horizontal_alignment = 1
+
+[node name="HBoxContainer" type="HBoxContainer" parent="PanelContainer/MarginContainer/VBoxContainer/HSplitContainer/PropertiesContainer/TabContainer/Sector/ScrollContainer/MarginContainer/VBoxContainer/BeamGateSection"]
+layout_mode = 2
+alignment = 1
+
+[node name="BGBuildingLabel" type="Label" parent="PanelContainer/MarginContainer/VBoxContainer/HSplitContainer/PropertiesContainer/TabContainer/Sector/ScrollContainer/MarginContainer/VBoxContainer/BeamGateSection/HBoxContainer"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 12
+text = "Beam gate building:"
+
+[node name="BGBuildingOptionButton" type="OptionButton" parent="PanelContainer/MarginContainer/VBoxContainer/HSplitContainer/PropertiesContainer/TabContainer/Sector/ScrollContainer/MarginContainer/VBoxContainer/BeamGateSection/HBoxContainer"]
+unique_name_in_owner = true
+layout_mode = 2
+theme_override_font_sizes/font_size = 12
+alignment = 1
+selected = 0
+item_count = 2
+popup/item_0/text = "With road"
+popup/item_1/text = "Without road"
+popup/item_1/id = 1
+
+[node name="BeamGateMBStatus" type="CheckBox" parent="PanelContainer/MarginContainer/VBoxContainer/HSplitContainer/PropertiesContainer/TabContainer/Sector/ScrollContainer/MarginContainer/VBoxContainer/BeamGateSection"]
+unique_name_in_owner = true
+layout_mode = 2
+theme_override_font_sizes/font_size = 12
+text = "Make this beam gate invisible in the Mission Briefing"
+
+[node name="BGKeySectorLabel" type="Label" parent="PanelContainer/MarginContainer/VBoxContainer/HSplitContainer/PropertiesContainer/TabContainer/Sector/ScrollContainer/MarginContainer/VBoxContainer/BeamGateSection"]
+unique_name_in_owner = true
+layout_mode = 2
+theme_override_font_sizes/font_size = 14
+text = "This beam gate contains key sectors:"
+horizontal_alignment = 1
+
+[node name="BGKeySectorsContainer" type="VBoxContainer" parent="PanelContainer/MarginContainer/VBoxContainer/HSplitContainer/PropertiesContainer/TabContainer/Sector/ScrollContainer/MarginContainer/VBoxContainer/BeamGateSection"]
+unique_name_in_owner = true
+layout_mode = 2
+alignment = 1
+
+[node name="TestLabel" type="Label" parent="PanelContainer/MarginContainer/VBoxContainer/HSplitContainer/PropertiesContainer/TabContainer/Sector/ScrollContainer/MarginContainer/VBoxContainer/BeamGateSection/BGKeySectorsContainer"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 12
+text = "Key sector 1 at x:x y:y"
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[node name="TestLabel2" type="Label" parent="PanelContainer/MarginContainer/VBoxContainer/HSplitContainer/PropertiesContainer/TabContainer/Sector/ScrollContainer/MarginContainer/VBoxContainer/BeamGateSection/BGKeySectorsContainer"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 12
+text = "Key sector 2 at x:x y:y"
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[node name="LevelUnlockerContainer" type="HBoxContainer" parent="PanelContainer/MarginContainer/VBoxContainer/HSplitContainer/PropertiesContainer/TabContainer/Sector/ScrollContainer/MarginContainer/VBoxContainer/BeamGateSection"]
+layout_mode = 2
+alignment = 1
+
+[node name="Label" type="Label" parent="PanelContainer/MarginContainer/VBoxContainer/HSplitContainer/PropertiesContainer/TabContainer/Sector/ScrollContainer/MarginContainer/VBoxContainer/BeamGateSection/LevelUnlockerContainer"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 14
+text = "Unlock new Level:"
+
+[node name="LevelsOptionButton" type="OptionButton" parent="PanelContainer/MarginContainer/VBoxContainer/HSplitContainer/PropertiesContainer/TabContainer/Sector/ScrollContainer/MarginContainer/VBoxContainer/BeamGateSection/LevelUnlockerContainer"]
+unique_name_in_owner = true
+layout_mode = 2
+theme_override_font_sizes/font_size = 14
+selected = 0
+item_count = 2
+popup/item_0/text = "L0101"
+popup/item_1/text = "L0202"
+popup/item_1/id = 1
+
+[node name="AddLevelButton" type="Button" parent="PanelContainer/MarginContainer/VBoxContainer/HSplitContainer/PropertiesContainer/TabContainer/Sector/ScrollContainer/MarginContainer/VBoxContainer/BeamGateSection/LevelUnlockerContainer"]
+unique_name_in_owner = true
+layout_mode = 2
+theme_override_font_sizes/font_size = 14
+text = "Add"
+
+[node name="HSeparator2" type="HSeparator" parent="PanelContainer/MarginContainer/VBoxContainer/HSplitContainer/PropertiesContainer/TabContainer/Sector/ScrollContainer/MarginContainer/VBoxContainer/BeamGateSection"]
+layout_mode = 2
+
+[node name="UnlockLevelsContainer" type="VBoxContainer" parent="PanelContainer/MarginContainer/VBoxContainer/HSplitContainer/PropertiesContainer/TabContainer/Sector/ScrollContainer/MarginContainer/VBoxContainer/BeamGateSection"]
+unique_name_in_owner = true
+layout_mode = 2
+alignment = 1
+
+[node name="TestLabel" type="Label" parent="PanelContainer/MarginContainer/VBoxContainer/HSplitContainer/PropertiesContainer/TabContainer/Sector/ScrollContainer/MarginContainer/VBoxContainer/BeamGateSection/UnlockLevelsContainer"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 12
+text = "This beam gate unlocks: L0101"
+horizontal_alignment = 1
+
+[node name="TestLabel2" type="Label" parent="PanelContainer/MarginContainer/VBoxContainer/HSplitContainer/PropertiesContainer/TabContainer/Sector/ScrollContainer/MarginContainer/VBoxContainer/BeamGateSection/UnlockLevelsContainer"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 12
+text = "This beam gate unlocks: L0202"
+horizontal_alignment = 1
+
+[node name="StoudsonBombSection" type="VBoxContainer" parent="PanelContainer/MarginContainer/VBoxContainer/HSplitContainer/PropertiesContainer/TabContainer/Sector/ScrollContainer/MarginContainer/VBoxContainer"]
+unique_name_in_owner = true
+layout_mode = 2
+alignment = 1
+
+[node name="HSeparator" type="HSeparator" parent="PanelContainer/MarginContainer/VBoxContainer/HSplitContainer/PropertiesContainer/TabContainer/Sector/ScrollContainer/MarginContainer/VBoxContainer/StoudsonBombSection"]
+layout_mode = 2
+
+[node name="BombInfoLabel" type="Label" parent="PanelContainer/MarginContainer/VBoxContainer/HSplitContainer/PropertiesContainer/TabContainer/Sector/ScrollContainer/MarginContainer/VBoxContainer/StoudsonBombSection"]
+unique_name_in_owner = true
+layout_mode = 2
+text = "Stoudson bomb N"
+horizontal_alignment = 1
+
+[node name="HBoxContainer" type="HBoxContainer" parent="PanelContainer/MarginContainer/VBoxContainer/HSplitContainer/PropertiesContainer/TabContainer/Sector/ScrollContainer/MarginContainer/VBoxContainer/StoudsonBombSection"]
+layout_mode = 2
+alignment = 1
+
+[node name="Label" type="Label" parent="PanelContainer/MarginContainer/VBoxContainer/HSplitContainer/PropertiesContainer/TabContainer/Sector/ScrollContainer/MarginContainer/VBoxContainer/StoudsonBombSection/HBoxContainer"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 12
+text = "Bomb building:"
+
+[node name="BombBuildingOptionButton" type="OptionButton" parent="PanelContainer/MarginContainer/VBoxContainer/HSplitContainer/PropertiesContainer/TabContainer/Sector/ScrollContainer/MarginContainer/VBoxContainer/StoudsonBombSection/HBoxContainer"]
+unique_name_in_owner = true
+layout_mode = 2
+theme_override_font_sizes/font_size = 12
+alignment = 1
+selected = 0
+item_count = 2
+popup/item_0/text = "Normal"
+popup/item_1/text = "Parasite(set 6 only)"
+popup/item_1/id = 1
+
+[node name="Label" type="Label" parent="PanelContainer/MarginContainer/VBoxContainer/HSplitContainer/PropertiesContainer/TabContainer/Sector/ScrollContainer/MarginContainer/VBoxContainer/StoudsonBombSection"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 12
+text = "Bomb countdown:"
+horizontal_alignment = 1
+
+[node name="HBoxContainer2" type="HBoxContainer" parent="PanelContainer/MarginContainer/VBoxContainer/HSplitContainer/PropertiesContainer/TabContainer/Sector/ScrollContainer/MarginContainer/VBoxContainer/StoudsonBombSection"]
+layout_mode = 2
+alignment = 1
+
+[node name="HoursSpinBox" type="SpinBox" parent="PanelContainer/MarginContainer/VBoxContainer/HSplitContainer/PropertiesContainer/TabContainer/Sector/ScrollContainer/MarginContainer/VBoxContainer/StoudsonBombSection/HBoxContainer2"]
+unique_name_in_owner = true
+layout_mode = 2
+max_value = 1000.0
+alignment = 1
+
+[node name="Label2" type="Label" parent="PanelContainer/MarginContainer/VBoxContainer/HSplitContainer/PropertiesContainer/TabContainer/Sector/ScrollContainer/MarginContainer/VBoxContainer/StoudsonBombSection/HBoxContainer2"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 10
+text = "hours"
+
+[node name="MinutesSpinBox" type="SpinBox" parent="PanelContainer/MarginContainer/VBoxContainer/HSplitContainer/PropertiesContainer/TabContainer/Sector/ScrollContainer/MarginContainer/VBoxContainer/StoudsonBombSection/HBoxContainer2"]
+unique_name_in_owner = true
+layout_mode = 2
+alignment = 1
+
+[node name="Label3" type="Label" parent="PanelContainer/MarginContainer/VBoxContainer/HSplitContainer/PropertiesContainer/TabContainer/Sector/ScrollContainer/MarginContainer/VBoxContainer/StoudsonBombSection/HBoxContainer2"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 10
+text = "minutes"
+
+[node name="SecondsSpinBox" type="SpinBox" parent="PanelContainer/MarginContainer/VBoxContainer/HSplitContainer/PropertiesContainer/TabContainer/Sector/ScrollContainer/MarginContainer/VBoxContainer/StoudsonBombSection/HBoxContainer2"]
+unique_name_in_owner = true
+layout_mode = 2
+max_value = 1000.0
+alignment = 1
+
+[node name="Label4" type="Label" parent="PanelContainer/MarginContainer/VBoxContainer/HSplitContainer/PropertiesContainer/TabContainer/Sector/ScrollContainer/MarginContainer/VBoxContainer/StoudsonBombSection/HBoxContainer2"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 10
+text = "seconds"
+
+[node name="BombMBstatusCheckBox" type="CheckBox" parent="PanelContainer/MarginContainer/VBoxContainer/HSplitContainer/PropertiesContainer/TabContainer/Sector/ScrollContainer/MarginContainer/VBoxContainer/StoudsonBombSection"]
+unique_name_in_owner = true
+layout_mode = 2
+theme_override_font_sizes/font_size = 12
+text = "Make this bomb invisible in the Mission Briefing"
+
+[node name="BombKeySectorsLabel" type="Label" parent="PanelContainer/MarginContainer/VBoxContainer/HSplitContainer/PropertiesContainer/TabContainer/Sector/ScrollContainer/MarginContainer/VBoxContainer/StoudsonBombSection"]
+unique_name_in_owner = true
+layout_mode = 2
+theme_override_font_sizes/font_size = 14
+text = "This bomb contains key sectors:"
+horizontal_alignment = 1
+
+[node name="BombKeySectorContainer" type="VBoxContainer" parent="PanelContainer/MarginContainer/VBoxContainer/HSplitContainer/PropertiesContainer/TabContainer/Sector/ScrollContainer/MarginContainer/VBoxContainer/StoudsonBombSection"]
+unique_name_in_owner = true
+layout_mode = 2
+alignment = 1
+
+[node name="TestLabel" type="Label" parent="PanelContainer/MarginContainer/VBoxContainer/HSplitContainer/PropertiesContainer/TabContainer/Sector/ScrollContainer/MarginContainer/VBoxContainer/StoudsonBombSection/BombKeySectorContainer"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 12
+text = "Key sector 1 at X: x Y: y"
+horizontal_alignment = 1
+
+[node name="TestLabel2" type="Label" parent="PanelContainer/MarginContainer/VBoxContainer/HSplitContainer/PropertiesContainer/TabContainer/Sector/ScrollContainer/MarginContainer/VBoxContainer/StoudsonBombSection/BombKeySectorContainer"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 12
+text = "Key sector 2 at X: x Y: y"
+horizontal_alignment = 1
+
+[node name="TechUpgradeSection" type="VBoxContainer" parent="PanelContainer/MarginContainer/VBoxContainer/HSplitContainer/PropertiesContainer/TabContainer/Sector/ScrollContainer/MarginContainer/VBoxContainer"]
+unique_name_in_owner = true
+layout_mode = 2
+alignment = 1
+
+[node name="HSeparator" type="HSeparator" parent="PanelContainer/MarginContainer/VBoxContainer/HSplitContainer/PropertiesContainer/TabContainer/Sector/ScrollContainer/MarginContainer/VBoxContainer/TechUpgradeSection"]
+layout_mode = 2
+
+[node name="Label" type="Label" parent="PanelContainer/MarginContainer/VBoxContainer/HSplitContainer/PropertiesContainer/TabContainer/Sector/ScrollContainer/MarginContainer/VBoxContainer/TechUpgradeSection"]
+layout_mode = 2
+text = "Tech upgrade"
+horizontal_alignment = 1
+
+[node name="HBoxContainer" type="HBoxContainer" parent="PanelContainer/MarginContainer/VBoxContainer/HSplitContainer/PropertiesContainer/TabContainer/Sector/ScrollContainer/MarginContainer/VBoxContainer/TechUpgradeSection"]
+layout_mode = 2
+alignment = 1
+
+[node name="Label" type="Label" parent="PanelContainer/MarginContainer/VBoxContainer/HSplitContainer/PropertiesContainer/TabContainer/Sector/ScrollContainer/MarginContainer/VBoxContainer/TechUpgradeSection/HBoxContainer"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 12
+text = "Building type: "
+
+[node name="TUOptionButton" type="OptionButton" parent="PanelContainer/MarginContainer/VBoxContainer/HSplitContainer/PropertiesContainer/TabContainer/Sector/ScrollContainer/MarginContainer/VBoxContainer/TechUpgradeSection/HBoxContainer"]
+unique_name_in_owner = true
+layout_mode = 2
+theme_override_font_sizes/font_size = 11
+alignment = 1
+selected = 0
+item_count = 9
+popup/item_0/text = "Sphinx(set 5 only)"
+popup/item_1/text = "Wall left"
+popup/item_1/id = 1
+popup/item_2/text = "Gate and street"
+popup/item_2/id = 2
+popup/item_3/text = "Gate with flak and street"
+popup/item_3/id = 3
+popup/item_4/text = "Cross"
+popup/item_4/id = 4
+popup/item_5/text = "Wall at the top with tower"
+popup/item_5/id = 5
+popup/item_6/text = "4 towers"
+popup/item_6/id = 6
+popup/item_7/text = "Square"
+popup/item_7/id = 8
+popup/item_8/text = "1 tower"
+popup/item_8/id = 7
+
+[node name="HBoxContainer2" type="HBoxContainer" parent="PanelContainer/MarginContainer/VBoxContainer/HSplitContainer/PropertiesContainer/TabContainer/Sector/ScrollContainer/MarginContainer/VBoxContainer/TechUpgradeSection"]
+layout_mode = 2
+alignment = 1
+
+[node name="Label" type="Label" parent="PanelContainer/MarginContainer/VBoxContainer/HSplitContainer/PropertiesContainer/TabContainer/Sector/ScrollContainer/MarginContainer/VBoxContainer/TechUpgradeSection/HBoxContainer2"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 12
+text = "Sound type: "
+
+[node name="SoundTypeOptionButton" type="OptionButton" parent="PanelContainer/MarginContainer/VBoxContainer/HSplitContainer/PropertiesContainer/TabContainer/Sector/ScrollContainer/MarginContainer/VBoxContainer/TechUpgradeSection/HBoxContainer2"]
+unique_name_in_owner = true
+layout_mode = 2
+theme_override_font_sizes/font_size = 11
+alignment = 1
+selected = 0
+item_count = 6
+popup/item_0/text = "Weapon upgrade"
+popup/item_1/text = "Shield upgrade"
+popup/item_1/id = 1
+popup/item_2/text = "New vehicle"
+popup/item_2/id = 2
+popup/item_3/text = "New building"
+popup/item_3/id = 3
+popup/item_4/text = "Radar station expansion for the scout"
+popup/item_4/id = 4
+popup/item_5/text = "none"
+popup/item_5/id = 5
+
+[node name="TechUpgradeMBstatusCheckBox" type="CheckBox" parent="PanelContainer/MarginContainer/VBoxContainer/HSplitContainer/PropertiesContainer/TabContainer/Sector/ScrollContainer/MarginContainer/VBoxContainer/TechUpgradeSection"]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_horizontal = 4
+theme_override_font_sizes/font_size = 10
+text = "Make this tech upgrade invisible in the Mission Briefing"
+
+[node name="HBoxContainer3" type="HBoxContainer" parent="PanelContainer/MarginContainer/VBoxContainer/HSplitContainer/PropertiesContainer/TabContainer/Sector/ScrollContainer/MarginContainer/VBoxContainer/TechUpgradeSection"]
+layout_mode = 2
+alignment = 1
+
+[node name="Label" type="Label" parent="PanelContainer/MarginContainer/VBoxContainer/HSplitContainer/PropertiesContainer/TabContainer/Sector/ScrollContainer/MarginContainer/VBoxContainer/TechUpgradeSection/HBoxContainer3"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 12
+text = "Modify: "
+
+[node name="TUmodifyOptionButton" type="OptionButton" parent="PanelContainer/MarginContainer/VBoxContainer/HSplitContainer/PropertiesContainer/TabContainer/Sector/ScrollContainer/MarginContainer/VBoxContainer/TechUpgradeSection/HBoxContainer3"]
+unique_name_in_owner = true
+layout_mode = 2
+theme_override_font_sizes/font_size = 12
+selected = 0
+item_count = 2
+popup/item_0/text = "Test item 1"
+popup/item_1/text = "Test item 2"
+popup/item_1/id = 1
+
+[node name="TUAddItemButton" type="Button" parent="PanelContainer/MarginContainer/VBoxContainer/HSplitContainer/PropertiesContainer/TabContainer/Sector/ScrollContainer/MarginContainer/VBoxContainer/TechUpgradeSection/HBoxContainer3"]
+unique_name_in_owner = true
+layout_mode = 2
+text = "+"
+
+[node name="TechUpgradeModifiersContainer" type="VBoxContainer" parent="PanelContainer/MarginContainer/VBoxContainer/HSplitContainer/PropertiesContainer/TabContainer/Sector/ScrollContainer/MarginContainer/VBoxContainer/TechUpgradeSection"]
+unique_name_in_owner = true
+layout_mode = 2
+alignment = 1
+
+[node name="TechUpgradeModifier1" parent="PanelContainer/MarginContainer/VBoxContainer/HSplitContainer/PropertiesContainer/TabContainer/Sector/ScrollContainer/MarginContainer/VBoxContainer/TechUpgradeSection/TechUpgradeModifiersContainer" instance=ExtResource("20_gggi6")]
+layout_mode = 2
+
+[node name="TechUpgradeModifier2" parent="PanelContainer/MarginContainer/VBoxContainer/HSplitContainer/PropertiesContainer/TabContainer/Sector/ScrollContainer/MarginContainer/VBoxContainer/TechUpgradeSection/TechUpgradeModifiersContainer" instance=ExtResource("20_gggi6")]
+layout_mode = 2
+
+[node name="TechUpgradeModifier3" parent="PanelContainer/MarginContainer/VBoxContainer/HSplitContainer/PropertiesContainer/TabContainer/Sector/ScrollContainer/MarginContainer/VBoxContainer/TechUpgradeSection/TechUpgradeModifiersContainer" instance=ExtResource("21_0gryv")]
+layout_mode = 2
+
+[node name="KeySectorSection" type="VBoxContainer" parent="PanelContainer/MarginContainer/VBoxContainer/HSplitContainer/PropertiesContainer/TabContainer/Sector/ScrollContainer/MarginContainer/VBoxContainer"]
+unique_name_in_owner = true
+layout_mode = 2
+alignment = 1
+
+[node name="HSeparator" type="HSeparator" parent="PanelContainer/MarginContainer/VBoxContainer/HSplitContainer/PropertiesContainer/TabContainer/Sector/ScrollContainer/MarginContainer/VBoxContainer/KeySectorSection"]
+layout_mode = 2
+
+[node name="TestLabel" type="Label" parent="PanelContainer/MarginContainer/VBoxContainer/HSplitContainer/PropertiesContainer/TabContainer/Sector/ScrollContainer/MarginContainer/VBoxContainer/KeySectorSection"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 12
+text = "Key sector N: 
+This key sector belongs to beam gate M"
+horizontal_alignment = 1
 
 [connection signal="close_requested" from="NewMapWindow" to="NewMapWindow" method="hide"]
 [connection signal="pressed" from="NewMapWindow/PanelContainer/MarginContainer3/HBoxContainer/CancelButton" to="NewMapWindow" method="hide"]

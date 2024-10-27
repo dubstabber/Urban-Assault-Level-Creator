@@ -22,11 +22,11 @@ var hgt_map_values_visible := false
 var blg_map_values_visible := false
 
 @onready var map_camera = $Camera2D
-@onready var host_stations = $HostStations
-@onready var squads = $Squads
 
 
 func _ready() -> void:
+	CurrentMapData.host_stations = $HostStations
+	CurrentMapData.squads = $Squads
 	font = ThemeDB.fallback_font
 	EventSystem.hoststation_added.connect(add_hoststation)
 	EventSystem.squad_added.connect(add_squad)
@@ -172,7 +172,7 @@ func recalculate_size():
 
 func add_hoststation(hs: String):
 	var hoststation = Preloads.HOSTSTATION.instantiate()
-	host_stations.add_child(hoststation)
+	CurrentMapData.host_stations.add_child(hoststation)
 	hoststation.create(Preloads.ua_data.data[CurrentMapData.game_data_type].hoststations[hs].owner,
 		Preloads.ua_data.data[CurrentMapData.game_data_type].hoststations[hs].robos[0].id, hs)
 	hoststation.position.x = right_clicked_x
@@ -183,7 +183,7 @@ func add_hoststation(hs: String):
 
 func add_squad(sq: Dictionary, owner_id: int):
 	var squad = Preloads.SQUAD.instantiate()
-	squads.add_child(squad)
+	CurrentMapData.squads.add_child(squad)
 	squad.create(owner_id, sq)
 	squad.position.x = right_clicked_x
 	squad.position.y = right_clicked_y

@@ -1,0 +1,59 @@
+[gd_scene format=3 uid="uid://cr4k2w8eq5ovg"]
+
+[node name="TechUpgradeModifier2" type="VBoxContainer"]
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+size_flags_horizontal = 4
+alignment = 1
+
+[node name="HSeparator" type="HSeparator" parent="."]
+layout_mode = 2
+
+[node name="ItemLabel" type="Label" parent="."]
+layout_mode = 2
+theme_override_font_sizes/font_size = 14
+text = "Item name"
+horizontal_alignment = 1
+
+[node name="EnableResistanceCheckBox" type="CheckBox" parent="."]
+layout_mode = 2
+theme_override_font_sizes/font_size = 12
+text = "Enable for Resistance"
+
+[node name="EnableGhorkovCheckBox" type="CheckBox" parent="."]
+layout_mode = 2
+theme_override_font_sizes/font_size = 12
+text = "Enable for Ghorkov"
+
+[node name="EnableTaerkastenCheckBox" type="CheckBox" parent="."]
+layout_mode = 2
+theme_override_font_sizes/font_size = 12
+text = "Enable for Taerkasten"
+
+[node name="EnableMykonianCheckBox" type="CheckBox" parent="."]
+layout_mode = 2
+theme_override_font_sizes/font_size = 12
+text = "Enable for Mykonian"
+
+[node name="EnableSulgogarCheckBox" type="CheckBox" parent="."]
+layout_mode = 2
+theme_override_font_sizes/font_size = 12
+text = "Enable for Sulgogar"
+
+[node name="EnableBlackSectCheckBox" type="CheckBox" parent="."]
+layout_mode = 2
+theme_override_font_sizes/font_size = 12
+text = "Enable for Black Sect"
+
+[node name="EnableTrainingCheckBox" type="CheckBox" parent="."]
+layout_mode = 2
+theme_override_font_sizes/font_size = 12
+text = "Enable for Training host station"
+
+[node name="RemoveButton" type="Button" parent="."]
+layout_mode = 2
+size_flags_horizontal = 4
+text = "Remove"

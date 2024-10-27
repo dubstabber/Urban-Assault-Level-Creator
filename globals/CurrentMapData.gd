@@ -5,6 +5,8 @@ signal right_selected
 
 var game_data_type:String
 
+var host_stations: Control
+var squads: Control
 var horizontal_sectors := 0
 var vertical_sectors := 0
 var typ_map: Array[int] = []
@@ -16,7 +18,7 @@ var stoudson_bombs: Array[StoudsonBomb] = []
 var tech_upgrades: Array[TechUpgrade] = []
 
 
-var selected_unit:
+var selected_unit: Unit = null:
 	set(value):
 		selected_unit = value
 		selected.emit()

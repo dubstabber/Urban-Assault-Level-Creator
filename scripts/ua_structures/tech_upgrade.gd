@@ -18,6 +18,7 @@ func _init(x: int, y: int) -> void:
 class ModifyVehicle:
 	var vehicle_id := 0
 	var energy := 0
+	var shield := 0
 	var res_enabled := false
 	var ghor_enabled := false
 	var taer_enabled := false

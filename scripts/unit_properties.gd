@@ -1,8 +1,8 @@
-extends PanelContainer
+extends TabBar
 
 
 func _ready():
-	CurrentMapData.connect("selected", _update_properties)
+	CurrentMapData.selected.connect(_update_properties)
 	%EnergyLineEdit.text_changed.connect(func(new_value: String):
 		var validated_value = int(new_value)
 		if validated_value == 0: validated_value = 1

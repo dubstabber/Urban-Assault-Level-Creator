@@ -1,0 +1,126 @@
+[gd_scene format=3 uid="uid://1tb0vcurfq8p"]
+
+[node name="TechUpgradeModifier1" type="VBoxContainer"]
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+size_flags_horizontal = 4
+alignment = 1
+
+[node name="HSeparator" type="HSeparator" parent="."]
+layout_mode = 2
+
+[node name="ItemLabel" type="Label" parent="."]
+layout_mode = 2
+theme_override_font_sizes/font_size = 14
+text = "Item name"
+horizontal_alignment = 1
+
+[node name="EnableResistanceCheckBox" type="CheckBox" parent="."]
+layout_mode = 2
+theme_override_font_sizes/font_size = 12
+text = "Enable for Resistance"
+
+[node name="EnableGhorkovCheckBox" type="CheckBox" parent="."]
+layout_mode = 2
+theme_override_font_sizes/font_size = 12
+text = "Enable for Ghorkov"
+
+[node name="EnableTaerkastenCheckBox" type="CheckBox" parent="."]
+layout_mode = 2
+theme_override_font_sizes/font_size = 12
+text = "Enable for Taerkasten"
+
+[node name="EnableMykonianCheckBox" type="CheckBox" parent="."]
+layout_mode = 2
+theme_override_font_sizes/font_size = 12
+text = "Enable for Mykonian"
+
+[node name="EnableSulgogarCheckBox" type="CheckBox" parent="."]
+layout_mode = 2
+theme_override_font_sizes/font_size = 12
+text = "Enable for Sulgogar"
+
+[node name="EnableBlackSectCheckBox" type="CheckBox" parent="."]
+layout_mode = 2
+theme_override_font_sizes/font_size = 12
+text = "Enable for Black Sect"
+
+[node name="EnableTrainingCheckBox" type="CheckBox" parent="."]
+layout_mode = 2
+theme_override_font_sizes/font_size = 12
+text = "Enable for Training host station"
+
+[node name="GridContainer" type="GridContainer" parent="."]
+layout_mode = 2
+columns = 2
+
+[node name="Label" type="Label" parent="GridContainer"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 12
+text = "Add energy:"
+
+[node name="AddEnergyLineEdit" type="LineEdit" parent="GridContainer"]
+layout_mode = 2
+text = "000"
+
+[node name="Label2" type="Label" parent="GridContainer"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 12
+text = "Add shield:"
+
+[node name="AddShieldLineEdit" type="LineEdit" parent="GridContainer"]
+layout_mode = 2
+text = "000"
+
+[node name="Label3" type="Label" parent="GridContainer"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 12
+text = "Add weapon:"
+
+[node name="AddWeaponLineEdit" type="LineEdit" parent="GridContainer"]
+layout_mode = 2
+text = "000"
+
+[node name="Label4" type="Label" parent="GridContainer"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 12
+text = "Add radar:"
+
+[node name="AddRadarLineEdit" type="LineEdit" parent="GridContainer"]
+layout_mode = 2
+text = "000"
+
+[node name="Label5" type="Label" parent="GridContainer"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 12
+text = "Add damage:"
+
+[node name="AddDamageLineEdit" type="LineEdit" parent="GridContainer"]
+layout_mode = 2
+text = "000"
+
+[node name="Label6" type="Label" parent="GridContainer"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 12
+text = "Add shot time:"
+
+[node name="AddShotTimeLineEdit" type="LineEdit" parent="GridContainer"]
+layout_mode = 2
+text = "000"
+
+[node name="Label7" type="Label" parent="GridContainer"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 12
+text = "Add shot time user:"
+
+[node name="AddShotTimeUserLineEdit" type="LineEdit" parent="GridContainer"]
+layout_mode = 2
+text = "000"
+
+[node name="RemoveButton" type="Button" parent="."]
+layout_mode = 2
+size_flags_horizontal = 4
+text = "Remove"
