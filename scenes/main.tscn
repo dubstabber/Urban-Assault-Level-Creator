@@ -1195,14 +1195,14 @@ alignment = 1
 [node name="TestLabel" type="Label" parent="PanelContainer/MarginContainer/VBoxContainer/HSplitContainer/PropertiesContainer/TabContainer/Sector/ScrollContainer/MarginContainer/VBoxContainer/BeamGateSection/BGKeySectorsContainer"]
 layout_mode = 2
 theme_override_font_sizes/font_size = 12
-text = "Key sector 1 at x:x y:y"
+text = "Key sector 1 at X:x Y:y"
 horizontal_alignment = 1
 vertical_alignment = 1
 
 [node name="TestLabel2" type="Label" parent="PanelContainer/MarginContainer/VBoxContainer/HSplitContainer/PropertiesContainer/TabContainer/Sector/ScrollContainer/MarginContainer/VBoxContainer/BeamGateSection/BGKeySectorsContainer"]
 layout_mode = 2
 theme_override_font_sizes/font_size = 12
-text = "Key sector 2 at x:x y:y"
+text = "Key sector 2 at X:x Y:y"
 horizontal_alignment = 1
 vertical_alignment = 1
 
