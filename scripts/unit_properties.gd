@@ -2,7 +2,7 @@ extends TabBar
 
 
 func _ready():
-	CurrentMapData.selected.connect(_update_properties)
+	EventSystem.unit_selected.connect(_update_properties)
 	%EnergyLineEdit.text_changed.connect(func(new_value: String):
 		var validated_value = int(new_value)
 		if validated_value == 0: validated_value = 1

@@ -18,9 +18,9 @@ config/icon="res://resources/img/icon.png"
 
 [autoload]
 
+EventSystem="*res://globals/EventSystem.gd"
 CurrentMapData="*res://globals/CurrentMapData.gd"
 Preloads="*res://globals/Preloads.gd"
-EventSystem="*res://globals/EventSystem.gd"
 
 [debug]
 

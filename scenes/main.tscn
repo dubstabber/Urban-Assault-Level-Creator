@@ -1,4 +1,4 @@
-[gd_scene load_steps=24 format=3 uid="uid://ctgiwn3scteuk"]
+[gd_scene load_steps=25 format=3 uid="uid://ctgiwn3scteuk"]
 
 [ext_resource type="Script" path="res://scenes/main.gd" id="1_7pb5r"]
 [ext_resource type="Script" path="res://scripts/Map.gd" id="2_dum0m"]
@@ -25,6 +25,9 @@
 [sub_resource type="PlaceholderTexture2D" id="PlaceholderTexture2D_37be0"]
 
 [sub_resource type="PlaceholderTexture2D" id="PlaceholderTexture2D_0xn5w"]
+
+[sub_resource type="LabelSettings" id="LabelSettings_e380m"]
+font_color = Color(1, 0, 0, 1)
 
 [node name="Main" type="Control"]
 layout_mode = 3
@@ -1082,57 +1085,58 @@ text = "No sector selected"
 horizontal_alignment = 1
 vertical_alignment = 1
 
-[node name="VBoxContainer" type="VBoxContainer" parent="PanelContainer/MarginContainer/VBoxContainer/HSplitContainer/PropertiesContainer/TabContainer/Sector/ScrollContainer/MarginContainer"]
+[node name="SectorPropertiesContainer" type="VBoxContainer" parent="PanelContainer/MarginContainer/VBoxContainer/HSplitContainer/PropertiesContainer/TabContainer/Sector/ScrollContainer/MarginContainer"]
+unique_name_in_owner = true
 layout_mode = 2
 alignment = 1
 
-[node name="SectorPositionLabel" type="Label" parent="PanelContainer/MarginContainer/VBoxContainer/HSplitContainer/PropertiesContainer/TabContainer/Sector/ScrollContainer/MarginContainer/VBoxContainer"]
+[node name="SectorPositionLabel" type="Label" parent="PanelContainer/MarginContainer/VBoxContainer/HSplitContainer/PropertiesContainer/TabContainer/Sector/ScrollContainer/MarginContainer/SectorPropertiesContainer"]
 unique_name_in_owner = true
 layout_mode = 2
-text = "Sector X:x Y:y"
+text = "Sector X: x Y: y"
 horizontal_alignment = 1
 vertical_alignment = 1
 
-[node name="HSeparator" type="HSeparator" parent="PanelContainer/MarginContainer/VBoxContainer/HSplitContainer/PropertiesContainer/TabContainer/Sector/ScrollContainer/MarginContainer/VBoxContainer"]
+[node name="HSeparator" type="HSeparator" parent="PanelContainer/MarginContainer/VBoxContainer/HSplitContainer/PropertiesContainer/TabContainer/Sector/ScrollContainer/MarginContainer/SectorPropertiesContainer"]
 layout_mode = 2
 
-[node name="GridContainer" type="GridContainer" parent="PanelContainer/MarginContainer/VBoxContainer/HSplitContainer/PropertiesContainer/TabContainer/Sector/ScrollContainer/MarginContainer/VBoxContainer"]
+[node name="GridContainer" type="GridContainer" parent="PanelContainer/MarginContainer/VBoxContainer/HSplitContainer/PropertiesContainer/TabContainer/Sector/ScrollContainer/MarginContainer/SectorPropertiesContainer"]
 layout_mode = 2
 size_flags_horizontal = 4
 columns = 2
 
-[node name="SectorOwnerTextLabel" type="Label" parent="PanelContainer/MarginContainer/VBoxContainer/HSplitContainer/PropertiesContainer/TabContainer/Sector/ScrollContainer/MarginContainer/VBoxContainer/GridContainer"]
+[node name="SectorOwnerTextLabel" type="Label" parent="PanelContainer/MarginContainer/VBoxContainer/HSplitContainer/PropertiesContainer/TabContainer/Sector/ScrollContainer/MarginContainer/SectorPropertiesContainer/GridContainer"]
 layout_mode = 2
 theme_override_font_sizes/font_size = 12
 text = "Sector owner:"
 
-[node name="SectorOwnerLabel" type="Label" parent="PanelContainer/MarginContainer/VBoxContainer/HSplitContainer/PropertiesContainer/TabContainer/Sector/ScrollContainer/MarginContainer/VBoxContainer/GridContainer"]
+[node name="SectorOwnerLabel" type="Label" parent="PanelContainer/MarginContainer/VBoxContainer/HSplitContainer/PropertiesContainer/TabContainer/Sector/ScrollContainer/MarginContainer/SectorPropertiesContainer/GridContainer"]
 unique_name_in_owner = true
 layout_mode = 2
 theme_override_font_sizes/font_size = 12
 text = "Faction"
 
-[node name="SpecialBuildingTextLabel" type="Label" parent="PanelContainer/MarginContainer/VBoxContainer/HSplitContainer/PropertiesContainer/TabContainer/Sector/ScrollContainer/MarginContainer/VBoxContainer/GridContainer"]
+[node name="SpecialBuildingTextLabel" type="Label" parent="PanelContainer/MarginContainer/VBoxContainer/HSplitContainer/PropertiesContainer/TabContainer/Sector/ScrollContainer/MarginContainer/SectorPropertiesContainer/GridContainer"]
 layout_mode = 2
 theme_override_font_sizes/font_size = 12
 text = "Special building:"
 
-[node name="SpecialBuildingLabel" type="Label" parent="PanelContainer/MarginContainer/VBoxContainer/HSplitContainer/PropertiesContainer/TabContainer/Sector/ScrollContainer/MarginContainer/VBoxContainer/GridContainer"]
+[node name="SpecialBuildingLabel" type="Label" parent="PanelContainer/MarginContainer/VBoxContainer/HSplitContainer/PropertiesContainer/TabContainer/Sector/ScrollContainer/MarginContainer/SectorPropertiesContainer/GridContainer"]
 unique_name_in_owner = true
 layout_mode = 2
 theme_override_font_sizes/font_size = 12
 text = "Special Building Name"
 
-[node name="HSeparator2" type="HSeparator" parent="PanelContainer/MarginContainer/VBoxContainer/HSplitContainer/PropertiesContainer/TabContainer/Sector/ScrollContainer/MarginContainer/VBoxContainer"]
+[node name="HSeparator2" type="HSeparator" parent="PanelContainer/MarginContainer/VBoxContainer/HSplitContainer/PropertiesContainer/TabContainer/Sector/ScrollContainer/MarginContainer/SectorPropertiesContainer"]
 layout_mode = 2
 
-[node name="BuildingTextLabel" type="Label" parent="PanelContainer/MarginContainer/VBoxContainer/HSplitContainer/PropertiesContainer/TabContainer/Sector/ScrollContainer/MarginContainer/VBoxContainer"]
+[node name="BuildingTextLabel" type="Label" parent="PanelContainer/MarginContainer/VBoxContainer/HSplitContainer/PropertiesContainer/TabContainer/Sector/ScrollContainer/MarginContainer/SectorPropertiesContainer"]
 unique_name_in_owner = true
 layout_mode = 2
 text = "Building N"
 horizontal_alignment = 1
 
-[node name="BuildingTexture" type="TextureRect" parent="PanelContainer/MarginContainer/VBoxContainer/HSplitContainer/PropertiesContainer/TabContainer/Sector/ScrollContainer/MarginContainer/VBoxContainer"]
+[node name="BuildingTexture" type="TextureRect" parent="PanelContainer/MarginContainer/VBoxContainer/HSplitContainer/PropertiesContainer/TabContainer/Sector/ScrollContainer/MarginContainer/SectorPropertiesContainer"]
 unique_name_in_owner = true
 custom_minimum_size = Vector2(250, 250)
 layout_mode = 2
@@ -1140,30 +1144,40 @@ size_flags_horizontal = 4
 size_flags_vertical = 4
 texture = SubResource("PlaceholderTexture2D_0xn5w")
 
-[node name="BeamGateSection" type="VBoxContainer" parent="PanelContainer/MarginContainer/VBoxContainer/HSplitContainer/PropertiesContainer/TabContainer/Sector/ScrollContainer/MarginContainer/VBoxContainer"]
+[node name="InvalidTypMapLabel" type="Label" parent="PanelContainer/MarginContainer/VBoxContainer/HSplitContainer/PropertiesContainer/TabContainer/Sector/ScrollContainer/MarginContainer/SectorPropertiesContainer"]
+unique_name_in_owner = true
+visible = false
+custom_minimum_size = Vector2(220, 40)
+layout_mode = 2
+text = "This building index is not valid, which will cause the game to crash"
+label_settings = SubResource("LabelSettings_e380m")
+horizontal_alignment = 1
+autowrap_mode = 3
+
+[node name="BeamGateSection" type="VBoxContainer" parent="PanelContainer/MarginContainer/VBoxContainer/HSplitContainer/PropertiesContainer/TabContainer/Sector/ScrollContainer/MarginContainer/SectorPropertiesContainer"]
 unique_name_in_owner = true
 layout_mode = 2
 alignment = 1
 
-[node name="HSeparator" type="HSeparator" parent="PanelContainer/MarginContainer/VBoxContainer/HSplitContainer/PropertiesContainer/TabContainer/Sector/ScrollContainer/MarginContainer/VBoxContainer/BeamGateSection"]
+[node name="HSeparator" type="HSeparator" parent="PanelContainer/MarginContainer/VBoxContainer/HSplitContainer/PropertiesContainer/TabContainer/Sector/ScrollContainer/MarginContainer/SectorPropertiesContainer/BeamGateSection"]
 layout_mode = 2
 
-[node name="BeamGateInfoLabel" type="Label" parent="PanelContainer/MarginContainer/VBoxContainer/HSplitContainer/PropertiesContainer/TabContainer/Sector/ScrollContainer/MarginContainer/VBoxContainer/BeamGateSection"]
+[node name="BeamGateInfoLabel" type="Label" parent="PanelContainer/MarginContainer/VBoxContainer/HSplitContainer/PropertiesContainer/TabContainer/Sector/ScrollContainer/MarginContainer/SectorPropertiesContainer/BeamGateSection"]
 unique_name_in_owner = true
 layout_mode = 2
 text = "Beam gate N"
 horizontal_alignment = 1
 
-[node name="HBoxContainer" type="HBoxContainer" parent="PanelContainer/MarginContainer/VBoxContainer/HSplitContainer/PropertiesContainer/TabContainer/Sector/ScrollContainer/MarginContainer/VBoxContainer/BeamGateSection"]
+[node name="HBoxContainer" type="HBoxContainer" parent="PanelContainer/MarginContainer/VBoxContainer/HSplitContainer/PropertiesContainer/TabContainer/Sector/ScrollContainer/MarginContainer/SectorPropertiesContainer/BeamGateSection"]
 layout_mode = 2
 alignment = 1
 
-[node name="BGBuildingLabel" type="Label" parent="PanelContainer/MarginContainer/VBoxContainer/HSplitContainer/PropertiesContainer/TabContainer/Sector/ScrollContainer/MarginContainer/VBoxContainer/BeamGateSection/HBoxContainer"]
+[node name="BGBuildingLabel" type="Label" parent="PanelContainer/MarginContainer/VBoxContainer/HSplitContainer/PropertiesContainer/TabContainer/Sector/ScrollContainer/MarginContainer/SectorPropertiesContainer/BeamGateSection/HBoxContainer"]
 layout_mode = 2
 theme_override_font_sizes/font_size = 12
 text = "Beam gate building:"
 
-[node name="BGBuildingOptionButton" type="OptionButton" parent="PanelContainer/MarginContainer/VBoxContainer/HSplitContainer/PropertiesContainer/TabContainer/Sector/ScrollContainer/MarginContainer/VBoxContainer/BeamGateSection/HBoxContainer"]
+[node name="BGBuildingOptionButton" type="OptionButton" parent="PanelContainer/MarginContainer/VBoxContainer/HSplitContainer/PropertiesContainer/TabContainer/Sector/ScrollContainer/MarginContainer/SectorPropertiesContainer/BeamGateSection/HBoxContainer"]
 unique_name_in_owner = true
 layout_mode = 2
 theme_override_font_sizes/font_size = 12
@@ -1174,48 +1188,48 @@ popup/item_0/text = "With road"
 popup/item_1/text = "Without road"
 popup/item_1/id = 1
 
-[node name="BeamGateMBStatus" type="CheckBox" parent="PanelContainer/MarginContainer/VBoxContainer/HSplitContainer/PropertiesContainer/TabContainer/Sector/ScrollContainer/MarginContainer/VBoxContainer/BeamGateSection"]
+[node name="BeamGateMBStatus" type="CheckBox" parent="PanelContainer/MarginContainer/VBoxContainer/HSplitContainer/PropertiesContainer/TabContainer/Sector/ScrollContainer/MarginContainer/SectorPropertiesContainer/BeamGateSection"]
 unique_name_in_owner = true
 layout_mode = 2
 theme_override_font_sizes/font_size = 12
 text = "Make this beam gate invisible in the Mission Briefing"
 
-[node name="BGKeySectorLabel" type="Label" parent="PanelContainer/MarginContainer/VBoxContainer/HSplitContainer/PropertiesContainer/TabContainer/Sector/ScrollContainer/MarginContainer/VBoxContainer/BeamGateSection"]
+[node name="BGKeySectorLabel" type="Label" parent="PanelContainer/MarginContainer/VBoxContainer/HSplitContainer/PropertiesContainer/TabContainer/Sector/ScrollContainer/MarginContainer/SectorPropertiesContainer/BeamGateSection"]
 unique_name_in_owner = true
 layout_mode = 2
 theme_override_font_sizes/font_size = 14
 text = "This beam gate contains key sectors:"
 horizontal_alignment = 1
 
-[node name="BGKeySectorsContainer" type="VBoxContainer" parent="PanelContainer/MarginContainer/VBoxContainer/HSplitContainer/PropertiesContainer/TabContainer/Sector/ScrollContainer/MarginContainer/VBoxContainer/BeamGateSection"]
+[node name="BGKeySectorsContainer" type="VBoxContainer" parent="PanelContainer/MarginContainer/VBoxContainer/HSplitContainer/PropertiesContainer/TabContainer/Sector/ScrollContainer/MarginContainer/SectorPropertiesContainer/BeamGateSection"]
 unique_name_in_owner = true
 layout_mode = 2
 alignment = 1
 
-[node name="TestLabel" type="Label" parent="PanelContainer/MarginContainer/VBoxContainer/HSplitContainer/PropertiesContainer/TabContainer/Sector/ScrollContainer/MarginContainer/VBoxContainer/BeamGateSection/BGKeySectorsContainer"]
+[node name="TestLabel" type="Label" parent="PanelContainer/MarginContainer/VBoxContainer/HSplitContainer/PropertiesContainer/TabContainer/Sector/ScrollContainer/MarginContainer/SectorPropertiesContainer/BeamGateSection/BGKeySectorsContainer"]
 layout_mode = 2
 theme_override_font_sizes/font_size = 12
 text = "Key sector 1 at X:x Y:y"
 horizontal_alignment = 1
 vertical_alignment = 1
 
-[node name="TestLabel2" type="Label" parent="PanelContainer/MarginContainer/VBoxContainer/HSplitContainer/PropertiesContainer/TabContainer/Sector/ScrollContainer/MarginContainer/VBoxContainer/BeamGateSection/BGKeySectorsContainer"]
+[node name="TestLabel2" type="Label" parent="PanelContainer/MarginContainer/VBoxContainer/HSplitContainer/PropertiesContainer/TabContainer/Sector/ScrollContainer/MarginContainer/SectorPropertiesContainer/BeamGateSection/BGKeySectorsContainer"]
 layout_mode = 2
 theme_override_font_sizes/font_size = 12
 text = "Key sector 2 at X:x Y:y"
 horizontal_alignment = 1
 vertical_alignment = 1
 
-[node name="LevelUnlockerContainer" type="HBoxContainer" parent="PanelContainer/MarginContainer/VBoxContainer/HSplitContainer/PropertiesContainer/TabContainer/Sector/ScrollContainer/MarginContainer/VBoxContainer/BeamGateSection"]
+[node name="LevelUnlockerContainer" type="HBoxContainer" parent="PanelContainer/MarginContainer/VBoxContainer/HSplitContainer/PropertiesContainer/TabContainer/Sector/ScrollContainer/MarginContainer/SectorPropertiesContainer/BeamGateSection"]
 layout_mode = 2
 alignment = 1
 
-[node name="Label" type="Label" parent="PanelContainer/MarginContainer/VBoxContainer/HSplitContainer/PropertiesContainer/TabContainer/Sector/ScrollContainer/MarginContainer/VBoxContainer/BeamGateSection/LevelUnlockerContainer"]
+[node name="Label" type="Label" parent="PanelContainer/MarginContainer/VBoxContainer/HSplitContainer/PropertiesContainer/TabContainer/Sector/ScrollContainer/MarginContainer/SectorPropertiesContainer/BeamGateSection/LevelUnlockerContainer"]
 layout_mode = 2
 theme_override_font_sizes/font_size = 14
 text = "Unlock new Level:"
 
-[node name="LevelsOptionButton" type="OptionButton" parent="PanelContainer/MarginContainer/VBoxContainer/HSplitContainer/PropertiesContainer/TabContainer/Sector/ScrollContainer/MarginContainer/VBoxContainer/BeamGateSection/LevelUnlockerContainer"]
+[node name="LevelsOptionButton" type="OptionButton" parent="PanelContainer/MarginContainer/VBoxContainer/HSplitContainer/PropertiesContainer/TabContainer/Sector/ScrollContainer/MarginContainer/SectorPropertiesContainer/BeamGateSection/LevelUnlockerContainer"]
 unique_name_in_owner = true
 layout_mode = 2
 theme_override_font_sizes/font_size = 14
@@ -1225,56 +1239,56 @@ popup/item_0/text = "L0101"
 popup/item_1/text = "L0202"
 popup/item_1/id = 1
 
-[node name="AddLevelButton" type="Button" parent="PanelContainer/MarginContainer/VBoxContainer/HSplitContainer/PropertiesContainer/TabContainer/Sector/ScrollContainer/MarginContainer/VBoxContainer/BeamGateSection/LevelUnlockerContainer"]
+[node name="AddLevelButton" type="Button" parent="PanelContainer/MarginContainer/VBoxContainer/HSplitContainer/PropertiesContainer/TabContainer/Sector/ScrollContainer/MarginContainer/SectorPropertiesContainer/BeamGateSection/LevelUnlockerContainer"]
 unique_name_in_owner = true
 layout_mode = 2
 theme_override_font_sizes/font_size = 14
 text = "Add"
 
-[node name="HSeparator2" type="HSeparator" parent="PanelContainer/MarginContainer/VBoxContainer/HSplitContainer/PropertiesContainer/TabContainer/Sector/ScrollContainer/MarginContainer/VBoxContainer/BeamGateSection"]
+[node name="HSeparator2" type="HSeparator" parent="PanelContainer/MarginContainer/VBoxContainer/HSplitContainer/PropertiesContainer/TabContainer/Sector/ScrollContainer/MarginContainer/SectorPropertiesContainer/BeamGateSection"]
 layout_mode = 2
 
-[node name="UnlockLevelsContainer" type="VBoxContainer" parent="PanelContainer/MarginContainer/VBoxContainer/HSplitContainer/PropertiesContainer/TabContainer/Sector/ScrollContainer/MarginContainer/VBoxContainer/BeamGateSection"]
+[node name="UnlockLevelsContainer" type="VBoxContainer" parent="PanelContainer/MarginContainer/VBoxContainer/HSplitContainer/PropertiesContainer/TabContainer/Sector/ScrollContainer/MarginContainer/SectorPropertiesContainer/BeamGateSection"]
 unique_name_in_owner = true
 layout_mode = 2
 alignment = 1
 
-[node name="TestLabel" type="Label" parent="PanelContainer/MarginContainer/VBoxContainer/HSplitContainer/PropertiesContainer/TabContainer/Sector/ScrollContainer/MarginContainer/VBoxContainer/BeamGateSection/UnlockLevelsContainer"]
+[node name="TestLabel" type="Label" parent="PanelContainer/MarginContainer/VBoxContainer/HSplitContainer/PropertiesContainer/TabContainer/Sector/ScrollContainer/MarginContainer/SectorPropertiesContainer/BeamGateSection/UnlockLevelsContainer"]
 layout_mode = 2
 theme_override_font_sizes/font_size = 12
 text = "This beam gate unlocks: L0101"
 horizontal_alignment = 1
 
-[node name="TestLabel2" type="Label" parent="PanelContainer/MarginContainer/VBoxContainer/HSplitContainer/PropertiesContainer/TabContainer/Sector/ScrollContainer/MarginContainer/VBoxContainer/BeamGateSection/UnlockLevelsContainer"]
+[node name="TestLabel2" type="Label" parent="PanelContainer/MarginContainer/VBoxContainer/HSplitContainer/PropertiesContainer/TabContainer/Sector/ScrollContainer/MarginContainer/SectorPropertiesContainer/BeamGateSection/UnlockLevelsContainer"]
 layout_mode = 2
 theme_override_font_sizes/font_size = 12
 text = "This beam gate unlocks: L0202"
 horizontal_alignment = 1
 
-[node name="StoudsonBombSection" type="VBoxContainer" parent="PanelContainer/MarginContainer/VBoxContainer/HSplitContainer/PropertiesContainer/TabContainer/Sector/ScrollContainer/MarginContainer/VBoxContainer"]
+[node name="StoudsonBombSection" type="VBoxContainer" parent="PanelContainer/MarginContainer/VBoxContainer/HSplitContainer/PropertiesContainer/TabContainer/Sector/ScrollContainer/MarginContainer/SectorPropertiesContainer"]
 unique_name_in_owner = true
 layout_mode = 2
 alignment = 1
 
-[node name="HSeparator" type="HSeparator" parent="PanelContainer/MarginContainer/VBoxContainer/HSplitContainer/PropertiesContainer/TabContainer/Sector/ScrollContainer/MarginContainer/VBoxContainer/StoudsonBombSection"]
+[node name="HSeparator" type="HSeparator" parent="PanelContainer/MarginContainer/VBoxContainer/HSplitContainer/PropertiesContainer/TabContainer/Sector/ScrollContainer/MarginContainer/SectorPropertiesContainer/StoudsonBombSection"]
 layout_mode = 2
 
-[node name="BombInfoLabel" type="Label" parent="PanelContainer/MarginContainer/VBoxContainer/HSplitContainer/PropertiesContainer/TabContainer/Sector/ScrollContainer/MarginContainer/VBoxContainer/StoudsonBombSection"]
+[node name="BombInfoLabel" type="Label" parent="PanelContainer/MarginContainer/VBoxContainer/HSplitContainer/PropertiesContainer/TabContainer/Sector/ScrollContainer/MarginContainer/SectorPropertiesContainer/StoudsonBombSection"]
 unique_name_in_owner = true
 layout_mode = 2
 text = "Stoudson bomb N"
 horizontal_alignment = 1
 
-[node name="HBoxContainer" type="HBoxContainer" parent="PanelContainer/MarginContainer/VBoxContainer/HSplitContainer/PropertiesContainer/TabContainer/Sector/ScrollContainer/MarginContainer/VBoxContainer/StoudsonBombSection"]
+[node name="HBoxContainer" type="HBoxContainer" parent="PanelContainer/MarginContainer/VBoxContainer/HSplitContainer/PropertiesContainer/TabContainer/Sector/ScrollContainer/MarginContainer/SectorPropertiesContainer/StoudsonBombSection"]
 layout_mode = 2
 alignment = 1
 
-[node name="Label" type="Label" parent="PanelContainer/MarginContainer/VBoxContainer/HSplitContainer/PropertiesContainer/TabContainer/Sector/ScrollContainer/MarginContainer/VBoxContainer/StoudsonBombSection/HBoxContainer"]
+[node name="Label" type="Label" parent="PanelContainer/MarginContainer/VBoxContainer/HSplitContainer/PropertiesContainer/TabContainer/Sector/ScrollContainer/MarginContainer/SectorPropertiesContainer/StoudsonBombSection/HBoxContainer"]
 layout_mode = 2
 theme_override_font_sizes/font_size = 12
 text = "Bomb building:"
 
-[node name="BombBuildingOptionButton" type="OptionButton" parent="PanelContainer/MarginContainer/VBoxContainer/HSplitContainer/PropertiesContainer/TabContainer/Sector/ScrollContainer/MarginContainer/VBoxContainer/StoudsonBombSection/HBoxContainer"]
+[node name="BombBuildingOptionButton" type="OptionButton" parent="PanelContainer/MarginContainer/VBoxContainer/HSplitContainer/PropertiesContainer/TabContainer/Sector/ScrollContainer/MarginContainer/SectorPropertiesContainer/StoudsonBombSection/HBoxContainer"]
 unique_name_in_owner = true
 layout_mode = 2
 theme_override_font_sizes/font_size = 12
@@ -1285,101 +1299,101 @@ popup/item_0/text = "Normal"
 popup/item_1/text = "Parasite(set 6 only)"
 popup/item_1/id = 1
 
-[node name="Label" type="Label" parent="PanelContainer/MarginContainer/VBoxContainer/HSplitContainer/PropertiesContainer/TabContainer/Sector/ScrollContainer/MarginContainer/VBoxContainer/StoudsonBombSection"]
+[node name="Label" type="Label" parent="PanelContainer/MarginContainer/VBoxContainer/HSplitContainer/PropertiesContainer/TabContainer/Sector/ScrollContainer/MarginContainer/SectorPropertiesContainer/StoudsonBombSection"]
 layout_mode = 2
 theme_override_font_sizes/font_size = 12
 text = "Bomb countdown:"
 horizontal_alignment = 1
 
-[node name="HBoxContainer2" type="HBoxContainer" parent="PanelContainer/MarginContainer/VBoxContainer/HSplitContainer/PropertiesContainer/TabContainer/Sector/ScrollContainer/MarginContainer/VBoxContainer/StoudsonBombSection"]
+[node name="HBoxContainer2" type="HBoxContainer" parent="PanelContainer/MarginContainer/VBoxContainer/HSplitContainer/PropertiesContainer/TabContainer/Sector/ScrollContainer/MarginContainer/SectorPropertiesContainer/StoudsonBombSection"]
 layout_mode = 2
 alignment = 1
 
-[node name="HoursSpinBox" type="SpinBox" parent="PanelContainer/MarginContainer/VBoxContainer/HSplitContainer/PropertiesContainer/TabContainer/Sector/ScrollContainer/MarginContainer/VBoxContainer/StoudsonBombSection/HBoxContainer2"]
+[node name="HoursSpinBox" type="SpinBox" parent="PanelContainer/MarginContainer/VBoxContainer/HSplitContainer/PropertiesContainer/TabContainer/Sector/ScrollContainer/MarginContainer/SectorPropertiesContainer/StoudsonBombSection/HBoxContainer2"]
 unique_name_in_owner = true
 layout_mode = 2
 max_value = 1000.0
 alignment = 1
 
-[node name="Label2" type="Label" parent="PanelContainer/MarginContainer/VBoxContainer/HSplitContainer/PropertiesContainer/TabContainer/Sector/ScrollContainer/MarginContainer/VBoxContainer/StoudsonBombSection/HBoxContainer2"]
+[node name="Label2" type="Label" parent="PanelContainer/MarginContainer/VBoxContainer/HSplitContainer/PropertiesContainer/TabContainer/Sector/ScrollContainer/MarginContainer/SectorPropertiesContainer/StoudsonBombSection/HBoxContainer2"]
 layout_mode = 2
 theme_override_font_sizes/font_size = 10
 text = "hours"
 
-[node name="MinutesSpinBox" type="SpinBox" parent="PanelContainer/MarginContainer/VBoxContainer/HSplitContainer/PropertiesContainer/TabContainer/Sector/ScrollContainer/MarginContainer/VBoxContainer/StoudsonBombSection/HBoxContainer2"]
+[node name="MinutesSpinBox" type="SpinBox" parent="PanelContainer/MarginContainer/VBoxContainer/HSplitContainer/PropertiesContainer/TabContainer/Sector/ScrollContainer/MarginContainer/SectorPropertiesContainer/StoudsonBombSection/HBoxContainer2"]
 unique_name_in_owner = true
 layout_mode = 2
 alignment = 1
 
-[node name="Label3" type="Label" parent="PanelContainer/MarginContainer/VBoxContainer/HSplitContainer/PropertiesContainer/TabContainer/Sector/ScrollContainer/MarginContainer/VBoxContainer/StoudsonBombSection/HBoxContainer2"]
+[node name="Label3" type="Label" parent="PanelContainer/MarginContainer/VBoxContainer/HSplitContainer/PropertiesContainer/TabContainer/Sector/ScrollContainer/MarginContainer/SectorPropertiesContainer/StoudsonBombSection/HBoxContainer2"]
 layout_mode = 2
 theme_override_font_sizes/font_size = 10
 text = "minutes"
 
-[node name="SecondsSpinBox" type="SpinBox" parent="PanelContainer/MarginContainer/VBoxContainer/HSplitContainer/PropertiesContainer/TabContainer/Sector/ScrollContainer/MarginContainer/VBoxContainer/StoudsonBombSection/HBoxContainer2"]
+[node name="SecondsSpinBox" type="SpinBox" parent="PanelContainer/MarginContainer/VBoxContainer/HSplitContainer/PropertiesContainer/TabContainer/Sector/ScrollContainer/MarginContainer/SectorPropertiesContainer/StoudsonBombSection/HBoxContainer2"]
 unique_name_in_owner = true
 layout_mode = 2
 max_value = 1000.0
 alignment = 1
 
-[node name="Label4" type="Label" parent="PanelContainer/MarginContainer/VBoxContainer/HSplitContainer/PropertiesContainer/TabContainer/Sector/ScrollContainer/MarginContainer/VBoxContainer/StoudsonBombSection/HBoxContainer2"]
+[node name="Label4" type="Label" parent="PanelContainer/MarginContainer/VBoxContainer/HSplitContainer/PropertiesContainer/TabContainer/Sector/ScrollContainer/MarginContainer/SectorPropertiesContainer/StoudsonBombSection/HBoxContainer2"]
 layout_mode = 2
 theme_override_font_sizes/font_size = 10
 text = "seconds"
 
-[node name="BombMBstatusCheckBox" type="CheckBox" parent="PanelContainer/MarginContainer/VBoxContainer/HSplitContainer/PropertiesContainer/TabContainer/Sector/ScrollContainer/MarginContainer/VBoxContainer/StoudsonBombSection"]
+[node name="BombMBstatusCheckBox" type="CheckBox" parent="PanelContainer/MarginContainer/VBoxContainer/HSplitContainer/PropertiesContainer/TabContainer/Sector/ScrollContainer/MarginContainer/SectorPropertiesContainer/StoudsonBombSection"]
 unique_name_in_owner = true
 layout_mode = 2
 theme_override_font_sizes/font_size = 12
 text = "Make this bomb invisible in the Mission Briefing"
 
-[node name="BombKeySectorsLabel" type="Label" parent="PanelContainer/MarginContainer/VBoxContainer/HSplitContainer/PropertiesContainer/TabContainer/Sector/ScrollContainer/MarginContainer/VBoxContainer/StoudsonBombSection"]
+[node name="BombKeySectorsLabel" type="Label" parent="PanelContainer/MarginContainer/VBoxContainer/HSplitContainer/PropertiesContainer/TabContainer/Sector/ScrollContainer/MarginContainer/SectorPropertiesContainer/StoudsonBombSection"]
 unique_name_in_owner = true
 layout_mode = 2
 theme_override_font_sizes/font_size = 14
 text = "This bomb contains key sectors:"
 horizontal_alignment = 1
 
-[node name="BombKeySectorContainer" type="VBoxContainer" parent="PanelContainer/MarginContainer/VBoxContainer/HSplitContainer/PropertiesContainer/TabContainer/Sector/ScrollContainer/MarginContainer/VBoxContainer/StoudsonBombSection"]
+[node name="BombKeySectorContainer" type="VBoxContainer" parent="PanelContainer/MarginContainer/VBoxContainer/HSplitContainer/PropertiesContainer/TabContainer/Sector/ScrollContainer/MarginContainer/SectorPropertiesContainer/StoudsonBombSection"]
 unique_name_in_owner = true
 layout_mode = 2
 alignment = 1
 
-[node name="TestLabel" type="Label" parent="PanelContainer/MarginContainer/VBoxContainer/HSplitContainer/PropertiesContainer/TabContainer/Sector/ScrollContainer/MarginContainer/VBoxContainer/StoudsonBombSection/BombKeySectorContainer"]
+[node name="TestLabel" type="Label" parent="PanelContainer/MarginContainer/VBoxContainer/HSplitContainer/PropertiesContainer/TabContainer/Sector/ScrollContainer/MarginContainer/SectorPropertiesContainer/StoudsonBombSection/BombKeySectorContainer"]
 layout_mode = 2
 theme_override_font_sizes/font_size = 12
 text = "Key sector 1 at X: x Y: y"
 horizontal_alignment = 1
 
-[node name="TestLabel2" type="Label" parent="PanelContainer/MarginContainer/VBoxContainer/HSplitContainer/PropertiesContainer/TabContainer/Sector/ScrollContainer/MarginContainer/VBoxContainer/StoudsonBombSection/BombKeySectorContainer"]
+[node name="TestLabel2" type="Label" parent="PanelContainer/MarginContainer/VBoxContainer/HSplitContainer/PropertiesContainer/TabContainer/Sector/ScrollContainer/MarginContainer/SectorPropertiesContainer/StoudsonBombSection/BombKeySectorContainer"]
 layout_mode = 2
 theme_override_font_sizes/font_size = 12
 text = "Key sector 2 at X: x Y: y"
 horizontal_alignment = 1
 
-[node name="TechUpgradeSection" type="VBoxContainer" parent="PanelContainer/MarginContainer/VBoxContainer/HSplitContainer/PropertiesContainer/TabContainer/Sector/ScrollContainer/MarginContainer/VBoxContainer"]
+[node name="TechUpgradeSection" type="VBoxContainer" parent="PanelContainer/MarginContainer/VBoxContainer/HSplitContainer/PropertiesContainer/TabContainer/Sector/ScrollContainer/MarginContainer/SectorPropertiesContainer"]
 unique_name_in_owner = true
 layout_mode = 2
 alignment = 1
 
-[node name="HSeparator" type="HSeparator" parent="PanelContainer/MarginContainer/VBoxContainer/HSplitContainer/PropertiesContainer/TabContainer/Sector/ScrollContainer/MarginContainer/VBoxContainer/TechUpgradeSection"]
+[node name="HSeparator" type="HSeparator" parent="PanelContainer/MarginContainer/VBoxContainer/HSplitContainer/PropertiesContainer/TabContainer/Sector/ScrollContainer/MarginContainer/SectorPropertiesContainer/TechUpgradeSection"]
 layout_mode = 2
 
-[node name="Label" type="Label" parent="PanelContainer/MarginContainer/VBoxContainer/HSplitContainer/PropertiesContainer/TabContainer/Sector/ScrollContainer/MarginContainer/VBoxContainer/TechUpgradeSection"]
+[node name="Label" type="Label" parent="PanelContainer/MarginContainer/VBoxContainer/HSplitContainer/PropertiesContainer/TabContainer/Sector/ScrollContainer/MarginContainer/SectorPropertiesContainer/TechUpgradeSection"]
 layout_mode = 2
 text = "Tech upgrade"
 horizontal_alignment = 1
 
-[node name="HBoxContainer" type="HBoxContainer" parent="PanelContainer/MarginContainer/VBoxContainer/HSplitContainer/PropertiesContainer/TabContainer/Sector/ScrollContainer/MarginContainer/VBoxContainer/TechUpgradeSection"]
+[node name="HBoxContainer" type="HBoxContainer" parent="PanelContainer/MarginContainer/VBoxContainer/HSplitContainer/PropertiesContainer/TabContainer/Sector/ScrollContainer/MarginContainer/SectorPropertiesContainer/TechUpgradeSection"]
 layout_mode = 2
 alignment = 1
 
-[node name="Label" type="Label" parent="PanelContainer/MarginContainer/VBoxContainer/HSplitContainer/PropertiesContainer/TabContainer/Sector/ScrollContainer/MarginContainer/VBoxContainer/TechUpgradeSection/HBoxContainer"]
+[node name="Label" type="Label" parent="PanelContainer/MarginContainer/VBoxContainer/HSplitContainer/PropertiesContainer/TabContainer/Sector/ScrollContainer/MarginContainer/SectorPropertiesContainer/TechUpgradeSection/HBoxContainer"]
 layout_mode = 2
 theme_override_font_sizes/font_size = 12
 text = "Building type: "
 
-[node name="TUOptionButton" type="OptionButton" parent="PanelContainer/MarginContainer/VBoxContainer/HSplitContainer/PropertiesContainer/TabContainer/Sector/ScrollContainer/MarginContainer/VBoxContainer/TechUpgradeSection/HBoxContainer"]
+[node name="TUOptionButton" type="OptionButton" parent="PanelContainer/MarginContainer/VBoxContainer/HSplitContainer/PropertiesContainer/TabContainer/Sector/ScrollContainer/MarginContainer/SectorPropertiesContainer/TechUpgradeSection/HBoxContainer"]
 unique_name_in_owner = true
 layout_mode = 2
 theme_override_font_sizes/font_size = 11
@@ -1404,16 +1418,16 @@ popup/item_7/id = 8
 popup/item_8/text = "1 tower"
 popup/item_8/id = 7
 
-[node name="HBoxContainer2" type="HBoxContainer" parent="PanelContainer/MarginContainer/VBoxContainer/HSplitContainer/PropertiesContainer/TabContainer/Sector/ScrollContainer/MarginContainer/VBoxContainer/TechUpgradeSection"]
+[node name="HBoxContainer2" type="HBoxContainer" parent="PanelContainer/MarginContainer/VBoxContainer/HSplitContainer/PropertiesContainer/TabContainer/Sector/ScrollContainer/MarginContainer/SectorPropertiesContainer/TechUpgradeSection"]
 layout_mode = 2
 alignment = 1
 
-[node name="Label" type="Label" parent="PanelContainer/MarginContainer/VBoxContainer/HSplitContainer/PropertiesContainer/TabContainer/Sector/ScrollContainer/MarginContainer/VBoxContainer/TechUpgradeSection/HBoxContainer2"]
+[node name="Label" type="Label" parent="PanelContainer/MarginContainer/VBoxContainer/HSplitContainer/PropertiesContainer/TabContainer/Sector/ScrollContainer/MarginContainer/SectorPropertiesContainer/TechUpgradeSection/HBoxContainer2"]
 layout_mode = 2
 theme_override_font_sizes/font_size = 12
 text = "Sound type: "
 
-[node name="SoundTypeOptionButton" type="OptionButton" parent="PanelContainer/MarginContainer/VBoxContainer/HSplitContainer/PropertiesContainer/TabContainer/Sector/ScrollContainer/MarginContainer/VBoxContainer/TechUpgradeSection/HBoxContainer2"]
+[node name="SoundTypeOptionButton" type="OptionButton" parent="PanelContainer/MarginContainer/VBoxContainer/HSplitContainer/PropertiesContainer/TabContainer/Sector/ScrollContainer/MarginContainer/SectorPropertiesContainer/TechUpgradeSection/HBoxContainer2"]
 unique_name_in_owner = true
 layout_mode = 2
 theme_override_font_sizes/font_size = 11
@@ -1432,23 +1446,23 @@ popup/item_4/id = 4
 popup/item_5/text = "none"
 popup/item_5/id = 5
 
-[node name="TechUpgradeMBstatusCheckBox" type="CheckBox" parent="PanelContainer/MarginContainer/VBoxContainer/HSplitContainer/PropertiesContainer/TabContainer/Sector/ScrollContainer/MarginContainer/VBoxContainer/TechUpgradeSection"]
+[node name="TechUpgradeMBstatusCheckBox" type="CheckBox" parent="PanelContainer/MarginContainer/VBoxContainer/HSplitContainer/PropertiesContainer/TabContainer/Sector/ScrollContainer/MarginContainer/SectorPropertiesContainer/TechUpgradeSection"]
 unique_name_in_owner = true
 layout_mode = 2
 size_flags_horizontal = 4
 theme_override_font_sizes/font_size = 10
 text = "Make this tech upgrade invisible in the Mission Briefing"
 
-[node name="HBoxContainer3" type="HBoxContainer" parent="PanelContainer/MarginContainer/VBoxContainer/HSplitContainer/PropertiesContainer/TabContainer/Sector/ScrollContainer/MarginContainer/VBoxContainer/TechUpgradeSection"]
+[node name="HBoxContainer3" type="HBoxContainer" parent="PanelContainer/MarginContainer/VBoxContainer/HSplitContainer/PropertiesContainer/TabContainer/Sector/ScrollContainer/MarginContainer/SectorPropertiesContainer/TechUpgradeSection"]
 layout_mode = 2
 alignment = 1
 
-[node name="Label" type="Label" parent="PanelContainer/MarginContainer/VBoxContainer/HSplitContainer/PropertiesContainer/TabContainer/Sector/ScrollContainer/MarginContainer/VBoxContainer/TechUpgradeSection/HBoxContainer3"]
+[node name="Label" type="Label" parent="PanelContainer/MarginContainer/VBoxContainer/HSplitContainer/PropertiesContainer/TabContainer/Sector/ScrollContainer/MarginContainer/SectorPropertiesContainer/TechUpgradeSection/HBoxContainer3"]
 layout_mode = 2
 theme_override_font_sizes/font_size = 12
 text = "Modify: "
 
-[node name="TUmodifyOptionButton" type="OptionButton" parent="PanelContainer/MarginContainer/VBoxContainer/HSplitContainer/PropertiesContainer/TabContainer/Sector/ScrollContainer/MarginContainer/VBoxContainer/TechUpgradeSection/HBoxContainer3"]
+[node name="TUmodifyOptionButton" type="OptionButton" parent="PanelContainer/MarginContainer/VBoxContainer/HSplitContainer/PropertiesContainer/TabContainer/Sector/ScrollContainer/MarginContainer/SectorPropertiesContainer/TechUpgradeSection/HBoxContainer3"]
 unique_name_in_owner = true
 layout_mode = 2
 theme_override_font_sizes/font_size = 12
@@ -1458,34 +1472,34 @@ popup/item_0/text = "Test item 1"
 popup/item_1/text = "Test item 2"
 popup/item_1/id = 1
 
-[node name="TUAddItemButton" type="Button" parent="PanelContainer/MarginContainer/VBoxContainer/HSplitContainer/PropertiesContainer/TabContainer/Sector/ScrollContainer/MarginContainer/VBoxContainer/TechUpgradeSection/HBoxContainer3"]
+[node name="TUAddItemButton" type="Button" parent="PanelContainer/MarginContainer/VBoxContainer/HSplitContainer/PropertiesContainer/TabContainer/Sector/ScrollContainer/MarginContainer/SectorPropertiesContainer/TechUpgradeSection/HBoxContainer3"]
 unique_name_in_owner = true
 layout_mode = 2
 text = "+"
 
-[node name="TechUpgradeModifiersContainer" type="VBoxContainer" parent="PanelContainer/MarginContainer/VBoxContainer/HSplitContainer/PropertiesContainer/TabContainer/Sector/ScrollContainer/MarginContainer/VBoxContainer/TechUpgradeSection"]
+[node name="TechUpgradeModifiersContainer" type="VBoxContainer" parent="PanelContainer/MarginContainer/VBoxContainer/HSplitContainer/PropertiesContainer/TabContainer/Sector/ScrollContainer/MarginContainer/SectorPropertiesContainer/TechUpgradeSection"]
 unique_name_in_owner = true
 layout_mode = 2
 alignment = 1
 
-[node name="TechUpgradeModifier1" parent="PanelContainer/MarginContainer/VBoxContainer/HSplitContainer/PropertiesContainer/TabContainer/Sector/ScrollContainer/MarginContainer/VBoxContainer/TechUpgradeSection/TechUpgradeModifiersContainer" instance=ExtResource("20_gggi6")]
+[node name="TechUpgradeModifier1" parent="PanelContainer/MarginContainer/VBoxContainer/HSplitContainer/PropertiesContainer/TabContainer/Sector/ScrollContainer/MarginContainer/SectorPropertiesContainer/TechUpgradeSection/TechUpgradeModifiersContainer" instance=ExtResource("20_gggi6")]
 layout_mode = 2
 
-[node name="TechUpgradeModifier2" parent="PanelContainer/MarginContainer/VBoxContainer/HSplitContainer/PropertiesContainer/TabContainer/Sector/ScrollContainer/MarginContainer/VBoxContainer/TechUpgradeSection/TechUpgradeModifiersContainer" instance=ExtResource("20_gggi6")]
+[node name="TechUpgradeModifier2" parent="PanelContainer/MarginContainer/VBoxContainer/HSplitContainer/PropertiesContainer/TabContainer/Sector/ScrollContainer/MarginContainer/SectorPropertiesContainer/TechUpgradeSection/TechUpgradeModifiersContainer" instance=ExtResource("20_gggi6")]
 layout_mode = 2
 
-[node name="TechUpgradeModifier3" parent="PanelContainer/MarginContainer/VBoxContainer/HSplitContainer/PropertiesContainer/TabContainer/Sector/ScrollContainer/MarginContainer/VBoxContainer/TechUpgradeSection/TechUpgradeModifiersContainer" instance=ExtResource("21_0gryv")]
+[node name="TechUpgradeModifier3" parent="PanelContainer/MarginContainer/VBoxContainer/HSplitContainer/PropertiesContainer/TabContainer/Sector/ScrollContainer/MarginContainer/SectorPropertiesContainer/TechUpgradeSection/TechUpgradeModifiersContainer" instance=ExtResource("21_0gryv")]
 layout_mode = 2
 
-[node name="KeySectorSection" type="VBoxContainer" parent="PanelContainer/MarginContainer/VBoxContainer/HSplitContainer/PropertiesContainer/TabContainer/Sector/ScrollContainer/MarginContainer/VBoxContainer"]
+[node name="KeySectorSection" type="VBoxContainer" parent="PanelContainer/MarginContainer/VBoxContainer/HSplitContainer/PropertiesContainer/TabContainer/Sector/ScrollContainer/MarginContainer/SectorPropertiesContainer"]
 unique_name_in_owner = true
 layout_mode = 2
 alignment = 1
 
-[node name="HSeparator" type="HSeparator" parent="PanelContainer/MarginContainer/VBoxContainer/HSplitContainer/PropertiesContainer/TabContainer/Sector/ScrollContainer/MarginContainer/VBoxContainer/KeySectorSection"]
+[node name="HSeparator" type="HSeparator" parent="PanelContainer/MarginContainer/VBoxContainer/HSplitContainer/PropertiesContainer/TabContainer/Sector/ScrollContainer/MarginContainer/SectorPropertiesContainer/KeySectorSection"]
 layout_mode = 2
 
-[node name="TestLabel" type="Label" parent="PanelContainer/MarginContainer/VBoxContainer/HSplitContainer/PropertiesContainer/TabContainer/Sector/ScrollContainer/MarginContainer/VBoxContainer/KeySectorSection"]
+[node name="TestLabel" type="Label" parent="PanelContainer/MarginContainer/VBoxContainer/HSplitContainer/PropertiesContainer/TabContainer/Sector/ScrollContainer/MarginContainer/SectorPropertiesContainer/KeySectorSection"]
 layout_mode = 2
 theme_override_font_sizes/font_size = 12
 text = "Key sector N: 

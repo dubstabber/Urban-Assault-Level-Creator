@@ -10,6 +10,7 @@ var hs_robo_images := {}
 var squad_images := {}
 var squad_icons := {}
 var building_icons := {}
+var building_side_images := {}
 var special_building_images := {}
 var sector_item_images := {}
 
@@ -86,3 +87,105 @@ func _ready():
 	
 	sector_item_images.beam_gate_key_sector = load("res://resources/img/sectorItems/keysector.png")
 	sector_item_images.bomb_key_sector = load("res://resources/img/sectorItems/sectorbomb.png")
+	
+	building_side_images[1] = {}
+	building_side_images[2] = {}
+	building_side_images[3] = {}
+	building_side_images[4] = {}
+	building_side_images[5] = {}
+	building_side_images[6] = {}
+	
+	var idx := 0
+	while(idx < 256):
+		if idx == 54: idx = 59
+		if idx == 60: idx = 66
+		if idx == 83: idx = 95
+		if idx == 105: idx = 110
+		if idx == 114: idx = 120
+		if idx == 122: idx = 130
+		if idx == 142: idx = 150
+		if idx == 190: idx = 198
+		if idx == 206: idx = 207
+		if idx == 209: idx = 228
+		if idx == 237: idx = 239
+		
+		building_side_images[1][idx] = load("res://resources/img/Sector_images/set1-side/Set1_sector%s.jpg" % idx)
+		idx += 1
+		
+	
+	idx = 0
+	while(idx < 256):
+		if idx == 25: idx = 27
+		if idx == 105: idx = 110
+		if idx == 114: idx = 118
+		if idx == 132: idx = 133
+		if idx == 134: idx = 150
+		if idx == 196: idx = 198
+		if idx == 206: idx = 207
+		if idx == 209: idx = 210
+		if idx == 226: idx = 228
+		if idx == 231: idx = 239
+		building_side_images[2][idx] = load("res://resources/img/Sector_images/set2-side/Set2_sector%s.jpg" % idx)
+		idx += 1
+	
+	idx = 0
+	while(idx < 256):
+		if idx == 50: idx = 59
+		if idx == 60: idx = 66
+		if idx == 83: idx = 100
+		if idx == 105: idx = 110
+		if idx == 114: idx = 121
+		if idx == 122: idx = 130
+		if idx == 142: idx = 150
+		if idx == 190: idx = 198
+		if idx == 206: idx = 207
+		if idx == 209: idx = 228
+		if idx == 231: idx = 239
+		building_side_images[3][idx] = load("res://resources/img/Sector_images/set3-side/Set3_sector%s.jpg" % idx)
+		idx += 1
+		
+	idx = 0
+	while(idx < 256):
+		if idx == 50: idx = 59
+		if idx == 61: idx = 66
+		if idx == 83: idx = 100
+		if idx == 105: idx = 110
+		if idx == 114: idx = 121
+		if idx == 122: idx = 130
+		if idx == 142: idx = 150
+		if idx == 190: idx = 198
+		if idx == 206: idx = 207
+		if idx == 209: idx = 228
+		if idx == 231: idx = 239
+		building_side_images[4][idx] = load("res://resources/img/Sector_images/set4-side/Set4_sector%s.jpg" % idx)
+		idx += 1
+		
+	idx = 0
+	while(idx < 256):
+		if idx == 96: idx = 97
+		if idx == 117: idx = 118
+		if idx == 132: idx = 133
+		if idx == 138: idx = 150
+		if idx == 192: idx = 198
+		if idx == 206: idx = 207
+		if idx == 209: idx = 210
+		if idx == 226: idx = 228
+		if idx == 231: idx = 239
+		building_side_images[5][idx] = load("res://resources/img/Sector_images/set5-side/Set5_sector%s.jpg" % idx)
+		idx += 1
+		
+	idx = 0
+	while(idx < 256):
+		if idx == 50: idx = 59
+		if idx == 60: idx = 66
+		if idx == 83: idx = 95
+		if idx == 105: idx = 110
+		if idx == 114: idx = 121
+		if idx == 122: idx = 130
+		if idx == 142: idx = 150
+		if idx == 190: idx = 198
+		if idx == 206: idx = 207
+		if idx == 209: idx = 228
+		if idx == 236: idx = 239
+		building_side_images[6][idx] = load("res://resources/img/Sector_images/set6-side/Set6_sector%s.jpg" % idx)
+		idx += 1

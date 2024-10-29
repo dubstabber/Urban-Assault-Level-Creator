@@ -61,8 +61,15 @@ func _input(event):
 		right_clicked_x = round(get_local_mouse_position().x)
 		right_clicked_y = round(get_local_mouse_position().y)
 		handle_selection(right_clicked_x, right_clicked_y)
+		CurrentMapData.selected_unit = null
 		%MapContextMenu.position = Vector2(right_clicked_x_global, right_clicked_y_global)
 		%MapContextMenu.popup()
+	if event is InputEventKey and event.pressed:
+		var number_key = event.unicode - KEY_0
+		if number_key >= 0 and number_key <= 7:
+			if CurrentMapData.selected_sector_idx >= 0 and CurrentMapData.own_map.size() > 0:
+				CurrentMapData.own_map[CurrentMapData.selected_sector_idx] = number_key
+				EventSystem.map_updated.emit()
 	if (event.is_action_pressed("increment_height") and 
 		CurrentMapData.hgt_map.size() > 0 and
 		CurrentMapData.border_selected_sector_idx >= 0 and
@@ -233,6 +240,7 @@ func handle_selection(clicked_x: int, clicked_y: int):
 	for tu in CurrentMapData.tech_upgrades:
 		if tu.sec_x == CurrentMapData.selected_sector.x and tu.sec_y == CurrentMapData.selected_sector.y:
 			CurrentMapData.selected_tech_upgrade = tu
+	EventSystem.sector_selected.emit()
 	queue_redraw()
 
 
