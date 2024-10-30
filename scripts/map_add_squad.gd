@@ -35,6 +35,7 @@ func _ready() -> void:
 
 
 func add_squad(idx: int, squads_menu: PopupMenu, faction: String, owner_id: int, is_other := false):
+	if not CurrentMapData.typ_map.size() > 0: return
 	var squad_name = squads_menu.get_item_text(idx)
 	var squad_data: Dictionary
 	if not is_other: 

@@ -58,6 +58,7 @@ func _input(event):
 			#TODO: Implement multi-sector selection
 			print('selection is kept')
 	if event.is_action_pressed("context_menu"):
+		if not CurrentMapData.typ_map.size() > 0: return
 		right_clicked_x = round(get_local_mouse_position().x)
 		right_clicked_y = round(get_local_mouse_position().y)
 		handle_selection(right_clicked_x, right_clicked_y)

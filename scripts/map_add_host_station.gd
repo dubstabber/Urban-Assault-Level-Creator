@@ -15,4 +15,5 @@ func _ready() -> void:
 
 
 func add_hoststation(idx, submenu):
-	EventSystem.hoststation_added.emit(submenu.get_item_text(idx))
+	if CurrentMapData.typ_map.size() > 0:
+		EventSystem.hoststation_added.emit(submenu.get_item_text(idx))
