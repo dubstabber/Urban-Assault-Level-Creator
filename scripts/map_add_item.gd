@@ -41,6 +41,8 @@ func _ready() -> void:
 	add_item_submenu.add_submenu_item('Add stoudson bomb key sector to', 'add_bomb_key_sector')
 	
 	get_parent().add_submenu_item('Add sector item', 'add_item')
+	EventSystem.item_updated.connect(update_beam_gate_key_sector_submenu)
+	EventSystem.item_updated.connect(update_bomb_key_sector_submenu)
 
 
 func _new_item(index:int, new_item_submenu: PopupMenu) -> void:

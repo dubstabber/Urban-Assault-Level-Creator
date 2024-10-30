@@ -28,3 +28,4 @@ func _on_index_pressed(index: int) -> void:
 		CurrentMapData.selected_bomb_key_sector = Vector2i(-1,-1)
 		
 		EventSystem.map_updated.emit()
+		EventSystem.item_updated.emit()
