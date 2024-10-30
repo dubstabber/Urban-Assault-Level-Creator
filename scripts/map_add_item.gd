@@ -58,6 +58,7 @@ func _new_item(index:int, new_item_submenu: PopupMenu) -> void:
 			
 			var bg = BeamGate.new(CurrentMapData.selected_sector.x,CurrentMapData.selected_sector.y)
 			CurrentMapData.beam_gates.append(bg)
+			CurrentMapData.typ_map[CurrentMapData.selected_sector_idx] = 202
 			CurrentMapData.selected_beam_gate = bg
 			update_beam_gate_key_sector_submenu()
 		'Stoudson Bomb':

@@ -1,4 +1,4 @@
-[gd_scene load_steps=25 format=3 uid="uid://ctgiwn3scteuk"]
+[gd_scene load_steps=26 format=3 uid="uid://ctgiwn3scteuk"]
 
 [ext_resource type="Script" path="res://scenes/main.gd" id="1_7pb5r"]
 [ext_resource type="Script" path="res://scripts/Map.gd" id="2_dum0m"]
@@ -20,6 +20,7 @@
 [ext_resource type="Script" path="res://scripts/unit_properties.gd" id="17_a4oqg"]
 [ext_resource type="Script" path="res://scripts/sector_properties.gd" id="19_3h4ps"]
 [ext_resource type="PackedScene" uid="uid://1tb0vcurfq8p" path="res://scenes/tech_upgrade_modifiers/tech_upgrade_modifier_1.tscn" id="20_gggi6"]
+[ext_resource type="PackedScene" uid="uid://bbeqrroj2yuc6" path="res://scenes/ui_components/level_unlocked_container.tscn" id="20_svc1w"]
 [ext_resource type="PackedScene" uid="uid://cr4k2w8eq5ovg" path="res://scenes/tech_upgrade_modifiers/tech_upgrade_modifier_2.tscn" id="21_0gryv"]
 
 [sub_resource type="PlaceholderTexture2D" id="PlaceholderTexture2D_37be0"]
@@ -1253,17 +1254,11 @@ unique_name_in_owner = true
 layout_mode = 2
 alignment = 1
 
-[node name="TestLabel" type="Label" parent="PanelContainer/MarginContainer/VBoxContainer/HSplitContainer/PropertiesContainer/TabContainer/Sector/ScrollContainer/MarginContainer/SectorPropertiesContainer/BeamGateSection/UnlockLevelsContainer"]
+[node name="LevelUnlockedContainer" parent="PanelContainer/MarginContainer/VBoxContainer/HSplitContainer/PropertiesContainer/TabContainer/Sector/ScrollContainer/MarginContainer/SectorPropertiesContainer/BeamGateSection/UnlockLevelsContainer" instance=ExtResource("20_svc1w")]
 layout_mode = 2
-theme_override_font_sizes/font_size = 12
-text = "This beam gate unlocks: L0101"
-horizontal_alignment = 1
 
-[node name="TestLabel2" type="Label" parent="PanelContainer/MarginContainer/VBoxContainer/HSplitContainer/PropertiesContainer/TabContainer/Sector/ScrollContainer/MarginContainer/SectorPropertiesContainer/BeamGateSection/UnlockLevelsContainer"]
+[node name="LevelUnlockedContainer2" parent="PanelContainer/MarginContainer/VBoxContainer/HSplitContainer/PropertiesContainer/TabContainer/Sector/ScrollContainer/MarginContainer/SectorPropertiesContainer/BeamGateSection/UnlockLevelsContainer" instance=ExtResource("20_svc1w")]
 layout_mode = 2
-theme_override_font_sizes/font_size = 12
-text = "This beam gate unlocks: L0202"
-horizontal_alignment = 1
 
 [node name="StoudsonBombSection" type="VBoxContainer" parent="PanelContainer/MarginContainer/VBoxContainer/HSplitContainer/PropertiesContainer/TabContainer/Sector/ScrollContainer/MarginContainer/SectorPropertiesContainer"]
 unique_name_in_owner = true

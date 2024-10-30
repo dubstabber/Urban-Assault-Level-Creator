@@ -213,8 +213,10 @@ func handle_selection(clicked_x: int, clicked_y: int):
 				break
 			h_size += 1200
 			border_sector_counter += 1
-			if (y_sector > 0 and y_sector < CurrentMapData.vertical_sectors+1 and 
-				x_sector > 0 and x_sector < CurrentMapData.horizontal_sectors+1):
+			if (y_sector > 0 and y_sector < CurrentMapData.vertical_sectors+1 and
+				x_sector > 0 and x_sector < CurrentMapData.horizontal_sectors+1 and
+				sector_counter < (CurrentMapData.vertical_sectors*CurrentMapData.horizontal_sectors-1)
+				):
 				sector_counter += 1
 		v_size += 1200
 		h_size = 0
