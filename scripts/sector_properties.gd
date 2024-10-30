@@ -32,6 +32,8 @@ func _ready() -> void:
 			var level_container = UNLOCKED_LEVEL_CONTAINER.instantiate()
 			level_container.create(level_index)
 			%UnlockLevelsContainer.add_child(level_container)
+		if CurrentMapData.selected_beam_gate.target_levels.size() != 0:
+			%NoUnlockedLevelLabel.hide()
 		)
 
 
@@ -98,12 +100,15 @@ func _update_properties() -> void:
 			
 			for lvl in %UnlockLevelsContainer.get_children():
 				lvl.queue_free()
-			
-			for lvl_index in CurrentMapData.selected_beam_gate.target_levels:
-				var level_container = UNLOCKED_LEVEL_CONTAINER.instantiate()
-				level_container.create(lvl_index)
-				%UnlockLevelsContainer.add_child(level_container)
-				
+			if CurrentMapData.selected_beam_gate.target_levels.size() == 0:
+				%NoUnlockedLevelLabel.show()
+			else:
+				%NoUnlockedLevelLabel.hide()
+				for lvl_index in CurrentMapData.selected_beam_gate.target_levels:
+					var level_container = UNLOCKED_LEVEL_CONTAINER.instantiate()
+					level_container.create(lvl_index)
+					%UnlockLevelsContainer.add_child(level_container)
+			 
 		else:
 			%BeamGateSection.hide()
 		

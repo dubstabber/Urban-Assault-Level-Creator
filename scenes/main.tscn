@@ -1249,15 +1249,27 @@ text = "Add"
 [node name="HSeparator2" type="HSeparator" parent="PanelContainer/MarginContainer/VBoxContainer/HSplitContainer/PropertiesContainer/TabContainer/Sector/ScrollContainer/MarginContainer/SectorPropertiesContainer/BeamGateSection"]
 layout_mode = 2
 
+[node name="NoUnlockedLevelLabel" type="Label" parent="PanelContainer/MarginContainer/VBoxContainer/HSplitContainer/PropertiesContainer/TabContainer/Sector/ScrollContainer/MarginContainer/SectorPropertiesContainer/BeamGateSection"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(100, 30)
+layout_mode = 2
+theme_override_colors/font_color = Color(1, 0, 0, 1)
+theme_override_font_sizes/font_size = 14
+text = "Unlock at least one level to prevent the game from crashing"
+horizontal_alignment = 1
+autowrap_mode = 2
+
 [node name="UnlockLevelsContainer" type="VBoxContainer" parent="PanelContainer/MarginContainer/VBoxContainer/HSplitContainer/PropertiesContainer/TabContainer/Sector/ScrollContainer/MarginContainer/SectorPropertiesContainer/BeamGateSection"]
 unique_name_in_owner = true
 layout_mode = 2
 alignment = 1
 
 [node name="LevelUnlockedContainer" parent="PanelContainer/MarginContainer/VBoxContainer/HSplitContainer/PropertiesContainer/TabContainer/Sector/ScrollContainer/MarginContainer/SectorPropertiesContainer/BeamGateSection/UnlockLevelsContainer" instance=ExtResource("20_svc1w")]
+visible = false
 layout_mode = 2
 
 [node name="LevelUnlockedContainer2" parent="PanelContainer/MarginContainer/VBoxContainer/HSplitContainer/PropertiesContainer/TabContainer/Sector/ScrollContainer/MarginContainer/SectorPropertiesContainer/BeamGateSection/UnlockLevelsContainer" instance=ExtResource("20_svc1w")]
+visible = false
 layout_mode = 2
 
 [node name="StoudsonBombSection" type="VBoxContainer" parent="PanelContainer/MarginContainer/VBoxContainer/HSplitContainer/PropertiesContainer/TabContainer/Sector/ScrollContainer/MarginContainer/SectorPropertiesContainer"]
