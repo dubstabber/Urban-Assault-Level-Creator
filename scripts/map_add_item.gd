@@ -70,6 +70,8 @@ func _new_item(index:int, new_item_submenu: PopupMenu) -> void:
 			
 			var bomb = StoudsonBomb.new(CurrentMapData.selected_sector.x,CurrentMapData.selected_sector.y)
 			CurrentMapData.stoudson_bombs.append(bomb)
+			CurrentMapData.typ_map[CurrentMapData.selected_sector_idx] = 245
+			CurrentMapData.selected_bomb = bomb
 			update_bomb_key_sector_submenu()
 		'Tech Upgrade':
 			for tu in CurrentMapData.tech_upgrades:
@@ -78,6 +80,7 @@ func _new_item(index:int, new_item_submenu: PopupMenu) -> void:
 			
 			var tu = TechUpgrade.new(CurrentMapData.selected_sector.x,CurrentMapData.selected_sector.y)
 			CurrentMapData.tech_upgrades.append(tu)
+			CurrentMapData.selected_tech_upgrade = tu
 	EventSystem.map_updated.emit()
 
 
