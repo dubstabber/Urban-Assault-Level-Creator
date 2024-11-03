@@ -1,4 +1,6 @@
-[gd_scene format=3 uid="uid://cr4k2w8eq5ovg"]
+[gd_scene load_steps=2 format=3 uid="uid://cr4k2w8eq5ovg"]
+
+[ext_resource type="Script" path="res://scenes/tech_upgrade_modifiers/tech_upgrade_modifier_2.gd" id="1_ay4v0"]
 
 [node name="TechUpgradeModifier2" type="VBoxContainer"]
 anchors_preset = 15
@@ -8,52 +10,62 @@ grow_horizontal = 2
 grow_vertical = 2
 size_flags_horizontal = 4
 alignment = 1
+script = ExtResource("1_ay4v0")
 
 [node name="HSeparator" type="HSeparator" parent="."]
 layout_mode = 2
 
 [node name="ItemLabel" type="Label" parent="."]
+unique_name_in_owner = true
 layout_mode = 2
 theme_override_font_sizes/font_size = 14
 text = "Item name"
 horizontal_alignment = 1
 
 [node name="EnableResistanceCheckBox" type="CheckBox" parent="."]
+unique_name_in_owner = true
 layout_mode = 2
 theme_override_font_sizes/font_size = 12
 text = "Enable for Resistance"
 
 [node name="EnableGhorkovCheckBox" type="CheckBox" parent="."]
+unique_name_in_owner = true
 layout_mode = 2
 theme_override_font_sizes/font_size = 12
 text = "Enable for Ghorkov"
 
 [node name="EnableTaerkastenCheckBox" type="CheckBox" parent="."]
+unique_name_in_owner = true
 layout_mode = 2
 theme_override_font_sizes/font_size = 12
 text = "Enable for Taerkasten"
 
 [node name="EnableMykonianCheckBox" type="CheckBox" parent="."]
+unique_name_in_owner = true
 layout_mode = 2
 theme_override_font_sizes/font_size = 12
 text = "Enable for Mykonian"
 
 [node name="EnableSulgogarCheckBox" type="CheckBox" parent="."]
+unique_name_in_owner = true
 layout_mode = 2
 theme_override_font_sizes/font_size = 12
 text = "Enable for Sulgogar"
 
 [node name="EnableBlackSectCheckBox" type="CheckBox" parent="."]
+unique_name_in_owner = true
 layout_mode = 2
 theme_override_font_sizes/font_size = 12
 text = "Enable for Black Sect"
 
 [node name="EnableTrainingCheckBox" type="CheckBox" parent="."]
+unique_name_in_owner = true
 layout_mode = 2
 theme_override_font_sizes/font_size = 12
 text = "Enable for Training host station"
 
 [node name="RemoveButton" type="Button" parent="."]
+unique_name_in_owner = true
 layout_mode = 2
 size_flags_horizontal = 4
 text = "Remove"

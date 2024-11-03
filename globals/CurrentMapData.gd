@@ -30,16 +30,22 @@ var selected_tech_upgrade: TechUpgrade = null
 var selected_bg_key_sector: Vector2i = Vector2i(-1, -1)
 var selected_bomb_key_sector: Vector2i = Vector2i(-1, -1)
 
+var units_db := {}
 var blg_names := {}
+var weapons_db := {}
 
 
 func _ready():
 	game_data_type = Preloads.ua_data.data.keys()[0]
 	for hs in Preloads.ua_data.data[game_data_type].hoststations:
+		for unit: Dictionary in Preloads.ua_data.data[game_data_type].hoststations[hs].units:
+			units_db[unit.name] = unit.id
 		for building: Dictionary in Preloads.ua_data.data[game_data_type].hoststations[hs].buildings:
 			blg_names[str(building.id)] = building.name
-	for building in Preloads.ua_data.data[game_data_type].other.buildings:
+	for building: Dictionary in Preloads.ua_data.data[game_data_type].other.buildings:
 		blg_names[str(building.id)] = building.name
-	
-	
-	
+	for unit: Dictionary in Preloads.ua_data.data[game_data_type].other.units:
+		units_db[unit.name] = unit.id
+	for weapon in Preloads.ua_data.data[game_data_type].techUpgrade:
+		units_db[weapon.name] = weapon.id
+		weapons_db[weapon.name] = weapon.id

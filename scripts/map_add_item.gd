@@ -80,6 +80,7 @@ func _new_item(index:int, new_item_submenu: PopupMenu) -> void:
 			
 			var tu = TechUpgrade.new(CurrentMapData.selected_sector.x,CurrentMapData.selected_sector.y)
 			CurrentMapData.tech_upgrades.append(tu)
+			CurrentMapData.typ_map[CurrentMapData.selected_sector_idx] = 100
 			CurrentMapData.selected_tech_upgrade = tu
 	EventSystem.map_updated.emit()
 
