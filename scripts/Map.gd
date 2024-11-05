@@ -21,6 +21,8 @@ var own_map_values_visible := false
 var hgt_map_values_visible := false
 var blg_map_values_visible := false
 
+var typ_map_images_visible := true
+
 @onready var map_camera = $Camera2D
 
 
@@ -106,7 +108,8 @@ func _draw():
 			if (x_sector > 0 and x_sector < CurrentMapData.horizontal_sectors+1 and 
 				y_sector > 0 and y_sector < CurrentMapData.vertical_sectors+1):
 				if CurrentMapData.is_sector_valid(current_sector):
-					draw_texture_rect(Preloads.building_top_images[CurrentMapData.level_set][CurrentMapData.typ_map[current_sector]], Rect2(h_grid, v_grid, 1200, 1200), false)
+					if typ_map_images_visible:
+						draw_texture_rect(Preloads.building_top_images[CurrentMapData.level_set][CurrentMapData.typ_map[current_sector]], Rect2(h_grid, v_grid, 1200, 1200), false)
 				else:
 					draw_texture_rect(Preloads.error_sign, Rect2(h_grid+sector_indent,v_grid+sector_indent, 1200-(sector_indent*2),1200-(sector_indent*2)), false)
 				if Preloads.special_building_images.has(str(CurrentMapData.blg_map[current_sector])):

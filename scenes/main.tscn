@@ -1,4 +1,4 @@
-[gd_scene load_steps=28 format=3 uid="uid://ctgiwn3scteuk"]
+[gd_scene load_steps=29 format=3 uid="uid://ctgiwn3scteuk"]
 
 [ext_resource type="Script" path="res://scenes/main.gd" id="1_7pb5r"]
 [ext_resource type="Script" path="res://scripts/Map.gd" id="2_dum0m"]
@@ -24,6 +24,23 @@
 [ext_resource type="PackedScene" uid="uid://cr4k2w8eq5ovg" path="res://scenes/tech_upgrade_modifiers/tech_upgrade_modifier_2.tscn" id="21_0gryv"]
 [ext_resource type="PackedScene" uid="uid://co34kw1wyoao3" path="res://scenes/ui_components/beam_gate_key_sector_v_box.tscn" id="23_ikhfp"]
 [ext_resource type="PackedScene" uid="uid://v6hlaoteehbu" path="res://scenes/ui_components/bomb_key_sector_v_box.tscn" id="24_aq0rs"]
+
+[sub_resource type="GDScript" id="GDScript_hihdk"]
+script/source = "extends TabContainer
+
+
+func _ready() -> void:
+	EventSystem.hoststation_added.connect(func(_hs_name): $Unit.show())
+	EventSystem.item_updated.connect(func(): $Sector.show())
+
+
+func _input(event: InputEvent) -> void:
+	if event is InputEventMouseButton and event.button_index == MOUSE_BUTTON_LEFT and event.double_click:
+		if CurrentMapData.selected_unit:
+			$Unit.show()
+		else:
+			$Sector.show()
+"
 
 [sub_resource type="PlaceholderTexture2D" id="PlaceholderTexture2D_37be0"]
 
@@ -178,6 +195,7 @@ size_flags_horizontal = 3
 size_flags_vertical = 3
 current_tab = 1
 clip_tabs = false
+script = SubResource("GDScript_hihdk")
 
 [node name="Unit" type="TabBar" parent="PanelContainer/MarginContainer/VBoxContainer/HSplitContainer/PropertiesContainer/TabContainer"]
 visible = false

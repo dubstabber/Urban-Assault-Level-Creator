@@ -63,7 +63,7 @@ func _new_item(index:int, new_item_submenu: PopupMenu) -> void:
 			CurrentMapData.typ_map[CurrentMapData.selected_sector_idx] = 202
 			CurrentMapData.blg_map[CurrentMapData.selected_sector_idx] = 0
 			CurrentMapData.selected_beam_gate = bg
-			update_beam_gate_key_sector_submenu()
+			EventSystem.item_updated.emit()
 		'Stoudson Bomb':
 			for bomb in CurrentMapData.stoudson_bombs:
 				if bomb.sec_x == CurrentMapData.selected_sector.x and bomb.sec_y == CurrentMapData.selected_sector.y:
@@ -74,7 +74,7 @@ func _new_item(index:int, new_item_submenu: PopupMenu) -> void:
 			CurrentMapData.typ_map[CurrentMapData.selected_sector_idx] = 245
 			CurrentMapData.blg_map[CurrentMapData.selected_sector_idx] = 0
 			CurrentMapData.selected_bomb = bomb
-			update_bomb_key_sector_submenu()
+			EventSystem.item_updated.emit()
 		'Tech Upgrade':
 			for tu in CurrentMapData.tech_upgrades:
 				if tu.sec_x == CurrentMapData.selected_sector.x and tu.sec_y == CurrentMapData.selected_sector.y:
@@ -85,6 +85,7 @@ func _new_item(index:int, new_item_submenu: PopupMenu) -> void:
 			CurrentMapData.typ_map[CurrentMapData.selected_sector_idx] = 100
 			CurrentMapData.blg_map[CurrentMapData.selected_sector_idx] = 0
 			CurrentMapData.selected_tech_upgrade = tu
+			EventSystem.item_updated.emit()
 	EventSystem.map_updated.emit()
 
 
