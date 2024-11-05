@@ -76,7 +76,7 @@ text = "Add energy:"
 [node name="AddEnergyLineEdit" type="LineEdit" parent="GridContainer"]
 unique_name_in_owner = true
 layout_mode = 2
-text = "000"
+text = "0"
 
 [node name="Label2" type="Label" parent="GridContainer"]
 layout_mode = 2
@@ -86,7 +86,7 @@ text = "Add shield:"
 [node name="AddShieldLineEdit" type="LineEdit" parent="GridContainer"]
 unique_name_in_owner = true
 layout_mode = 2
-text = "000"
+text = "0"
 
 [node name="Label3" type="Label" parent="GridContainer"]
 layout_mode = 2
@@ -96,7 +96,7 @@ text = "Add weapon:"
 [node name="AddWeaponLineEdit" type="LineEdit" parent="GridContainer"]
 unique_name_in_owner = true
 layout_mode = 2
-text = "000"
+text = "0"
 
 [node name="Label4" type="Label" parent="GridContainer"]
 layout_mode = 2
@@ -106,7 +106,7 @@ text = "Add radar:"
 [node name="AddRadarLineEdit" type="LineEdit" parent="GridContainer"]
 unique_name_in_owner = true
 layout_mode = 2
-text = "000"
+text = "0"
 
 [node name="Label5" type="Label" parent="GridContainer"]
 layout_mode = 2
@@ -116,7 +116,7 @@ text = "Add damage:"
 [node name="AddDamageLineEdit" type="LineEdit" parent="GridContainer"]
 unique_name_in_owner = true
 layout_mode = 2
-text = "000"
+text = "0"
 
 [node name="Label6" type="Label" parent="GridContainer"]
 layout_mode = 2
@@ -126,7 +126,7 @@ text = "Add shot time:"
 [node name="AddShotTimeLineEdit" type="LineEdit" parent="GridContainer"]
 unique_name_in_owner = true
 layout_mode = 2
-text = "000"
+text = "0"
 
 [node name="Label7" type="Label" parent="GridContainer"]
 layout_mode = 2
@@ -136,7 +136,7 @@ text = "Add shot time user:"
 [node name="AddShotTimeUserLineEdit" type="LineEdit" parent="GridContainer"]
 unique_name_in_owner = true
 layout_mode = 2
-text = "000"
+text = "0"
 
 [node name="RemoveButton" type="Button" parent="."]
 unique_name_in_owner = true

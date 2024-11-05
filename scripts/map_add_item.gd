@@ -92,11 +92,14 @@ func _add_beam_gate_key_sector(index: int) -> void:
 	CurrentMapData.selected_sector.y < CurrentMapData.vertical_sectors+1):
 		return
 	
+	# Prevent key sector duplication in the same sector
 	for ks in CurrentMapData.beam_gates[index].key_sectors:
 		if ks.x == CurrentMapData.selected_sector.x and ks.y == CurrentMapData.selected_sector.y:
 			return
 	
-	CurrentMapData.beam_gates[index].key_sectors.append(Vector2i(CurrentMapData.selected_sector.x, CurrentMapData.selected_sector.y))
+	var key_sector = Vector2i(CurrentMapData.selected_sector.x, CurrentMapData.selected_sector.y)
+	CurrentMapData.beam_gates[index].key_sectors.append(key_sector)
+	CurrentMapData.selected_bg_key_sector = key_sector
 	EventSystem.map_updated.emit()
 
 
@@ -106,12 +109,16 @@ func _add_bomb_key_sector(index: int) -> void:
 	CurrentMapData.selected_sector.y > 0 and 
 	CurrentMapData.selected_sector.y < CurrentMapData.vertical_sectors+1):
 		return
-		
+	
+	# Prevent key sector duplication in the same sector
 	for ks in CurrentMapData.stoudson_bombs[index].key_sectors:
 		if ks.x == CurrentMapData.selected_sector.x and ks.y == CurrentMapData.selected_sector.y:
 			return
 	
-	CurrentMapData.stoudson_bombs[index].key_sectors.append(Vector2i(CurrentMapData.selected_sector.x, CurrentMapData.selected_sector.y))
+	var bomb_key_sector = Vector2i(CurrentMapData.selected_sector.x, CurrentMapData.selected_sector.y)
+	CurrentMapData.stoudson_bombs[index].key_sectors.append(bomb_key_sector)
+	CurrentMapData.typ_map[CurrentMapData.selected_sector_idx] = 243
+	CurrentMapData.selected_bomb_key_sector = bomb_key_sector
 	EventSystem.map_updated.emit()
 
 

@@ -4,6 +4,8 @@ var UNLOCKED_LEVEL_CONTAINER = preload("res://scenes/ui_components/level_unlocke
 var TECH_UPGRADE_MODIFIER_1 = preload("res://scenes/tech_upgrade_modifiers/tech_upgrade_modifier_1.tscn")
 var TECH_UPGRADE_MODIFIER_2 = preload("res://scenes/tech_upgrade_modifiers/tech_upgrade_modifier_2.tscn")
 var TECH_UPGRADE_MODIFIER_3 = preload("res://scenes/tech_upgrade_modifiers/tech_upgrade_modifier_3.tscn")
+var BEAM_GATE_KEY_SECTOR_CONTAINER = preload("res://scenes/ui_components/beam_gate_key_sector_v_box.tscn")
+var STOUDSON_BOMB_KEY_SECTOR_CONTAINER = preload("res://scenes/ui_components/bomb_key_sector_v_box.tscn")
 
 
 func _ready() -> void:
@@ -211,19 +213,19 @@ func _update_properties() -> void:
 			
 			if CurrentMapData.selected_bomb.key_sectors.size() > 0:
 				%BombKeySectorsLabel.show()
-				%BombKeySectorContainer.show()
-				for bomb_ks in %BombKeySectorContainer.get_children():
+				%BombKeySectorsListContainer.show()
+				for bomb_ks in %BombKeySectorsListContainer.get_children():
 					bomb_ks.queue_free()
 				for i in CurrentMapData.selected_bomb.key_sectors.size():
 					var ks_label = Label.new()
-					%BombKeySectorContainer.add_child(ks_label)
+					%BombKeySectorsListContainer.add_child(ks_label)
 					ks_label.text = 'Key sector %s at X: %s Y: %s' % [i+1, CurrentMapData.selected_bomb.key_sectors[i].x, CurrentMapData.selected_bomb.key_sectors[i].y]
 					ks_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 					ks_label.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
 					ks_label["theme_override_font_sizes/font_size"] = 12
 			else:
 				%BombKeySectorsLabel.hide()
-				%BombKeySectorContainer.hide()
+				%BombKeySectorsListContainer.hide()
 		else:
 			%StoudsonBombSection.hide()
 		
@@ -261,6 +263,8 @@ func _update_properties() -> void:
 					return vehicle.vehicle_id == weapon_modifier.weapon_id):
 						continue
 				
+				# If weapon_modifier is just a single weapon then use "TECH_UPGRADE_MODIFIER_3" container
+				# else if weapon_modifier is a squad then use "TECH_UPGRADE_MODIFIER_1" container
 				var tu_modifier:VBoxContainer = null
 				for weapon_id in CurrentMapData.weapons_db.values():
 					if weapon_id == weapon_modifier.weapon_id:
@@ -290,13 +294,41 @@ func _update_properties() -> void:
 		else:
 			%TechUpgradeSection.hide()
 			
-		if CurrentMapData.selected_bg_key_sector.x >= 0 or CurrentMapData.selected_bomb_key_sector.x >= 0:
-			%KeySectorSection.show()
+		if CurrentMapData.selected_bg_key_sector:
+			%BeamGateKeySectorSection.show()
+			for child in %BeamGateKeySectorSection.get_children():
+				child.queue_free()
+			
+			for bg_index in CurrentMapData.beam_gates.size():
+				var ks_index = CurrentMapData.beam_gates[bg_index].key_sectors.find(CurrentMapData.selected_bg_key_sector)
+				if ks_index >= 0:
+					var beam_gate_key_sector_container = BEAM_GATE_KEY_SECTOR_CONTAINER.instantiate()
+					beam_gate_key_sector_container.set_labels(ks_index+1, bg_index+1)
+					%BeamGateKeySectorSection.add_child(beam_gate_key_sector_container)
+				
 		else:
-			%KeySectorSection.hide()
+			%BeamGateKeySectorSection.hide()
+			
+		if CurrentMapData.selected_bomb_key_sector:
+			%BombKeySectorSection.show()
+			for child in %BombKeySectorSection.get_children():
+				child.queue_free()
+			
+			for bomb_index in CurrentMapData.stoudson_bombs.size():
+				var ks_index = CurrentMapData.stoudson_bombs[bomb_index].key_sectors.find(CurrentMapData.selected_bomb_key_sector)
+				if ks_index >= 0:
+					var stoudson_bomb_key_sector_container = STOUDSON_BOMB_KEY_SECTOR_CONTAINER.instantiate()
+					if CurrentMapData.stoudson_bombs[bomb_index].inactive_bp == 35:
+						stoudson_bomb_key_sector_container.set_labels(ks_index+1, bomb_index+1,"normal")
+					elif CurrentMapData.stoudson_bombs[bomb_index].inactive_bp == 68:
+						stoudson_bomb_key_sector_container.set_labels(ks_index+1, bomb_index+1,"parasite")
+					%BombKeySectorSection.add_child(stoudson_bomb_key_sector_container)
+		else:
+			%BombKeySectorSection.hide()
+		
 	else:
 		%NoSectorLabel.show()
-	
+
 
 func update_countdown() -> void:
 	if CurrentMapData.selected_bomb:

@@ -1,4 +1,4 @@
-[gd_scene load_steps=26 format=3 uid="uid://ctgiwn3scteuk"]
+[gd_scene load_steps=28 format=3 uid="uid://ctgiwn3scteuk"]
 
 [ext_resource type="Script" path="res://scenes/main.gd" id="1_7pb5r"]
 [ext_resource type="Script" path="res://scripts/Map.gd" id="2_dum0m"]
@@ -22,6 +22,8 @@
 [ext_resource type="PackedScene" uid="uid://1tb0vcurfq8p" path="res://scenes/tech_upgrade_modifiers/tech_upgrade_modifier_1.tscn" id="20_gggi6"]
 [ext_resource type="PackedScene" uid="uid://bbeqrroj2yuc6" path="res://scenes/ui_components/level_unlocked_container.tscn" id="20_svc1w"]
 [ext_resource type="PackedScene" uid="uid://cr4k2w8eq5ovg" path="res://scenes/tech_upgrade_modifiers/tech_upgrade_modifier_2.tscn" id="21_0gryv"]
+[ext_resource type="PackedScene" uid="uid://co34kw1wyoao3" path="res://scenes/ui_components/beam_gate_key_sector_v_box.tscn" id="23_ikhfp"]
+[ext_resource type="PackedScene" uid="uid://v6hlaoteehbu" path="res://scenes/ui_components/bomb_key_sector_v_box.tscn" id="24_aq0rs"]
 
 [sub_resource type="PlaceholderTexture2D" id="PlaceholderTexture2D_37be0"]
 
@@ -1358,18 +1360,18 @@ theme_override_font_sizes/font_size = 14
 text = "This bomb contains key sectors:"
 horizontal_alignment = 1
 
-[node name="BombKeySectorContainer" type="VBoxContainer" parent="PanelContainer/MarginContainer/VBoxContainer/HSplitContainer/PropertiesContainer/TabContainer/Sector/ScrollContainer/MarginContainer/SectorPropertiesContainer/StoudsonBombSection"]
+[node name="BombKeySectorsListContainer" type="VBoxContainer" parent="PanelContainer/MarginContainer/VBoxContainer/HSplitContainer/PropertiesContainer/TabContainer/Sector/ScrollContainer/MarginContainer/SectorPropertiesContainer/StoudsonBombSection"]
 unique_name_in_owner = true
 layout_mode = 2
 alignment = 1
 
-[node name="TestLabel" type="Label" parent="PanelContainer/MarginContainer/VBoxContainer/HSplitContainer/PropertiesContainer/TabContainer/Sector/ScrollContainer/MarginContainer/SectorPropertiesContainer/StoudsonBombSection/BombKeySectorContainer"]
+[node name="TestLabel" type="Label" parent="PanelContainer/MarginContainer/VBoxContainer/HSplitContainer/PropertiesContainer/TabContainer/Sector/ScrollContainer/MarginContainer/SectorPropertiesContainer/StoudsonBombSection/BombKeySectorsListContainer"]
 layout_mode = 2
 theme_override_font_sizes/font_size = 12
 text = "Key sector 1 at X: x Y: y"
 horizontal_alignment = 1
 
-[node name="TestLabel2" type="Label" parent="PanelContainer/MarginContainer/VBoxContainer/HSplitContainer/PropertiesContainer/TabContainer/Sector/ScrollContainer/MarginContainer/SectorPropertiesContainer/StoudsonBombSection/BombKeySectorContainer"]
+[node name="TestLabel2" type="Label" parent="PanelContainer/MarginContainer/VBoxContainer/HSplitContainer/PropertiesContainer/TabContainer/Sector/ScrollContainer/MarginContainer/SectorPropertiesContainer/StoudsonBombSection/BombKeySectorsListContainer"]
 layout_mode = 2
 theme_override_font_sizes/font_size = 12
 text = "Key sector 2 at X: x Y: y"
@@ -1497,21 +1499,30 @@ layout_mode = 2
 [node name="TechUpgradeModifier3" parent="PanelContainer/MarginContainer/VBoxContainer/HSplitContainer/PropertiesContainer/TabContainer/Sector/ScrollContainer/MarginContainer/SectorPropertiesContainer/TechUpgradeSection/TechUpgradeModifiersContainer" instance=ExtResource("21_0gryv")]
 layout_mode = 2
 
-[node name="KeySectorSection" type="VBoxContainer" parent="PanelContainer/MarginContainer/VBoxContainer/HSplitContainer/PropertiesContainer/TabContainer/Sector/ScrollContainer/MarginContainer/SectorPropertiesContainer"]
+[node name="BeamGateKeySectorSection" type="VBoxContainer" parent="PanelContainer/MarginContainer/VBoxContainer/HSplitContainer/PropertiesContainer/TabContainer/Sector/ScrollContainer/MarginContainer/SectorPropertiesContainer"]
 unique_name_in_owner = true
 visible = false
 layout_mode = 2
 alignment = 1
 
-[node name="HSeparator" type="HSeparator" parent="PanelContainer/MarginContainer/VBoxContainer/HSplitContainer/PropertiesContainer/TabContainer/Sector/ScrollContainer/MarginContainer/SectorPropertiesContainer/KeySectorSection"]
+[node name="BeamGateKeySectorVBox" parent="PanelContainer/MarginContainer/VBoxContainer/HSplitContainer/PropertiesContainer/TabContainer/Sector/ScrollContainer/MarginContainer/SectorPropertiesContainer/BeamGateKeySectorSection" instance=ExtResource("23_ikhfp")]
 layout_mode = 2
 
-[node name="TestLabel" type="Label" parent="PanelContainer/MarginContainer/VBoxContainer/HSplitContainer/PropertiesContainer/TabContainer/Sector/ScrollContainer/MarginContainer/SectorPropertiesContainer/KeySectorSection"]
+[node name="BeamGateKeySectorVBox2" parent="PanelContainer/MarginContainer/VBoxContainer/HSplitContainer/PropertiesContainer/TabContainer/Sector/ScrollContainer/MarginContainer/SectorPropertiesContainer/BeamGateKeySectorSection" instance=ExtResource("23_ikhfp")]
 layout_mode = 2
-theme_override_font_sizes/font_size = 12
-text = "Key sector N: 
-This key sector belongs to beam gate M"
-horizontal_alignment = 1
+
+[node name="BeamGateKeySectorVBox3" parent="PanelContainer/MarginContainer/VBoxContainer/HSplitContainer/PropertiesContainer/TabContainer/Sector/ScrollContainer/MarginContainer/SectorPropertiesContainer/BeamGateKeySectorSection" instance=ExtResource("23_ikhfp")]
+layout_mode = 2
+
+[node name="BombKeySectorSection" type="VBoxContainer" parent="PanelContainer/MarginContainer/VBoxContainer/HSplitContainer/PropertiesContainer/TabContainer/Sector/ScrollContainer/MarginContainer/SectorPropertiesContainer"]
+unique_name_in_owner = true
+layout_mode = 2
+
+[node name="BombKeySectorVBox" parent="PanelContainer/MarginContainer/VBoxContainer/HSplitContainer/PropertiesContainer/TabContainer/Sector/ScrollContainer/MarginContainer/SectorPropertiesContainer/BombKeySectorSection" instance=ExtResource("24_aq0rs")]
+layout_mode = 2
+
+[node name="BombKeySectorVBox2" parent="PanelContainer/MarginContainer/VBoxContainer/HSplitContainer/PropertiesContainer/TabContainer/Sector/ScrollContainer/MarginContainer/SectorPropertiesContainer/BombKeySectorSection" instance=ExtResource("24_aq0rs")]
+layout_mode = 2
 
 [connection signal="close_requested" from="NewMapWindow" to="NewMapWindow" method="hide"]
 [connection signal="pressed" from="NewMapWindow/PanelContainer/MarginContainer3/HBoxContainer/CancelButton" to="NewMapWindow" method="hide"]
