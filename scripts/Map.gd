@@ -83,6 +83,12 @@ func _input(event):
 		CurrentMapData.hgt_map[CurrentMapData.border_selected_sector_idx] > 0):
 		CurrentMapData.hgt_map[CurrentMapData.border_selected_sector_idx] -= 1
 		queue_redraw()
+	if event.is_action_pressed("previous_building"):
+		Utils.decrement_typ_map()
+		EventSystem.map_updated.emit()
+	if event.is_action_pressed("next_building"):
+		Utils.increment_typ_map()
+		EventSystem.map_updated.emit()
 
 
 func _draw():

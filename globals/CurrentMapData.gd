@@ -2,7 +2,7 @@ extends Node
 
 var game_data_type:String
 
-var level_set := 6
+var level_set := 1
 var host_stations: Control
 var squads: Control
 var horizontal_sectors := 0
