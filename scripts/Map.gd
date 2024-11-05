@@ -189,8 +189,20 @@ func add_hoststation(hs: String):
 	CurrentMapData.host_stations.add_child(hoststation)
 	hoststation.create(Preloads.ua_data.data[CurrentMapData.game_data_type].hoststations[hs].owner,
 		Preloads.ua_data.data[CurrentMapData.game_data_type].hoststations[hs].robos[0].id, hs)
-	hoststation.position.x = right_clicked_x
-	hoststation.position.y = right_clicked_y
+	if right_clicked_x < 1200: 
+		hoststation.position.x = 1205
+	elif right_clicked_x > ((CurrentMapData.horizontal_sectors+1) * 1200): 
+		hoststation.position.x = ((CurrentMapData.horizontal_sectors+1) * 1200) - 5
+	else:
+		hoststation.position.x = right_clicked_x
+	
+	if right_clicked_y < 1200: 
+		hoststation.position.y = 1205
+	elif right_clicked_y > ((CurrentMapData.vertical_sectors+1) * 1200): 
+		hoststation.position.y = ((CurrentMapData.vertical_sectors+1) * 1200) - 5
+	else:
+		hoststation.position.y = right_clicked_y
+
 	hoststation.scale = Vector2(10,10)
 	CurrentMapData.selected_unit = hoststation
 
@@ -199,8 +211,20 @@ func add_squad(sq: Dictionary, owner_id: int):
 	var squad = Preloads.SQUAD.instantiate()
 	CurrentMapData.squads.add_child(squad)
 	squad.create(owner_id, sq)
-	squad.position.x = right_clicked_x
-	squad.position.y = right_clicked_y
+	if right_clicked_x < 1200: 
+		squad.position.x = 1205
+	elif right_clicked_x > ((CurrentMapData.horizontal_sectors+1) * 1200): 
+		squad.position.x = ((CurrentMapData.horizontal_sectors+1) * 1200) - 5
+	else:
+		squad.position.x = right_clicked_x
+	
+	if right_clicked_y < 1200: 
+		squad.position.y = 1205
+	elif right_clicked_y > ((CurrentMapData.vertical_sectors+1) * 1200): 
+		squad.position.y = ((CurrentMapData.vertical_sectors+1) * 1200) - 5
+	else:
+		squad.position.y = right_clicked_y
+	
 	squad.scale = Vector2(5,5)
 	CurrentMapData.selected_unit = squad
 
