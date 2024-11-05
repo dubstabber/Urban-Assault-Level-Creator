@@ -2,7 +2,7 @@ extends Node
 
 
 func increment_typ_map() -> void:
-	if not CurrentMapData.typ_map.size() > 0 and CurrentMapData.selected_sector_idx < 0: 
+	if CurrentMapData.typ_map.is_empty() or CurrentMapData.selected_sector_idx < 0: 
 		return
 	var temp := CurrentMapData.typ_map[CurrentMapData.selected_sector_idx]
 	temp += 1
@@ -82,7 +82,7 @@ func increment_typ_map() -> void:
 
 
 func decrement_typ_map() -> void:
-	if not CurrentMapData.typ_map.size() > 0 and CurrentMapData.selected_sector_idx < 0: 
+	if CurrentMapData.typ_map.is_empty() or CurrentMapData.selected_sector_idx < 0: 
 		return
 	
 	var temp := CurrentMapData.typ_map[CurrentMapData.selected_sector_idx]

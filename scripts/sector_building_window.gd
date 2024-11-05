@@ -18,6 +18,5 @@ func close() -> void:
 	hide()
 
 
-
 func _on_about_to_popup() -> void:
 	typ_map_spin_box.value = CurrentMapData.typ_map[CurrentMapData.selected_sector_idx]

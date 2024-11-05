@@ -2,9 +2,7 @@
 
 [ext_resource type="Script" path="res://scenes/main.gd" id="1_7pb5r"]
 [ext_resource type="Script" path="res://scripts/Map.gd" id="2_dum0m"]
-[ext_resource type="Script" path="res://scripts/new_map_window.gd" id="3_hjjsa"]
 [ext_resource type="Script" path="res://scripts/map_add_host_station.gd" id="3_u1dll"]
-[ext_resource type="Script" path="res://scripts/sector_height_window.gd" id="4_362xh"]
 [ext_resource type="Script" path="res://scripts/map_add_squad.gd" id="4_cqc5q"]
 [ext_resource type="Script" path="res://scripts/map_change_faction.gd" id="5_gscij"]
 [ext_resource type="Theme" uid="uid://cdrs6kxi0mn0v" path="res://resources/themes/ua_theme.tres" id="5_sk7qs"]
@@ -14,9 +12,11 @@
 [ext_resource type="Script" path="res://scripts/map_add_special_building.gd" id="7_tn0yk"]
 [ext_resource type="Script" path="res://scripts/map_add_item.gd" id="8_jye6k"]
 [ext_resource type="Script" path="res://scripts/map_clean_sector.gd" id="9_gtrn7"]
-[ext_resource type="Script" path="res://scripts/sector_building_window.gd" id="10_6xmol"]
 [ext_resource type="Script" path="res://scripts/context_menu_remove_unit.gd" id="10_ip5i1"]
 [ext_resource type="Script" path="res://scripts/menu_bar_view.gd" id="10_vou7b"]
+[ext_resource type="PackedScene" uid="uid://c3kputnns5tlf" path="res://scenes/modals/new_map_window.tscn" id="11_kalue"]
+[ext_resource type="PackedScene" uid="uid://dfamq5n451pat" path="res://scenes/modals/sector_height_window.tscn" id="12_wpowt"]
+[ext_resource type="PackedScene" uid="uid://x4kwkajlf23r" path="res://scenes/modals/sector_building_window.tscn" id="13_kug0f"]
 [ext_resource type="Script" path="res://scripts/unit_properties.gd" id="17_a4oqg"]
 [ext_resource type="Script" path="res://scripts/sector_properties.gd" id="19_3h4ps"]
 [ext_resource type="PackedScene" uid="uid://1tb0vcurfq8p" path="res://scenes/tech_upgrade_modifiers/tech_upgrade_modifier_1.tscn" id="20_gggi6"]
@@ -80,202 +80,14 @@ size = Vector2i(100, 20)
 [node name="RemoveUnit" type="Node" parent="UnitContextMenu"]
 script = ExtResource("10_ip5i1")
 
-[node name="NewMapWindow" type="Window" parent="."]
+[node name="NewMapWindow" parent="." instance=ExtResource("11_kalue")]
 unique_name_in_owner = true
-auto_translate_mode = 1
-title = "Create a new map"
-initial_position = 1
-size = Vector2i(530, 200)
-visible = false
-transient = true
-exclusive = true
-unresizable = true
-script = ExtResource("3_hjjsa")
 
-[node name="PanelContainer" type="PanelContainer" parent="NewMapWindow"]
-anchors_preset = 15
-anchor_right = 1.0
-anchor_bottom = 1.0
-grow_horizontal = 2
-grow_vertical = 2
-
-[node name="MarginContainer" type="MarginContainer" parent="NewMapWindow/PanelContainer"]
-layout_mode = 2
-theme_override_constants/margin_top = 8
-
-[node name="Label" type="Label" parent="NewMapWindow/PanelContainer/MarginContainer"]
-layout_mode = 2
-size_flags_horizontal = 4
-size_flags_vertical = 0
-text = "Enter number of sectors for horizontal and vertical space:"
-
-[node name="MarginContainer2" type="MarginContainer" parent="NewMapWindow/PanelContainer"]
-layout_mode = 2
-size_flags_vertical = 4
-theme_override_constants/margin_left = 100
-theme_override_constants/margin_bottom = 25
-
-[node name="GridContainer" type="GridContainer" parent="NewMapWindow/PanelContainer/MarginContainer2"]
-layout_mode = 2
-columns = 2
-
-[node name="Label" type="Label" parent="NewMapWindow/PanelContainer/MarginContainer2/GridContainer"]
-layout_mode = 2
-text = "Horizontal sectors:"
-horizontal_alignment = 2
-
-[node name="SpinBox" type="SpinBox" parent="NewMapWindow/PanelContainer/MarginContainer2/GridContainer"]
-layout_mode = 2
-min_value = 1.0
-max_value = 1000.0
-value = 6.0
-allow_greater = true
-
-[node name="Label2" type="Label" parent="NewMapWindow/PanelContainer/MarginContainer2/GridContainer"]
-layout_mode = 2
-text = "Vertical sectors:"
-horizontal_alignment = 2
-
-[node name="SpinBox2" type="SpinBox" parent="NewMapWindow/PanelContainer/MarginContainer2/GridContainer"]
-layout_mode = 2
-min_value = 1.0
-max_value = 1000.0
-value = 6.0
-allow_greater = true
-
-[node name="MarginContainer3" type="MarginContainer" parent="NewMapWindow/PanelContainer"]
-layout_mode = 2
-size_flags_horizontal = 4
-size_flags_vertical = 8
-theme_override_constants/margin_bottom = 15
-
-[node name="HBoxContainer" type="HBoxContainer" parent="NewMapWindow/PanelContainer/MarginContainer3"]
-layout_mode = 2
-theme_override_constants/separation = 20
-
-[node name="CancelButton" type="Button" parent="NewMapWindow/PanelContainer/MarginContainer3/HBoxContainer"]
-layout_mode = 2
-text = "Cancel"
-
-[node name="CreateButton" type="Button" parent="NewMapWindow/PanelContainer/MarginContainer3/HBoxContainer"]
-layout_mode = 2
-text = "Create"
-
-[node name="SectorHeightWindow" type="Window" parent="."]
+[node name="SectorHeightWindow" parent="." instance=ExtResource("12_wpowt")]
 unique_name_in_owner = true
-title = "Change sector height"
-initial_position = 1
-size = Vector2i(350, 120)
-visible = false
-transient = true
-exclusive = true
-unresizable = true
-script = ExtResource("4_362xh")
 
-[node name="PanelContainer" type="PanelContainer" parent="SectorHeightWindow"]
-anchors_preset = 15
-anchor_right = 1.0
-anchor_bottom = 1.0
-grow_horizontal = 2
-grow_vertical = 2
-
-[node name="MarginContainer" type="MarginContainer" parent="SectorHeightWindow/PanelContainer"]
-layout_mode = 2
-theme_override_constants/margin_top = 8
-
-[node name="Label" type="Label" parent="SectorHeightWindow/PanelContainer/MarginContainer"]
-layout_mode = 2
-size_flags_horizontal = 4
-size_flags_vertical = 0
-text = "Enter a height value from 0 to 255"
-
-[node name="MarginContainer2" type="MarginContainer" parent="SectorHeightWindow/PanelContainer"]
-layout_mode = 2
-theme_override_constants/margin_left = 100
-theme_override_constants/margin_right = 100
-theme_override_constants/margin_bottom = 13
-
-[node name="HeightSpinBox" type="SpinBox" parent="SectorHeightWindow/PanelContainer/MarginContainer2"]
-layout_mode = 2
-size_flags_vertical = 4
-max_value = 255.0
-alignment = 1
-
-[node name="MarginContainer3" type="MarginContainer" parent="SectorHeightWindow/PanelContainer"]
-layout_mode = 2
-size_flags_horizontal = 4
-size_flags_vertical = 8
-theme_override_constants/margin_bottom = 10
-
-[node name="HBoxContainer" type="HBoxContainer" parent="SectorHeightWindow/PanelContainer/MarginContainer3"]
-layout_mode = 2
-theme_override_constants/separation = 20
-
-[node name="CancelButton" type="Button" parent="SectorHeightWindow/PanelContainer/MarginContainer3/HBoxContainer"]
-layout_mode = 2
-text = "Cancel"
-
-[node name="OKButton" type="Button" parent="SectorHeightWindow/PanelContainer/MarginContainer3/HBoxContainer"]
-layout_mode = 2
-text = "OK"
-
-[node name="SectorBuildingWindow" type="Window" parent="."]
+[node name="SectorBuildingWindow" parent="." instance=ExtResource("13_kug0f")]
 unique_name_in_owner = true
-title = "Add building"
-initial_position = 1
-size = Vector2i(350, 120)
-visible = false
-transient = true
-exclusive = true
-unresizable = true
-script = ExtResource("10_6xmol")
-
-[node name="PanelContainer" type="PanelContainer" parent="SectorBuildingWindow"]
-anchors_preset = 15
-anchor_right = 1.0
-anchor_bottom = 1.0
-grow_horizontal = 2
-grow_vertical = 2
-
-[node name="VBoxContainer" type="VBoxContainer" parent="SectorBuildingWindow/PanelContainer"]
-layout_mode = 2
-theme_override_constants/separation = 12
-alignment = 1
-
-[node name="MarginContainer" type="MarginContainer" parent="SectorBuildingWindow/PanelContainer/VBoxContainer"]
-layout_mode = 2
-
-[node name="Label" type="Label" parent="SectorBuildingWindow/PanelContainer/VBoxContainer/MarginContainer"]
-layout_mode = 2
-text = "Please enter a value between 0 and 255"
-horizontal_alignment = 1
-
-[node name="MarginContainer2" type="MarginContainer" parent="SectorBuildingWindow/PanelContainer/VBoxContainer"]
-layout_mode = 2
-theme_override_constants/margin_left = 100
-theme_override_constants/margin_right = 100
-
-[node name="SpinBox" type="SpinBox" parent="SectorBuildingWindow/PanelContainer/VBoxContainer/MarginContainer2"]
-layout_mode = 2
-size_flags_vertical = 4
-max_value = 255.0
-alignment = 1
-
-[node name="MarginContainer3" type="MarginContainer" parent="SectorBuildingWindow/PanelContainer/VBoxContainer"]
-layout_mode = 2
-
-[node name="HBoxContainer" type="HBoxContainer" parent="SectorBuildingWindow/PanelContainer/VBoxContainer/MarginContainer3"]
-layout_mode = 2
-theme_override_constants/separation = 15
-alignment = 1
-
-[node name="CancelButton" type="Button" parent="SectorBuildingWindow/PanelContainer/VBoxContainer/MarginContainer3/HBoxContainer"]
-layout_mode = 2
-text = "Cancel"
-
-[node name="OKButton" type="Button" parent="SectorBuildingWindow/PanelContainer/VBoxContainer/MarginContainer3/HBoxContainer"]
-layout_mode = 2
-text = "OK"
 
 [node name="LoadBehaviorFileDialog" type="FileDialog" parent="."]
 unique_name_in_owner = true
@@ -1524,15 +1336,3 @@ layout_mode = 2
 
 [node name="BombKeySectorVBox2" parent="PanelContainer/MarginContainer/VBoxContainer/HSplitContainer/PropertiesContainer/TabContainer/Sector/ScrollContainer/MarginContainer/SectorPropertiesContainer/BombKeySectorSection" instance=ExtResource("24_aq0rs")]
 layout_mode = 2
-
-[connection signal="close_requested" from="NewMapWindow" to="NewMapWindow" method="hide"]
-[connection signal="pressed" from="NewMapWindow/PanelContainer/MarginContainer3/HBoxContainer/CancelButton" to="NewMapWindow" method="hide"]
-[connection signal="pressed" from="NewMapWindow/PanelContainer/MarginContainer3/HBoxContainer/CreateButton" to="NewMapWindow" method="_on_create_button_pressed"]
-[connection signal="about_to_popup" from="SectorHeightWindow" to="SectorHeightWindow" method="_on_about_to_popup"]
-[connection signal="close_requested" from="SectorHeightWindow" to="SectorHeightWindow" method="close"]
-[connection signal="pressed" from="SectorHeightWindow/PanelContainer/MarginContainer3/HBoxContainer/CancelButton" to="SectorHeightWindow" method="close"]
-[connection signal="pressed" from="SectorHeightWindow/PanelContainer/MarginContainer3/HBoxContainer/OKButton" to="SectorHeightWindow" method="_on_ok_button_pressed"]
-[connection signal="about_to_popup" from="SectorBuildingWindow" to="SectorBuildingWindow" method="_on_about_to_popup"]
-[connection signal="close_requested" from="SectorBuildingWindow" to="SectorBuildingWindow" method="close"]
-[connection signal="pressed" from="SectorBuildingWindow/PanelContainer/VBoxContainer/MarginContainer3/HBoxContainer/CancelButton" to="SectorBuildingWindow" method="close"]
-[connection signal="pressed" from="SectorBuildingWindow/PanelContainer/VBoxContainer/MarginContainer3/HBoxContainer/OKButton" to="SectorBuildingWindow" method="_on_ok_button_pressed"]

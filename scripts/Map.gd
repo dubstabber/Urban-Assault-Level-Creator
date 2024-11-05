@@ -89,6 +89,9 @@ func _input(event):
 	if event.is_action_pressed("next_building"):
 		Utils.increment_typ_map()
 		EventSystem.map_updated.emit()
+	if event.is_action_pressed("show_height_window"):
+		if CurrentMapData.hgt_map.is_empty(): return
+		%SectorHeightWindow.popup()
 
 
 func _draw():
