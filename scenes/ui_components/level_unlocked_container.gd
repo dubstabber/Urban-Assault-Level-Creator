@@ -15,6 +15,6 @@ func create(_level_index: int) -> void:
 func _on_button_pressed() -> void:
 	if not CurrentMapData.selected_beam_gate: return
 	CurrentMapData.selected_beam_gate.target_levels.erase(level_index)
-	if CurrentMapData.selected_beam_gate.target_levels.size() == 0:
-		get_parent().get_node("%NoUnlockedLevelLabel").show()
+	if CurrentMapData.selected_beam_gate.target_levels.is_empty():
+		EventSystem.map_updated.emit()
 	queue_free()

@@ -100,11 +100,12 @@ func _draw():
 	for y_sector in CurrentMapData.vertical_sectors+2:
 		var h_grid := 0
 		for x_sector in CurrentMapData.horizontal_sectors+2:
-			if current_border_sector == CurrentMapData.border_selected_sector_idx: 
-				# Highlight for selection
-				draw_rect(Rect2(h_grid,v_grid, 1200,1200), Color.DARK_SLATE_GRAY)
 			if (x_sector > 0 and x_sector < CurrentMapData.horizontal_sectors+1 and 
 				y_sector > 0 and y_sector < CurrentMapData.vertical_sectors+1):
+				if CurrentMapData.is_sector_valid(current_sector):
+					draw_texture_rect(Preloads.building_top_images[CurrentMapData.level_set][CurrentMapData.typ_map[current_sector]], Rect2(h_grid, v_grid, 1200, 1200), false)
+				else:
+					draw_texture_rect(Preloads.error_sign, Rect2(h_grid+sector_indent,v_grid+sector_indent, 1200-(sector_indent*2),1200-(sector_indent*2)), false)
 				if Preloads.special_building_images.has(str(CurrentMapData.blg_map[current_sector])):
 					draw_texture_rect(Preloads.special_building_images[str(CurrentMapData.blg_map[current_sector])], Rect2(h_grid+sector_indent,v_grid+sector_indent, 1200-(sector_indent*2),1200-(sector_indent*2)),false)
 				var sector_color
@@ -143,15 +144,10 @@ func _draw():
 					CurrentMapData.hgt_map[current_border_sector-1] - CurrentMapData.hgt_map[current_border_sector] > 4):
 					draw_line(Vector2(h_grid+sector_indent/3.0,v_grid+sector_indent), Vector2(h_grid+sector_indent/3.0,v_grid+1200-sector_indent), Color.AQUA, sector_indent/2)
 				
-				if typ_map_values_visible:
-					draw_string(font, Vector2(h_grid+50, v_grid+sector_font_size), "typ_map: "+ str(CurrentMapData.typ_map[current_sector]), HORIZONTAL_ALIGNMENT_LEFT, -1, sector_font_size)
-				if own_map_values_visible:
-					draw_string(font, Vector2(h_grid+50, v_grid+sector_font_size*2), "own_map: "+ str(CurrentMapData.own_map[current_sector]), HORIZONTAL_ALIGNMENT_LEFT, -1, sector_font_size)
-				if blg_map_values_visible:
-					draw_string(font, Vector2(h_grid+50, v_grid+sector_font_size*4), "blg_map: "+ str(CurrentMapData.blg_map[current_sector]), HORIZONTAL_ALIGNMENT_LEFT, -1, sector_font_size)
 				current_sector += 1
-			if hgt_map_values_visible:
-				draw_string(font, Vector2(h_grid+50, v_grid+sector_font_size*3), "hgt_map: "+ str(CurrentMapData.hgt_map[current_border_sector]), HORIZONTAL_ALIGNMENT_LEFT, -1, sector_font_size)
+			if current_border_sector == CurrentMapData.border_selected_sector_idx: 
+				# Highlight for selection
+				draw_rect(Rect2(h_grid,v_grid, 1200,1200), Color(0.184314, 0.309804, 0.309804, 0.6))
 			h_grid += 1200
 			current_border_sector += 1
 		v_grid += 1200
@@ -160,6 +156,8 @@ func _draw():
 		var pos_x = beam_gate.sec_x * 1200 + sector_indent
 		var pos_y = beam_gate.sec_y * 1200 + sector_indent
 		draw_texture_rect(Preloads.sector_item_images.beam_gate, Rect2(pos_x, pos_y,1200-(sector_indent*2),1200-(sector_indent*2)), false)
+		if beam_gate.target_levels.is_empty():
+			draw_texture_rect(Preloads.error_sign, Rect2(pos_x, pos_y, 1200-(sector_indent*2),1200-(sector_indent*2)), false)
 		for key_sector in beam_gate.key_sectors:
 			var kpos_x = key_sector.x * 1200 + sector_indent
 			var kpos_y = key_sector.y * 1200 + sector_indent
@@ -176,6 +174,27 @@ func _draw():
 		var pos_x = tech_upgrade.sec_x * 1200 + sector_indent
 		var pos_y = tech_upgrade.sec_y * 1200 + sector_indent
 		draw_texture_rect(Preloads.sector_item_images.tech_upgrades[tech_upgrade.building_id], Rect2(pos_x, pos_y,1200-(sector_indent*2),1200-(sector_indent*2)), false)
+	
+	current_sector = 0
+	current_border_sector = 0
+	v_grid = 0
+	for y_sector in CurrentMapData.vertical_sectors+2:
+		var h_grid := 0
+		for x_sector in CurrentMapData.horizontal_sectors+2:
+			if (x_sector > 0 and x_sector < CurrentMapData.horizontal_sectors+1 and 
+				y_sector > 0 and y_sector < CurrentMapData.vertical_sectors+1):
+				if typ_map_values_visible:
+					draw_string(font, Vector2(h_grid+50, v_grid+sector_font_size), "typ_map: "+ str(CurrentMapData.typ_map[current_sector]), HORIZONTAL_ALIGNMENT_LEFT, -1, sector_font_size)
+				if own_map_values_visible:
+					draw_string(font, Vector2(h_grid+50, v_grid+sector_font_size*2), "own_map: "+ str(CurrentMapData.own_map[current_sector]), HORIZONTAL_ALIGNMENT_LEFT, -1, sector_font_size)
+				if blg_map_values_visible:
+					draw_string(font, Vector2(h_grid+50, v_grid+sector_font_size*4), "blg_map: "+ str(CurrentMapData.blg_map[current_sector]), HORIZONTAL_ALIGNMENT_LEFT, -1, sector_font_size)
+					current_sector += 1
+			if hgt_map_values_visible:
+				draw_string(font, Vector2(h_grid+50, v_grid+sector_font_size*3), "hgt_map: "+ str(CurrentMapData.hgt_map[current_border_sector]), HORIZONTAL_ALIGNMENT_LEFT, -1, sector_font_size)
+			h_grid += 1200
+			current_border_sector += 1
+		v_grid += 1200
 	# _draw() ends here
 
 

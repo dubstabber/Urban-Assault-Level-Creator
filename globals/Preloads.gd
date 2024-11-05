@@ -11,8 +11,10 @@ var squad_images := {}
 var squad_icons := {}
 var building_icons := {}
 var building_side_images := {}
+var building_top_images := {}
 var special_building_images := {}
 var sector_item_images := {}
+var error_sign: CompressedTexture2D
 
 
 func _ready():
@@ -89,11 +91,17 @@ func _ready():
 	sector_item_images.bomb_key_sector = load("res://resources/img/sectorItems/sectorbomb.png")
 	
 	building_side_images[1] = {}
+	building_top_images[1] = {}
 	building_side_images[2] = {}
+	building_top_images[2] = {}
 	building_side_images[3] = {}
+	building_top_images[3] = {}
 	building_side_images[4] = {}
+	building_top_images[4] = {}
 	building_side_images[5] = {}
+	building_top_images[5] = {}
 	building_side_images[6] = {}
+	building_top_images[6] = {}
 	
 	var idx := 0
 	while(idx < 256):
@@ -108,8 +116,8 @@ func _ready():
 		if idx == 206: idx = 207
 		if idx == 209: idx = 228
 		if idx == 237: idx = 239
-		
 		building_side_images[1][idx] = load("res://resources/img/Sector_images/set1-side/Set1_sector%s.jpg" % idx)
+		building_top_images[1][idx] = load("res://resources/img/Sector_images/set1-above/Set1_sector_%s.jpg" % idx)
 		idx += 1
 		
 	
@@ -126,6 +134,7 @@ func _ready():
 		if idx == 226: idx = 228
 		if idx == 231: idx = 239
 		building_side_images[2][idx] = load("res://resources/img/Sector_images/set2-side/Set2_sector%s.jpg" % idx)
+		building_top_images[2][idx] = load("res://resources/img/Sector_images/set2-above/Set2_sector_%s.jpg" % idx)
 		idx += 1
 	
 	idx = 0
@@ -142,6 +151,7 @@ func _ready():
 		if idx == 209: idx = 228
 		if idx == 231: idx = 239
 		building_side_images[3][idx] = load("res://resources/img/Sector_images/set3-side/Set3_sector%s.jpg" % idx)
+		building_top_images[3][idx] = load("res://resources/img/Sector_images/set3-above/Set3_sector_%s.jpg" % idx)
 		idx += 1
 		
 	idx = 0
@@ -158,6 +168,7 @@ func _ready():
 		if idx == 209: idx = 228
 		if idx == 231: idx = 239
 		building_side_images[4][idx] = load("res://resources/img/Sector_images/set4-side/Set4_sector%s.jpg" % idx)
+		building_top_images[4][idx] = load("res://resources/img/Sector_images/set4-above/Set4_sector_%s.jpg" % idx)
 		idx += 1
 		
 	idx = 0
@@ -172,6 +183,7 @@ func _ready():
 		if idx == 226: idx = 228
 		if idx == 231: idx = 239
 		building_side_images[5][idx] = load("res://resources/img/Sector_images/set5-side/Set5_sector%s.jpg" % idx)
+		building_top_images[5][idx] = load("res://resources/img/Sector_images/set5-above/Set5_sector_%s.jpg" % idx)
 		idx += 1
 		
 	idx = 0
@@ -188,4 +200,7 @@ func _ready():
 		if idx == 209: idx = 228
 		if idx == 236: idx = 239
 		building_side_images[6][idx] = load("res://resources/img/Sector_images/set6-side/Set6_sector%s.jpg" % idx)
+		building_top_images[6][idx] = load("res://resources/img/Sector_images/set6-above/Set6_sector_%s.jpg" % idx)
 		idx += 1
+		
+	error_sign = load("res://resources/img/blgMapImages/error.png")

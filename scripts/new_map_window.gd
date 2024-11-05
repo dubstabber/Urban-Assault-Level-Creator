@@ -13,7 +13,6 @@ func _on_create_button_pressed() -> void:
 		CurrentMapData.typ_map.append(0)
 		CurrentMapData.own_map.append(0)
 		CurrentMapData.blg_map.append(0)
-		CurrentMapData.error_map.append(false)
 	var sectors_with_borders = (CurrentMapData.horizontal_sectors+2) * (CurrentMapData.vertical_sectors+2)
 	for sector in sectors_with_borders:
 		CurrentMapData.hgt_map.append(127)

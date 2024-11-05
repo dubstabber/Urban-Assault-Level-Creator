@@ -1,6 +1,6 @@
 extends Window
 
-@onready var height_value_spin_box: SpinBox = $PanelContainer/MarginContainer2/SpinBox
+@onready var height_value_spin_box: SpinBox = $PanelContainer/MarginContainer2/HeightSpinBox
 
 
 func _on_ok_button_pressed() -> void:
@@ -16,4 +16,7 @@ func _on_ok_button_pressed() -> void:
 
 func close() -> void:
 	hide()
-	
+
+
+func _on_about_to_popup() -> void:
+	height_value_spin_box.value = CurrentMapData.hgt_map[CurrentMapData.border_selected_sector_idx]

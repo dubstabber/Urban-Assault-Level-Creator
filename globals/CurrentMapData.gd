@@ -11,7 +11,6 @@ var typ_map: Array[int] = []
 var own_map: Array[int] = []
 var hgt_map: Array[int] = []
 var blg_map: Array[int] = []
-var error_map: Array[bool] = []
 var beam_gates: Array[BeamGate] = []
 var stoudson_bombs: Array[StoudsonBomb] = []
 var tech_upgrades: Array[TechUpgrade] = []
@@ -49,3 +48,40 @@ func _ready():
 	for weapon in Preloads.ua_data.data[game_data_type].techUpgrade:
 		units_db[weapon.name] = weapon.id
 		weapons_db[weapon.name] = weapon.id
+
+
+func get_beam_gate(x: int, y: int) -> BeamGate:
+	for beam_gate in beam_gates:
+		if beam_gate.sec_x == x and beam_gate.sec_y == y:
+			return beam_gate
+	return null
+
+
+func is_sector_valid(sector_index) -> bool:
+	match level_set:
+		1:
+			if typ_map[sector_index] > 53 and typ_map[sector_index] < 59:
+				return false
+			if typ_map[sector_index] > 59 and typ_map[sector_index] < 66:
+				return false
+			if typ_map[sector_index] > 82 and typ_map[sector_index] < 95:
+				return false
+			if typ_map[sector_index] > 104 and typ_map[sector_index] < 110:
+				return false
+			if typ_map[sector_index] > 113 and typ_map[sector_index] < 120:
+				return false
+			if typ_map[sector_index] > 121 and typ_map[sector_index] < 130:
+				return false
+			if typ_map[sector_index] > 141 and typ_map[sector_index] < 150:
+				return false
+			if typ_map[sector_index] > 189 and typ_map[sector_index] < 198:
+				return false
+			if typ_map[sector_index] > 205 and typ_map[sector_index] < 207:
+				return false
+			if typ_map[sector_index] > 208 and typ_map[sector_index] < 228:
+				return false
+			if typ_map[sector_index] > 236 and typ_map[sector_index] < 239:
+				return false
+		
+		
+	return true

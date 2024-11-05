@@ -195,7 +195,7 @@ theme_override_constants/margin_left = 100
 theme_override_constants/margin_right = 100
 theme_override_constants/margin_bottom = 13
 
-[node name="SpinBox" type="SpinBox" parent="SectorHeightWindow/PanelContainer/MarginContainer2"]
+[node name="HeightSpinBox" type="SpinBox" parent="SectorHeightWindow/PanelContainer/MarginContainer2"]
 layout_mode = 2
 size_flags_vertical = 4
 max_value = 255.0
@@ -1159,7 +1159,6 @@ autowrap_mode = 3
 
 [node name="BeamGateSection" type="VBoxContainer" parent="PanelContainer/MarginContainer/VBoxContainer/HSplitContainer/PropertiesContainer/TabContainer/Sector/ScrollContainer/MarginContainer/SectorPropertiesContainer"]
 unique_name_in_owner = true
-visible = false
 layout_mode = 2
 alignment = 1
 
@@ -1379,6 +1378,7 @@ horizontal_alignment = 1
 
 [node name="TechUpgradeSection" type="VBoxContainer" parent="PanelContainer/MarginContainer/VBoxContainer/HSplitContainer/PropertiesContainer/TabContainer/Sector/ScrollContainer/MarginContainer/SectorPropertiesContainer"]
 unique_name_in_owner = true
+visible = false
 layout_mode = 2
 alignment = 1
 
@@ -1516,6 +1516,7 @@ layout_mode = 2
 
 [node name="BombKeySectorSection" type="VBoxContainer" parent="PanelContainer/MarginContainer/VBoxContainer/HSplitContainer/PropertiesContainer/TabContainer/Sector/ScrollContainer/MarginContainer/SectorPropertiesContainer"]
 unique_name_in_owner = true
+visible = false
 layout_mode = 2
 
 [node name="BombKeySectorVBox" parent="PanelContainer/MarginContainer/VBoxContainer/HSplitContainer/PropertiesContainer/TabContainer/Sector/ScrollContainer/MarginContainer/SectorPropertiesContainer/BombKeySectorSection" instance=ExtResource("24_aq0rs")]
@@ -1527,9 +1528,11 @@ layout_mode = 2
 [connection signal="close_requested" from="NewMapWindow" to="NewMapWindow" method="hide"]
 [connection signal="pressed" from="NewMapWindow/PanelContainer/MarginContainer3/HBoxContainer/CancelButton" to="NewMapWindow" method="hide"]
 [connection signal="pressed" from="NewMapWindow/PanelContainer/MarginContainer3/HBoxContainer/CreateButton" to="NewMapWindow" method="_on_create_button_pressed"]
+[connection signal="about_to_popup" from="SectorHeightWindow" to="SectorHeightWindow" method="_on_about_to_popup"]
 [connection signal="close_requested" from="SectorHeightWindow" to="SectorHeightWindow" method="close"]
 [connection signal="pressed" from="SectorHeightWindow/PanelContainer/MarginContainer3/HBoxContainer/CancelButton" to="SectorHeightWindow" method="close"]
 [connection signal="pressed" from="SectorHeightWindow/PanelContainer/MarginContainer3/HBoxContainer/OKButton" to="SectorHeightWindow" method="_on_ok_button_pressed"]
+[connection signal="about_to_popup" from="SectorBuildingWindow" to="SectorBuildingWindow" method="_on_about_to_popup"]
 [connection signal="close_requested" from="SectorBuildingWindow" to="SectorBuildingWindow" method="close"]
 [connection signal="pressed" from="SectorBuildingWindow/PanelContainer/VBoxContainer/MarginContainer3/HBoxContainer/CancelButton" to="SectorBuildingWindow" method="close"]
 [connection signal="pressed" from="SectorBuildingWindow/PanelContainer/VBoxContainer/MarginContainer3/HBoxContainer/OKButton" to="SectorBuildingWindow" method="_on_ok_button_pressed"]

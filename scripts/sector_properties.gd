@@ -36,7 +36,8 @@ func _ready() -> void:
 			var level_container = UNLOCKED_LEVEL_CONTAINER.instantiate()
 			level_container.create(level_index)
 			%UnlockLevelsContainer.add_child(level_container)
-		if CurrentMapData.selected_beam_gate.target_levels.size() != 0:
+			EventSystem.map_updated.emit()
+		if not CurrentMapData.selected_beam_gate.target_levels.is_empty():
 			%NoUnlockedLevelLabel.hide()
 		)
 	
