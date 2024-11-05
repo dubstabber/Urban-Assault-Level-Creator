@@ -124,15 +124,11 @@ func _add_bomb_key_sector(index: int) -> void:
 
 func update_beam_gate_key_sector_submenu() -> void:
 	add_bg_key_sector_submenu.clear(true)
-	var counter := 1
-	for _i in CurrentMapData.beam_gates.size():
-		add_bg_key_sector_submenu.add_item('Beam Gate '+str(counter))
-		counter += 1
+	for i in CurrentMapData.beam_gates.size():
+		add_bg_key_sector_submenu.add_item('Beam Gate '+str(i+1))
 
 
 func update_bomb_key_sector_submenu() -> void:
 	add_bomb_key_sector_submenu.clear(true)
-	var counter := 1
-	for _i in CurrentMapData.stoudson_bombs.size():
-		add_bomb_key_sector_submenu.add_item('Stoudson Bomb '+str(counter))
-		counter += 1
+	for i in CurrentMapData.stoudson_bombs.size():
+		add_bomb_key_sector_submenu.add_item('Stoudson Bomb '+str(i+1))
