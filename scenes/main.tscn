@@ -1,4 +1,4 @@
-[gd_scene load_steps=31 format=3 uid="uid://ctgiwn3scteuk"]
+[gd_scene load_steps=33 format=3 uid="uid://ctgiwn3scteuk"]
 
 [ext_resource type="Script" path="res://scenes/main.gd" id="1_7pb5r"]
 [ext_resource type="Script" path="res://scripts/Map.gd" id="2_dum0m"]
@@ -40,8 +40,10 @@ func _input(event: InputEvent) -> void:
 	if event is InputEventMouseButton and event.button_index == MOUSE_BUTTON_LEFT and event.double_click:
 		if CurrentMapData.selected_unit:
 			$Unit.show()
+			%PropertiesContainer.show()
 		else:
 			$Sector.show()
+			%PropertiesContainer.show()
 "
 
 [sub_resource type="PlaceholderTexture2D" id="PlaceholderTexture2D_37be0"]
@@ -50,6 +52,17 @@ func _input(event: InputEvent) -> void:
 
 [sub_resource type="LabelSettings" id="LabelSettings_e380m"]
 font_color = Color(1, 0, 0, 1)
+
+[sub_resource type="PlaceholderTexture2D" id="PlaceholderTexture2D_rs20u"]
+size = Vector2(30, 30)
+
+[sub_resource type="GDScript" id="GDScript_crt75"]
+script/source = "extends TextureButton
+
+
+func _ready() -> void:
+	pressed.connect(func(): $\"../..\".hide())
+"
 
 [node name="Main" type="Control"]
 layout_mode = 3
@@ -64,6 +77,33 @@ script = ExtResource("1_7pb5r")
 
 [node name="Camera2D" type="Camera2D" parent="."]
 anchor_mode = 0
+
+[node name="Modals" type="Node" parent="."]
+
+[node name="NewMapWindow" parent="Modals" instance=ExtResource("11_kalue")]
+unique_name_in_owner = true
+
+[node name="SectorHeightWindow" parent="Modals" instance=ExtResource("12_wpowt")]
+unique_name_in_owner = true
+
+[node name="SectorBuildingWindow" parent="Modals" instance=ExtResource("13_kug0f")]
+unique_name_in_owner = true
+
+[node name="LoadBehaviorFileDialog" type="FileDialog" parent="Modals"]
+unique_name_in_owner = true
+title = "Open a File"
+initial_position = 2
+size = Vector2i(810, 450)
+ok_button_text = "Open"
+file_mode = 0
+access = 2
+
+[node name="SaveBehaviorFileDialog" type="FileDialog" parent="Modals"]
+unique_name_in_owner = true
+initial_position = 2
+size = Vector2i(810, 450)
+ok_button_text = "Save"
+access = 2
 
 [node name="MapContextMenu" type="PopupMenu" parent="."]
 unique_name_in_owner = true
@@ -98,31 +138,6 @@ size = Vector2i(100, 20)
 
 [node name="RemoveUnit" type="Node" parent="UnitContextMenu"]
 script = ExtResource("10_ip5i1")
-
-[node name="NewMapWindow" parent="." instance=ExtResource("11_kalue")]
-unique_name_in_owner = true
-
-[node name="SectorHeightWindow" parent="." instance=ExtResource("12_wpowt")]
-unique_name_in_owner = true
-
-[node name="SectorBuildingWindow" parent="." instance=ExtResource("13_kug0f")]
-unique_name_in_owner = true
-
-[node name="LoadBehaviorFileDialog" type="FileDialog" parent="."]
-unique_name_in_owner = true
-title = "Open a File"
-initial_position = 2
-size = Vector2i(810, 450)
-ok_button_text = "Open"
-file_mode = 0
-access = 2
-
-[node name="SaveBehaviorFileDialog" type="FileDialog" parent="."]
-unique_name_in_owner = true
-initial_position = 2
-size = Vector2i(810, 450)
-ok_button_text = "Save"
-access = 2
 
 [node name="PanelContainer" type="PanelContainer" parent="."]
 layout_mode = 1
@@ -194,6 +209,7 @@ anchors_preset = 0
 anchors_preset = 0
 
 [node name="PropertiesContainer" type="PanelContainer" parent="PanelContainer/MarginContainer/VBoxContainer/HSplitContainer"]
+unique_name_in_owner = true
 layout_mode = 2
 size_flags_horizontal = 3
 
@@ -1362,3 +1378,17 @@ layout_mode = 2
 
 [node name="BombKeySectorVBox2" parent="PanelContainer/MarginContainer/VBoxContainer/HSplitContainer/PropertiesContainer/TabContainer/Sector/ScrollContainer/MarginContainer/SectorPropertiesContainer/BombKeySectorSection" instance=ExtResource("24_aq0rs")]
 layout_mode = 2
+
+[node name="MarginContainer" type="MarginContainer" parent="PanelContainer/MarginContainer/VBoxContainer/HSplitContainer/PropertiesContainer"]
+layout_mode = 2
+size_flags_horizontal = 8
+size_flags_vertical = 0
+theme_override_constants/margin_right = 10
+
+[node name="ClosePropertiesButton" type="TextureButton" parent="PanelContainer/MarginContainer/VBoxContainer/HSplitContainer/PropertiesContainer/MarginContainer"]
+custom_minimum_size = Vector2(30, 30)
+layout_mode = 2
+size_flags_horizontal = 8
+size_flags_vertical = 0
+texture_normal = SubResource("PlaceholderTexture2D_rs20u")
+script = SubResource("GDScript_crt75")

@@ -16,7 +16,7 @@ func _ready() -> void:
 func _on_index_pressed(index: int) -> void:
 	match get_item_text(index):
 		"Change level parameters...":
-			print("Level parameters")
+			print("Implement level parameters")
 		"Squad enabler...":
 			print("Implement squad enabler")
 		"Change briefing/debriefing maps for this level...":

@@ -17,3 +17,4 @@ signal special_building_added(blg_map: int, typ_map: int, own_map: int)
 signal building_added(typ_map: int)
 
 signal toggled_values_visibility(type: String)
+signal toggled_typ_map_images_visibility

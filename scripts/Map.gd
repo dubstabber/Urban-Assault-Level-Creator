@@ -34,6 +34,9 @@ func _ready() -> void:
 	EventSystem.squad_added.connect(add_squad)
 	EventSystem.map_updated.connect(queue_redraw)
 	EventSystem.toggled_values_visibility.connect(toggle_values_visibility)
+	EventSystem.toggled_typ_map_images_visibility.connect(func(): 
+		typ_map_images_visible = not typ_map_images_visible
+		queue_redraw())
 
 
 func _physics_process(delta):
@@ -91,8 +94,7 @@ func _input(event):
 	if event.is_action_pressed("next_building"):
 		Utils.increment_typ_map()
 		EventSystem.map_updated.emit()
-	if event.is_action_pressed("show_height_window"):
-		if CurrentMapData.hgt_map.is_empty(): return
+	if event.is_action_pressed("show_height_window") and not CurrentMapData.hgt_map.is_empty():
 		%SectorHeightWindow.popup()
 
 
@@ -230,6 +232,7 @@ func add_hoststation(hs: String):
 
 	hoststation.scale = Vector2(10,10)
 	CurrentMapData.selected_unit = hoststation
+	%PropertiesContainer.show()
 
 
 func add_squad(sq: Dictionary, owner_id: int):
