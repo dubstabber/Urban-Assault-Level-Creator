@@ -5,24 +5,28 @@ extends PopupMenu
 
 func _ready():
 	add_item("New map")
-	
-	var submenu1: PopupMenu = PopupMenu.new()
-	submenu1.name = "submenu"
-	add_child(submenu1)
-	submenu1.add_item("sub item 1")
-	
-	var submenu2: PopupMenu = PopupMenu.new()
-	submenu2.name = "submenu2"
-	submenu1.add_child(submenu2)
-	submenu2.add_item("The newer item")
-	
-	add_submenu_item("submenuitem", "submenu")
-	submenu1.add_submenu_item("subermenu", "submenu2")
-
-	connect("index_pressed", _on_file_menu_pressed)
+	add_item("Open map")
+	add_separator()
+	add_item("Save map")
+	add_item("Save map as...")
+	add_separator()
+	add_item("Close current map")
+	add_separator()
+	add_item("Exit")
+	index_pressed.connect(_on_index_pressed)
 
 
-func _on_file_menu_pressed(id: int):
-	match id:
-		0:
+func _on_index_pressed(index: int) -> void:
+	match get_item_text(index):
+		"New map":
 			new_map_window.show()
+		"Open map":
+			print("Implement opening a map")
+		"Save map":
+			print("Implement saving a map")
+		"Save map as...":
+			print("Implement saving a map as...")
+		"Close current map":
+			print("Implement closing the current map")
+		"Exit":
+			print("Implement closing the editor")
