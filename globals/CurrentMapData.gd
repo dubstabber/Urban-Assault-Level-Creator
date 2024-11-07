@@ -3,6 +3,15 @@ extends Node
 var game_data_type:String
 
 var level_set := 1
+var movie := ""
+var event_loop := 0
+var sky := "1998_01"
+var music := 0
+var min_break := 0
+var max_break := 0
+var briefing_map := "mb.ilb"
+var debriefing_map := "db_01.iff"
+
 var host_stations: Control
 var squads: Control
 var horizontal_sectors := 0

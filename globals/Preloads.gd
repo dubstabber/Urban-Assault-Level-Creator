@@ -15,6 +15,9 @@ var building_top_images := {}
 var special_building_images := {}
 var sector_item_images := {}
 var error_sign: CompressedTexture2D
+var movies_db := {}
+var skies := {}
+var musics := {}
 
 
 func _ready():
@@ -204,3 +207,96 @@ func _ready():
 		idx += 1
 		
 	error_sign = load("res://resources/img/blgMapImages/error.png")
+	
+	movies_db["none"] = ""
+	movies_db["Intro"] = "intro.mpg"
+	movies_db["Tutorial 1"] = "tut1.mpg"
+	movies_db["Tutorial 2"] = "tut2.mpg"
+	movies_db["Tutorial 3"] = "tut3.mpg"
+	movies_db["Ghorkov"] = "kyt.mpg"
+	movies_db["Taerkasten"] = "taer.mpg"
+	movies_db["Mykonian"] = "myk.mpg"
+	movies_db["Sulgogar"] = "sulg.mpg"
+	movies_db["Black sect"] = "black.mpg"
+	movies_db["Lose"] = "lose.mpg"
+	movies_db["Win"] = "win.mpg"
+	
+	skies["1998_01"] = load("res://resources/img/sky-images/1998_01.jpg")
+	skies["1998_02"] = load("res://resources/img/sky-images/1998_02.jpg")
+	skies["1998_03"] = load("res://resources/img/sky-images/1998_03.jpg")
+	skies["1998_05"] = load("res://resources/img/sky-images/1998_05.jpg")
+	skies["1998_06"] = load("res://resources/img/sky-images/1998_06.jpg")
+	skies["Am_1"] = load("res://resources/img/sky-images/Am_1.jpg")
+	skies["Am_2"] = load("res://resources/img/sky-images/Am_2.jpg")
+	skies["Am_3"] = load("res://resources/img/sky-images/Am_3.jpg")
+	skies["ARZ1"] = load("res://resources/img/sky-images/ARZ1.jpg")
+	skies["ASKY2"] = load("res://resources/img/sky-images/ASKY2.jpg")
+	skies["BRAUN1"] = load("res://resources/img/sky-images/BRAUN1.jpg")
+	skies["CT6"] = load("res://resources/img/sky-images/CT6.jpg")
+	skies["H7"] = load("res://resources/img/sky-images/H7.jpg")
+	skies["H"] = load("res://resources/img/sky-images/H.jpg")
+	skies["HAAMITT1"] = load("res://resources/img/sky-images/HAAMITT1.jpg")
+	skies["HAAMITT4"] = load("res://resources/img/sky-images/HAAMITT4.jpg")
+	skies["MOD2"] = load("res://resources/img/sky-images/MOD2.jpg")
+	skies["MOD4"] = load("res://resources/img/sky-images/MOD4.jpg")
+	skies["MOD5"] = load("res://resources/img/sky-images/MOD5.jpg")
+	skies["MOD7"] = load("res://resources/img/sky-images/MOD7.jpg")
+	skies["MOD8"] = load("res://resources/img/sky-images/MOD8.jpg")
+	skies["MOD9"] = load("res://resources/img/sky-images/MOD9.jpg")
+	skies["MODA"] = load("res://resources/img/sky-images/MODA.jpg")
+	skies["MODB"] = load("res://resources/img/sky-images/MODB.jpg")
+	skies["Nacht1"] = load("res://resources/img/sky-images/Nacht1.jpg")
+	skies["NACHT2"] = load("res://resources/img/sky-images/NACHT2.jpg")
+	skies["NEWTRY5"] = load("res://resources/img/sky-images/NEWTRY5.jpg")
+	skies["NOSKY"] = load("res://resources/img/sky-images/NOSKY.jpg")
+	skies["NT1"] = load("res://resources/img/sky-images/NT1.jpg")
+	skies["NT2"] = load("res://resources/img/sky-images/NT2.jpg")
+	skies["NT3"] = load("res://resources/img/sky-images/NT3.jpg")
+	skies["NT5"] = load("res://resources/img/sky-images/NT5.jpg")
+	skies["NT6"] = load("res://resources/img/sky-images/NT6.jpg")
+	skies["NT7"] = load("res://resources/img/sky-images/NT7.jpg")
+	skies["NT8"] = load("res://resources/img/sky-images/NT8.jpg")
+	skies["NT9"] = load("res://resources/img/sky-images/NT9.jpg")
+	skies["NTA"] = load("res://resources/img/sky-images/NTA.jpg")
+	skies["S3_1"] = load("res://resources/img/sky-images/S3_1.jpg")
+	skies["S3_4"] = load("res://resources/img/sky-images/S3_4.jpg")
+	skies["SMOD1"] = load("res://resources/img/sky-images/SMOD1.jpg")
+	skies["SMOD2"] = load("res://resources/img/sky-images/SMOD2.jpg")
+	skies["SMOD3"] = load("res://resources/img/sky-images/SMOD3.jpg")
+	skies["SMOD4"] = load("res://resources/img/sky-images/SMOD4.jpg")
+	skies["SMOD5"] = load("res://resources/img/sky-images/SMOD5.jpg")
+	skies["SMOD6"] = load("res://resources/img/sky-images/SMOD6.jpg")
+	skies["SMOD7"] = load("res://resources/img/sky-images/SMOD7.jpg")
+	skies["SMOD8"] = load("res://resources/img/sky-images/SMOD8.jpg")
+	skies["STERNE"] = load("res://resources/img/sky-images/STERNE.jpg")
+	skies["wow1"] = load("res://resources/img/sky-images/wow1.jpg")
+	skies["wow5"] = load("res://resources/img/sky-images/wow5.jpg")
+	skies["wow7"] = load("res://resources/img/sky-images/wow7.jpg")
+	skies["wow8"] = load("res://resources/img/sky-images/wow8.jpg")
+	skies["wow9"] = load("res://resources/img/sky-images/wow9.jpg")
+	skies["wowa"] = load("res://resources/img/sky-images/wowa.jpg")
+	skies["wowb"] = load("res://resources/img/sky-images/wowb.jpg")
+	skies["wowc"] = load("res://resources/img/sky-images/wowc.jpg")
+	skies["wowd"] = load("res://resources/img/sky-images/wowd.jpg")
+	skies["wowe"] = load("res://resources/img/sky-images/wowe.jpg")
+	skies["wowf"] = load("res://resources/img/sky-images/wowf.jpg")
+	skies["wowh"] = load("res://resources/img/sky-images/wowh.jpg")
+	skies["wowi"] = load("res://resources/img/sky-images/wowi.jpg")
+	skies["wowj"] = load("res://resources/img/sky-images/wowj.jpg")
+	skies["x1"] = load("res://resources/img/sky-images/x1.jpg")
+	skies["x2"] = load("res://resources/img/sky-images/x2.jpg")
+	skies["x4"] = load("res://resources/img/sky-images/x4.jpg")
+	skies["x5"] = load("res://resources/img/sky-images/x5.jpg")
+	skies["x7"] = load("res://resources/img/sky-images/x7.jpg")
+	skies["x8"] = load("res://resources/img/sky-images/x8.jpg")
+	skies["x9"] = load("res://resources/img/sky-images/x9.jpg")
+	skies["xa"] = load("res://resources/img/sky-images/xa.jpg")
+	skies["xb"] = load("res://resources/img/sky-images/xb.jpg")
+	skies["xc"] = load("res://resources/img/sky-images/xc.jpg")
+	
+	musics[2] = load("res://resources/audio/track-2.mp3")
+	musics[3] = load("res://resources/audio/track-3.mp3")
+	musics[4] = load("res://resources/audio/track-4.mp3")
+	musics[5] = load("res://resources/audio/track-5.mp3")
+	musics[6] = load("res://resources/audio/track-6.mp3")
+	
