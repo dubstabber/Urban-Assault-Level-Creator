@@ -13,8 +13,9 @@ func _ready():
 
 func _input(event):
 	if event.is_action_pressed("context_menu"):
-		var mouse_x = round(get_global_mouse_position().x)
-		var mouse_y = round(get_global_mouse_position().y)
+		var mouse_x = round(get_global_mouse_position().x) + get_window().position.x
+		var mouse_y = round(get_global_mouse_position().y) + get_window().position.y
+
 		map.right_clicked_x_global = mouse_x
 		map.right_clicked_y_global = mouse_y
 

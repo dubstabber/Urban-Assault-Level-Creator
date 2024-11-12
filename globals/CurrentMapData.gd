@@ -24,6 +24,22 @@ var beam_gates: Array[BeamGate] = []
 var stoudson_bombs: Array[StoudsonBomb] = []
 var tech_upgrades: Array[TechUpgrade] = []
 
+var resistance_enabled_units: Array[int] = []
+var ghorkov_enabled_units: Array[int] = []
+var taerkasten_enabled_units: Array[int] = []
+var mykonian_enabled_units: Array[int] = []
+var sulgogar_enabled_units: Array[int] = []
+var blacksect_enabled_units: Array[int] = []
+var training_enabled_units: Array[int] = []
+
+var resistance_enabled_buildings: Array[int] = []
+var ghorkov_enabled_buildings: Array[int] = []
+var taerkasten_enabled_buildings: Array[int] = []
+var mykonian_enabled_buildings: Array[int] = []
+var sulgogar_enabled_buildings: Array[int] = []
+var blacksect_enabled_buildings: Array[int] = []
+var training_enabled_buildings: Array[int] = []
+
 
 var selected_unit: Unit = null:
 	set(value):

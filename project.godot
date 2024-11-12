@@ -29,6 +29,7 @@ gdscript/warnings/unused_signal=0
 
 [display]
 
+window/subwindows/embed_subwindows=false
 window/dpi/allow_hidpi=false
 
 [gui]

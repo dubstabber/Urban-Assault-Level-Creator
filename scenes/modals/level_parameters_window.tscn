@@ -375,6 +375,7 @@ size_flags_horizontal = 4
 text = "Save"
 
 [connection signal="about_to_popup" from="." to="." method="_on_about_to_popup"]
+[connection signal="close_requested" from="." to="." method="_on_cancel_button_pressed"]
 [connection signal="item_selected" from="PanelContainer/MarginContainer/VBoxContainer/HBoxContainer2/SkyOptionButton" to="." method="_on_sky_option_button_item_selected"]
 [connection signal="toggled" from="PanelContainer/MarginContainer/VBoxContainer/VBoxContainer/HBoxContainer/MusicButton" to="." method="_on_music_button_toggled"]
 [connection signal="pressed" from="PanelContainer/MarginContainer/VBoxContainer/HBoxContainer3/CancelButton" to="." method="_on_cancel_button_pressed"]

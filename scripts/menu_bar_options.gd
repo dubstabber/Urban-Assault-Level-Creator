@@ -18,7 +18,7 @@ func _on_index_pressed(index: int) -> void:
 		"Change level parameters...":
 			%LevelParametersWindow.popup()
 		"Squad enabler...":
-			print("Implement squad enabler")
+			%SquadEnablerWindow.popup()
 		"Change briefing/debriefing maps for this level...":
 			print("implement briefing/debriefing maps ui")
 		"Select a host station for the player...":

@@ -7,7 +7,6 @@ auto_translate_mode = 1
 title = "Add building"
 initial_position = 1
 size = Vector2i(350, 120)
-visible = false
 transient = true
 exclusive = true
 unresizable = true

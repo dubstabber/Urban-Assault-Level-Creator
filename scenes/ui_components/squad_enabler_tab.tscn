@@ -1,0 +1,166 @@
+[gd_scene load_steps=3 format=3 uid="uid://d30kmftj8dl8g"]
+
+[ext_resource type="Script" path="res://scenes/ui_components/squad_enabler_tab.gd" id="1_7dgui"]
+[ext_resource type="PackedScene" uid="uid://bfmapkerqoldp" path="res://scenes/ui_components/item_check_box_container.tscn" id="2_uc5tb"]
+
+[node name="SquadEnablerTab" type="TabBar"]
+script = ExtResource("1_7dgui")
+ITEM_CHECK_BOX_CONTAINER = ExtResource("2_uc5tb")
+metadata/_tab_index = 0
+
+[node name="VBoxContainer" type="VBoxContainer" parent="."]
+layout_mode = 2
+offset_left = 15.0
+offset_top = 15.0
+offset_right = 471.0
+offset_bottom = 87.0
+
+[node name="CheckBox" type="CheckBox" parent="VBoxContainer"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 12
+text = "Unlock all units"
+
+[node name="HBoxContainer" type="HBoxContainer" parent="VBoxContainer"]
+layout_mode = 2
+
+[node name="ResVBoxContainer" type="VBoxContainer" parent="VBoxContainer/HBoxContainer"]
+layout_mode = 2
+
+[node name="Label" type="Label" parent="VBoxContainer/HBoxContainer/ResVBoxContainer"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 12
+text = "Resistance
+"
+horizontal_alignment = 1
+
+[node name="ResistanceUnitsContainer" type="VBoxContainer" parent="VBoxContainer/HBoxContainer/ResVBoxContainer"]
+unique_name_in_owner = true
+layout_mode = 2
+theme_override_constants/separation = 1
+
+[node name="HSeparator" type="HSeparator" parent="VBoxContainer/HBoxContainer/ResVBoxContainer"]
+layout_mode = 2
+
+[node name="ResistanceBuildingsContainer" type="VBoxContainer" parent="VBoxContainer/HBoxContainer/ResVBoxContainer"]
+unique_name_in_owner = true
+layout_mode = 2
+theme_override_constants/separation = 1
+
+[node name="GhorVBoxContainer" type="VBoxContainer" parent="VBoxContainer/HBoxContainer"]
+layout_mode = 2
+
+[node name="Label" type="Label" parent="VBoxContainer/HBoxContainer/GhorVBoxContainer"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 12
+text = "Ghorkov"
+horizontal_alignment = 1
+
+[node name="GhorkovUnitsContainer" type="VBoxContainer" parent="VBoxContainer/HBoxContainer/GhorVBoxContainer"]
+unique_name_in_owner = true
+layout_mode = 2
+theme_override_constants/separation = 1
+
+[node name="HSeparator" type="HSeparator" parent="VBoxContainer/HBoxContainer/GhorVBoxContainer"]
+layout_mode = 2
+
+[node name="GhorkovBuildingsContainer" type="VBoxContainer" parent="VBoxContainer/HBoxContainer/GhorVBoxContainer"]
+unique_name_in_owner = true
+layout_mode = 2
+theme_override_constants/separation = 1
+
+[node name="TaerVBoxContainer" type="VBoxContainer" parent="VBoxContainer/HBoxContainer"]
+layout_mode = 2
+
+[node name="Label" type="Label" parent="VBoxContainer/HBoxContainer/TaerVBoxContainer"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 12
+text = "Taerkasten"
+horizontal_alignment = 1
+
+[node name="TaerkastenUnitsContainer" type="VBoxContainer" parent="VBoxContainer/HBoxContainer/TaerVBoxContainer"]
+unique_name_in_owner = true
+layout_mode = 2
+theme_override_constants/separation = 1
+
+[node name="HSeparator" type="HSeparator" parent="VBoxContainer/HBoxContainer/TaerVBoxContainer"]
+layout_mode = 2
+
+[node name="TaerkastenBuildingsContainer" type="VBoxContainer" parent="VBoxContainer/HBoxContainer/TaerVBoxContainer"]
+unique_name_in_owner = true
+layout_mode = 2
+theme_override_constants/separation = 1
+
+[node name="MykoVBoxContainer" type="VBoxContainer" parent="VBoxContainer/HBoxContainer"]
+layout_mode = 2
+
+[node name="Label" type="Label" parent="VBoxContainer/HBoxContainer/MykoVBoxContainer"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 12
+text = "Mykonian"
+horizontal_alignment = 1
+
+[node name="MykonianUnitsContainer" type="VBoxContainer" parent="VBoxContainer/HBoxContainer/MykoVBoxContainer"]
+unique_name_in_owner = true
+layout_mode = 2
+theme_override_constants/separation = 1
+
+[node name="HSeparator" type="HSeparator" parent="VBoxContainer/HBoxContainer/MykoVBoxContainer"]
+layout_mode = 2
+
+[node name="MykonianBuildingsContainer" type="VBoxContainer" parent="VBoxContainer/HBoxContainer/MykoVBoxContainer"]
+unique_name_in_owner = true
+layout_mode = 2
+theme_override_constants/separation = 1
+
+[node name="SulgVBoxContainer" type="VBoxContainer" parent="VBoxContainer/HBoxContainer"]
+layout_mode = 2
+
+[node name="Label" type="Label" parent="VBoxContainer/HBoxContainer/SulgVBoxContainer"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 12
+text = "Sulgogar"
+horizontal_alignment = 1
+
+[node name="SulgogarUnitsContainer" type="VBoxContainer" parent="VBoxContainer/HBoxContainer/SulgVBoxContainer"]
+unique_name_in_owner = true
+layout_mode = 2
+theme_override_constants/separation = 1
+
+[node name="BlackSectVBoxContainer" type="VBoxContainer" parent="VBoxContainer/HBoxContainer"]
+layout_mode = 2
+
+[node name="Label" type="Label" parent="VBoxContainer/HBoxContainer/BlackSectVBoxContainer"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 12
+text = "Black Sect"
+horizontal_alignment = 1
+
+[node name="BlackSectBuildingsContainer" type="VBoxContainer" parent="VBoxContainer/HBoxContainer/BlackSectVBoxContainer"]
+unique_name_in_owner = true
+layout_mode = 2
+theme_override_constants/separation = 1
+
+[node name="TrainingVBoxContainer" type="VBoxContainer" parent="VBoxContainer/HBoxContainer"]
+layout_mode = 2
+
+[node name="Label" type="Label" parent="VBoxContainer/HBoxContainer/TrainingVBoxContainer"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 12
+text = "Training"
+horizontal_alignment = 1
+
+[node name="TrainingUnitsContainer" type="VBoxContainer" parent="VBoxContainer/HBoxContainer/TrainingVBoxContainer"]
+unique_name_in_owner = true
+layout_mode = 2
+theme_override_constants/separation = 1
+
+[node name="Label2" type="Label" parent="VBoxContainer/HBoxContainer/TrainingVBoxContainer"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 12
+text = "Special"
+horizontal_alignment = 1
+
+[node name="SpecialUnitsContainer" type="VBoxContainer" parent="VBoxContainer/HBoxContainer/TrainingVBoxContainer"]
+unique_name_in_owner = true
+layout_mode = 2
+theme_override_constants/separation = 1

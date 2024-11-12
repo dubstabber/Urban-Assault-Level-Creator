@@ -1,4 +1,4 @@
-[gd_scene load_steps=34 format=3 uid="uid://ctgiwn3scteuk"]
+[gd_scene load_steps=35 format=3 uid="uid://ctgiwn3scteuk"]
 
 [ext_resource type="Script" path="res://scenes/main.gd" id="1_7pb5r"]
 [ext_resource type="Script" path="res://scripts/Map.gd" id="2_dum0m"]
@@ -7,6 +7,7 @@
 [ext_resource type="Script" path="res://scripts/map_change_faction.gd" id="5_gscij"]
 [ext_resource type="PackedScene" uid="uid://dww5muvu8c87j" path="res://scenes/modals/level_parameters_window.tscn" id="5_jupt5"]
 [ext_resource type="Theme" uid="uid://cdrs6kxi0mn0v" path="res://resources/themes/ua_theme.tres" id="5_sk7qs"]
+[ext_resource type="PackedScene" uid="uid://dcv40f0ranhcs" path="res://scenes/modals/squad_enabler_window.tscn" id="6_cohuk"]
 [ext_resource type="Script" path="res://scripts/menu_bar_file.gd" id="6_i86yq"]
 [ext_resource type="Script" path="res://scripts/map_change_height.gd" id="6_tt5fx"]
 [ext_resource type="Script" path="res://scripts/map_add_building.gd" id="7_i78ot"]
@@ -89,8 +90,13 @@ unique_name_in_owner = true
 
 [node name="SectorBuildingWindow" parent="Modals" instance=ExtResource("13_kug0f")]
 unique_name_in_owner = true
+visible = false
 
 [node name="LevelParametersWindow" parent="Modals" instance=ExtResource("5_jupt5")]
+unique_name_in_owner = true
+visible = false
+
+[node name="SquadEnablerWindow" parent="Modals" instance=ExtResource("6_cohuk")]
 unique_name_in_owner = true
 visible = false
 
@@ -215,6 +221,7 @@ anchors_preset = 0
 
 [node name="PropertiesContainer" type="PanelContainer" parent="PanelContainer/MarginContainer/VBoxContainer/HSplitContainer"]
 unique_name_in_owner = true
+visible = false
 layout_mode = 2
 size_flags_horizontal = 3
 
