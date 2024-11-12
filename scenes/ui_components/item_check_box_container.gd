@@ -76,3 +76,8 @@ func enable_item(toggled: bool) -> void:
 				5: CurrentMapData.blacksect_enabled_buildings.erase(item_id)
 				6: CurrentMapData.ghorkov_enabled_buildings.erase(item_id)
 				7: CurrentMapData.training_enabled_buildings.erase(item_id)
+
+
+func change_button_availability(state: bool, enabler_owner: int) -> void:
+	if enabler_owner != owner_id:
+		$UnitCheckBox.disabled = state

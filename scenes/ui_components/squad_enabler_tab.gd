@@ -28,6 +28,7 @@ func refresh() -> void:
 			item_check_box.item_type = "squad"
 			item_check_box.owner_id = host_station_owner_id
 			item_check_box.item_id = squad.id
+			item_check_box.change_button_availability(true, Preloads.ua_data.data[CurrentMapData.game_data_type].hoststations[hs].owner)
 			match hs:
 				"Resistance": %ResistanceUnitsContainer.add_child(item_check_box)
 				"Ghorkov": %GhorkovUnitsContainer.add_child(item_check_box)
@@ -42,6 +43,7 @@ func refresh() -> void:
 			item_check_box.item_type = "building"
 			item_check_box.owner_id = host_station_owner_id
 			item_check_box.item_id = building.id
+			item_check_box.change_button_availability(true, Preloads.ua_data.data[CurrentMapData.game_data_type].hoststations[hs].owner)
 			match hs:
 				"Resistance": %ResistanceBuildingsContainer.add_child(item_check_box)
 				"Ghorkov": %GhorkovBuildingsContainer.add_child(item_check_box)
@@ -55,4 +57,33 @@ func refresh() -> void:
 		item_check_box.item_type = "squad"
 		item_check_box.owner_id = host_station_owner_id
 		item_check_box.item_id = squad.id
+		item_check_box.change_button_availability(true, 0)
 		%SpecialUnitsContainer.add_child(item_check_box)
+	%UnlockItemsCheckBox.button_pressed = false
+
+
+func _on_unlock_items_check_box_toggled(toggled_on: bool) -> void:
+		for item_check_box in %ResistanceUnitsContainer.get_children():
+			item_check_box.change_button_availability(not toggled_on, 1)
+		for item_check_box in %ResistanceBuildingsContainer.get_children():
+			item_check_box.change_button_availability(not toggled_on, 1)
+		for item_check_box in %GhorkovUnitsContainer.get_children():
+			item_check_box.change_button_availability(not toggled_on, 6)
+		for item_check_box in %GhorkovBuildingsContainer.get_children():
+			item_check_box.change_button_availability(not toggled_on, 6)
+		for item_check_box in %TaerkastenUnitsContainer.get_children():
+			item_check_box.change_button_availability(not toggled_on, 4)
+		for item_check_box in %TaerkastenBuildingsContainer.get_children():
+			item_check_box.change_button_availability(not toggled_on, 4)
+		for item_check_box in %MykonianUnitsContainer.get_children():
+			item_check_box.change_button_availability(not toggled_on, 3)
+		for item_check_box in %MykonianBuildingsContainer.get_children():
+			item_check_box.change_button_availability(not toggled_on, 3)
+		for item_check_box in %SulgogarUnitsContainer.get_children():
+			item_check_box.change_button_availability(not toggled_on, 2)
+		for item_check_box in %BlackSectBuildingsContainer.get_children():
+			item_check_box.change_button_availability(not toggled_on, 5)
+		for item_check_box in %TrainingUnitsContainer.get_children():
+			item_check_box.change_button_availability(not toggled_on, 7)
+		for item_check_box in %SpecialUnitsContainer.get_children():
+			item_check_box.change_button_availability(not toggled_on, 0)
