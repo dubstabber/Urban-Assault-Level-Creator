@@ -1,4 +1,4 @@
-[gd_scene load_steps=35 format=3 uid="uid://ctgiwn3scteuk"]
+[gd_scene load_steps=36 format=3 uid="uid://ctgiwn3scteuk"]
 
 [ext_resource type="Script" path="res://scenes/main.gd" id="1_7pb5r"]
 [ext_resource type="Script" path="res://scripts/Map.gd" id="2_dum0m"]
@@ -11,6 +11,7 @@
 [ext_resource type="Script" path="res://scripts/menu_bar_file.gd" id="6_i86yq"]
 [ext_resource type="Script" path="res://scripts/map_change_height.gd" id="6_tt5fx"]
 [ext_resource type="Script" path="res://scripts/map_add_building.gd" id="7_i78ot"]
+[ext_resource type="PackedScene" uid="uid://cwls8s52kffff" path="res://scenes/modals/mission_briefing_maps_window.tscn" id="7_p7i0k"]
 [ext_resource type="Script" path="res://scripts/map_add_special_building.gd" id="7_tn0yk"]
 [ext_resource type="Script" path="res://scripts/map_add_item.gd" id="8_jye6k"]
 [ext_resource type="Script" path="res://scripts/map_clean_sector.gd" id="9_gtrn7"]
@@ -97,6 +98,10 @@ unique_name_in_owner = true
 visible = false
 
 [node name="SquadEnablerWindow" parent="Modals" instance=ExtResource("6_cohuk")]
+unique_name_in_owner = true
+visible = false
+
+[node name="MissionBriefingMapsWindow" parent="Modals" instance=ExtResource("7_p7i0k")]
 unique_name_in_owner = true
 visible = false
 

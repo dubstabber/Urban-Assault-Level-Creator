@@ -32,10 +32,6 @@ gdscript/warnings/unused_signal=0
 window/subwindows/embed_subwindows=false
 window/dpi/allow_hidpi=false
 
-[global_group]
-
-item_check_box_container=""
-
 [gui]
 
 theme/custom="res://resources/themes/ua_theme.tres"

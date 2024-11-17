@@ -1,0 +1,105 @@
+[gd_scene load_steps=4 format=3 uid="uid://cwls8s52kffff"]
+
+[ext_resource type="Script" path="res://scripts/mission_briefing_maps_window.gd" id="1_3ep5j"]
+
+[sub_resource type="PlaceholderTexture2D" id="PlaceholderTexture2D_2ur5c"]
+size = Vector2(350, 350)
+
+[sub_resource type="PlaceholderTexture2D" id="PlaceholderTexture2D_hr766"]
+size = Vector2(350, 350)
+
+[node name="MissionBriefingMapsWindow" type="Window"]
+auto_translate_mode = 1
+title = "Mission briefing and debriefing maps"
+initial_position = 1
+size = Vector2i(400, 870)
+transient = true
+exclusive = true
+min_size = Vector2i(350, 350)
+script = ExtResource("1_3ep5j")
+
+[node name="PanelContainer" type="PanelContainer" parent="."]
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="ScrollContainer" type="ScrollContainer" parent="PanelContainer"]
+layout_mode = 2
+
+[node name="MarginContainer" type="MarginContainer" parent="PanelContainer/ScrollContainer"]
+custom_minimum_size = Vector2(400, 840)
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_constants/margin_left = 12
+theme_override_constants/margin_top = 12
+theme_override_constants/margin_right = 12
+theme_override_constants/margin_bottom = 12
+
+[node name="VBoxContainer" type="VBoxContainer" parent="PanelContainer/ScrollContainer/MarginContainer"]
+layout_mode = 2
+theme_override_constants/separation = 8
+alignment = 1
+
+[node name="HBoxContainer" type="HBoxContainer" parent="PanelContainer/ScrollContainer/MarginContainer/VBoxContainer"]
+layout_mode = 2
+alignment = 1
+
+[node name="Label" type="Label" parent="PanelContainer/ScrollContainer/MarginContainer/VBoxContainer/HBoxContainer"]
+layout_mode = 2
+text = "Select briefing map"
+
+[node name="BriefingMapsOptionButton" type="OptionButton" parent="PanelContainer/ScrollContainer/MarginContainer/VBoxContainer/HBoxContainer"]
+unique_name_in_owner = true
+layout_mode = 2
+
+[node name="BriefingMapTexture" type="TextureRect" parent="PanelContainer/ScrollContainer/MarginContainer/VBoxContainer"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(350, 350)
+layout_mode = 2
+size_flags_horizontal = 4
+size_flags_vertical = 4
+texture = SubResource("PlaceholderTexture2D_2ur5c")
+expand_mode = 1
+stretch_mode = 5
+
+[node name="HSeparator" type="HSeparator" parent="PanelContainer/ScrollContainer/MarginContainer/VBoxContainer"]
+layout_mode = 2
+
+[node name="HBoxContainer2" type="HBoxContainer" parent="PanelContainer/ScrollContainer/MarginContainer/VBoxContainer"]
+layout_mode = 2
+alignment = 1
+
+[node name="Label" type="Label" parent="PanelContainer/ScrollContainer/MarginContainer/VBoxContainer/HBoxContainer2"]
+layout_mode = 2
+text = "Select debriefing map"
+
+[node name="DebriefingMapsOptionButton" type="OptionButton" parent="PanelContainer/ScrollContainer/MarginContainer/VBoxContainer/HBoxContainer2"]
+unique_name_in_owner = true
+layout_mode = 2
+
+[node name="DebriefingMapTexture" type="TextureRect" parent="PanelContainer/ScrollContainer/MarginContainer/VBoxContainer"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(350, 350)
+layout_mode = 2
+size_flags_horizontal = 4
+size_flags_vertical = 4
+texture = SubResource("PlaceholderTexture2D_hr766")
+expand_mode = 1
+stretch_mode = 5
+
+[node name="HSeparator2" type="HSeparator" parent="PanelContainer/ScrollContainer/MarginContainer/VBoxContainer"]
+layout_mode = 2
+
+[node name="Button" type="Button" parent="PanelContainer/ScrollContainer/MarginContainer/VBoxContainer"]
+layout_mode = 2
+size_flags_horizontal = 4
+size_flags_vertical = 4
+text = "Close"
+
+[connection signal="about_to_popup" from="." to="." method="_on_about_to_popup"]
+[connection signal="close_requested" from="." to="." method="close"]
+[connection signal="item_selected" from="PanelContainer/ScrollContainer/MarginContainer/VBoxContainer/HBoxContainer/BriefingMapsOptionButton" to="." method="_on_briefing_maps_option_button_item_selected"]
+[connection signal="item_selected" from="PanelContainer/ScrollContainer/MarginContainer/VBoxContainer/HBoxContainer2/DebriefingMapsOptionButton" to="." method="_on_debriefing_maps_option_button_item_selected"]
+[connection signal="pressed" from="PanelContainer/ScrollContainer/MarginContainer/VBoxContainer/Button" to="." method="close"]

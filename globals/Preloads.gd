@@ -18,6 +18,8 @@ var error_sign: CompressedTexture2D
 var movies_db := {}
 var skies := {}
 var musics := {}
+var mbmaps := {}
+var dbmaps := {}
 
 
 func _ready():
@@ -300,3 +302,16 @@ func _ready():
 	musics[5] = load("res://resources/audio/track-5.mp3")
 	musics[6] = load("res://resources/audio/track-6.mp3")
 	
+	load_mb_db_maps()
+
+
+func load_mb_db_maps() -> void:
+	var map_name := ""
+	for file_name in DirAccess.get_files_at("res://resources/img/mbgfx/%s/" % CurrentMapData.game_data_type):
+		if (file_name.get_extension() == "import"):
+			file_name = file_name.replace(".import", "")
+			map_name = file_name.replace(".png", "")
+			if map_name.begins_with("mb"):
+				mbmaps[map_name] = load("res://resources/img/mbgfx/%s/%s" % [CurrentMapData.game_data_type, file_name])
+			elif map_name.begins_with("db"):
+				dbmaps[map_name] = load("res://resources/img/mbgfx/%s/%s" % [CurrentMapData.game_data_type, file_name])
