@@ -22,7 +22,7 @@ func _on_index_pressed(index: int) -> void:
 		"Change briefing/debriefing maps for this level...":
 			%MissionBriefingMapsWindow.popup()
 		"Select a host station for the player...":
-			print("implement host station selection")
+			%PlayerHostStationWindow.popup()
 		"Write level description...":
 			print("implement level description writer")
 		"Prototype modifications...":

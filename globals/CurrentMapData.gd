@@ -11,6 +11,7 @@ var min_break := 0
 var max_break := 0
 var briefing_map := "mb.ilb"
 var debriefing_map := "db_01.iff"
+var player_host_station := 0
 
 var host_stations: Control
 var squads: Control

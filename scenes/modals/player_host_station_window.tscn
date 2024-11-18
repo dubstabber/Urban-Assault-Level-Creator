@@ -1,0 +1,77 @@
+[gd_scene load_steps=3 format=3 uid="uid://dt41sbmncyves"]
+
+[ext_resource type="Script" path="res://scripts/player_host_station_window.gd" id="1_07hdg"]
+[ext_resource type="ButtonGroup" uid="uid://ctgdt77o11ivx" path="res://themes/player_host_station_button_group.tres" id="1_7ohb4"]
+
+[node name="PlayerHostStationWindow" type="Window"]
+auto_translate_mode = 1
+title = "Select host station for the player"
+initial_position = 1
+size = Vector2i(350, 200)
+transient = true
+exclusive = true
+min_size = Vector2i(300, 200)
+script = ExtResource("1_07hdg")
+button_group = ExtResource("1_7ohb4")
+
+[node name="PanelContainer" type="PanelContainer" parent="."]
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="ScrollContainer" type="ScrollContainer" parent="PanelContainer"]
+layout_mode = 2
+
+[node name="MarginContainer" type="MarginContainer" parent="PanelContainer/ScrollContainer"]
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_vertical = 3
+
+[node name="VBoxContainer" type="VBoxContainer" parent="PanelContainer/ScrollContainer/MarginContainer"]
+layout_mode = 2
+theme_override_constants/separation = 15
+alignment = 1
+
+[node name="Label" type="Label" parent="PanelContainer/ScrollContainer/MarginContainer/VBoxContainer"]
+layout_mode = 2
+text = "Select the host station to play with"
+horizontal_alignment = 1
+
+[node name="NoHostStationLabel" type="Label" parent="PanelContainer/ScrollContainer/MarginContainer/VBoxContainer"]
+unique_name_in_owner = true
+visible = false
+layout_mode = 2
+theme_override_font_sizes/font_size = 12
+text = "No host stations available"
+horizontal_alignment = 1
+
+[node name="HostStationContainer" type="VBoxContainer" parent="PanelContainer/ScrollContainer/MarginContainer/VBoxContainer"]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_horizontal = 4
+alignment = 1
+
+[node name="CheckBox" type="CheckBox" parent="PanelContainer/ScrollContainer/MarginContainer/VBoxContainer/HostStationContainer"]
+layout_mode = 2
+size_flags_horizontal = 0
+theme_override_font_sizes/font_size = 12
+button_group = ExtResource("1_7ohb4")
+text = "Host station 1: HS name"
+
+[node name="CheckBox2" type="CheckBox" parent="PanelContainer/ScrollContainer/MarginContainer/VBoxContainer/HostStationContainer"]
+layout_mode = 2
+size_flags_horizontal = 0
+theme_override_font_sizes/font_size = 12
+button_group = ExtResource("1_7ohb4")
+text = "Host station 2: HS name"
+
+[node name="CloseButton" type="Button" parent="PanelContainer/ScrollContainer/MarginContainer/VBoxContainer"]
+layout_mode = 2
+size_flags_horizontal = 4
+text = "Close"
+
+[connection signal="about_to_popup" from="." to="." method="_on_about_to_popup"]
+[connection signal="close_requested" from="." to="." method="close"]
+[connection signal="pressed" from="PanelContainer/ScrollContainer/MarginContainer/VBoxContainer/CloseButton" to="." method="close"]
