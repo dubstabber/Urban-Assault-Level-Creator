@@ -160,3 +160,90 @@ func decrement_typ_map() -> void:
 			if temp > 208 and temp < 228: temp = 208
 			if temp > 235 and temp < 239: temp = 235
 	CurrentMapData.typ_map[CurrentMapData.selected_sector_idx] = temp
+
+
+func randomize_whole_typ_map() -> void:
+	if CurrentMapData.typ_map.is_empty(): return
+	
+	for i in CurrentMapData.typ_map.size():
+		var fail := true
+		var rand: int
+		
+		while fail:
+			rand = randi_range(0,255)
+			fail = false
+			
+			match CurrentMapData.level_set:
+				1:
+					if rand > 53 and rand < 59: fail = true
+					if rand > 59 and rand < 66: fail = true
+					if rand > 82 and rand < 95: fail = true
+					if rand > 104 and rand < 110: fail = true
+					if rand > 113 and rand < 120: fail = true
+					if rand > 121 and rand < 130: fail = true
+					if rand > 141 and rand < 150: fail = true
+					if rand > 189 and rand < 198: fail = true
+					if rand > 205 and rand < 207: fail = true
+					if rand > 208 and rand < 228: fail = true
+					if rand > 236 and rand < 239: fail = true
+				2:
+					if rand > 24 and rand < 27: fail = true
+					if rand > 104 and rand < 110: fail = true
+					if rand > 113 and rand < 118: fail = true
+					if rand > 131 and rand < 133: fail = true
+					if rand > 133 and rand < 150: fail = true
+					if rand > 195 and rand < 198: fail = true
+					if rand > 205 and rand < 207: fail = true
+					if rand > 208 and rand < 210: fail = true
+					if rand > 225 and rand < 228: fail = true
+					if rand > 230 and rand < 239: fail = true
+				3:
+					if rand > 49 and rand < 59: fail = true
+					if rand > 59 and rand < 66: fail = true
+					if rand > 82 and rand < 100: fail = true
+					if rand > 104 and rand < 110: fail = true
+					if rand > 113 and rand < 121: fail = true
+					if rand > 121 and rand < 130: fail = true
+					if rand > 141 and rand < 150: fail = true
+					if rand > 189 and rand < 198: fail = true
+					if rand > 205 and rand < 207: fail = true
+					if rand > 208 and rand < 228: fail = true
+					if rand > 230 and rand < 239: fail = true
+				4:
+					if rand > 49 and rand < 59: fail = true
+					if rand > 60 and rand < 66: fail = true
+					if rand > 82 and rand < 100: fail = true
+					if rand > 104 and rand < 110: fail = true
+					if rand > 113 and rand < 121: fail = true
+					if rand > 121 and rand < 130: fail = true
+					if rand > 141 and rand < 150: fail = true
+					if rand > 189 and rand < 198: fail = true
+					if rand > 205 and rand < 207: fail = true
+					if rand > 208 and rand < 228: fail = true
+					if rand > 230 and rand < 239: fail = true
+				5:
+					if rand > 95 and rand < 97: fail = true
+					if rand > 116 and rand < 118: fail = true
+					if rand > 131 and rand < 133: fail = true
+					if rand > 137 and rand < 150: fail = true
+					if rand > 191 and rand < 198: fail = true
+					if rand > 205 and rand < 207: fail = true
+					if rand > 208 and rand < 210: fail = true
+					if rand > 225 and rand < 228: fail = true
+					if rand > 230 and rand < 239: fail = true
+				6:
+					if rand > 49 and rand < 59: fail = true
+					if rand > 59 and rand < 66: fail = true
+					if rand > 82 and rand < 95: fail = true
+					if rand > 104 and rand < 110: fail = true
+					if rand > 113 and rand < 121: fail = true
+					if rand > 121 and rand < 130: fail = true
+					if rand > 141 and rand < 150: fail = true
+					if rand > 189 and rand < 198: fail = true
+					if rand > 205 and rand < 207: fail = true
+					if rand > 208 and rand < 228: fail = true
+					if rand > 235 and rand < 239: fail = true
+			
+			CurrentMapData.typ_map[i] = rand
+		
+	EventSystem.map_updated.emit()

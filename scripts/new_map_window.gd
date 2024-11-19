@@ -14,7 +14,8 @@ func _on_create_button_pressed() -> void:
 	CurrentMapData.level_description = "------ Level name: New Level
 ------ Created on: %s 
 ------ Designed By: Unknown author" % formatted_date
-
+	CurrentMapData.prototype_modifications = "include data:scripts/startup2.scr"
+	
 	var sectors = CurrentMapData.horizontal_sectors * CurrentMapData.vertical_sectors
 	for sector in sectors:
 		CurrentMapData.typ_map.append(0)

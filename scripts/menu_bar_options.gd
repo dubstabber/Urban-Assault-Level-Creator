@@ -26,8 +26,8 @@ func _on_index_pressed(index: int) -> void:
 		"Write level description...":
 			%LevelDescriptionWindow.popup()
 		"Prototype modifications...":
-			print('implement prototype modifications writer')
+			%PrototypeModificationsWindow.popup()
 		"Generate buildings randomly":
-			print("implement typ_map random generation")
+			Utils.randomize_whole_typ_map()
 		"Additional game content...":
 			print("implement game content changer")

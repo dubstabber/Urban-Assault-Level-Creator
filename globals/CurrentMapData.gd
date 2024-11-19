@@ -13,6 +13,7 @@ var briefing_map := "mb.ilb"
 var debriefing_map := "db_01.iff"
 var player_host_station := 0
 var level_description := ""
+var prototype_modifications := ""
 
 var host_stations: Control
 var squads: Control

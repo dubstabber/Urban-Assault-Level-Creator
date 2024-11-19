@@ -1,4 +1,4 @@
-[gd_scene load_steps=39 format=3 uid="uid://ctgiwn3scteuk"]
+[gd_scene load_steps=40 format=3 uid="uid://ctgiwn3scteuk"]
 
 [ext_resource type="Script" path="res://scenes/main.gd" id="1_7pb5r"]
 [ext_resource type="Script" path="res://scripts/Map.gd" id="2_dum0m"]
@@ -17,6 +17,7 @@
 [ext_resource type="PackedScene" uid="uid://dt41sbmncyves" path="res://scenes/modals/player_host_station_window.tscn" id="8_ttnn6"]
 [ext_resource type="Script" path="res://scripts/map_clean_sector.gd" id="9_gtrn7"]
 [ext_resource type="PackedScene" uid="uid://bn561fiqobkc3" path="res://scenes/modals/level_description_window.tscn" id="9_kn1qm"]
+[ext_resource type="PackedScene" uid="uid://ddlqlnhwj21fc" path="res://scenes/modals/prototype_modifications_window.tscn" id="10_b73kt"]
 [ext_resource type="Script" path="res://scripts/context_menu_remove_unit.gd" id="10_ip5i1"]
 [ext_resource type="Script" path="res://scripts/menu_bar_view.gd" id="10_vou7b"]
 [ext_resource type="PackedScene" uid="uid://c3kputnns5tlf" path="res://scenes/modals/new_map_window.tscn" id="11_kalue"]
@@ -115,6 +116,10 @@ visible = false
 button_group = SubResource("ButtonGroup_238se")
 
 [node name="LevelDescriptionWindow" parent="Modals" instance=ExtResource("9_kn1qm")]
+unique_name_in_owner = true
+visible = false
+
+[node name="PrototypeModificationsWindow" parent="Modals" instance=ExtResource("10_b73kt")]
 unique_name_in_owner = true
 visible = false
 
