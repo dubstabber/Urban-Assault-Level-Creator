@@ -24,7 +24,7 @@ func _on_index_pressed(index: int) -> void:
 		"Select a host station for the player...":
 			%PlayerHostStationWindow.popup()
 		"Write level description...":
-			print("implement level description writer")
+			%LevelDescriptionWindow.popup()
 		"Prototype modifications...":
 			print('implement prototype modifications writer')
 		"Generate buildings randomly":
