@@ -28,6 +28,6 @@ func _on_index_pressed(index: int) -> void:
 		"Prototype modifications...":
 			%PrototypeModificationsWindow.popup()
 		"Generate buildings randomly":
-			Utils.randomize_whole_typ_map()
+			%RandomizeTypMapConfirmationDialog.popup()
 		"Additional game content...":
 			print("implement game content changer")
