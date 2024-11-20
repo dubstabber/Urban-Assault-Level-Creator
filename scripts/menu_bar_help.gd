@@ -11,7 +11,7 @@ func _ready() -> void:
 func _on_index_pressed(index: int) -> void:
 	match get_item_text(index):
 		"Campaign maps":
-			print("implement campagin maps panel")
+			%CampaignMapsWindow.popup()
 		"Keyboard shortcuts":
 			print("implment keyboard shortcuts")
 		"About":
