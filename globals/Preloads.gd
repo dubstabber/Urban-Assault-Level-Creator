@@ -23,23 +23,7 @@ var dbmaps := {}
 
 
 func _ready():
-	for hs in ua_data.data[CurrentMapData.game_data_type].hoststations:
-		hs_images[str(ua_data.data[CurrentMapData.game_data_type].hoststations[hs].owner)] = load("res://resources/img/hostStationImages/"+ ua_data.data[CurrentMapData.game_data_type].hoststations[hs].image_file)
-		for robo in ua_data.data[CurrentMapData.game_data_type].hoststations[hs].robos:
-			hs_robo_images[int(robo.id)] = {
-				"name": robo.name,
-				"image": load("res://resources/img/hostStationRoboImages/"+robo.image_file)
-			}
-		for squad in ua_data.data[CurrentMapData.game_data_type].hoststations[hs].units:
-			squad_images[str(squad.id)] = load("res://resources/img/squadImages/" + squad.image_file)
-		for building in ua_data.data[CurrentMapData.game_data_type].hoststations[hs].buildings:
-			special_building_images[str(building.id)] = load("res://resources/img/blgMapImages/" + building.image_file)
-	
-	for squad in ua_data.data[CurrentMapData.game_data_type].other.units:
-		squad_images[str(squad.id)] = load("res://resources/img/squadImages/" + squad.image_file)
-	for building in ua_data.data[CurrentMapData.game_data_type].other.buildings:
-		special_building_images[str(building.id)] = load("res://resources/img/blgMapImages/" + building.image_file)
-	
+	reload_units_and_building()
 	
 	squad_icons.square = {
 		"blue": load("res://resources/img/squadIcons/BlueUnit1.png"),
@@ -302,10 +286,34 @@ func _ready():
 	musics[5] = load("res://resources/audio/track-5.mp3")
 	musics[6] = load("res://resources/audio/track-6.mp3")
 	
-	load_mb_db_maps()
+	reload_mb_db_maps()
+	EventSystem.game_type_changed.connect(reload_units_and_building)
+	EventSystem.game_type_changed.connect(reload_mb_db_maps)
 
 
-func load_mb_db_maps() -> void:
+func reload_units_and_building() -> void:
+	squad_images.clear()
+	special_building_images.clear()
+	
+	for hs in ua_data.data[CurrentMapData.game_data_type].hoststations:
+		hs_images[str(ua_data.data[CurrentMapData.game_data_type].hoststations[hs].owner)] = load("res://resources/img/hostStationImages/"+ ua_data.data[CurrentMapData.game_data_type].hoststations[hs].image_file)
+		for robo in ua_data.data[CurrentMapData.game_data_type].hoststations[hs].robos:
+			hs_robo_images[int(robo.id)] = {
+				"name": robo.name,
+				"image": load("res://resources/img/hostStationRoboImages/"+robo.image_file)
+			}
+		for squad in ua_data.data[CurrentMapData.game_data_type].hoststations[hs].units:
+			squad_images[str(squad.id)] = load("res://resources/img/squadImages/" + squad.image_file)
+		for building in ua_data.data[CurrentMapData.game_data_type].hoststations[hs].buildings:
+			special_building_images[str(building.id)] = load("res://resources/img/blgMapImages/" + building.image_file)
+	
+	for squad in ua_data.data[CurrentMapData.game_data_type].other.units:
+		squad_images[str(squad.id)] = load("res://resources/img/squadImages/" + squad.image_file)
+	for building in ua_data.data[CurrentMapData.game_data_type].other.buildings:
+		special_building_images[str(building.id)] = load("res://resources/img/blgMapImages/" + building.image_file)
+
+
+func reload_mb_db_maps() -> void:
 	var map_name := ""
 	for file_name in DirAccess.get_files_at("res://resources/img/mbgfx/%s/" % CurrentMapData.game_data_type):
 		if (file_name.get_extension() == "import"):

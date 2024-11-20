@@ -1,4 +1,4 @@
-[gd_scene load_steps=41 format=3 uid="uid://ctgiwn3scteuk"]
+[gd_scene load_steps=43 format=3 uid="uid://ctgiwn3scteuk"]
 
 [ext_resource type="Script" path="res://scenes/main.gd" id="1_7pb5r"]
 [ext_resource type="Script" path="res://scripts/Map.gd" id="2_dum0m"]
@@ -20,6 +20,7 @@
 [ext_resource type="PackedScene" uid="uid://ddlqlnhwj21fc" path="res://scenes/modals/prototype_modifications_window.tscn" id="10_b73kt"]
 [ext_resource type="Script" path="res://scripts/context_menu_remove_unit.gd" id="10_ip5i1"]
 [ext_resource type="Script" path="res://scripts/menu_bar_view.gd" id="10_vou7b"]
+[ext_resource type="PackedScene" uid="uid://38jgl31xlam5" path="res://scenes/modals/game_content_window.tscn" id="11_jobpe"]
 [ext_resource type="PackedScene" uid="uid://c3kputnns5tlf" path="res://scenes/modals/new_map_window.tscn" id="11_kalue"]
 [ext_resource type="PackedScene" uid="uid://dfamq5n451pat" path="res://scenes/modals/sector_height_window.tscn" id="12_wpowt"]
 [ext_resource type="PackedScene" uid="uid://x4kwkajlf23r" path="res://scenes/modals/sector_building_window.tscn" id="13_kug0f"]
@@ -44,6 +45,8 @@ func _ready() -> void:
 		Utils.randomize_whole_typ_map()
 		)
 "
+
+[sub_resource type="ButtonGroup" id="ButtonGroup_0bwt3"]
 
 [sub_resource type="GDScript" id="GDScript_hihdk"]
 script/source = "extends TabContainer
@@ -141,6 +144,11 @@ ok_button_text = "Yes"
 dialog_text = "This will change the building in every sector based on the selected level set. Are you sure you want to proceed?"
 cancel_button_text = "No"
 script = SubResource("GDScript_pxw2i")
+
+[node name="GameContentWindow" parent="Modals" instance=ExtResource("11_jobpe")]
+unique_name_in_owner = true
+visible = false
+button_group = SubResource("ButtonGroup_0bwt3")
 
 [node name="LoadBehaviorFileDialog" type="FileDialog" parent="Modals"]
 unique_name_in_owner = true
@@ -271,12 +279,11 @@ size_flags_horizontal = 3
 layout_mode = 2
 size_flags_horizontal = 3
 size_flags_vertical = 3
-current_tab = 1
+current_tab = 0
 clip_tabs = false
 script = SubResource("GDScript_hihdk")
 
 [node name="Unit" type="TabBar" parent="PanelContainer/MarginContainer/VBoxContainer/HSplitContainer/PropertiesContainer/TabContainer"]
-visible = false
 layout_mode = 2
 tab_alignment = 1
 script = ExtResource("17_a4oqg")
@@ -861,10 +868,9 @@ custom_minimum_size = Vector2(20, 20)
 layout_mode = 2
 texture = SubResource("PlaceholderTexture2D_37be0")
 
-[node name="SquadNumberLabel" type="Label" parent="PanelContainer/MarginContainer/VBoxContainer/HSplitContainer/PropertiesContainer/TabContainer/Unit/ScrollContainer/MarginContainer/SquadProperties/HBoxContainer"]
-unique_name_in_owner = true
+[node name="SquadLabel" type="Label" parent="PanelContainer/MarginContainer/VBoxContainer/HSplitContainer/PropertiesContainer/TabContainer/Unit/ScrollContainer/MarginContainer/SquadProperties/HBoxContainer"]
 layout_mode = 2
-text = "Squad N:"
+text = "Squad:"
 
 [node name="SquadNameLabel" type="Label" parent="PanelContainer/MarginContainer/VBoxContainer/HSplitContainer/PropertiesContainer/TabContainer/Unit/ScrollContainer/MarginContainer/SquadProperties/HBoxContainer"]
 unique_name_in_owner = true
@@ -967,6 +973,7 @@ theme_override_font_sizes/font_size = 12
 text = "Make this squad invisible in the Mission Briefing"
 
 [node name="Sector" type="TabBar" parent="PanelContainer/MarginContainer/VBoxContainer/HSplitContainer/PropertiesContainer/TabContainer"]
+visible = false
 layout_mode = 2
 script = ExtResource("19_3h4ps")
 metadata/_tab_index = 1

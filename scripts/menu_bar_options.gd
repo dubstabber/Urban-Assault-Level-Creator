@@ -30,4 +30,4 @@ func _on_index_pressed(index: int) -> void:
 		"Generate buildings randomly":
 			%RandomizeTypMapConfirmationDialog.popup()
 		"Additional game content...":
-			print("implement game content changer")
+			%GameContentWindow.popup()

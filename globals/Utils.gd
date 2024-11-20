@@ -247,3 +247,14 @@ func randomize_whole_typ_map() -> void:
 			CurrentMapData.typ_map[i] = rand
 		
 	EventSystem.map_updated.emit()
+
+
+func change_player_hs_vehicle_to_id() -> void:
+	var player_hs = CurrentMapData.host_stations.get_child(CurrentMapData.player_host_station)
+	
+	for hs in Preloads.ua_data.data[CurrentMapData.game_data_type].hoststations:
+		if Preloads.ua_data.data[CurrentMapData.game_data_type].hoststations[hs].owner == player_hs.owner_id:
+			for robo in Preloads.ua_data.data[CurrentMapData.game_data_type].hoststations[hs].robos:
+				if "player_id" in robo and robo.player_id == player_hs.vehicle:
+					player_hs.vehicle = robo.id
+					return

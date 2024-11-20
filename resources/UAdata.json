@@ -242,10 +242,10 @@
 		"Ghorkov": {
 			"owner": 6,
 			"image_file": "Ghor.png",
-				"robos": [
-					{"id": 59, "playerID": 176, "name": "Turantul I", "image_file": "ghorkov1HS.png"},
-					{"id": 57, "playerID": 177, "name": "Turantul II", "image_file": "ghorkov2HS.png"}
-				],
+			"robos": [
+				{"id": 59, "player_id": 176, "name": "Turantul I", "image_file": "ghorkov1HS.png"},
+				{"id": 57, "player_id": 177, "name": "Turantul II", "image_file": "ghorkov2HS.png"}
+			],
 			"units": [
 				{"id": 22,"name": "Speedy", "image_file": "speedy.png", "map_icon": "square"},
 				{"id": 26,"name": "Tekh-Trakh", "image_file": "tekhTrakh.png", "map_icon": "square"},
@@ -270,7 +270,7 @@
 			"owner": 4,
 			"image_file": "Taer.png",
 			"robos": [
-				{"id": 60, "playerID": 178, "name": "Taerkasten Flying Fortness", "image_file": "taerkastenHS.png"}
+				{"id": 60, "player_id": 178, "name": "Taerkasten Flying Fortness", "image_file": "taerkastenHS.png"}
 			],
 			"units": [
 				{"id": 32,"name": "Eisenhans", "image_file": "eisenhans.png", "map_icon": "square"},
@@ -296,6 +296,9 @@
 		"Mykonian": {
 			"owner": 3,
 			"image_file": "Myko.png",
+			"robos": [
+				{"id": 58, "name": "Myko Station", "image_file": "mykonianHS.png"}
+			],
 			"units": [
 				{"id": 65,"name": "5PO-Prisma", "image_file": "prisma.png", "map_icon": "circle"},
 				{"id": 64,"name": "X01-Quadda", "image_file": "quadda.png", "map_icon": "left_triangle"},
@@ -316,6 +319,9 @@
 		"Sulgogar": {
 			"owner": 2,
 			"image_file": "Sulg.png",
+			"robos": [
+					{"id": 61, "name": "Sulgogar Queen", "image_file": "sulgogarHS.png"}
+			],
 			"units": [
 				{"id": 73,"name": "Blue Spore", "image_file": "blueSpore.png", "map_icon": 3},
 				{"id": 71,"name": "Mean Green", "image_file": "meanGreen.png", "map_icon": 3},
@@ -327,6 +333,9 @@
 		"BlackSect": {
 			"owner": 5,
 			"image_file": "Blacksect.png",
+			"robos": [
+					{"id": 62, "name": "Black Sect Station", "image_file": "blackSectHS.png"}
+			],
 			"units": [],
 			"buildings": [
 				{"id": 18, "name": "Flakstation", "icon_type": "flak_station", "typ_map": 200, "image_file": "blasecFlak.png"}
@@ -335,12 +344,15 @@
 		"Training": {
 			"owner": 7,
 			"image_file": "Training.png",
+			"robos": [
+					{"id": 132, "name": "Target Host Station", "image_file": "targetHS.png"}
+			],
 			"units": [
 				{"id": 138,"name": "Target Drone", "image_file": "targetDrone.png", "map_icon": "left_triangle"},
 				{"id": 142,"name": "Target Drone 2", "image_file": "targetDrone.png", "map_icon": "left_triangle"}
 			],
 			"buildings": []
-		},	
+		},
 		},
 		"other": {
 			"units": [

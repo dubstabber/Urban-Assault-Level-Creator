@@ -1,11 +1,22 @@
 extends Node
 
+var squad_submenu: PopupMenu = PopupMenu.new()
+
 
 func _ready() -> void:
 	await get_parent().ready
-	var squad_submenu: PopupMenu = PopupMenu.new()
 	squad_submenu.name = "squad"
 	get_parent().add_child(squad_submenu)
+	update_menus()
+	get_parent().add_submenu_item("Add squad", "squad")
+	EventSystem.game_type_changed.connect(update_menus)
+
+
+func update_menus() -> void:
+	for menu in squad_submenu.get_children():
+		menu.queue_free()
+	squad_submenu.clear(true)
+	
 	for hs in Preloads.ua_data.data[CurrentMapData.game_data_type].hoststations:
 		var squads: PopupMenu = PopupMenu.new()
 		squads.name = hs+"-squads"
@@ -31,7 +42,7 @@ func _ready() -> void:
 			Preloads.ua_data.data[CurrentMapData.game_data_type].hoststations.keys()[0], 
 			Preloads.ua_data.data[CurrentMapData.game_data_type].hoststations.values()[0].owner, 
 			true))
-	get_parent().add_submenu_item("Add squad", "squad")
+	
 
 
 func add_squad(idx: int, squads_menu: PopupMenu, faction: String, owner_id: int, is_other := false):

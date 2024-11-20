@@ -231,9 +231,13 @@ func _update_properties():
 			%HostStationProperties.show()
 		elif CurrentMapData.selected_unit is Squad:
 			%HostStationProperties.hide()
-			%SquadIcon.texture = Preloads.squad_images[str(CurrentMapData.selected_unit.vehicle)]
-			%SquadNumberLabel.text = "Squad: "
-			%SquadNameLabel.text = CurrentMapData.selected_unit.unit_name
+			if Preloads.squad_images.has(str(CurrentMapData.selected_unit.vehicle)):
+				%SquadIcon.texture = Preloads.squad_images[str(CurrentMapData.selected_unit.vehicle)]
+				%SquadNameLabel.text = CurrentMapData.selected_unit.unit_name
+			else:
+				%SquadIcon.texture = null
+				%SquadNameLabel.text = "Unknown unit"
+			
 			%QuantitySpinBox.value = CurrentMapData.selected_unit.quantity
 			%FactionOptionButton.select(%FactionOptionButton.get_item_index(CurrentMapData.selected_unit.owner_id))
 			

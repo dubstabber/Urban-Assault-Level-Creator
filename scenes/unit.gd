@@ -7,7 +7,19 @@ var of := Vector2(0,0)
 var unit_name: String
 
 var owner_id: int
-var vehicle: int
+var vehicle: int:
+	set(value):
+		vehicle = value
+		if self is HostStation:
+			for hs in Preloads.ua_data.data[CurrentMapData.game_data_type].hoststations:
+				for robo in Preloads.ua_data.data[CurrentMapData.game_data_type].hoststations[hs].robos:
+					if robo.id == vehicle:
+						if "player_id" in robo:
+							player_vehicle = robo.player_id
+						else:
+							player_vehicle = -1
+						break
+var player_vehicle: int
 var mb_status := false
 
 var pos_to_move: Vector2

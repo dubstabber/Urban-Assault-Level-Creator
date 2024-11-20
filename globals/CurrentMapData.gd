@@ -1,6 +1,10 @@
 extends Node
 
-var game_data_type:String
+var game_data_type:String:
+	set(value):
+		game_data_type = value
+		EventSystem.game_type_changed.emit()
+		EventSystem.map_updated.emit()
 
 var level_set := 1
 var movie := ""
@@ -9,8 +13,8 @@ var sky := "1998_01"
 var music := 0
 var min_break := 0
 var max_break := 0
-var briefing_map := "mb.ilb"
-var debriefing_map := "db_01.iff"
+var briefing_map: String
+var debriefing_map: String
 var player_host_station := 0
 var level_description := ""
 var prototype_modifications := ""
@@ -64,7 +68,27 @@ var weapons_db := {}
 
 func _ready():
 	game_data_type = Preloads.ua_data.data.keys()[0]
+	reload()
+	EventSystem.game_type_changed.connect(reload)
+
+
+func reload() -> void:
+	briefing_map = Preloads.ua_data.data[game_data_type].missionBriefingMaps[0]
+	debriefing_map = Preloads.ua_data.data[game_data_type].missionDebriefingMaps[0]
+	
+	units_db.clear()
+	blg_names.clear()
+	weapons_db.clear()
+	
 	for hs in Preloads.ua_data.data[game_data_type].hoststations:
+		for robo: Dictionary in Preloads.ua_data.data[game_data_type].hoststations[hs].robos:
+			if host_stations:
+				for hss: HostStation in host_stations.get_children():
+					if hss.vehicle == robo.id:
+						if "player_id" in robo:
+							hss.player_vehicle = robo.player_id
+						else:
+							hss.player_vehicle = -1
 		for unit: Dictionary in Preloads.ua_data.data[game_data_type].hoststations[hs].units:
 			units_db[unit.name] = unit.id
 		for building: Dictionary in Preloads.ua_data.data[game_data_type].hoststations[hs].buildings:

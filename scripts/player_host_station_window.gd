@@ -37,6 +37,7 @@ func _update_host_station_for_player(button) -> void:
 	for i in %HostStationContainer.get_child_count():
 		if %HostStationContainer.get_child(i) == button:
 			CurrentMapData.player_host_station = i
+			Utils.change_player_hs_vehicle_to_player_id()
 			return
 
 
