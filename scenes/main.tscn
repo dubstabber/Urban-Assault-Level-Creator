@@ -1,4 +1,4 @@
-[gd_scene load_steps=44 format=3 uid="uid://ctgiwn3scteuk"]
+[gd_scene load_steps=45 format=3 uid="uid://ctgiwn3scteuk"]
 
 [ext_resource type="Script" path="res://scenes/main.gd" id="1_7pb5r"]
 [ext_resource type="Script" path="res://scripts/Map.gd" id="2_dum0m"]
@@ -25,6 +25,7 @@
 [ext_resource type="PackedScene" uid="uid://duerssxf27lsy" path="res://scenes/modals/campaign_maps_window.tscn" id="12_4i7vk"]
 [ext_resource type="PackedScene" uid="uid://dfamq5n451pat" path="res://scenes/modals/sector_height_window.tscn" id="12_wpowt"]
 [ext_resource type="PackedScene" uid="uid://x4kwkajlf23r" path="res://scenes/modals/sector_building_window.tscn" id="13_kug0f"]
+[ext_resource type="PackedScene" uid="uid://d1s7m85hngi8m" path="res://scenes/modals/keyboard_shortcuts_window.tscn" id="13_pa8eg"]
 [ext_resource type="Script" path="res://scripts/menu_bar_options.gd" id="16_eeds7"]
 [ext_resource type="Script" path="res://scripts/menu_bar_help.gd" id="17_0pxun"]
 [ext_resource type="Script" path="res://scripts/unit_properties.gd" id="17_a4oqg"]
@@ -155,6 +156,9 @@ button_group = SubResource("ButtonGroup_0bwt3")
 unique_name_in_owner = true
 visible = false
 
+[node name="KeyboardShortcutsWindow" parent="Modals" instance=ExtResource("13_pa8eg")]
+visible = false
+
 [node name="LoadBehaviorFileDialog" type="FileDialog" parent="Modals"]
 unique_name_in_owner = true
 title = "Open a File"
@@ -169,6 +173,12 @@ unique_name_in_owner = true
 initial_position = 2
 size = Vector2i(810, 450)
 ok_button_text = "Save"
+access = 2
+
+[node name="SaveLevelFileDialog" type="FileDialog" parent="Modals"]
+unique_name_in_owner = true
+initial_position = 1
+size = Vector2i(900, 600)
 access = 2
 
 [node name="MapContextMenu" type="PopupMenu" parent="."]
@@ -276,7 +286,6 @@ anchors_preset = 0
 
 [node name="PropertiesContainer" type="PanelContainer" parent="PanelContainer/MarginContainer/VBoxContainer/HSplitContainer"]
 unique_name_in_owner = true
-visible = false
 layout_mode = 2
 size_flags_horizontal = 3
 

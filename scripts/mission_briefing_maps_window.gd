@@ -13,6 +13,8 @@ func refresh() -> void:
 	%BriefingMapsOptionButton.selected = mb_index
 	var mb_map_name := CurrentMapData.briefing_map.replace(".%s" %CurrentMapData.briefing_map.get_extension(), "")
 	%BriefingMapTexture.texture = Preloads.mbmaps[mb_map_name]
+	%MBsizeXSpinBox.value = CurrentMapData.briefing_size_x
+	%MBsizeYSpinBox.value = CurrentMapData.briefing_size_y
 	
 	%DebriefingMapsOptionButton.clear()
 	for db_map in Preloads.ua_data.data[CurrentMapData.game_data_type].missionDebriefingMaps:
@@ -21,6 +23,8 @@ func refresh() -> void:
 	%DebriefingMapsOptionButton.selected = db_index
 	var db_map_name := CurrentMapData.debriefing_map.replace(".%s" %CurrentMapData.debriefing_map.get_extension(), "")
 	%DebriefingMapTexture.texture = Preloads.dbmaps[db_map_name]
+	%DBsizeXSpinBox.value = CurrentMapData.debriefing_size_x
+	%DBsizeYSpinBox.value = CurrentMapData.debriefing_size_y
 
 
 func get_option_index_by_text(option_button: OptionButton, text: String) -> int:
@@ -46,3 +50,19 @@ func _on_debriefing_maps_option_button_item_selected(index: int) -> void:
 
 func close() -> void:
 	hide()
+
+
+func _on_m_bsize_x_spin_box_value_changed(value: float) -> void:
+	CurrentMapData.briefing_size_x = int(value)
+
+
+func _on_m_bsize_y_spin_box_value_changed(value: float) -> void:
+	CurrentMapData.briefing_size_y = int(value)
+
+
+func _on_d_bsize_x_spin_box_value_changed(value: float) -> void:
+	CurrentMapData.debriefing_size_x = int(value)
+
+
+func _on_d_bsize_y_spin_box_value_changed(value: float) -> void:
+	CurrentMapData.debriefing_size_y = int(value)

@@ -12,7 +12,7 @@ size = Vector2(350, 350)
 auto_translate_mode = 1
 title = "Mission briefing and debriefing maps"
 initial_position = 1
-size = Vector2i(400, 870)
+size = Vector2i(690, 800)
 transient = true
 exclusive = true
 min_size = Vector2i(350, 350)
@@ -29,7 +29,7 @@ grow_vertical = 2
 layout_mode = 2
 
 [node name="MarginContainer" type="MarginContainer" parent="PanelContainer/ScrollContainer"]
-custom_minimum_size = Vector2(400, 840)
+custom_minimum_size = Vector2(400, 800)
 layout_mode = 2
 size_flags_horizontal = 3
 theme_override_constants/margin_left = 12
@@ -46,15 +46,48 @@ alignment = 1
 layout_mode = 2
 alignment = 1
 
-[node name="Label" type="Label" parent="PanelContainer/ScrollContainer/MarginContainer/VBoxContainer/HBoxContainer"]
+[node name="VBoxContainer" type="VBoxContainer" parent="PanelContainer/ScrollContainer/MarginContainer/VBoxContainer/HBoxContainer"]
 layout_mode = 2
+
+[node name="HBoxContainer" type="HBoxContainer" parent="PanelContainer/ScrollContainer/MarginContainer/VBoxContainer/HBoxContainer/VBoxContainer"]
+layout_mode = 2
+
+[node name="Label" type="Label" parent="PanelContainer/ScrollContainer/MarginContainer/VBoxContainer/HBoxContainer/VBoxContainer/HBoxContainer"]
+layout_mode = 2
+size_flags_vertical = 0
 text = "Select briefing map"
 
-[node name="BriefingMapsOptionButton" type="OptionButton" parent="PanelContainer/ScrollContainer/MarginContainer/VBoxContainer/HBoxContainer"]
+[node name="BriefingMapsOptionButton" type="OptionButton" parent="PanelContainer/ScrollContainer/MarginContainer/VBoxContainer/HBoxContainer/VBoxContainer/HBoxContainer"]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_vertical = 0
+
+[node name="HBoxContainer2" type="HBoxContainer" parent="PanelContainer/ScrollContainer/MarginContainer/VBoxContainer/HBoxContainer/VBoxContainer"]
+layout_mode = 2
+alignment = 1
+
+[node name="Label" type="Label" parent="PanelContainer/ScrollContainer/MarginContainer/VBoxContainer/HBoxContainer/VBoxContainer/HBoxContainer2"]
+layout_mode = 2
+text = "Size x:"
+
+[node name="MBsizeXSpinBox" type="SpinBox" parent="PanelContainer/ScrollContainer/MarginContainer/VBoxContainer/HBoxContainer/VBoxContainer/HBoxContainer2"]
+unique_name_in_owner = true
+layout_mode = 2
+max_value = 9999.0
+
+[node name="HBoxContainer3" type="HBoxContainer" parent="PanelContainer/ScrollContainer/MarginContainer/VBoxContainer/HBoxContainer/VBoxContainer"]
+layout_mode = 2
+alignment = 1
+
+[node name="Label" type="Label" parent="PanelContainer/ScrollContainer/MarginContainer/VBoxContainer/HBoxContainer/VBoxContainer/HBoxContainer3"]
+layout_mode = 2
+text = "Size y:"
+
+[node name="MBsizeYSpinBox" type="SpinBox" parent="PanelContainer/ScrollContainer/MarginContainer/VBoxContainer/HBoxContainer/VBoxContainer/HBoxContainer3"]
 unique_name_in_owner = true
 layout_mode = 2
 
-[node name="BriefingMapTexture" type="TextureRect" parent="PanelContainer/ScrollContainer/MarginContainer/VBoxContainer"]
+[node name="BriefingMapTexture" type="TextureRect" parent="PanelContainer/ScrollContainer/MarginContainer/VBoxContainer/HBoxContainer"]
 unique_name_in_owner = true
 custom_minimum_size = Vector2(350, 350)
 layout_mode = 2
@@ -71,15 +104,47 @@ layout_mode = 2
 layout_mode = 2
 alignment = 1
 
-[node name="Label" type="Label" parent="PanelContainer/ScrollContainer/MarginContainer/VBoxContainer/HBoxContainer2"]
+[node name="VBoxContainer" type="VBoxContainer" parent="PanelContainer/ScrollContainer/MarginContainer/VBoxContainer/HBoxContainer2"]
 layout_mode = 2
+
+[node name="HBoxContainer" type="HBoxContainer" parent="PanelContainer/ScrollContainer/MarginContainer/VBoxContainer/HBoxContainer2/VBoxContainer"]
+layout_mode = 2
+
+[node name="Label" type="Label" parent="PanelContainer/ScrollContainer/MarginContainer/VBoxContainer/HBoxContainer2/VBoxContainer/HBoxContainer"]
+layout_mode = 2
+size_flags_vertical = 0
 text = "Select debriefing map"
 
-[node name="DebriefingMapsOptionButton" type="OptionButton" parent="PanelContainer/ScrollContainer/MarginContainer/VBoxContainer/HBoxContainer2"]
+[node name="DebriefingMapsOptionButton" type="OptionButton" parent="PanelContainer/ScrollContainer/MarginContainer/VBoxContainer/HBoxContainer2/VBoxContainer/HBoxContainer"]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_vertical = 0
+
+[node name="HBoxContainer2" type="HBoxContainer" parent="PanelContainer/ScrollContainer/MarginContainer/VBoxContainer/HBoxContainer2/VBoxContainer"]
+layout_mode = 2
+alignment = 1
+
+[node name="Label" type="Label" parent="PanelContainer/ScrollContainer/MarginContainer/VBoxContainer/HBoxContainer2/VBoxContainer/HBoxContainer2"]
+layout_mode = 2
+text = "Size x:"
+
+[node name="DBsizeXSpinBox" type="SpinBox" parent="PanelContainer/ScrollContainer/MarginContainer/VBoxContainer/HBoxContainer2/VBoxContainer/HBoxContainer2"]
 unique_name_in_owner = true
 layout_mode = 2
 
-[node name="DebriefingMapTexture" type="TextureRect" parent="PanelContainer/ScrollContainer/MarginContainer/VBoxContainer"]
+[node name="HBoxContainer3" type="HBoxContainer" parent="PanelContainer/ScrollContainer/MarginContainer/VBoxContainer/HBoxContainer2/VBoxContainer"]
+layout_mode = 2
+alignment = 1
+
+[node name="Label" type="Label" parent="PanelContainer/ScrollContainer/MarginContainer/VBoxContainer/HBoxContainer2/VBoxContainer/HBoxContainer3"]
+layout_mode = 2
+text = "Size y:"
+
+[node name="DBsizeYSpinBox" type="SpinBox" parent="PanelContainer/ScrollContainer/MarginContainer/VBoxContainer/HBoxContainer2/VBoxContainer/HBoxContainer3"]
+unique_name_in_owner = true
+layout_mode = 2
+
+[node name="DebriefingMapTexture" type="TextureRect" parent="PanelContainer/ScrollContainer/MarginContainer/VBoxContainer/HBoxContainer2"]
 unique_name_in_owner = true
 custom_minimum_size = Vector2(350, 350)
 layout_mode = 2
@@ -100,6 +165,10 @@ text = "Close"
 
 [connection signal="about_to_popup" from="." to="." method="_on_about_to_popup"]
 [connection signal="close_requested" from="." to="." method="close"]
-[connection signal="item_selected" from="PanelContainer/ScrollContainer/MarginContainer/VBoxContainer/HBoxContainer/BriefingMapsOptionButton" to="." method="_on_briefing_maps_option_button_item_selected"]
-[connection signal="item_selected" from="PanelContainer/ScrollContainer/MarginContainer/VBoxContainer/HBoxContainer2/DebriefingMapsOptionButton" to="." method="_on_debriefing_maps_option_button_item_selected"]
+[connection signal="item_selected" from="PanelContainer/ScrollContainer/MarginContainer/VBoxContainer/HBoxContainer/VBoxContainer/HBoxContainer/BriefingMapsOptionButton" to="." method="_on_briefing_maps_option_button_item_selected"]
+[connection signal="value_changed" from="PanelContainer/ScrollContainer/MarginContainer/VBoxContainer/HBoxContainer/VBoxContainer/HBoxContainer2/MBsizeXSpinBox" to="." method="_on_m_bsize_x_spin_box_value_changed"]
+[connection signal="value_changed" from="PanelContainer/ScrollContainer/MarginContainer/VBoxContainer/HBoxContainer/VBoxContainer/HBoxContainer3/MBsizeYSpinBox" to="." method="_on_m_bsize_y_spin_box_value_changed"]
+[connection signal="item_selected" from="PanelContainer/ScrollContainer/MarginContainer/VBoxContainer/HBoxContainer2/VBoxContainer/HBoxContainer/DebriefingMapsOptionButton" to="." method="_on_debriefing_maps_option_button_item_selected"]
+[connection signal="value_changed" from="PanelContainer/ScrollContainer/MarginContainer/VBoxContainer/HBoxContainer2/VBoxContainer/HBoxContainer2/DBsizeXSpinBox" to="." method="_on_d_bsize_x_spin_box_value_changed"]
+[connection signal="value_changed" from="PanelContainer/ScrollContainer/MarginContainer/VBoxContainer/HBoxContainer2/VBoxContainer/HBoxContainer3/DBsizeYSpinBox" to="." method="_on_d_bsize_y_spin_box_value_changed"]
 [connection signal="pressed" from="PanelContainer/ScrollContainer/MarginContainer/VBoxContainer/Button" to="." method="close"]

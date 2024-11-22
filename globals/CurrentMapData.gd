@@ -14,7 +14,11 @@ var music := 0
 var min_break := 0
 var max_break := 0
 var briefing_map: String
+var briefing_size_x: int
+var briefing_size_y: int
 var debriefing_map: String
+var debriefing_size_x: int
+var debriefing_size_y: int
 var player_host_station := 0
 var level_description := ""
 var prototype_modifications := ""
@@ -64,6 +68,8 @@ var selected_bomb_key_sector: Vector2i = Vector2i(-1, -1)
 var units_db := {}
 var blg_names := {}
 var weapons_db := {}
+
+var save_path := ""
 
 
 func _ready():
