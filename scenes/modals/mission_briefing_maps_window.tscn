@@ -86,6 +86,7 @@ text = "Size y:"
 [node name="MBsizeYSpinBox" type="SpinBox" parent="PanelContainer/ScrollContainer/MarginContainer/VBoxContainer/HBoxContainer/VBoxContainer/HBoxContainer3"]
 unique_name_in_owner = true
 layout_mode = 2
+max_value = 9999.0
 
 [node name="BriefingMapTexture" type="TextureRect" parent="PanelContainer/ScrollContainer/MarginContainer/VBoxContainer/HBoxContainer"]
 unique_name_in_owner = true
@@ -131,6 +132,7 @@ text = "Size x:"
 [node name="DBsizeXSpinBox" type="SpinBox" parent="PanelContainer/ScrollContainer/MarginContainer/VBoxContainer/HBoxContainer2/VBoxContainer/HBoxContainer2"]
 unique_name_in_owner = true
 layout_mode = 2
+max_value = 9999.0
 
 [node name="HBoxContainer3" type="HBoxContainer" parent="PanelContainer/ScrollContainer/MarginContainer/VBoxContainer/HBoxContainer2/VBoxContainer"]
 layout_mode = 2
@@ -143,6 +145,7 @@ text = "Size y:"
 [node name="DBsizeYSpinBox" type="SpinBox" parent="PanelContainer/ScrollContainer/MarginContainer/VBoxContainer/HBoxContainer2/VBoxContainer/HBoxContainer3"]
 unique_name_in_owner = true
 layout_mode = 2
+max_value = 9999.0
 
 [node name="DebriefingMapTexture" type="TextureRect" parent="PanelContainer/ScrollContainer/MarginContainer/VBoxContainer/HBoxContainer2"]
 unique_name_in_owner = true

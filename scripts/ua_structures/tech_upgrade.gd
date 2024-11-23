@@ -3,7 +3,7 @@ class_name TechUpgrade
 var sec_x: int
 var sec_y: int
 var building_id := 4
-var type := 99
+var type := 99 # 99 identifies none
 var vehicles: Array[ModifyVehicle] = []
 var weapons: Array[ModifyWeapon] = []
 var buildings: Array[ModifyBuilding] = []
