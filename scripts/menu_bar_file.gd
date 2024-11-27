@@ -14,8 +14,12 @@ func _ready():
 	add_separator()
 	add_item("Exit")
 	index_pressed.connect(_on_index_pressed)
+	%OpenLevelFileDialog.file_selected.connect(func(path: String):
+		CurrentMapData.map_path = path
+		SingleplayerOpener.load_level()
+		)
 	%SaveLevelFileDialog.file_selected.connect(func(path: String):
-		CurrentMapData.save_path = path
+		CurrentMapData.map_path = path
 		SingleplayerSaver.save()
 		)
 
@@ -25,9 +29,9 @@ func _on_index_pressed(index: int) -> void:
 		"New map":
 			new_map_window.show()
 		"Open map":
-			print("Implement opening a map")
+			%OpenLevelFileDialog.popup()
 		"Save map":
-			if CurrentMapData.save_path.is_empty():
+			if CurrentMapData.map_path.is_empty():
 				%SaveLevelFileDialog.popup()
 			else:
 				SingleplayerSaver.save()

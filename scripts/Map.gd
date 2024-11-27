@@ -211,11 +211,10 @@ func recalculate_size():
 	map_visible_height = map_camera.zoom.y * ((CurrentMapData.vertical_sectors+2) * 1200)
 
 
-func add_hoststation(hs: String):
+func add_hoststation(owner_id: int, vehicle_id: int):
 	var hoststation = Preloads.HOSTSTATION.instantiate()
 	CurrentMapData.host_stations.add_child(hoststation)
-	hoststation.create(Preloads.ua_data.data[CurrentMapData.game_data_type].hoststations[hs].owner,
-		Preloads.ua_data.data[CurrentMapData.game_data_type].hoststations[hs].robos[0].id, hs)
+	hoststation.create(owner_id, vehicle_id)
 	if right_clicked_x < 1200: 
 		hoststation.position.x = 1205
 	elif right_clicked_x > ((CurrentMapData.horizontal_sectors+1) * 1200): 
@@ -230,15 +229,14 @@ func add_hoststation(hs: String):
 	else:
 		hoststation.position.y = right_clicked_y
 
-	hoststation.scale = Vector2(10,10)
 	CurrentMapData.selected_unit = hoststation
 	%PropertiesContainer.show()
 
 
-func add_squad(sq: Dictionary, owner_id: int):
+func add_squad(owner_id: int, vehicle_id: int):
 	var squad = Preloads.SQUAD.instantiate()
 	CurrentMapData.squads.add_child(squad)
-	squad.create(owner_id, sq)
+	squad.create(owner_id, vehicle_id)
 	if right_clicked_x < 1200: 
 		squad.position.x = 1205
 	elif right_clicked_x > ((CurrentMapData.horizontal_sectors+1) * 1200): 
@@ -253,7 +251,6 @@ func add_squad(sq: Dictionary, owner_id: int):
 	else:
 		squad.position.y = right_clicked_y
 	
-	squad.scale = Vector2(5,5)
 	CurrentMapData.selected_unit = squad
 
 

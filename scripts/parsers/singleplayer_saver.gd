@@ -2,7 +2,7 @@ class_name SingleplayerSaver
 
 
 static func save() -> void:
-	var file = FileAccess.open(CurrentMapData.save_path, FileAccess.WRITE)
+	var file = FileAccess.open(CurrentMapData.map_path, FileAccess.WRITE)
 	_handle_header(file)
 	_handle_description(file)
 	_handle_level_parameters(file)
@@ -32,7 +32,7 @@ static func _handle_header(file: FileAccess) -> void:
 static func _handle_description(file: FileAccess) -> void:
 	file.store_line(";"+CurrentMapData.level_description.replace('\n', '\n;'))
 	file.store_line("")
-	
+
 
 static func _handle_level_parameters(file: FileAccess) -> void:
 	file.store_line(";------------------------------------------------------------")
@@ -40,7 +40,7 @@ static func _handle_level_parameters(file: FileAccess) -> void:
 	file.store_line(";------------------------------------------------------------")
 	file.store_line("begin_level")
 	file.store_line("\tset = %s" % CurrentMapData.level_set)
-	file.store_line("\tsky = objects/%s.base" % CurrentMapData.sky)
+	file.store_line("\tsky = objects/%s.bas" % CurrentMapData.sky)
 	file.store_line("\tslot0 = palette/standard.pal")
 	file.store_line("\tslot1 = palette/red.pal")
 	file.store_line("\tslot2 = palette/blau.pal")
@@ -75,7 +75,7 @@ static func _handle_briefing_maps(file: FileAccess) -> void:
 	if CurrentMapData.debriefing_size_x > 0: file.store_line("\tsize_x = %s" % CurrentMapData.debriefing_size_x)
 	if CurrentMapData.debriefing_size_y > 0: file.store_line("\tsize_y = %s" % CurrentMapData.debriefing_size_y)
 	file.store_line("end")
-	
+
 
 static func _handle_beam_gates(file: FileAccess) -> void:
 	file.store_line(";------------------------------------------------------------")
@@ -265,7 +265,7 @@ static func _handle_tech_upgrades(file: FileAccess) -> void:
 				file.store_line("\tbegin_action")
 			
 				for vehicle in tu.vehicles:
-					if (vehicle.energy == 0 and vehicle.shield == 0 and vehicle.radar == 0 and vehicle.weapon_num == 0 and 
+					if (vehicle.energy == 0 and vehicle.shield == 0 and vehicle.radar == 0 and vehicle.num_weapons == 0 and 
 					not vehicle.res_enabled and not vehicle.ghor_enabled and not vehicle.taer_enabled and not vehicle.myko_enabled and 
 					not vehicle.sulg_enabled and not vehicle.blacksect_enabled and not vehicle.training_enabled): continue
 					
@@ -280,8 +280,8 @@ static func _handle_tech_upgrades(file: FileAccess) -> void:
 					if vehicle.energy != 0: file.store_line("\t\t\tadd_energy = %s" % vehicle.energy)
 					if vehicle.shield != 0: file.store_line("\t\t\tadd_shield = %s" % vehicle.shield)
 					if vehicle.radar != 0: file.store_line("\t\t\tadd_radar = %s" % vehicle.radar)
-					if vehicle.weapon_num != 0: 
-						file.store_line("\t\t\tnum_weapons = %s" % vehicle.weapon_num)
+					if vehicle.num_weapons != 0: 
+						file.store_line("\t\t\tnum_weapons = %s" % vehicle.num_weapons)
 						file.store_line("\t\t\tfire_x = %s" % vehicle.fire_x)
 						file.store_line("\t\t\tfire_y = %s" % vehicle.fire_y)
 						file.store_line("\t\t\tfire_z = %s" % vehicle.fire_z)
@@ -370,7 +370,7 @@ static func _handle_hgt_map(file: FileAccess) -> void:
 			else: file.store_string("%x " % CurrentMapData.hgt_map[index])
 			index += 1
 		file.store_line("")
-	
+
 
 static func _handle_blg_map(file: FileAccess) ->void:
 	file.store_line("    blg_map =")

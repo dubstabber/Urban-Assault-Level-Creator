@@ -9,11 +9,17 @@ func _ready() -> void:
 	for hs in Preloads.ua_data.data[CurrentMapData.game_data_type].hoststations:
 		var hs_owner_id = str(Preloads.ua_data.data[CurrentMapData.game_data_type].hoststations[hs].owner)
 		var hs_image = Preloads.hs_images[hs_owner_id]
-		hs_submenu.add_icon_item(hs_image, hs)
+		hs_submenu.add_icon_item(hs_image, hs, int(hs_owner_id))
 	hs_submenu.connect("index_pressed", add_hoststation.bind(hs_submenu))
 	get_parent().add_submenu_item("Add host station", "hoststation")
 
 
-func add_hoststation(idx, submenu):
-	if CurrentMapData.typ_map.size() > 0:
-		EventSystem.hoststation_added.emit(submenu.get_item_text(idx))
+func add_hoststation(idx, submenu) -> void:
+	if CurrentMapData.typ_map.is_empty(): return
+	var owner_id = submenu.get_item_id(idx)
+	var vehicle_id: int
+	for hs in Preloads.ua_data.data[CurrentMapData.game_data_type].hoststations:
+		if Preloads.ua_data.data[CurrentMapData.game_data_type].hoststations[hs].owner == owner_id:
+			vehicle_id = int(Preloads.ua_data.data[CurrentMapData.game_data_type].hoststations[hs].robos[0].id)
+			EventSystem.hoststation_added.emit(owner_id, vehicle_id)
+			return

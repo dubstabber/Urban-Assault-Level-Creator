@@ -141,8 +141,8 @@
 					{"id": 132, "name": "Target Host Station", "image_file": "targetHS.png"}
 				],
 				"units": [
-					{"id": 138,"name": "Target Drone", "image_file": "targetDrone.png", "map_icon": "left_triangle"},
-					{"id": 142,"name": "Target Drone 2", "image_file": "targetDrone.png", "map_icon": "left_triangle"}
+					{"id": 138, "name": "Target Drone", "image_file": "targetDrone.png", "map_icon": "left_triangle"},
+					{"id": 142, "name": "Target Drone 2", "image_file": "targetDrone.png", "map_icon": "left_triangle"}
 				],
 				"buildings": []
 			}

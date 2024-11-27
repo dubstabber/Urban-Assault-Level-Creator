@@ -33,7 +33,7 @@ func synchronize(modifier, property: String) -> void:
 					building_id = 50
 					type = 2
 					CurrentMapData.typ_map[CurrentMapData.selected_sector_idx] = 102
-				'weapon_num':
+				'num_weapons':
 					building_id = 15
 					type = 1
 					CurrentMapData.typ_map[CurrentMapData.selected_sector_idx] = 104
@@ -110,7 +110,7 @@ class ModifyVehicle:
 	var training_enabled := false
 	var energy := 0
 	var shield := 0
-	var weapon_num := 0
+	var num_weapons := 0
 	var radar := 0
 	var fire_x := 30.0
 	var fire_y := 5.0
@@ -125,7 +125,7 @@ class ModifyWeapon:
 
 
 class ModifyBuilding:
-	var building_id = 0
+	var building_id := 0
 	var res_enabled := false
 	var ghor_enabled := false
 	var taer_enabled := false

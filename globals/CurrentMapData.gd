@@ -69,7 +69,7 @@ var units_db := {}
 var blg_names := {}
 var weapons_db := {}
 
-var save_path := ""
+var map_path := ""
 
 
 func _ready():

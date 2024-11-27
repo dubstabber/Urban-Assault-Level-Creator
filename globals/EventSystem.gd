@@ -7,8 +7,8 @@ signal unit_right_selected
 signal sector_selected
 signal game_type_changed
 
-signal hoststation_added(hs_name: String)
-signal squad_added(squad_data: Dictionary, owner_id: int)
+signal hoststation_added(owner_id: int, vehicle_id: int)
+signal squad_added(owner_id: int, vehicle_id: int)
 signal map_updated
 signal item_updated
 

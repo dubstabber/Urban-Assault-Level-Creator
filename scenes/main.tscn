@@ -180,6 +180,17 @@ unique_name_in_owner = true
 initial_position = 1
 size = Vector2i(900, 600)
 access = 2
+filters = PackedStringArray("*.ldf;Urban Assault Level File")
+
+[node name="OpenLevelFileDialog" type="FileDialog" parent="Modals"]
+unique_name_in_owner = true
+title = "Open a File"
+initial_position = 1
+size = Vector2i(900, 600)
+ok_button_text = "Open"
+file_mode = 0
+access = 2
+filters = PackedStringArray("*.ldf;Urban Assault Level File")
 
 [node name="MapContextMenu" type="PopupMenu" parent="."]
 unique_name_in_owner = true

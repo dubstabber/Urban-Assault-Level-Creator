@@ -247,3 +247,11 @@ func randomize_whole_typ_map() -> void:
 			CurrentMapData.typ_map[i] = rand
 		
 	EventSystem.map_updated.emit()
+
+
+func convert_sky_name_case(sky_name: String) -> String:
+	for sky in Preloads.skies.keys():
+		if sky.to_lower() == sky_name.to_lower():
+			return sky
+	
+	return Preloads.skies.get(0)

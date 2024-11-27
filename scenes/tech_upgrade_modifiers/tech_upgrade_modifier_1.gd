@@ -19,7 +19,7 @@ func _ready() -> void:
 	
 	%AddEnergyLineEdit.text_changed.connect(modify_vehicle.bind("energy"))
 	%AddShieldLineEdit.text_changed.connect(modify_vehicle.bind("shield"))
-	%AddWeaponLineEdit.text_changed.connect(modify_vehicle.bind("weapon_num"))
+	%AddWeaponLineEdit.text_changed.connect(modify_vehicle.bind("num_weapons"))
 	%AddRadarLineEdit.text_changed.connect(modify_vehicle.bind("radar"))
 	
 	%AddDamageLineEdit.text_changed.connect(modify_weapon.bind("energy"))
@@ -65,7 +65,7 @@ func update_ui() -> void:
 		
 		%AddEnergyLineEdit.text = str(vehicle_modifier.energy)
 		%AddShieldLineEdit.text = str(vehicle_modifier.shield)
-		%AddWeaponLineEdit.text = str(vehicle_modifier.weapon_num)
+		%AddWeaponLineEdit.text = str(vehicle_modifier.num_weapons)
 		%AddRadarLineEdit.text = str(vehicle_modifier.radar)
 	if weapon_modifier:
 		%AddDamageLineEdit.text = str(weapon_modifier.energy)
