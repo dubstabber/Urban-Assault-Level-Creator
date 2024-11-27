@@ -106,3 +106,62 @@ func reload() -> void:
 	for weapon in Preloads.ua_data.data[game_data_type].techUpgrade:
 		units_db[weapon.name] = weapon.id
 		weapons_db[weapon.name] = weapon.id
+
+
+func close_map() -> void:
+	selected_unit = null
+	selected_sector_idx = -1
+	border_selected_sector_idx = -1
+	selected_sector = Vector2i(-1, -1)
+	selected_beam_gate = null
+	selected_bomb = null
+	selected_tech_upgrade = null
+	selected_bg_key_sector = Vector2i(-1, -1)
+	selected_bomb_key_sector = Vector2i(-1, -1)
+	map_path = ""
+	game_data_type = Preloads.ua_data.data.keys()[0]
+	level_set = 1
+	movie = ""
+	event_loop = 0
+	sky = "1998_01"
+	music = 0
+	min_break = 0
+	max_break = 0
+	briefing_map = "mb.ilb"
+	briefing_size_x = 0
+	briefing_size_y = 0
+	debriefing_map = "db_01.iff"
+	debriefing_size_x = 0
+	debriefing_size_y = 0
+	player_host_station = 0
+	level_description = ""
+	prototype_modifications = ""
+	for hs in host_stations.get_children():
+		hs.queue_free()
+	for squad in squads.get_children():
+		squad.queue_free()
+	horizontal_sectors = 0
+	vertical_sectors = 0
+	typ_map.clear()
+	own_map.clear()
+	hgt_map.clear()
+	blg_map.clear()
+	beam_gates.clear()
+	stoudson_bombs.clear()
+	tech_upgrades.clear()
+	
+	resistance_enabled_units.clear()
+	ghorkov_enabled_units.clear()
+	taerkasten_enabled_units.clear()
+	mykonian_enabled_units.clear()
+	sulgogar_enabled_units.clear()
+	blacksect_enabled_units.clear()
+	training_enabled_units.clear()
+	
+	resistance_enabled_buildings.clear()
+	ghorkov_enabled_buildings.clear()
+	taerkasten_enabled_buildings.clear()
+	mykonian_enabled_buildings.clear()
+	sulgogar_enabled_buildings.clear()
+	blacksect_enabled_buildings.clear()
+	training_enabled_buildings.clear()

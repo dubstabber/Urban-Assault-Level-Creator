@@ -5,6 +5,7 @@ extends Window
 
 
 func _on_create_button_pressed() -> void:
+	CurrentMapData.close_map()
 	CurrentMapData.horizontal_sectors = horizontal_sectors_spinbox.value
 	CurrentMapData.vertical_sectors = vertical_sectors_spinbox.value
 	hide()

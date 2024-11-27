@@ -522,7 +522,7 @@ static func _handle_modifications(file: FileAccess) -> void:
 		while(file.get_position() < file.get_length()):
 			CurrentMapData.prototype_modifications += string_line + '\n'
 			string_line = file.get_line()
-			if string_line[0] == ';': break
+			if not string_line.is_empty() and string_line[0] == ';': break
 
 
 static func _handle_prototype_enabling(file: FileAccess) -> void:

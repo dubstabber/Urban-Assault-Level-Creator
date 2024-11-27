@@ -15,6 +15,7 @@ func _ready():
 	add_item("Exit")
 	index_pressed.connect(_on_index_pressed)
 	%OpenLevelFileDialog.file_selected.connect(func(path: String):
+		CurrentMapData.close_map()
 		CurrentMapData.map_path = path
 		SingleplayerOpener.load_level()
 		)
@@ -38,6 +39,8 @@ func _on_index_pressed(index: int) -> void:
 		"Save map as...":
 			print("Implement saving a map as...")
 		"Close current map":
-			print("Implement closing the current map")
+			CurrentMapData.close_map()
+			EventSystem.map_updated.emit()
+			get_tree().get_root().size_changed.emit()
 		"Exit":
 			print("Implement closing the editor")

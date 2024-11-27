@@ -123,8 +123,10 @@ func _ready() -> void:
 
 
 func _update_properties() -> void:
-	if CurrentMapData.horizontal_sectors > 0 and CurrentMapData.vertical_sectors > 0:
+	if (CurrentMapData.horizontal_sectors > 0 and CurrentMapData.vertical_sectors > 0 and 
+		CurrentMapData.selected_sector_idx >= 0 and CurrentMapData.border_selected_sector_idx >= 0):
 		%NoSectorLabel.hide()
+		%SectorPropertiesContainer.show()
 		%SectorPositionLabel.text = "Sector X: %s Y: %s" % [CurrentMapData.selected_sector.x, CurrentMapData.selected_sector.y]
 		
 		if CurrentMapData.own_map[CurrentMapData.selected_sector_idx] == 0:
@@ -329,6 +331,7 @@ func _update_properties() -> void:
 		
 	else:
 		%NoSectorLabel.show()
+		%SectorPropertiesContainer.hide()
 
 
 func update_countdown() -> void:
