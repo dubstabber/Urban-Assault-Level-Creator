@@ -6,7 +6,7 @@
 auto_translate_mode = 1
 title = "Available keyboard shortcuts"
 initial_position = 1
-size = Vector2i(430, 440)
+size = Vector2i(430, 520)
 transient = true
 exclusive = true
 script = ExtResource("1_3psab")
@@ -29,47 +29,47 @@ theme_override_constants/margin_bottom = 12
 
 [node name="VBoxContainer" type="VBoxContainer" parent="ScrollContainer/MarginContainer"]
 layout_mode = 2
-theme_override_constants/separation = 6
+theme_override_constants/separation = 8
 
 [node name="Label" type="Label" parent="ScrollContainer/MarginContainer/VBoxContainer"]
 layout_mode = 2
 theme_override_font_sizes/font_size = 14
-text = "'1' - Set selected sector owner to resistance"
+text = "'1' - set selected sector owner to resistance"
 
 [node name="Label2" type="Label" parent="ScrollContainer/MarginContainer/VBoxContainer"]
 layout_mode = 2
 theme_override_font_sizes/font_size = 14
-text = "'2' - Set selected sector owner to sulgogar"
+text = "'2' - set selected sector owner to sulgogar"
 
 [node name="Label3" type="Label" parent="ScrollContainer/MarginContainer/VBoxContainer"]
 layout_mode = 2
 theme_override_font_sizes/font_size = 14
-text = "'3' - Set selected sector owner to mykonian"
+text = "'3' - set selected sector owner to mykonian"
 
 [node name="Label4" type="Label" parent="ScrollContainer/MarginContainer/VBoxContainer"]
 layout_mode = 2
 theme_override_font_sizes/font_size = 14
-text = "'4' - Set selected sector owner to taerkasten"
+text = "'4' - set selected sector owner to taerkasten"
 
 [node name="Label5" type="Label" parent="ScrollContainer/MarginContainer/VBoxContainer"]
 layout_mode = 2
 theme_override_font_sizes/font_size = 14
-text = "'5' - Set selected sector owner to black sect"
+text = "'5' - set selected sector owner to black sect"
 
 [node name="Label6" type="Label" parent="ScrollContainer/MarginContainer/VBoxContainer"]
 layout_mode = 2
 theme_override_font_sizes/font_size = 14
-text = "'6' - Set selected sector owner to ghorkov"
+text = "'6' - set selected sector owner to ghorkov"
 
 [node name="Label7" type="Label" parent="ScrollContainer/MarginContainer/VBoxContainer"]
 layout_mode = 2
 theme_override_font_sizes/font_size = 14
-text = "'7' - Set selected sector owner to neutral(for buildings)"
+text = "'7' - set selected sector owner to neutral(for buildings)"
 
 [node name="Label8" type="Label" parent="ScrollContainer/MarginContainer/VBoxContainer"]
 layout_mode = 2
 theme_override_font_sizes/font_size = 14
-text = "'0' - Set selected sector owner to neutral"
+text = "'0' - set selected sector owner to neutral"
 
 [node name="Label9" type="Label" parent="ScrollContainer/MarginContainer/VBoxContainer"]
 layout_mode = 2
@@ -95,6 +95,16 @@ text = "'Left' - change selected sector building to previous one"
 layout_mode = 2
 theme_override_font_sizes/font_size = 14
 text = "'H' - change selected sector height"
+
+[node name="Label17" type="Label" parent="ScrollContainer/MarginContainer/VBoxContainer"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 14
+text = "'+' - zoom in map"
+
+[node name="Label18" type="Label" parent="ScrollContainer/MarginContainer/VBoxContainer"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 14
+text = "'-' - zoom out map"
 
 [node name="Label14" type="Label" parent="ScrollContainer/MarginContainer/VBoxContainer"]
 layout_mode = 2
