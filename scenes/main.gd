@@ -18,6 +18,11 @@ func _input(event):
 
 		map.right_clicked_x_global = mouse_x
 		map.right_clicked_y_global = mouse_y
+	if event.is_action_pressed("save_map"):
+		if CurrentMapData.map_path.is_empty():
+			%SaveLevelFileDialog.popup()
+		else:
+			SingleplayerSaver.save()
 
 
 func _on_ui_map_created():

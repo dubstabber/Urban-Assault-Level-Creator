@@ -99,6 +99,10 @@ func _input(event):
 		EventSystem.map_updated.emit()
 	if event.is_action_pressed("show_height_window") and not CurrentMapData.hgt_map.is_empty():
 		%SectorHeightWindow.popup()
+	if event.is_action_pressed("show_building_window") and not CurrentMapData.typ_map.is_empty():
+		%SectorBuildingWindow.popup()
+	if event.is_action_pressed("clear_sector") and not CurrentMapData.typ_map.is_empty():
+		CurrentMapData.clear_sector()
 
 
 func _draw():

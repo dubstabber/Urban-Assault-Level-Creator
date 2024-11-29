@@ -165,3 +165,25 @@ func close_map() -> void:
 	sulgogar_enabled_buildings.clear()
 	blacksect_enabled_buildings.clear()
 	training_enabled_buildings.clear()
+
+
+func clear_sector() -> void:
+	typ_map[selected_sector_idx] = 0
+	blg_map[selected_sector_idx] = 0
+	own_map[selected_sector_idx] = 0
+	
+	beam_gates.erase(selected_beam_gate)
+	selected_beam_gate = null
+	stoudson_bombs.erase(selected_bomb)
+	selected_bomb = null
+	tech_upgrades.erase(selected_tech_upgrade)
+	selected_tech_upgrade = null
+	for bg in beam_gates:
+		bg.key_sectors.erase(selected_bg_key_sector)
+	selected_bg_key_sector = Vector2i(-1,-1)
+	for bomb in stoudson_bombs:
+		bomb.key_sectors.erase(selected_bomb_key_sector)
+	selected_bomb_key_sector = Vector2i(-1,-1)
+	
+	EventSystem.map_updated.emit()
+	EventSystem.item_updated.emit()

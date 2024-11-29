@@ -1,12 +1,15 @@
-[gd_scene format=3 uid="uid://d1s7m85hngi8m"]
+[gd_scene load_steps=2 format=3 uid="uid://d1s7m85hngi8m"]
+
+[ext_resource type="Script" path="res://scenes/modals/keyboard_shortcuts_window.gd" id="1_3psab"]
 
 [node name="KeyboardShortcutsWindow" type="Window"]
 auto_translate_mode = 1
 title = "Available keyboard shortcuts"
 initial_position = 1
-size = Vector2i(430, 400)
+size = Vector2i(430, 440)
 transient = true
 exclusive = true
+script = ExtResource("1_3psab")
 
 [node name="ScrollContainer" type="ScrollContainer" parent="."]
 anchors_preset = 15
@@ -67,3 +70,51 @@ text = "'7' - Set selected sector owner to neutral(for buildings)"
 layout_mode = 2
 theme_override_font_sizes/font_size = 14
 text = "'0' - Set selected sector owner to neutral"
+
+[node name="Label9" type="Label" parent="ScrollContainer/MarginContainer/VBoxContainer"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 14
+text = "'Up' - increase selected sector height by 1"
+
+[node name="Label10" type="Label" parent="ScrollContainer/MarginContainer/VBoxContainer"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 14
+text = "'Down' - decrease selected sector height by 1"
+
+[node name="Label11" type="Label" parent="ScrollContainer/MarginContainer/VBoxContainer"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 14
+text = "'Right' - change selected sector building to next one"
+
+[node name="Label12" type="Label" parent="ScrollContainer/MarginContainer/VBoxContainer"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 14
+text = "'Left' - change selected sector building to previous one"
+
+[node name="Label13" type="Label" parent="ScrollContainer/MarginContainer/VBoxContainer"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 14
+text = "'H' - change selected sector height"
+
+[node name="Label14" type="Label" parent="ScrollContainer/MarginContainer/VBoxContainer"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 14
+text = "'T' - change selected sector building"
+
+[node name="Label15" type="Label" parent="ScrollContainer/MarginContainer/VBoxContainer"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 14
+text = "'Del' - clear selected sector"
+
+[node name="Label16" type="Label" parent="ScrollContainer/MarginContainer/VBoxContainer"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 14
+text = "'Ctrl + S' - save current map"
+
+[node name="CloseButton" type="Button" parent="ScrollContainer/MarginContainer/VBoxContainer"]
+layout_mode = 2
+size_flags_horizontal = 4
+text = "Close"
+
+[connection signal="close_requested" from="." to="." method="close"]
+[connection signal="pressed" from="ScrollContainer/MarginContainer/VBoxContainer/CloseButton" to="." method="close"]

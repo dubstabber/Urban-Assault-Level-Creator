@@ -13,6 +13,6 @@ func _on_index_pressed(index: int) -> void:
 		"Campaign maps":
 			%CampaignMapsWindow.popup()
 		"Keyboard shortcuts":
-			print("implment keyboard shortcuts")
+			%KeyboardShortcutsWindow.popup()
 		"About":
 			print("implement about page")
