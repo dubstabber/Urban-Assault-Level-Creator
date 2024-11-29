@@ -37,10 +37,10 @@ func _on_index_pressed(index: int) -> void:
 			else:
 				SingleplayerSaver.save()
 		"Save map as...":
-			print("Implement saving a map as...")
+			%SaveLevelFileDialog.popup()
 		"Close current map":
 			CurrentMapData.close_map()
 			EventSystem.map_updated.emit()
 			get_tree().get_root().size_changed.emit()
 		"Exit":
-			print("Implement closing the editor")
+			get_tree().quit()

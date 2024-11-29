@@ -74,7 +74,10 @@ func _input(event):
 		var number_key = event.unicode - KEY_0
 		if number_key >= 0 and number_key <= 7:
 			if CurrentMapData.selected_sector_idx >= 0 and CurrentMapData.own_map.size() > 0:
-				CurrentMapData.own_map[CurrentMapData.selected_sector_idx] = number_key
+				if CurrentMapData.blg_map[CurrentMapData.selected_sector_idx] != 0 and number_key == 0:
+					CurrentMapData.own_map[CurrentMapData.selected_sector_idx] = 7
+				else:
+					CurrentMapData.own_map[CurrentMapData.selected_sector_idx] = number_key
 				EventSystem.map_updated.emit()
 	if (event.is_action_pressed("increment_height") and 
 		CurrentMapData.hgt_map.size() > 0 and
