@@ -32,11 +32,15 @@ func _on_index_pressed(index: int) -> void:
 		"Open map":
 			%OpenLevelFileDialog.popup()
 		"Save map":
+			if CurrentMapData.horizontal_sectors == 0 or CurrentMapData.vertical_sectors == 0:
+				return
 			if CurrentMapData.map_path.is_empty():
 				%SaveLevelFileDialog.popup()
 			else:
 				SingleplayerSaver.save()
 		"Save map as...":
+			if CurrentMapData.horizontal_sectors == 0 or CurrentMapData.vertical_sectors == 0:
+				return
 			%SaveLevelFileDialog.popup()
 		"Close current map":
 			CurrentMapData.close_map()

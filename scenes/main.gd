@@ -19,6 +19,8 @@ func _input(event):
 		map.right_clicked_x_global = mouse_x
 		map.right_clicked_y_global = mouse_y
 	if event.is_action_pressed("save_map"):
+		if CurrentMapData.horizontal_sectors == 0 or CurrentMapData.vertical_sectors == 0:
+			return
 		if CurrentMapData.map_path.is_empty():
 			%SaveLevelFileDialog.popup()
 		else:
