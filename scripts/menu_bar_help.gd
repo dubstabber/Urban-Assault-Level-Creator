@@ -15,4 +15,4 @@ func _on_index_pressed(index: int) -> void:
 		"Keyboard shortcuts":
 			%KeyboardShortcutsWindow.popup()
 		"About":
-			print("implement about page")
+			%AboutWindow.popup()

@@ -9,6 +9,7 @@ initial_position = 1
 size = Vector2i(430, 520)
 transient = true
 exclusive = true
+min_size = Vector2i(400, 400)
 script = ExtResource("1_3psab")
 
 [node name="ScrollContainer" type="ScrollContainer" parent="."]

@@ -65,6 +65,8 @@ var selected_tech_upgrade: TechUpgrade = null
 var selected_bg_key_sector: Vector2i = Vector2i(-1, -1)
 var selected_bomb_key_sector: Vector2i = Vector2i(-1, -1)
 
+var mouse_over_unit: Unit = null
+
 var units_db := {}
 var blg_names := {}
 var weapons_db := {}

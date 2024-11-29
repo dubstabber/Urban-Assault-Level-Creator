@@ -1,4 +1,4 @@
-[gd_scene load_steps=45 format=3 uid="uid://ctgiwn3scteuk"]
+[gd_scene load_steps=46 format=3 uid="uid://ctgiwn3scteuk"]
 
 [ext_resource type="Script" path="res://scenes/main.gd" id="1_7pb5r"]
 [ext_resource type="Script" path="res://scripts/Map.gd" id="2_dum0m"]
@@ -26,6 +26,7 @@
 [ext_resource type="PackedScene" uid="uid://dfamq5n451pat" path="res://scenes/modals/sector_height_window.tscn" id="12_wpowt"]
 [ext_resource type="PackedScene" uid="uid://x4kwkajlf23r" path="res://scenes/modals/sector_building_window.tscn" id="13_kug0f"]
 [ext_resource type="PackedScene" uid="uid://d1s7m85hngi8m" path="res://scenes/modals/keyboard_shortcuts_window.tscn" id="13_pa8eg"]
+[ext_resource type="PackedScene" uid="uid://c83t7utfh71k1" path="res://scenes/modals/about_window.tscn" id="14_i2xml"]
 [ext_resource type="Script" path="res://scripts/menu_bar_options.gd" id="16_eeds7"]
 [ext_resource type="Script" path="res://scripts/menu_bar_help.gd" id="17_0pxun"]
 [ext_resource type="Script" path="res://scripts/unit_properties.gd" id="17_a4oqg"]
@@ -57,16 +58,14 @@ script/source = "extends TabContainer
 func _ready() -> void:
 	EventSystem.hoststation_added.connect(func(_hs_name): $Unit.show())
 	EventSystem.item_updated.connect(func(): $Sector.show())
-
-
-func _input(event: InputEvent) -> void:
-	if event is InputEventMouseButton and event.button_index == MOUSE_BUTTON_LEFT and event.double_click:
+	EventSystem.left_double_clicked.connect(func():
 		if CurrentMapData.selected_unit:
 			$Unit.show()
 			%PropertiesContainer.show()
 		else:
 			$Sector.show()
 			%PropertiesContainer.show()
+		)
 "
 
 [sub_resource type="PlaceholderTexture2D" id="PlaceholderTexture2D_37be0"]
@@ -84,7 +83,7 @@ script/source = "extends TextureButton
 
 
 func _ready() -> void:
-	pressed.connect(func(): $\"../..\".hide())
+	pressed.connect(func(): %PropertiesContainer.hide())
 "
 
 [node name="Main" type="Control"]
@@ -96,6 +95,7 @@ grow_horizontal = 2
 grow_vertical = 2
 size_flags_horizontal = 3
 size_flags_vertical = 3
+mouse_filter = 1
 script = ExtResource("1_7pb5r")
 
 [node name="Camera2D" type="Camera2D" parent="."]
@@ -157,6 +157,10 @@ unique_name_in_owner = true
 visible = false
 
 [node name="KeyboardShortcutsWindow" parent="Modals" instance=ExtResource("13_pa8eg")]
+unique_name_in_owner = true
+visible = false
+
+[node name="AboutWindow" parent="Modals" instance=ExtResource("14_i2xml")]
 unique_name_in_owner = true
 visible = false
 
@@ -234,6 +238,7 @@ anchor_right = 1.0
 anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
+mouse_filter = 1
 
 [node name="MarginContainer" type="MarginContainer" parent="PanelContainer"]
 layout_mode = 2
@@ -284,6 +289,7 @@ render_target_update_mode = 4
 unique_name_in_owner = true
 layout_mode = 3
 anchors_preset = 0
+mouse_filter = 1
 script = ExtResource("2_dum0m")
 
 [node name="Camera2D" type="Camera2D" parent="PanelContainer/MarginContainer/VBoxContainer/HSplitContainer/MapContainer/SubViewportMapContainer/SubViewport/Map"]
@@ -292,14 +298,18 @@ zoom = Vector2(0.1, 0.1)
 
 [node name="HostStations" type="Control" parent="PanelContainer/MarginContainer/VBoxContainer/HSplitContainer/MapContainer/SubViewportMapContainer/SubViewport/Map"]
 anchors_preset = 0
+mouse_filter = 1
 
 [node name="Squads" type="Control" parent="PanelContainer/MarginContainer/VBoxContainer/HSplitContainer/MapContainer/SubViewportMapContainer/SubViewport/Map"]
 anchors_preset = 0
 
 [node name="PropertiesContainer" type="PanelContainer" parent="PanelContainer/MarginContainer/VBoxContainer/HSplitContainer"]
 unique_name_in_owner = true
+visible = false
 layout_mode = 2
 size_flags_horizontal = 3
+tooltip_text = "lolz"
+mouse_filter = 1
 
 [node name="TabContainer" type="TabContainer" parent="PanelContainer/MarginContainer/VBoxContainer/HSplitContainer/PropertiesContainer"]
 layout_mode = 2
@@ -333,7 +343,6 @@ theme_override_constants/margin_bottom = 10
 
 [node name="NoUnitLabel" type="Label" parent="PanelContainer/MarginContainer/VBoxContainer/HSplitContainer/PropertiesContainer/TabContainer/Unit/ScrollContainer/MarginContainer"]
 unique_name_in_owner = true
-visible = false
 layout_mode = 2
 text = "No unit selected"
 horizontal_alignment = 1
@@ -881,6 +890,7 @@ text = "Save behavior to file"
 
 [node name="SquadProperties" type="VBoxContainer" parent="PanelContainer/MarginContainer/VBoxContainer/HSplitContainer/PropertiesContainer/TabContainer/Unit/ScrollContainer/MarginContainer"]
 unique_name_in_owner = true
+visible = false
 layout_mode = 2
 alignment = 1
 
@@ -1023,7 +1033,6 @@ theme_override_constants/margin_bottom = 10
 
 [node name="NoSectorLabel" type="Label" parent="PanelContainer/MarginContainer/VBoxContainer/HSplitContainer/PropertiesContainer/TabContainer/Sector/ScrollContainer/MarginContainer"]
 unique_name_in_owner = true
-visible = false
 layout_mode = 2
 text = "No sector selected"
 horizontal_alignment = 1
@@ -1031,6 +1040,7 @@ vertical_alignment = 1
 
 [node name="SectorPropertiesContainer" type="VBoxContainer" parent="PanelContainer/MarginContainer/VBoxContainer/HSplitContainer/PropertiesContainer/TabContainer/Sector/ScrollContainer/MarginContainer"]
 unique_name_in_owner = true
+visible = false
 layout_mode = 2
 alignment = 1
 

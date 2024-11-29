@@ -2,7 +2,10 @@ class_name Squad extends Unit
 
 var map_icon: String
 
-var quantity := 1
+var quantity := 1:
+	set(value):
+		quantity = value
+		$Button.tooltip_text = "%sx %s" % [quantity, unit_name]
 var useable := false
 
 
@@ -11,6 +14,7 @@ func create(_owner_id: int, _vehicle_id: int):
 	setup_properties()
 	scale = Vector2(5,5)
 	change_faction(_owner_id)
+	$Button.tooltip_text = "%sx %s" % [quantity, unit_name]
 
 
 func setup_properties() -> void:

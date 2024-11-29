@@ -7,7 +7,6 @@ extends Control
 func _ready():
 	get_tree().root.size_changed.connect(_on_resize)
 	EventSystem.map_created.connect(_on_ui_map_created)
-	EventSystem.unit_right_selected.connect(_on_unit_selected)
 	_on_resize()
 
 
@@ -35,10 +34,3 @@ func _on_resize():
 	map.recalculate_size()
 	sub_viewport_map_container.custom_minimum_size.x = map.map_visible_width
 	sub_viewport_map_container.custom_minimum_size.y = map.map_visible_height
-
-
-func _on_unit_selected() -> void:
-	if CurrentMapData.selected_unit:
-		%MapContextMenu.hide()
-		%UnitContextMenu.position = %MapContextMenu.position
-		%UnitContextMenu.popup()
