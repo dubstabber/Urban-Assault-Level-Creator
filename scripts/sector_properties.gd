@@ -18,10 +18,12 @@ func _ready() -> void:
 			CurrentMapData.selected_beam_gate.closed_bp = 5
 			CurrentMapData.selected_beam_gate.opened_bp = 6
 			CurrentMapData.typ_map[CurrentMapData.selected_sector_idx] = 202
+			CurrentMapData.blg_map[CurrentMapData.selected_sector_idx] = 5
 		elif index == 1:
 			CurrentMapData.selected_beam_gate.closed_bp = 25
 			CurrentMapData.selected_beam_gate.opened_bp = 26
 			CurrentMapData.typ_map[CurrentMapData.selected_sector_idx] = 3
+			CurrentMapData.blg_map[CurrentMapData.selected_sector_idx] = 25
 		EventSystem.map_updated.emit()
 		)
 	%BeamGateMBStatus.toggled.connect(func(toggled: bool):
@@ -49,11 +51,13 @@ func _ready() -> void:
 				CurrentMapData.selected_bomb.active_bp =  36
 				CurrentMapData.selected_bomb.trigger_bp =  37
 				CurrentMapData.typ_map[CurrentMapData.selected_sector_idx] = 245
+				CurrentMapData.blg_map[CurrentMapData.selected_sector_idx] = 35
 			1:
 				CurrentMapData.selected_bomb.inactive_bp =  68
 				CurrentMapData.selected_bomb.active_bp =  69
 				CurrentMapData.selected_bomb.trigger_bp =  70
 				CurrentMapData.typ_map[CurrentMapData.selected_sector_idx] = 235
+				CurrentMapData.blg_map[CurrentMapData.selected_sector_idx] = 68
 		EventSystem.map_updated.emit()
 		)
 	%SecondsSpinBox.value_changed.connect(func(value: float) -> void:
@@ -91,6 +95,7 @@ func _ready() -> void:
 				50: CurrentMapData.typ_map[CurrentMapData.selected_sector_idx] = 102
 				16: CurrentMapData.typ_map[CurrentMapData.selected_sector_idx] = 103
 				65: CurrentMapData.typ_map[CurrentMapData.selected_sector_idx] = 110
+			CurrentMapData.blg_map[CurrentMapData.selected_sector_idx] = building_id
 			EventSystem.map_updated.emit()
 		)
 	%SoundTypeOptionButton.item_selected.connect(func(index: int):

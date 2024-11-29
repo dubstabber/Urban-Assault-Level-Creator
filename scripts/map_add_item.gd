@@ -61,7 +61,7 @@ func _new_item(index:int, new_item_submenu: PopupMenu) -> void:
 			var bg = BeamGate.new(CurrentMapData.selected_sector.x,CurrentMapData.selected_sector.y)
 			CurrentMapData.beam_gates.append(bg)
 			CurrentMapData.typ_map[CurrentMapData.selected_sector_idx] = 202
-			CurrentMapData.blg_map[CurrentMapData.selected_sector_idx] = 0
+			CurrentMapData.blg_map[CurrentMapData.selected_sector_idx] = bg.closed_bp
 			CurrentMapData.selected_beam_gate = bg
 			EventSystem.item_updated.emit()
 		'Stoudson Bomb':
@@ -72,7 +72,7 @@ func _new_item(index:int, new_item_submenu: PopupMenu) -> void:
 			var bomb = StoudsonBomb.new(CurrentMapData.selected_sector.x,CurrentMapData.selected_sector.y)
 			CurrentMapData.stoudson_bombs.append(bomb)
 			CurrentMapData.typ_map[CurrentMapData.selected_sector_idx] = 245
-			CurrentMapData.blg_map[CurrentMapData.selected_sector_idx] = 0
+			CurrentMapData.blg_map[CurrentMapData.selected_sector_idx] = bomb.inactive_bp
 			CurrentMapData.selected_bomb = bomb
 			EventSystem.item_updated.emit()
 		'Tech Upgrade':
@@ -83,7 +83,7 @@ func _new_item(index:int, new_item_submenu: PopupMenu) -> void:
 			var tu = TechUpgrade.new(CurrentMapData.selected_sector.x,CurrentMapData.selected_sector.y)
 			CurrentMapData.tech_upgrades.append(tu)
 			CurrentMapData.typ_map[CurrentMapData.selected_sector_idx] = 100
-			CurrentMapData.blg_map[CurrentMapData.selected_sector_idx] = 0
+			CurrentMapData.blg_map[CurrentMapData.selected_sector_idx] = tu.building_id
 			CurrentMapData.selected_tech_upgrade = tu
 			EventSystem.item_updated.emit()
 	EventSystem.map_updated.emit()
