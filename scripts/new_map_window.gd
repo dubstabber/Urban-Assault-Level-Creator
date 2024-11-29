@@ -25,4 +25,6 @@ func _on_create_button_pressed() -> void:
 	var sectors_with_borders = (CurrentMapData.horizontal_sectors+2) * (CurrentMapData.vertical_sectors+2)
 	for sector in sectors_with_borders:
 		CurrentMapData.hgt_map.append(127)
+	
+	DisplayServer.window_set_title("[not saved] (%sx%s) - %s" % [CurrentMapData.horizontal_sectors, CurrentMapData.vertical_sectors, "Urban Assault Level Creator"])
 	EventSystem.map_created.emit()

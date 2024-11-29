@@ -36,6 +36,7 @@ static func load_level() -> void:
 		
 		string_line = file.get_line().get_slice(';', 0).strip_edges()
 	
+	DisplayServer.window_set_title("%s (%sx%s) - %s" % [CurrentMapData.map_path, CurrentMapData.horizontal_sectors, CurrentMapData.vertical_sectors, "Urban Assault Level Creator"])
 	EventSystem.map_created.emit()
 	EventSystem.item_updated.emit()
 

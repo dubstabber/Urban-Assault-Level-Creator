@@ -167,6 +167,7 @@ func close_map() -> void:
 	sulgogar_enabled_buildings.clear()
 	blacksect_enabled_buildings.clear()
 	training_enabled_buildings.clear()
+	DisplayServer.window_set_title("Urban Assault Level Creator")
 
 
 func clear_sector() -> void:

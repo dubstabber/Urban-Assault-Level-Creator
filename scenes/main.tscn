@@ -56,7 +56,8 @@ script/source = "extends TabContainer
 
 
 func _ready() -> void:
-	EventSystem.hoststation_added.connect(func(_hs_name): $Unit.show())
+	EventSystem.hoststation_added.connect(func(_owner_id, _vehicle_id): $Unit.show())
+	EventSystem.squad_added.connect(func(_owner_id, _vehicle_id): $Unit.show())
 	EventSystem.item_updated.connect(func(): $Sector.show())
 	EventSystem.left_double_clicked.connect(func():
 		if CurrentMapData.selected_unit:
