@@ -16,7 +16,10 @@ func _ready():
 		%ViewAngleLineEdit.editable = toggled
 	)
 	%ReloadConstLineEdit.text_changed.connect(func(new_value: String):
-		CurrentMapData.selected_unit.reload_const = abs(int(ceil(float(new_value) * (60000.0/255.0))))
+		if CurrentMapData.player_host_station == CurrentMapData.selected_unit:
+			CurrentMapData.selected_unit.reload_const = abs(int(ceil(float(new_value) * (60000.0/255.0))))
+		else:
+			CurrentMapData.selected_unit.reload_const = abs(int(ceil(float(new_value) * (70000.0/255.0))))
 	)
 	%ReloadConstCheckButton.toggled.connect(func(toggled:bool):
 		CurrentMapData.selected_unit.reload_const_enabled = toggled
@@ -187,8 +190,10 @@ func _update_properties():
 			%ViewAngleCheckButton.button_pressed = CurrentMapData.selected_unit.view_angle_enabled
 			%ViewAngleLineEdit.editable = %ViewAngleCheckButton.button_pressed
 			
-			#TODO: convert reload const based on if player or ai is selected
-			%ReloadConstLineEdit.text = str(int(float(CurrentMapData.selected_unit.reload_const) / (60000.0/255.0)))
+			if CurrentMapData.player_host_station == CurrentMapData.selected_unit:
+				%ReloadConstLineEdit.text = str(int(float(CurrentMapData.selected_unit.reload_const) / (60000.0/255.0)))
+			else:
+				%ReloadConstLineEdit.text = str(int(float(CurrentMapData.selected_unit.reload_const) / (70000.0/255.0)))
 			%ReloadConstCheckButton.button_pressed = CurrentMapData.selected_unit.reload_const_enabled
 			%ReloadConstLineEdit.editable = %ReloadConstCheckButton.button_pressed
 			

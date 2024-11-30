@@ -14,7 +14,7 @@ func _gui_input(event):
 			if event.pressed:
 				is_dragging = true
 				drag_start_position = event.position
-				Input.set_default_cursor_shape(Input.CURSOR_POINTING_HAND)
+				Input.set_default_cursor_shape(Input.CURSOR_DRAG)
 			else:
 				is_dragging = false
 				Input.set_default_cursor_shape(Input.CURSOR_ARROW)

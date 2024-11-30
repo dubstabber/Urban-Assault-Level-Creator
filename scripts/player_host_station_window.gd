@@ -34,6 +34,8 @@ func _update_host_station_for_player(button) -> void:
 	for i in %HostStationContainer.get_child_count():
 		if %HostStationContainer.get_child(i) == button:
 			CurrentMapData.player_host_station = CurrentMapData.host_stations.get_child(i)
+			EventSystem.unit_selected.emit()
+			
 			return
 
 
