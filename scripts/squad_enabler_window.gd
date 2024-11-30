@@ -7,5 +7,5 @@ func _on_about_to_popup() -> void:
 			tab.refresh()
 
 
-func _on_close_requested() -> void:
+func close() -> void:
 	hide()
