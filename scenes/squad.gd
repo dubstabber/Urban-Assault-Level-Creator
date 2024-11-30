@@ -9,12 +9,16 @@ var quantity := 1:
 var useable := false
 
 
+func _ready() -> void:
+	EventSystem.game_type_changed.connect(setup_properties)
+	EventSystem.game_type_changed.connect(change_faction.bind(owner_id))
+
+
 func create(_owner_id: int, _vehicle_id: int):
 	vehicle = _vehicle_id
 	setup_properties()
 	scale = Vector2(5,5)
 	change_faction(_owner_id)
-	$Button.tooltip_text = "%sx %s" % [quantity, unit_name]
 
 
 func setup_properties() -> void:
@@ -29,6 +33,9 @@ func setup_properties() -> void:
 			map_icon = squad.map_icon
 			unit_name = squad.name
 			return
+	unit_name = "Unknown unit"
+	if map_icon.is_empty():
+		map_icon = "square"
 
 
 func change_faction(_owner_id: int) -> void:
@@ -41,5 +48,6 @@ func change_faction(_owner_id: int) -> void:
 		5: texture = Preloads.squad_icons[map_icon].gray
 		6: texture = Preloads.squad_icons[map_icon].red
 		7: texture = Preloads.squad_icons["square"].red2
+	$Button.tooltip_text = "%sx %s" % [quantity, unit_name]
 	size = Vector2.ZERO
 	pivot_offset = Vector2(texture.get_width()/2.0, texture.get_height()/2.0)

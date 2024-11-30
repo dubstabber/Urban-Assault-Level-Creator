@@ -81,8 +81,12 @@ func _ready():
 
 
 func reload() -> void:
-	briefing_map = Preloads.ua_data.data[game_data_type].missionBriefingMaps[0]
-	debriefing_map = Preloads.ua_data.data[game_data_type].missionDebriefingMaps[0]
+	if (not briefing_map in Preloads.ua_data.data[game_data_type].missionBriefingMaps and
+		not briefing_map in Preloads.ua_data.data[game_data_type].missionDebriefingMaps):
+		briefing_map = Preloads.ua_data.data[game_data_type].missionBriefingMaps[0]
+	if (not debriefing_map in Preloads.ua_data.data[game_data_type].missionDebriefingMaps and 
+		not debriefing_map in Preloads.ua_data.data[game_data_type].missionBriefingMaps):
+		debriefing_map = Preloads.ua_data.data[game_data_type].missionDebriefingMaps[0]
 	
 	units_db.clear()
 	blg_names.clear()
@@ -139,8 +143,10 @@ func close_map() -> void:
 	level_description = ""
 	prototype_modifications = ""
 	for hs in host_stations.get_children():
+		host_stations.remove_child(hs)
 		hs.queue_free()
 	for squad in squads.get_children():
+		squads.remove_child(squad)
 		squad.queue_free()
 	horizontal_sectors = 0
 	vertical_sectors = 0

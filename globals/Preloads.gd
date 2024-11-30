@@ -19,11 +19,10 @@ var movies_db := {}
 var skies := {}
 var musics := {}
 var mbmaps := {}
-var dbmaps := {}
 
 
 func _ready():
-	reload_units_and_building()
+	reload_units_and_buildings()
 	
 	squad_icons.square = {
 		"blue": load("res://resources/img/squadIcons/BlueUnit1.png"),
@@ -287,11 +286,11 @@ func _ready():
 	musics[6] = load("res://resources/audio/track-6.mp3")
 	
 	reload_mb_db_maps()
-	EventSystem.game_type_changed.connect(reload_units_and_building)
+	EventSystem.game_type_changed.connect(reload_units_and_buildings)
 	EventSystem.game_type_changed.connect(reload_mb_db_maps)
 
 
-func reload_units_and_building() -> void:
+func reload_units_and_buildings() -> void:
 	squad_images.clear()
 	special_building_images.clear()
 	
@@ -315,6 +314,7 @@ func reload_units_and_building() -> void:
 
 func reload_mb_db_maps() -> void:
 	var map_name := ""
+	mbmaps.clear()
 	for file_name in DirAccess.get_files_at("res://resources/img/mbgfx/%s/" % CurrentMapData.game_data_type):
 		if (file_name.get_extension() == "import"):
 			file_name = file_name.replace(".import", "")
@@ -322,4 +322,4 @@ func reload_mb_db_maps() -> void:
 			if map_name.begins_with("mb"):
 				mbmaps[map_name] = load("res://resources/img/mbgfx/%s/%s" % [CurrentMapData.game_data_type, file_name])
 			elif map_name.begins_with("db"):
-				dbmaps[map_name] = load("res://resources/img/mbgfx/%s/%s" % [CurrentMapData.game_data_type, file_name])
+				mbmaps[map_name] = load("res://resources/img/mbgfx/%s/%s" % [CurrentMapData.game_data_type, file_name])

@@ -323,10 +323,10 @@
 					{"id": 61, "name": "Sulgogar Queen", "image_file": "sulgogarHS.png"}
 			],
 			"units": [
-				{"id": 73,"name": "Blue Spore", "image_file": "blueSpore.png", "map_icon": 3},
-				{"id": 71,"name": "Mean Green", "image_file": "meanGreen.png", "map_icon": 3},
-				{"id": 72,"name": "Slime Lord", "image_file": "slimeLord.png", "map_icon": 3},
-				{"id": 74,"name": "Little Brother", "image_file": "littleBrother.png", "map_icon": 4}
+				{"id": 73,"name": "Blue Spore", "image_file": "blueSpore.png", "map_icon": "left_triangle"},
+				{"id": 71,"name": "Mean Green", "image_file": "meanGreen.png", "map_icon": "left_triangle"},
+				{"id": 72,"name": "Slime Lord", "image_file": "slimeLord.png", "map_icon": "left_triangle"},
+				{"id": 74,"name": "Little Brother", "image_file": "littleBrother.png", "map_icon": "down_triangle"}
 			],
 			"buildings": []
 		},

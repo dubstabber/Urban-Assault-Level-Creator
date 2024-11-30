@@ -36,6 +36,7 @@ static func load_level() -> void:
 		
 		string_line = file.get_line().get_slice(';', 0).strip_edges()
 	
+	_infer_game_type()
 	DisplayServer.window_set_title("%s (%sx%s) - %s" % [CurrentMapData.map_path, CurrentMapData.horizontal_sectors, CurrentMapData.vertical_sectors, "Urban Assault Level Creator"])
 	EventSystem.map_created.emit()
 	EventSystem.item_updated.emit()
@@ -766,3 +767,41 @@ static func _handle_tech_upgrades(file: FileAccess) -> void:
 				tech_upgrade.buildings.append(new_modifier)
 		
 		CurrentMapData.tech_upgrades.append(tech_upgrade)
+
+
+static func _infer_game_type() -> void:
+	# Note: Inferring game type is not 100% accurate. Always check if game type matches your specific mod
+	var player_hs: HostStation
+	if CurrentMapData.host_stations.get_child_count() > 0:
+		player_hs = CurrentMapData.host_stations.get_child(0)
+	var inferred_game_type: String
+	for game_type in Preloads.ua_data.data:
+		if ((CurrentMapData.briefing_map in Preloads.ua_data.data[game_type].missionBriefingMaps or 
+			CurrentMapData.briefing_map in Preloads.ua_data.data[game_type].missionDebriefingMaps) and
+			(CurrentMapData.debriefing_map in Preloads.ua_data.data[game_type].missionDebriefingMaps or
+			CurrentMapData.debriefing_map in Preloads.ua_data.data[game_type].missionBriefingMaps) and 
+			inferred_game_type.is_empty()):
+			inferred_game_type = game_type
+		elif ((not CurrentMapData.briefing_map in Preloads.ua_data.data[game_type].missionBriefingMaps and
+			  not CurrentMapData.briefing_map in Preloads.ua_data.data[game_type].missionDebriefingMaps) or 
+			  (not CurrentMapData.debriefing_map in Preloads.ua_data.data[game_type].missionDebriefingMaps and
+			  not CurrentMapData.debriefing_map in Preloads.ua_data.data[game_type].missionBriefingMaps)):
+			continue
+		
+		if player_hs:
+			for hs in Preloads.ua_data.data[game_type].hoststations:
+				for robo in Preloads.ua_data.data[game_type].hoststations[hs].robos:
+					if "player_id" in robo:
+						if player_hs.vehicle == int(robo.player_id):
+							player_hs.player_vehicle = int(robo.player_id)
+							player_hs.vehicle = int(robo.id)
+							inferred_game_type = game_type
+							CurrentMapData.game_data_type = inferred_game_type
+							return
+	
+	if ((CurrentMapData.prototype_modifications.containsn("include script:startupG.scr") or 
+		CurrentMapData.prototype_modifications.containsn("include script:startupT.scr")) and 
+		Preloads.ua_data.data.keys().has("metropolisDawn")):
+		inferred_game_type = "metropolisDawn"
+	
+	CurrentMapData.game_data_type = inferred_game_type

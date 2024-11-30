@@ -9,6 +9,8 @@ func refresh() -> void:
 	%BriefingMapsOptionButton.clear()
 	for mb_map in Preloads.ua_data.data[CurrentMapData.game_data_type].missionBriefingMaps:
 		%BriefingMapsOptionButton.add_item(mb_map)
+	for mb_map in Preloads.ua_data.data[CurrentMapData.game_data_type].missionDebriefingMaps:
+		%BriefingMapsOptionButton.add_item(mb_map)
 	var mb_index = get_option_index_by_text(%BriefingMapsOptionButton, CurrentMapData.briefing_map)
 	%BriefingMapsOptionButton.selected = mb_index
 	var mb_map_name := CurrentMapData.briefing_map.replace(".%s" %CurrentMapData.briefing_map.get_extension(), "")
@@ -19,10 +21,12 @@ func refresh() -> void:
 	%DebriefingMapsOptionButton.clear()
 	for db_map in Preloads.ua_data.data[CurrentMapData.game_data_type].missionDebriefingMaps:
 		%DebriefingMapsOptionButton.add_item(db_map)
+	for db_map in Preloads.ua_data.data[CurrentMapData.game_data_type].missionBriefingMaps:
+		%DebriefingMapsOptionButton.add_item(db_map)
 	var db_index = get_option_index_by_text(%DebriefingMapsOptionButton, CurrentMapData.debriefing_map)
 	%DebriefingMapsOptionButton.selected = db_index
 	var db_map_name := CurrentMapData.debriefing_map.replace(".%s" %CurrentMapData.debriefing_map.get_extension(), "")
-	%DebriefingMapTexture.texture = Preloads.dbmaps[db_map_name]
+	%DebriefingMapTexture.texture = Preloads.mbmaps[db_map_name]
 	%DBsizeXSpinBox.value = CurrentMapData.debriefing_size_x
 	%DBsizeYSpinBox.value = CurrentMapData.debriefing_size_y
 
@@ -45,7 +49,7 @@ func _on_debriefing_maps_option_button_item_selected(index: int) -> void:
 	var item_text = %DebriefingMapsOptionButton.get_item_text(index)
 	CurrentMapData.debriefing_map = item_text
 	var db_map_name = item_text.replace(".%s" %item_text.get_extension(), "")
-	%DebriefingMapTexture.texture = Preloads.dbmaps[db_map_name]
+	%DebriefingMapTexture.texture = Preloads.mbmaps[db_map_name]
 
 
 func close() -> void:

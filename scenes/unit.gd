@@ -48,16 +48,6 @@ func _on_button_button_up():
 	dragging = false
 
 
-#func _on_button_gui_input(event):
-	#if event.is_action_pressed("select"):
-		#CurrentMapData.selected_unit = CurrentMapData.mouse_over_unit
-		#if event.double_click:
-			#EventSystem.left_double_clicked.emit()
-	#if event.is_action_pressed("context_menu"):
-		#CurrentMapData.selected_unit = self
-		#EventSystem.unit_right_selected.emit()
-
-
 func recalculate_limits():
 	bottom_limit = CurrentMapData.vertical_sectors*1200+1200
 	right_limit = CurrentMapData.horizontal_sectors*1200+1200
