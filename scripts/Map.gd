@@ -246,6 +246,8 @@ func add_hoststation(owner_id: int, vehicle_id: int):
 		hoststation.position.y = right_clicked_y
 
 	CurrentMapData.selected_unit = hoststation
+	if CurrentMapData.player_host_station == null:
+		CurrentMapData.player_host_station = CurrentMapData.host_stations.get_child(0)
 	%PropertiesContainer.show()
 
 

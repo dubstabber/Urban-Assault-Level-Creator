@@ -404,6 +404,8 @@ static func _handle_host_stations(file: FileAccess) -> void:
 		host_station.cpl_budget = cpl_budget
 		host_station.cpl_delay = cpl_delay
 		CurrentMapData.host_stations.add_child(host_station)
+		if CurrentMapData.player_host_station == null:
+			CurrentMapData.player_host_station = host_station
 
 
 static func _handle_bombs(file: FileAccess) -> void:

@@ -19,7 +19,7 @@ var briefing_size_y: int
 var debriefing_map: String
 var debriefing_size_x: int
 var debriefing_size_y: int
-var player_host_station := 0
+var player_host_station: HostStation = null
 var level_description := ""
 var prototype_modifications := ""
 
@@ -139,7 +139,7 @@ func close_map() -> void:
 	debriefing_map = "db_01.iff"
 	debriefing_size_x = 0
 	debriefing_size_y = 0
-	player_host_station = 0
+	player_host_station = null
 	level_description = ""
 	prototype_modifications = ""
 	for hs in host_stations.get_children():

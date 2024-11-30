@@ -106,22 +106,22 @@ static func _handle_host_stations(file: FileAccess) -> void:
 	file.store_line(";--- Robo Definitions                                     ---")
 	file.store_line(";------------------------------------------------------------")
 	if CurrentMapData.host_stations.get_child_count() > 0:
-		var player_hs: HostStation = CurrentMapData.host_stations.get_child(CurrentMapData.player_host_station)
-		file.store_line("begin_robo")
-		file.store_line("\towner = %s" % player_hs.owner_id)
-		if player_hs.player_vehicle >= 0: file.store_line("\tvehicle = %s" % player_hs.player_vehicle)
-		else: file.store_line("\tvehicle = %s" % player_hs.vehicle)
-		file.store_line("\tpos_x = %s" % round(player_hs.position.x))
-		file.store_line("\tpos_y = %s" % player_hs.pos_y)
-		file.store_line("\tpos_z = -%s" % round(player_hs.position.y))
-		file.store_line("\tenergy = %s" % player_hs.energy)
-		if player_hs.reload_const_enabled: file.store_line("\treload_const = %s" % player_hs.reload_const)
-		if player_hs.view_angle_enabled: file.store_line("\tviewangle = %s" % player_hs.view_angle)
-		if player_hs.mb_status: file.store_line("\tmb_status = unknown")
-		file.store_line("end")
+		if CurrentMapData.player_host_station:
+			file.store_line("begin_robo")
+			file.store_line("\towner = %s" % CurrentMapData.player_host_station.owner_id)
+			if CurrentMapData.player_host_station.player_vehicle >= 0: file.store_line("\tvehicle = %s" % CurrentMapData.player_host_station.player_vehicle)
+			else: file.store_line("\tvehicle = %s" % CurrentMapData.player_host_station.vehicle)
+			file.store_line("\tpos_x = %s" % round(CurrentMapData.player_host_station.position.x))
+			file.store_line("\tpos_y = %s" % CurrentMapData.player_host_station.pos_y)
+			file.store_line("\tpos_z = -%s" % round(CurrentMapData.player_host_station.position.y))
+			file.store_line("\tenergy = %s" % CurrentMapData.player_host_station.energy)
+			if CurrentMapData.player_host_station.reload_const_enabled: file.store_line("\treload_const = %s" % CurrentMapData.player_host_station.reload_const)
+			if CurrentMapData.player_host_station.view_angle_enabled: file.store_line("\tviewangle = %s" % CurrentMapData.player_host_station.view_angle)
+			if CurrentMapData.player_host_station.mb_status: file.store_line("\tmb_status = unknown")
+			file.store_line("end")
 		
 		for hs: HostStation in CurrentMapData.host_stations.get_children():
-			if hs == player_hs: continue
+			if hs == CurrentMapData.player_host_station: continue
 			file.store_line("begin_robo")
 			file.store_line("\towner = %s" % hs.owner_id)
 			file.store_line("\tvehicle = %s" % hs.vehicle)

@@ -17,7 +17,15 @@ func update_menu() -> void:
 
 func _on_index_pressed(index: int) -> void:
 	var text = get_parent().get_item_text(index)
-	if text == "Remove this host station" or text == "Remove this squad":
+	if text == "Remove this host station":
+		if CurrentMapData.selected_unit == CurrentMapData.player_host_station:
+			CurrentMapData.selected_unit.queue_free()
+			CurrentMapData.selected_unit = null
+			if CurrentMapData.host_stations.get_child_count() > 0:
+				CurrentMapData.player_host_station = CurrentMapData.host_stations.get_child(0)
+		else:
+			CurrentMapData.selected_unit.queue_free()
+			CurrentMapData.selected_unit = null
+	elif text == "Remove this squad":
 		CurrentMapData.selected_unit.queue_free()
 		CurrentMapData.selected_unit = null
-		

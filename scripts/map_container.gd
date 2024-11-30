@@ -3,6 +3,7 @@ extends ScrollContainer
 var drag_start_position: Vector2
 var is_dragging: bool = false
 
+
 func _ready():
 	Input.set_default_cursor_shape(Input.CURSOR_ARROW)
 
