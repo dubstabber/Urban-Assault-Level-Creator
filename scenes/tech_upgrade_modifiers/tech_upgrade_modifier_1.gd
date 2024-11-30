@@ -43,13 +43,19 @@ func enable_vehicle(toggled: bool, property: String) -> void:
 
 func modify_vehicle(new_text: String, property: String) -> void:
 	if not vehicle_modifier: vehicle_modifier = CurrentMapData.selected_tech_upgrade.new_vehicle_modifier(CurrentMapData.units_db[item_name])
-	vehicle_modifier[property] = int(new_text)
+	if property == "energy":
+		vehicle_modifier[property] = int(new_text) * 100
+	else:
+		vehicle_modifier[property] = int(new_text)
 	CurrentMapData.selected_tech_upgrade.synchronize(vehicle_modifier, property)
 
 
 func modify_weapon(new_text: String, property: String) -> void:
 	if not weapon_modifier: weapon_modifier = CurrentMapData.selected_tech_upgrade.new_weapon_modifier(CurrentMapData.units_db[item_name])
-	weapon_modifier[property] = int(new_text)
+	if property == "energy":
+		weapon_modifier[property] = int(new_text) * 100
+	else:
+		weapon_modifier[property] = int(new_text)
 	CurrentMapData.selected_tech_upgrade.synchronize(weapon_modifier, property)
 
 
@@ -63,11 +69,11 @@ func update_ui() -> void:
 		%EnableBlackSectCheckBox.button_pressed = vehicle_modifier.blacksect_enabled
 		%EnableTrainingCheckBox.button_pressed = vehicle_modifier.training_enabled
 		
-		%AddEnergyLineEdit.text = str(vehicle_modifier.energy)
+		%AddEnergyLineEdit.text = str(vehicle_modifier.energy / 100)
 		%AddShieldLineEdit.text = str(vehicle_modifier.shield)
 		%AddWeaponLineEdit.text = str(vehicle_modifier.num_weapons)
 		%AddRadarLineEdit.text = str(vehicle_modifier.radar)
 	if weapon_modifier:
-		%AddDamageLineEdit.text = str(weapon_modifier.energy)
+		%AddDamageLineEdit.text = str(weapon_modifier.energy / 100)
 		%AddShotTimeLineEdit.text = str(weapon_modifier.shot_time)
 		%AddShotTimeUserLineEdit.text = str(weapon_modifier.shot_time_user)

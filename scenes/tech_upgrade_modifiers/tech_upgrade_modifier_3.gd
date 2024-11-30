@@ -19,12 +19,15 @@ func _ready() -> void:
 
 func modify_weapon(new_text: String, property: String) -> void:
 	if not weapon_modifier: weapon_modifier = CurrentMapData.selected_tech_upgrade.new_weapon_modifier(CurrentMapData.units_db[item_name])
-	weapon_modifier[property] = int(new_text)
+	if property == "energy":
+		weapon_modifier[property] = int(new_text) * 100
+	else:
+		weapon_modifier[property] = int(new_text)
 	CurrentMapData.selected_tech_upgrade.synchronize(weapon_modifier, property)
 
 
 func update_ui() -> void:
 	if weapon_modifier:
-		%AddDamageLineEdit.text = str(weapon_modifier.energy)
+		%AddDamageLineEdit.text = str(weapon_modifier.energy / 100)
 		%AddShotTimeLineEdit.text = str(weapon_modifier.shot_time)
 		%AddShotTimeUserLineEdit.text = str(weapon_modifier.shot_time_user)
