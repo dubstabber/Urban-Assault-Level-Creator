@@ -112,14 +112,14 @@ static func _handle_description(file: FileAccess) -> void:
 	file.get_line()
 	string_line = file.get_line().strip_edges(true, false)
 	
-	while(not string_line.is_empty() and string_line[0] == ';'):
+	while(not string_line.is_empty() and string_line[0] == ';' and file.get_position() < file.get_length()):
 		CurrentMapData.level_description += string_line.substr(1) + '\n'
 		string_line = file.get_line().strip_edges(true, false)
 
 
 static func _handle_level_parameters(file: FileAccess) -> void:
 	if string_line.begins_with('begin_level'):
-		while(string_line != "end"):
+		while(string_line != "end" and file.get_position() < file.get_length()):
 			string_line = file.get_line().get_slice(';', 0).strip_edges()
 			if string_line.is_empty(): continue
 			
@@ -151,7 +151,7 @@ static func _handle_level_parameters(file: FileAccess) -> void:
 
 static func _handle_briefing_maps(file: FileAccess) -> void:
 	if string_line.begins_with('begin_mbmap'):
-		while(string_line != "end"):
+		while(string_line != "end" and file.get_position() < file.get_length()):
 			string_line = file.get_line().get_slice(';', 0).strip_edges()
 			if string_line.is_empty(): continue
 			
@@ -168,7 +168,7 @@ static func _handle_briefing_maps(file: FileAccess) -> void:
 				CurrentMapData.briefing_size_y = int(string_line)
 				
 	if string_line.begins_with('begin_dbmap'):
-		while(string_line != "end"):
+		while(string_line != "end" and file.get_position() < file.get_length()):
 			string_line = file.get_line().get_slice(';', 0).strip_edges()
 			if string_line.is_empty(): continue
 			
@@ -196,7 +196,7 @@ static func _handle_beam_gates(file: FileAccess) -> void:
 		var key_sector: Vector2i
 		var mb_status := false
 		
-		while(string_line != "end"):
+		while(string_line != "end" and file.get_position() < file.get_length()):
 			string_line = file.get_line().get_slice(';', 0).strip_edges()
 			if string_line.is_empty(): continue
 			
@@ -271,7 +271,7 @@ static func _handle_host_stations(file: FileAccess) -> void:
 		var cpl_budget: int
 		var cpl_delay: int
 		
-		while(string_line != "end"):
+		while(string_line != "end" and file.get_position() < file.get_length()):
 			string_line = file.get_line().get_slice(';', 0).strip_edges()
 			if string_line.is_empty(): continue
 			
@@ -418,7 +418,7 @@ static func _handle_bombs(file: FileAccess) -> void:
 		var key_sectors: Array[Vector2i] = []
 		var key_sector: Vector2i
 		
-		while(string_line != "end"):
+		while(string_line != "end" and file.get_position() < file.get_length()):
 			string_line = file.get_line().get_slice(';', 0).strip_edges()
 			if string_line.is_empty(): continue
 			
@@ -479,7 +479,7 @@ static func _handle_predefined_squads(file: FileAccess) -> void:
 		var useable := false
 		var mb_status := false
 		
-		while(string_line != "end"):
+		while(string_line != "end" and file.get_position() < file.get_length()):
 			string_line = file.get_line().get_slice(';', 0).strip_edges()
 			if string_line.is_empty(): continue
 			
@@ -532,7 +532,7 @@ static func _handle_prototype_enabling(file: FileAccess) -> void:
 		string_line = string_line.replace("begin_enable", "").replace("=", "").strip_edges()
 		var owner_id = int(string_line)
 		
-		while(string_line != "end"):
+		while(string_line != "end" and file.get_position() < file.get_length()):
 			string_line = file.get_line().get_slice(';', 0).strip_edges()
 			if string_line.is_empty(): continue
 			
@@ -566,11 +566,11 @@ static func _handle_tech_upgrades(file: FileAccess) -> void:
 		var building_id := 4
 		var type := 99
 		var mb_status := false
-		var vehicles = []
-		var weapons = []
-		var buildings = []
+		var vehicles := []
+		var weapons := []
+		var buildings := []
 		
-		while(string_line != "end"):
+		while(string_line != "end" and file.get_position() < file.get_length()):
 			string_line = file.get_line().get_slice(';', 0).strip_edges()
 			if string_line.is_empty(): continue
 			
@@ -594,7 +594,7 @@ static func _handle_tech_upgrades(file: FileAccess) -> void:
 				mb_status = true
 			
 			if string_line.containsn("begin_action"):
-				while(string_line != "end_action"):
+				while(string_line != "end_action" and file.get_position() < file.get_length()):
 					string_line = file.get_line().get_slice(';', 0).strip_edges()
 					if string_line.is_empty(): continue
 					
@@ -613,7 +613,7 @@ static func _handle_tech_upgrades(file: FileAccess) -> void:
 						var blacksect_enabled := false
 						var training_enabled := false
 						
-						while(string_line != "end"):
+						while(string_line != "end" and file.get_position() < file.get_length()):
 							string_line = file.get_line().get_slice(';', 0).strip_edges()
 							if string_line.is_empty(): continue
 							
@@ -667,7 +667,7 @@ static func _handle_tech_upgrades(file: FileAccess) -> void:
 						var shot_time := 0
 						var shot_time_user := 0
 						
-						while(string_line != "end"):
+						while(string_line != "end" and file.get_position() < file.get_length()):
 							string_line = file.get_line().get_slice(';', 0).strip_edges()
 							if string_line.is_empty(): continue
 							
@@ -701,7 +701,7 @@ static func _handle_tech_upgrades(file: FileAccess) -> void:
 						var blacksect_enabled := false
 						var training_enabled := false
 						
-						while(string_line != "end"):
+						while(string_line != "end" and file.get_position() < file.get_length()):
 							string_line = file.get_line().get_slice(';', 0).strip_edges()
 							if string_line.is_empty(): continue
 							
