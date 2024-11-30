@@ -6,7 +6,7 @@ static var string_line: String
 static func load_level() -> void:
 	var file = FileAccess.open(CurrentMapData.map_path, FileAccess.READ)
 	if not file: 
-		printerr("Error: File '%s' cannot be opened" % file)
+		printerr("Error: File '%s' cannot be opened" % CurrentMapData.map_path)
 		return
 	string_line = ""
 	
@@ -124,20 +124,20 @@ static func _handle_level_parameters(file: FileAccess) -> void:
 			if string_line.is_empty(): continue
 			
 			if string_line.containsn("set"):
-				string_line = string_line.get_slice('=', 1).strip_edges()
+				string_line = string_line.replacen("set", "").replacen("=", "").strip_edges()
 				CurrentMapData.level_set = int(string_line)
 				
 			if string_line.containsn("sky"):
-				string_line = string_line.get_slice('=', 1).strip_edges()
+				string_line = string_line.replacen("sky", "").replacen("=", "").strip_edges()
 				string_line = string_line.get_slice('/', 1).replacen(".base", "").replacen(".bas", "")
 				CurrentMapData.sky = Utils.convert_sky_name_case(string_line)
 			
 			if string_line.containsn("event_loop"):
-				string_line = string_line.get_slice('=', 1).strip_edges()
+				string_line = string_line.replacen("event_loop", "").replacen("=", "").strip_edges()
 				CurrentMapData.event_loop = int(string_line)
 			
 			if string_line.containsn("ambiencetrack"):
-				string_line = string_line.get_slice('=', 1).strip_edges()
+				string_line = string_line.replacen("ambiencetrack", "").replacen("=", "").strip_edges()
 				var music_data = string_line.split('_')
 				CurrentMapData.music = int(music_data[0])
 				if music_data.size() > 1:
@@ -145,7 +145,7 @@ static func _handle_level_parameters(file: FileAccess) -> void:
 					CurrentMapData.max_break = int(music_data[2])
 			
 			if string_line.containsn("movie"):
-				string_line = string_line.get_slice('=', 1).strip_edges()
+				string_line = string_line.replacen("movie", "").replacen("=", "").strip_edges()
 				CurrentMapData.movie = string_line.replacen("mov:", "")
 
 
@@ -156,15 +156,15 @@ static func _handle_briefing_maps(file: FileAccess) -> void:
 			if string_line.is_empty(): continue
 			
 			if string_line.containsn("name"):
-				string_line = string_line.get_slice('=', 1).strip_edges()
+				string_line = string_line.replacen("name", "").replacen("=", "").strip_edges()
 				CurrentMapData.briefing_map = string_line.to_lower()
 			
 			if string_line.containsn("size_x"):
-				string_line = string_line.get_slice('=', 1).strip_edges()
+				string_line = string_line.replacen("size_x", "").replacen("=", "").strip_edges()
 				CurrentMapData.briefing_size_x = int(string_line)
 				
 			if string_line.containsn("size_y"):
-				string_line = string_line.get_slice('=', 1).strip_edges()
+				string_line = string_line.replacen("size_y", "").replacen("=", "").strip_edges()
 				CurrentMapData.briefing_size_y = int(string_line)
 				
 	if string_line.begins_with('begin_dbmap'):
@@ -173,15 +173,15 @@ static func _handle_briefing_maps(file: FileAccess) -> void:
 			if string_line.is_empty(): continue
 			
 			if string_line.containsn("name"):
-				string_line = string_line.get_slice('=', 1).strip_edges()
+				string_line = string_line.replacen("name", "").replacen("=", "").strip_edges()
 				CurrentMapData.debriefing_map = string_line.to_lower()
 			
 			if string_line.containsn("size_x"):
-				string_line = string_line.get_slice('=', 1).strip_edges()
+				string_line = string_line.replacen("size_x", "").replacen("=", "").strip_edges()
 				CurrentMapData.debriefing_size_x = int(string_line)
 				
 			if string_line.containsn("size_y"):
-				string_line = string_line.get_slice('=', 1).strip_edges()
+				string_line = string_line.replacen("size_y", "").replacen("=", "").strip_edges()
 				CurrentMapData.debriefing_size_y = int(string_line)
 
 
@@ -201,31 +201,31 @@ static func _handle_beam_gates(file: FileAccess) -> void:
 			if string_line.is_empty(): continue
 			
 			if string_line.begins_with("sec_x"):
-				string_line = string_line.get_slice('=', 1).strip_edges()
+				string_line = string_line.replacen("sec_x", "").replacen("=", "").strip_edges()
 				sec_x = int(string_line)
 			
 			if string_line.begins_with("sec_y"):
-				string_line = string_line.get_slice('=', 1).strip_edges()
+				string_line = string_line.replacen("sec_y", "").replacen("=", "").strip_edges()
 				sec_y = int(string_line)
 			
 			if string_line.begins_with("closed_bp"):
-				string_line = string_line.get_slice('=', 1).strip_edges()
+				string_line = string_line.replacen("closed_bp", "").replacen("=", "").strip_edges()
 				closed_bp = int(string_line)
 			
 			if string_line.begins_with("opened_bp"):
-				string_line = string_line.get_slice('=', 1).strip_edges()
+				string_line = string_line.replacen("opened_bp", "").replacen("=", "").strip_edges()
 				opened_bp = int(string_line)
 			
 			if string_line.begins_with("target_level"):
-				string_line = string_line.get_slice('=', 1).strip_edges()
+				string_line = string_line.replacen("target_level", "").replacen("=", "").strip_edges()
 				target_levels.append(int(string_line))
 			
 			if string_line.begins_with("keysec_x"):
-				string_line = string_line.get_slice('=', 1).strip_edges()
+				string_line = string_line.replacen("keysec_x", "").replacen("=", "").strip_edges()
 				key_sector.x = int(string_line)
 			
 			if string_line.begins_with("keysec_y"):
-				string_line = string_line.get_slice('=', 1).strip_edges()
+				string_line = string_line.replacen("keysec_y", "").replacen("=", "").strip_edges()
 				key_sector.y = int(string_line)
 				key_sectors.append(key_sector)
 			
@@ -276,36 +276,36 @@ static func _handle_host_stations(file: FileAccess) -> void:
 			if string_line.is_empty(): continue
 			
 			if string_line.containsn("owner"):
-				string_line = string_line.get_slice('=', 1).strip_edges()
+				string_line = string_line.replacen("owner", "").replacen("=", "").strip_edges()
 				owner_id = int(string_line)
 			
 			if string_line.containsn("vehicle"):
-				string_line = string_line.get_slice('=', 1).strip_edges()
+				string_line = string_line.replacen("vehicle", "").replacen("=", "").strip_edges()
 				vehicle_id = int(string_line)
 			
 			if string_line.containsn("pos_x"):
-				string_line = string_line.get_slice('=', 1).strip_edges()
+				string_line = string_line.replacen("pos_x", "").replacen("=", "").strip_edges()
 				pos_x = int(string_line)
 			
 			if string_line.containsn("pos_y"):
-				string_line = string_line.get_slice('=', 1).strip_edges()
+				string_line = string_line.replacen("pos_y", "").replacen("=", "").strip_edges()
 				pos_y = int(string_line)
 			
 			if string_line.containsn("pos_z"):
-				string_line = string_line.get_slice('=', 1).strip_edges()
+				string_line = string_line.replacen("pos_z", "").replacen("=", "").strip_edges()
 				pos_z = int(string_line)
 			
 			if string_line.containsn("energy"):
-				string_line = string_line.get_slice('=', 1).strip_edges()
+				string_line = string_line.replacen("energy", "").replacen("=", "").strip_edges()
 				energy = int(string_line)
 			
 			if string_line.containsn("reload_const"):
-				string_line = string_line.get_slice('=', 1).strip_edges()
+				string_line = string_line.replacen("reload_const", "").replacen("=", "").strip_edges()
 				reload_const = int(string_line)
 				reload_const_enabled = true
 			
 			if string_line.containsn("viewangle"):
-				string_line = string_line.get_slice('=', 1).strip_edges()
+				string_line = string_line.replacen("viewangle", "").replacen("=", "").strip_edges()
 				view_angle = int(string_line)
 				view_angle_enabled = true
 			
@@ -313,67 +313,67 @@ static func _handle_host_stations(file: FileAccess) -> void:
 				mb_status = true
 			
 			if string_line.containsn("con_budget"):
-				string_line = string_line.get_slice('=', 1).strip_edges()
+				string_line = string_line.replacen("con_budget", "").replacen("=", "").strip_edges()
 				con_budget = int(string_line)
 			
 			if string_line.containsn("con_delay"):
-				string_line = string_line.get_slice('=', 1).strip_edges()
+				string_line = string_line.replacen("con_delay", "").replacen("=", "").strip_edges()
 				con_delay = int(string_line)
 			
 			if string_line.containsn("def_budget"):
-				string_line = string_line.get_slice('=', 1).strip_edges()
+				string_line = string_line.replacen("def_budget", "").replacen("=", "").strip_edges()
 				def_budget = int(string_line)
 			
 			if string_line.containsn("def_delay"):
-				string_line = string_line.get_slice('=', 1).strip_edges()
+				string_line = string_line.replacen("def_delay", "").replacen("=", "").strip_edges()
 				def_delay = int(string_line)
 			
 			if string_line.containsn("rec_budget"):
-				string_line = string_line.get_slice('=', 1).strip_edges()
+				string_line = string_line.replacen("rec_budget", "").replacen("=", "").strip_edges()
 				rec_budget = int(string_line)
 			
 			if string_line.containsn("rec_delay"):
-				string_line = string_line.get_slice('=', 1).strip_edges()
+				string_line = string_line.replacen("rec_delay", "").replacen("=", "").strip_edges()
 				rec_delay = int(string_line)
 			
 			if string_line.containsn("rob_budget"):
-				string_line = string_line.get_slice('=', 1).strip_edges()
+				string_line = string_line.replacen("rob_budget", "").replacen("=", "").strip_edges()
 				rob_budget = int(string_line)
 			
 			if string_line.containsn("rob_delay"):
-				string_line = string_line.get_slice('=', 1).strip_edges()
+				string_line = string_line.replacen("rob_delay", "").replacen("=", "").strip_edges()
 				rob_delay = int(string_line)
 			
 			if string_line.containsn("pow_budget"):
-				string_line = string_line.get_slice('=', 1).strip_edges()
+				string_line = string_line.replacen("pow_budget", "").replacen("=", "").strip_edges()
 				pow_budget = int(string_line)
 			
 			if string_line.containsn("pow_delay"):
-				string_line = string_line.get_slice('=', 1).strip_edges()
+				string_line = string_line.replacen("pow_delay", "").replacen("=", "").strip_edges()
 				pow_delay = int(string_line)
 			
 			if string_line.containsn("rad_budget"):
-				string_line = string_line.get_slice('=', 1).strip_edges()
+				string_line = string_line.replacen("rad_budget", "").replacen("=", "").strip_edges()
 				rad_budget = int(string_line)
 			
 			if string_line.containsn("rad_delay"):
-				string_line = string_line.get_slice('=', 1).strip_edges()
+				string_line = string_line.replacen("rad_delay", "").replacen("=", "").strip_edges()
 				rad_delay = int(string_line)
 			
 			if string_line.containsn("saf_budget"):
-				string_line = string_line.get_slice('=', 1).strip_edges()
+				string_line = string_line.replacen("saf_budget", "").replacen("=", "").strip_edges()
 				saf_budget = int(string_line)
 			
 			if string_line.containsn("saf_delay"):
-				string_line = string_line.get_slice('=', 1).strip_edges()
+				string_line = string_line.replacen("saf_delay", "").replacen("=", "").strip_edges()
 				saf_delay = int(string_line)
 			
 			if string_line.containsn("cpl_budget"):
-				string_line = string_line.get_slice('=', 1).strip_edges()
+				string_line = string_line.replacen("cpl_budget", "").replacen("=", "").strip_edges()
 				cpl_budget = int(string_line)
 			
 			if string_line.containsn("cpl_delay"):
-				string_line = string_line.get_slice('=', 1).strip_edges()
+				string_line = string_line.replacen("cpl_delay", "").replacen("=", "").strip_edges()
 				cpl_delay = int(string_line)
 		
 		var host_station = Preloads.HOSTSTATION.instantiate()
@@ -423,39 +423,39 @@ static func _handle_bombs(file: FileAccess) -> void:
 			if string_line.is_empty(): continue
 			
 			if string_line.begins_with("sec_x"):
-				string_line = string_line.get_slice('=', 1).strip_edges()
+				string_line = string_line.replacen("sec_x", "").replacen("=", "").strip_edges()
 				sec_x = int(string_line)
 			
 			if string_line.begins_with("sec_y"):
-				string_line = string_line.get_slice('=', 1).strip_edges()
+				string_line = string_line.replacen("sec_y", "").replacen("=", "").strip_edges()
 				sec_y = int(string_line)
 			
 			if string_line.begins_with("inactive_bp"):
-				string_line = string_line.get_slice('=', 1).strip_edges()
+				string_line = string_line.replacen("inactive_bp", "").replacen("=", "").strip_edges()
 				inactive_bp = int(string_line)
 			
 			if string_line.begins_with("active_bp"):
-				string_line = string_line.get_slice('=', 1).strip_edges()
+				string_line = string_line.replacen("active_bp", "").replacen("=", "").strip_edges()
 				active_bp = int(string_line)
 			
 			if string_line.begins_with("trigger_bp"):
-				string_line = string_line.get_slice('=', 1).strip_edges()
+				string_line = string_line.replacen("trigger_bp", "").replacen("=", "").strip_edges()
 				trigger_bp = int(string_line)
 			
 			if string_line.begins_with("type"):
-				string_line = string_line.get_slice('=', 1).strip_edges()
+				string_line = string_line.replacen("type", "").replacen("=", "").strip_edges()
 				type = int(string_line)
 			
 			if string_line.begins_with("countdown"):
-				string_line = string_line.get_slice('=', 1).strip_edges()
+				string_line = string_line.replacen("countdown", "").replacen("=", "").strip_edges()
 				countdown = int(string_line)
 			
 			if string_line.begins_with("keysec_x"):
-				string_line = string_line.get_slice('=', 1).strip_edges()
+				string_line = string_line.replacen("keysec_x", "").replacen("=", "").strip_edges()
 				key_sector.x = int(string_line)
 			
 			if string_line.begins_with("keysec_y"):
-				string_line = string_line.get_slice('=', 1).strip_edges()
+				string_line = string_line.replacen("keysec_y", "").replacen("=", "").strip_edges()
 				key_sector.y = int(string_line)
 				key_sectors.append(key_sector)
 		
@@ -484,23 +484,23 @@ static func _handle_predefined_squads(file: FileAccess) -> void:
 			if string_line.is_empty(): continue
 			
 			if string_line.containsn("owner"):
-				string_line = string_line.get_slice('=', 1).strip_edges()
+				string_line = string_line.replacen("owner", "").replacen("=", "").strip_edges()
 				owner_id = int(string_line)
 			
 			if string_line.containsn("vehicle"):
-				string_line = string_line.get_slice('=', 1).strip_edges()
+				string_line = string_line.replacen("vehicle", "").replacen("=", "").strip_edges()
 				vehicle_id = int(string_line)
 			
 			if string_line.begins_with("num"):
-				string_line = string_line.get_slice('=', 1).strip_edges()
+				string_line = string_line.replacen("num", "").replacen("=", "").strip_edges()
 				quantity = int(string_line)
 			
 			if string_line.containsn("pos_x"):
-				string_line = string_line.get_slice('=', 1).strip_edges()
+				string_line = string_line.replacen("pos_x", "").replacen("=", "").strip_edges()
 				pos_x = int(string_line)
 			
 			if string_line.containsn("pos_z"):
-				string_line = string_line.get_slice('=', 1).strip_edges()
+				string_line = string_line.replacen("pos_z", "").replacen("=", "").strip_edges()
 				pos_z = int(string_line)
 			
 			if string_line.containsn("useable"):
