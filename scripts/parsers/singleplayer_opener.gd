@@ -806,4 +806,5 @@ static func _infer_game_type() -> void:
 		Preloads.ua_data.data.keys().has("metropolisDawn")):
 		inferred_game_type = "metropolisDawn"
 	
-	CurrentMapData.game_data_type = inferred_game_type
+	if not inferred_game_type.is_empty():
+		CurrentMapData.game_data_type = inferred_game_type
