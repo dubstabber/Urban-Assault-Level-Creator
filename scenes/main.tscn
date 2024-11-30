@@ -1,4 +1,4 @@
-[gd_scene load_steps=46 format=3 uid="uid://ctgiwn3scteuk"]
+[gd_scene load_steps=47 format=3 uid="uid://ctgiwn3scteuk"]
 
 [ext_resource type="Script" path="res://scenes/main.gd" id="1_7pb5r"]
 [ext_resource type="Script" path="res://scripts/Map.gd" id="2_dum0m"]
@@ -36,6 +36,7 @@
 [ext_resource type="PackedScene" uid="uid://cr4k2w8eq5ovg" path="res://scenes/tech_upgrade_modifiers/tech_upgrade_modifier_2.tscn" id="21_0gryv"]
 [ext_resource type="PackedScene" uid="uid://co34kw1wyoao3" path="res://scenes/ui_components/beam_gate_key_sector_v_box.tscn" id="23_ikhfp"]
 [ext_resource type="PackedScene" uid="uid://v6hlaoteehbu" path="res://scenes/ui_components/bomb_key_sector_v_box.tscn" id="24_aq0rs"]
+[ext_resource type="Script" path="res://scripts/map_container.gd" id="28_7f6ut"]
 
 [sub_resource type="ButtonGroup" id="ButtonGroup_238se"]
 
@@ -275,6 +276,7 @@ split_offset = 750
 [node name="MapContainer" type="ScrollContainer" parent="PanelContainer/MarginContainer/VBoxContainer/HSplitContainer"]
 custom_minimum_size = Vector2(200, 200)
 layout_mode = 2
+script = ExtResource("28_7f6ut")
 
 [node name="SubViewportMapContainer" type="SubViewportContainer" parent="PanelContainer/MarginContainer/VBoxContainer/HSplitContainer/MapContainer"]
 unique_name_in_owner = true
