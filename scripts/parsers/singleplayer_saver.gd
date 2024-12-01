@@ -18,7 +18,8 @@ static func save() -> void:
 	_handle_own_map(file)
 	_handle_hgt_map(file)
 	_handle_blg_map(file)
-	DisplayServer.window_set_title("%s (%sx%s) - %s" % [CurrentMapData.map_path, CurrentMapData.horizontal_sectors, CurrentMapData.vertical_sectors, "Urban Assault Level Creator"])
+	
+	CurrentMapData.is_saved = true
 
 
 static func _handle_header(file: FileAccess) -> void:

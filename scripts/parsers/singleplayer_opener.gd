@@ -37,9 +37,10 @@ static func load_level() -> void:
 		string_line = file.get_line().get_slice(';', 0).strip_edges()
 	
 	_infer_game_type()
-	DisplayServer.window_set_title("%s (%sx%s) - %s" % [CurrentMapData.map_path, CurrentMapData.horizontal_sectors, CurrentMapData.vertical_sectors, "Urban Assault Level Creator"])
+	
 	EventSystem.map_created.emit()
 	EventSystem.item_updated.emit()
+	CurrentMapData.is_saved = true
 
 
 static func _handle_typ_map(file: FileAccess) -> void:
@@ -144,7 +145,7 @@ static func _handle_level_parameters(file: FileAccess) -> void:
 					CurrentMapData.min_break = int(music_data[1])
 					CurrentMapData.max_break = int(music_data[2])
 			
-			if string_line.containsn("movie"):
+			if string_line.begins_with("movie"):
 				string_line = string_line.replacen("movie", "").replacen("=", "").strip_edges()
 				CurrentMapData.movie = string_line.replacen("mov:", "")
 

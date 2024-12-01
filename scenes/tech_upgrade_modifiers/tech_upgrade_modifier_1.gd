@@ -31,6 +31,7 @@ func _ready() -> void:
 			CurrentMapData.selected_tech_upgrade.vehicles.erase(vehicle_modifier)
 		if weapon_modifier:
 			CurrentMapData.selected_tech_upgrade.weapons.erase(weapon_modifier)
+		CurrentMapData.is_saved = false
 		queue_free()
 		)
 
@@ -39,6 +40,7 @@ func enable_vehicle(toggled: bool, property: String) -> void:
 	if not vehicle_modifier: vehicle_modifier = CurrentMapData.selected_tech_upgrade.new_vehicle_modifier(CurrentMapData.units_db[item_name])
 	vehicle_modifier[property] = toggled
 	CurrentMapData.selected_tech_upgrade.synchronize(vehicle_modifier, "enable")
+	CurrentMapData.is_saved = false
 
 
 func modify_vehicle(new_text: String, property: String) -> void:
@@ -48,6 +50,7 @@ func modify_vehicle(new_text: String, property: String) -> void:
 	else:
 		vehicle_modifier[property] = int(new_text)
 	CurrentMapData.selected_tech_upgrade.synchronize(vehicle_modifier, property)
+	CurrentMapData.is_saved = false
 
 
 func modify_weapon(new_text: String, property: String) -> void:
@@ -57,6 +60,7 @@ func modify_weapon(new_text: String, property: String) -> void:
 	else:
 		weapon_modifier[property] = int(new_text)
 	CurrentMapData.selected_tech_upgrade.synchronize(weapon_modifier, property)
+	CurrentMapData.is_saved = false
 
 
 func update_ui() -> void:

@@ -14,6 +14,7 @@ func _ready() -> void:
 	%RemoveButton.pressed.connect(func():
 		if weapon_modifier:
 			CurrentMapData.selected_tech_upgrade.weapons.erase(weapon_modifier)
+			CurrentMapData.is_saved = false
 		queue_free()
 		)
 
@@ -24,6 +25,7 @@ func modify_weapon(new_text: String, property: String) -> void:
 	else:
 		weapon_modifier[property] = int(new_text)
 	CurrentMapData.selected_tech_upgrade.synchronize(weapon_modifier, property)
+	CurrentMapData.is_saved = false
 
 
 func update_ui() -> void:

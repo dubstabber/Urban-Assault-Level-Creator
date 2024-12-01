@@ -72,12 +72,22 @@ var blg_names := {}
 var weapons_db := {}
 
 var map_path := ""
+var is_saved := true:
+	set(value):
+		is_saved = value
+		if not map_path.is_empty() and CurrentMapData.horizontal_sectors and CurrentMapData.vertical_sectors:
+			if is_saved:
+				DisplayServer.window_set_title("%s (%sx%s) - %s" % [CurrentMapData.map_path, CurrentMapData.horizontal_sectors, CurrentMapData.vertical_sectors, "Urban Assault Level Creator"])
+			else:
+				DisplayServer.window_set_title("*%s (%sx%s) - %s" % [CurrentMapData.map_path, CurrentMapData.horizontal_sectors, CurrentMapData.vertical_sectors, "Urban Assault Level Creator"])
 
 
 func _ready():
 	game_data_type = Preloads.ua_data.data.keys()[0]
 	reload()
 	EventSystem.game_type_changed.connect(reload)
+	EventSystem.map_updated.connect(func(): CurrentMapData.is_saved = false)
+	EventSystem.item_updated.connect(func(): CurrentMapData.is_saved = false)
 
 
 func reload() -> void:
@@ -173,6 +183,7 @@ func close_map() -> void:
 	sulgogar_enabled_buildings.clear()
 	blacksect_enabled_buildings.clear()
 	training_enabled_buildings.clear()
+	
 	DisplayServer.window_set_title("Urban Assault Level Creator")
 
 
@@ -193,6 +204,5 @@ func clear_sector() -> void:
 	for bomb in stoudson_bombs:
 		bomb.key_sectors.erase(selected_bomb_key_sector)
 	selected_bomb_key_sector = Vector2i(-1,-1)
-	
 	EventSystem.map_updated.emit()
 	EventSystem.item_updated.emit()

@@ -5,6 +5,7 @@ signal position_changed
 var dragging := false
 var of := Vector2(0,0)
 var unit_name: String
+var init_pos := Vector2.ZERO
 
 var owner_id: int
 var vehicle: int:
@@ -32,16 +33,19 @@ var right_limit := CurrentMapData.horizontal_sectors*1200+1200
 func _process(_delta):
 	if dragging:
 		pos_to_move = get_global_mouse_position() - of
+		if init_pos != position: CurrentMapData.is_saved = false
 		if pos_to_move.x > left_limit and pos_to_move.x < right_limit:
 			position.x = pos_to_move.x
 		if pos_to_move.y > top_limit and pos_to_move.y < bottom_limit:
 			position.y = pos_to_move.y
+
 		position_changed.emit()
 
 
 func _on_button_button_down():
 	dragging = true
 	of = get_global_mouse_position() - position
+	init_pos = position
 
 
 func _on_button_button_up():

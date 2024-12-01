@@ -10,6 +10,7 @@ func _on_create_button_pressed() -> void:
 	CurrentMapData.vertical_sectors = vertical_sectors_spinbox.value
 	hide()
 	
+	CurrentMapData.is_saved = false
 	var current_date_time = Time.get_datetime_dict_from_system()
 	var formatted_date = "%02d-%02d-%04d" % [current_date_time["day"], current_date_time["month"], current_date_time["year"]]
 	CurrentMapData.level_description = "------ Level name: New Level

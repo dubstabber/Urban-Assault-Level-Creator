@@ -26,6 +26,8 @@ func _on_index_pressed(index: int) -> void:
 		else:
 			CurrentMapData.selected_unit.queue_free()
 			CurrentMapData.selected_unit = null
+		CurrentMapData.is_saved = false
 	elif text == "Remove this squad":
 		CurrentMapData.selected_unit.queue_free()
 		CurrentMapData.selected_unit = null
+		CurrentMapData.is_saved = false

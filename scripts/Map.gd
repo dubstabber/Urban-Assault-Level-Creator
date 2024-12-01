@@ -84,30 +84,36 @@ func _input(event):
 					CurrentMapData.own_map[CurrentMapData.selected_sector_idx] = 7
 				else:
 					CurrentMapData.own_map[CurrentMapData.selected_sector_idx] = number_key
+				CurrentMapData.is_saved = false
 				EventSystem.map_updated.emit()
 	if (event.is_action_pressed("increment_height") and 
 		CurrentMapData.hgt_map.size() > 0 and
 		CurrentMapData.border_selected_sector_idx >= 0 and
 		CurrentMapData.hgt_map[CurrentMapData.border_selected_sector_idx] < 255):
 		CurrentMapData.hgt_map[CurrentMapData.border_selected_sector_idx] += 1
+		CurrentMapData.is_saved = false
 		queue_redraw()
 	if (event.is_action_pressed("decrement_height") and 
 		CurrentMapData.hgt_map.size() > 0 and
 		CurrentMapData.border_selected_sector_idx >= 0 and
 		CurrentMapData.hgt_map[CurrentMapData.border_selected_sector_idx] > 0):
 		CurrentMapData.hgt_map[CurrentMapData.border_selected_sector_idx] -= 1
+		CurrentMapData.is_saved = false
 		queue_redraw()
 	if event.is_action_pressed("previous_building"):
 		Utils.decrement_typ_map()
+		CurrentMapData.is_saved = false
 		EventSystem.map_updated.emit()
 	if event.is_action_pressed("next_building"):
 		Utils.increment_typ_map()
+		CurrentMapData.is_saved = false
 		EventSystem.map_updated.emit()
 	if event.is_action_pressed("show_height_window") and not CurrentMapData.hgt_map.is_empty():
 		%SectorHeightWindow.popup()
 	if event.is_action_pressed("show_building_window") and not CurrentMapData.typ_map.is_empty():
 		%SectorBuildingWindow.popup()
 	if event.is_action_pressed("clear_sector") and not CurrentMapData.typ_map.is_empty():
+		CurrentMapData.is_saved = false
 		CurrentMapData.clear_sector()
 	if event is InputEventMouseButton and event.button_index == MOUSE_BUTTON_LEFT and event.double_click:
 		if not CurrentMapData.selected_unit:
@@ -248,6 +254,7 @@ func add_hoststation(owner_id: int, vehicle_id: int):
 	CurrentMapData.selected_unit = hoststation
 	if CurrentMapData.player_host_station == null:
 		CurrentMapData.player_host_station = CurrentMapData.host_stations.get_child(0)
+	CurrentMapData.is_saved = false
 	%PropertiesContainer.show()
 
 
@@ -268,7 +275,8 @@ func add_squad(owner_id: int, vehicle_id: int):
 		squad.position.y = ((CurrentMapData.vertical_sectors+1) * 1200) - 5
 	else:
 		squad.position.y = right_clicked_y
-	
+		
+	CurrentMapData.is_saved = false
 	CurrentMapData.selected_unit = squad
 
 

@@ -19,6 +19,7 @@ func _ready() -> void:
 	%RemoveButton.pressed.connect(func():
 		if building_modifier:
 			CurrentMapData.selected_tech_upgrade.buildings.erase(building_modifier)
+			CurrentMapData.is_saved = false
 		queue_free()
 		)
 
@@ -27,6 +28,7 @@ func enable_building(toggled: bool, property: String) -> void:
 	if not building_modifier: building_modifier = CurrentMapData.selected_tech_upgrade.new_building_modifier(int(CurrentMapData.blg_names.find_key(item_name)))
 	building_modifier[property] = toggled
 	CurrentMapData.selected_tech_upgrade.synchronize(building_modifier, "enable")
+	CurrentMapData.is_saved = false
 
 
 func update_ui() -> void:

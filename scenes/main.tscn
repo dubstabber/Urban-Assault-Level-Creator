@@ -199,6 +199,13 @@ file_mode = 0
 access = 2
 filters = PackedStringArray("*.ldf;Urban Assault Level File")
 
+[node name="UnsavedMapConfirmationDialog" type="ConfirmationDialog" parent="Modals"]
+unique_name_in_owner = true
+initial_position = 1
+ok_button_text = "Yes"
+dialog_text = "The current map is not saved. Do you want to save it now?"
+cancel_button_text = "No"
+
 [node name="MapContextMenu" type="PopupMenu" parent="."]
 unique_name_in_owner = true
 

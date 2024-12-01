@@ -6,82 +6,108 @@ func _ready():
 	%EnergyLineEdit.text_changed.connect(func(new_value: String):
 		var validated_value = int(new_value)
 		if validated_value == 0: validated_value = 1
+		if CurrentMapData.selected_unit.energy != abs(validated_value * 400): CurrentMapData.is_saved = false
 		CurrentMapData.selected_unit.energy = abs(validated_value * 400)
 	)
 	%ViewAngleLineEdit.text_changed.connect(func(new_value: String):
+		if CurrentMapData.selected_unit.view_angle != abs(int(new_value)): CurrentMapData.is_saved = false
 		CurrentMapData.selected_unit.view_angle = abs(int(new_value))
+		CurrentMapData.is_saved = false
 	)
 	%ViewAngleCheckButton.toggled.connect(func(toggled: bool):
+		if CurrentMapData.selected_unit.view_angle_enabled != toggled: CurrentMapData.is_saved = false
 		CurrentMapData.selected_unit.view_angle_enabled = toggled
 		%ViewAngleLineEdit.editable = toggled
 	)
 	%ReloadConstLineEdit.text_changed.connect(func(new_value: String):
 		if CurrentMapData.player_host_station == CurrentMapData.selected_unit:
-			CurrentMapData.selected_unit.reload_const = abs(int(ceil(float(new_value) * (60000.0/255.0))))
+			var converted_value = abs(int(ceil(float(new_value) * (60000.0/255.0))))
+			if CurrentMapData.selected_unit.reload_const != converted_value: CurrentMapData.is_saved = false
+			CurrentMapData.selected_unit.reload_const = converted_value
 		else:
-			CurrentMapData.selected_unit.reload_const = abs(int(ceil(float(new_value) * (70000.0/255.0))))
+			var converted_value = abs(int(ceil(float(new_value) * (70000.0/255.0))))
+			if CurrentMapData.selected_unit.reload_const != converted_value: CurrentMapData.is_saved = false
+			CurrentMapData.selected_unit.reload_const = converted_value
 	)
 	%ReloadConstCheckButton.toggled.connect(func(toggled:bool):
+		if CurrentMapData.selected_unit.reload_const_enabled != toggled: CurrentMapData.is_saved = false
 		CurrentMapData.selected_unit.reload_const_enabled = toggled
 		%ReloadConstLineEdit.editable = toggled
 	)
 	%ConqueringHSlider.value_changed.connect(func(value_changed: int):
+		if CurrentMapData.selected_unit.con_budget != value_changed: CurrentMapData.is_saved = false
 		CurrentMapData.selected_unit.con_budget = value_changed
 		%ConqueringValueLabel.text = str(value_changed)
 	)
 	%ConqueringDelayLineEdit.text_changed.connect(func(value_changed: String):
+		if CurrentMapData.selected_unit.con_delay != abs(int(value_changed)): CurrentMapData.is_saved = false
 		CurrentMapData.selected_unit.con_delay = abs(int(value_changed))
 	)
 	%DefenseHSlider.value_changed.connect(func(value_changed: int):
+		if CurrentMapData.selected_unit.def_budget != value_changed: CurrentMapData.is_saved = false
 		CurrentMapData.selected_unit.def_budget = value_changed
 		%DefenseValueLabel.text = str(value_changed)
 	)
 	%DefenseDelayLineEdit.text_changed.connect(func(value_changed: String):
+		if CurrentMapData.selected_unit.def_delay != abs(int(value_changed)): CurrentMapData.is_saved = false
 		CurrentMapData.selected_unit.def_delay = abs(int(value_changed))
 	)
 	%ReconnaissanceHSlider.value_changed.connect(func(value_changed: int):
+		if CurrentMapData.selected_unit.rec_budget != value_changed: CurrentMapData.is_saved = false
 		CurrentMapData.selected_unit.rec_budget = value_changed
 		%ReconnaissanceValueLabel.text = str(value_changed)
 	)
 	%ReconnaissanceDelayLineEdit.text_changed.connect(func(value_changed: String):
+		if CurrentMapData.selected_unit.rec_delay != abs(int(value_changed)): CurrentMapData.is_saved = false
 		CurrentMapData.selected_unit.rec_delay = abs(int(value_changed))
 	)
 	%AttackingHSlider.value_changed.connect(func(value_changed: int):
+		if CurrentMapData.selected_unit.rob_budget != value_changed: CurrentMapData.is_saved = false
 		CurrentMapData.selected_unit.rob_budget = value_changed
 		%AttackingValueLabel.text = str(value_changed)
 	)
 	%AttackingDelayLineEdit.text_changed.connect(func(value_changed: String):
+		if CurrentMapData.selected_unit.rob_delay != abs(int(value_changed)): CurrentMapData.is_saved = false
 		CurrentMapData.selected_unit.rob_delay = abs(int(value_changed))
 	)
 	%PowerBuildingHSlider.value_changed.connect(func(value_changed: int):
+		if CurrentMapData.selected_unit.pow_budget != value_changed: CurrentMapData.is_saved = false
 		CurrentMapData.selected_unit.pow_budget = value_changed
 		%PowerBuildingValueLabel.text = str(value_changed)
 	)
 	%PowerBuildingDelayLineEdit.text_changed.connect(func(value_changed: String):
+		if CurrentMapData.selected_unit.pow_delay != abs(int(value_changed)): CurrentMapData.is_saved = false
 		CurrentMapData.selected_unit.pow_delay = abs(int(value_changed))
 	)
 	%RadarBuildingHSlider.value_changed.connect(func(value_changed: int):
+		if CurrentMapData.selected_unit.rad_budget != value_changed: CurrentMapData.is_saved = false
 		CurrentMapData.selected_unit.rad_budget = value_changed
 		%RadarBuildingValueLabel.text = str(value_changed)
 	)
 	%RadarBuildingDelayLineEdit.text_changed.connect(func(value_changed: String):
+		if CurrentMapData.selected_unit.rad_delay != abs(int(value_changed)): CurrentMapData.is_saved = false
 		CurrentMapData.selected_unit.rad_delay = abs(int(value_changed))
 	)
 	%FlakBuildingHSlider.value_changed.connect(func(value_changed: int):
+		if CurrentMapData.selected_unit.saf_budget != value_changed: CurrentMapData.is_saved = false
 		CurrentMapData.selected_unit.saf_budget = value_changed
 		%FlakBuildingValueLabel.text = str(value_changed)
 	)
 	%FlakBuildingDelayLineEdit.text_changed.connect(func(value_changed: String):
+		if CurrentMapData.selected_unit.saf_delay != abs(int(value_changed)): CurrentMapData.is_saved = false
 		CurrentMapData.selected_unit.saf_delay = abs(int(value_changed))
 	)
 	%MovingStationHSlider.value_changed.connect(func(value_changed: int):
+		if CurrentMapData.selected_unit.cpl_budget != value_changed: CurrentMapData.is_saved = false
 		CurrentMapData.selected_unit.cpl_budget = value_changed
 		%MovingStationValueLabel.text = str(value_changed)
 	)
 	%MovingStationDelayLineEdit.text_changed.connect(func(value_changed: String):
+		if CurrentMapData.selected_unit.cpl_delay != abs(int(value_changed)): CurrentMapData.is_saved = false
 		CurrentMapData.selected_unit.cpl_delay = abs(int(value_changed))
 	)
 	%MBstatusHostStationCheckBox.toggled.connect(func(toggled: bool):
+		if CurrentMapData.selected_unit.mb_status != toggled: CurrentMapData.is_saved = false
 		CurrentMapData.selected_unit.mb_status = toggled
 	)
 	for hs_robo in Preloads.hs_robo_images:
@@ -89,6 +115,7 @@ func _ready():
 	%HostStationRoboOptionButton.item_selected.connect(func(index: int):
 		CurrentMapData.selected_unit.vehicle = %HostStationRoboOptionButton.get_item_id(index)
 		%HostStationRoboTextureRect.texture = Preloads.hs_robo_images[%HostStationRoboOptionButton.get_item_id(index)].image
+		CurrentMapData.is_saved = false
 	)
 	%LoadBehaviorFileButton.pressed.connect(func():
 		%LoadBehaviorFileDialog.show()
@@ -132,6 +159,7 @@ func _ready():
 		%MovingStationHSlider.value = int(behavior_data.cpl_budget)
 		CurrentMapData.selected_unit.cpl_delay = behavior_data.cpl_delay
 		%MovingStationDelayLineEdit.text = str(behavior_data.cpl_delay)
+		CurrentMapData.is_saved = false
 	)
 	%SaveBehaviorFileDialog.file_selected.connect(func(path: String):
 		var file = FileAccess.open(path, FileAccess.WRITE)
@@ -158,17 +186,21 @@ func _ready():
 	)
 	%QuantitySpinBox.value_changed.connect(func(value: float):
 		if CurrentMapData.selected_unit is Squad:
+			if CurrentMapData.selected_unit.quantity != value: CurrentMapData.is_saved = false
 			CurrentMapData.selected_unit.quantity = value
 	)
 	for hs in Preloads.ua_data.data[CurrentMapData.game_data_type].hoststations.keys():
 		%FactionOptionButton.add_item(hs, Preloads.ua_data.data[CurrentMapData.game_data_type].hoststations[hs].owner)
 	%FactionOptionButton.item_selected.connect(func(index: int):
 		CurrentMapData.selected_unit.change_faction(%FactionOptionButton.get_item_id(index))
+		CurrentMapData.is_saved = false
 	)
 	%UseableCheckBox.toggled.connect(func(toggled: bool):
+		if CurrentMapData.selected_unit.useable != toggled: CurrentMapData.is_saved = false
 		CurrentMapData.selected_unit.useable = toggled
 	)
 	%MBstatusSquadCheckBox.toggled.connect(func(toggled: bool):
+		if CurrentMapData.selected_unit.mb_status != toggled: CurrentMapData.is_saved = false
 		CurrentMapData.selected_unit.mb_status = toggled
 	)
 

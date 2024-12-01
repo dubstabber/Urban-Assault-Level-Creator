@@ -1,7 +1,5 @@
 extends PopupMenu
 
-@onready var new_map_window = %NewMapWindow
-
 
 func _ready():
 	add_item("New map")
@@ -14,37 +12,19 @@ func _ready():
 	add_separator()
 	add_item("Exit")
 	index_pressed.connect(_on_index_pressed)
-	%OpenLevelFileDialog.file_selected.connect(func(path: String):
-		CurrentMapData.close_map()
-		CurrentMapData.map_path = path
-		SingleplayerOpener.load_level()
-		)
-	%SaveLevelFileDialog.file_selected.connect(func(path: String):
-		CurrentMapData.map_path = path
-		SingleplayerSaver.save()
-		)
 
 
 func _on_index_pressed(index: int) -> void:
 	match get_item_text(index):
 		"New map":
-			new_map_window.show()
+			EventSystem.new_map_requested.emit()
 		"Open map":
-			%OpenLevelFileDialog.popup()
+			EventSystem.open_map_requested.emit()
 		"Save map":
-			if CurrentMapData.horizontal_sectors == 0 or CurrentMapData.vertical_sectors == 0:
-				return
-			if CurrentMapData.map_path.is_empty():
-				%SaveLevelFileDialog.popup()
-			else:
-				SingleplayerSaver.save()
+			EventSystem.save_map_requested.emit()
 		"Save map as...":
-			if CurrentMapData.horizontal_sectors == 0 or CurrentMapData.vertical_sectors == 0:
-				return
-			%SaveLevelFileDialog.popup()
+			EventSystem.save_as_map_requested.emit()
 		"Close current map":
-			CurrentMapData.close_map()
-			EventSystem.map_updated.emit()
-			get_tree().get_root().size_changed.emit()
+			EventSystem.close_map_requested.emit()
 		"Exit":
-			get_tree().quit()
+			EventSystem.exit_editor_requested.emit()

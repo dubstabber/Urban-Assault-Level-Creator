@@ -4,6 +4,7 @@ extends Window
 func _ready() -> void:
 	%LevelDescriptionTextEdit.text_changed.connect(func():
 		CurrentMapData.level_description = %LevelDescriptionTextEdit.text
+		CurrentMapData.is_saved = false
 		)
 
 

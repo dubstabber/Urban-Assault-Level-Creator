@@ -43,6 +43,7 @@ func _on_briefing_maps_option_button_item_selected(index: int) -> void:
 	CurrentMapData.briefing_map = item_text
 	var mb_map_name = item_text.replace(".%s" %item_text.get_extension(), "")
 	%BriefingMapTexture.texture = Preloads.mbmaps[mb_map_name]
+	CurrentMapData.is_saved = false
 
 
 func _on_debriefing_maps_option_button_item_selected(index: int) -> void:
@@ -50,6 +51,7 @@ func _on_debriefing_maps_option_button_item_selected(index: int) -> void:
 	CurrentMapData.debriefing_map = item_text
 	var db_map_name = item_text.replace(".%s" %item_text.get_extension(), "")
 	%DebriefingMapTexture.texture = Preloads.mbmaps[db_map_name]
+	CurrentMapData.is_saved = false
 
 
 func close() -> void:
@@ -58,15 +60,19 @@ func close() -> void:
 
 func _on_m_bsize_x_spin_box_value_changed(value: float) -> void:
 	CurrentMapData.briefing_size_x = int(value)
+	CurrentMapData.is_saved = false
 
 
 func _on_m_bsize_y_spin_box_value_changed(value: float) -> void:
 	CurrentMapData.briefing_size_y = int(value)
+	CurrentMapData.is_saved = false
 
 
 func _on_d_bsize_x_spin_box_value_changed(value: float) -> void:
 	CurrentMapData.debriefing_size_x = int(value)
+	CurrentMapData.is_saved = false
 
 
 func _on_d_bsize_y_spin_box_value_changed(value: float) -> void:
 	CurrentMapData.debriefing_size_y = int(value)
+	CurrentMapData.is_saved = false

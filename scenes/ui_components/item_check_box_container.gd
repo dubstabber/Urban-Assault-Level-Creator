@@ -76,6 +76,7 @@ func enable_item(toggled: bool) -> void:
 				5: CurrentMapData.blacksect_enabled_buildings.erase(item_id)
 				6: CurrentMapData.ghorkov_enabled_buildings.erase(item_id)
 				7: CurrentMapData.training_enabled_buildings.erase(item_id)
+	CurrentMapData.is_saved = false
 
 
 func change_button_availability(state: bool, enabler_owner: int) -> void:

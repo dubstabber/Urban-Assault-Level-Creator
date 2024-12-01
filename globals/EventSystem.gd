@@ -1,5 +1,11 @@
 extends Node
 
+signal new_map_requested
+signal open_map_requested
+signal save_map_requested
+signal save_as_map_requested
+signal close_map_requested
+signal exit_editor_requested
 
 signal map_created
 signal unit_selected

@@ -3,7 +3,10 @@ extends Window
 
 func _on_about_to_popup() -> void:
 	%LevelSetOptionButton.select(%LevelSetOptionButton.get_item_index(CurrentMapData.level_set))
-	var movie_index = get_option_index_by_text(%MoviesOptionButton, Preloads.movies_db.find_key(CurrentMapData.movie))
+	var movie_file:String = Preloads.movies_db.find_key(CurrentMapData.movie) if Preloads.movies_db.find_key(CurrentMapData.movie) else ""
+	var movie_index := 0
+	if not movie_file.is_empty():
+		movie_index = get_option_index_by_text(%MoviesOptionButton, movie_file)
 	%MoviesOptionButton.select(movie_index)
 	%EventLoopOptionButton.selected = CurrentMapData.event_loop
 	var sky_index = get_option_index_by_text(%SkyOptionButton, CurrentMapData.sky)

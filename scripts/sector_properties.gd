@@ -101,10 +101,12 @@ func _ready() -> void:
 	%SoundTypeOptionButton.item_selected.connect(func(index: int):
 		if CurrentMapData.selected_tech_upgrade:
 			CurrentMapData.selected_tech_upgrade.type = %SoundTypeOptionButton.get_item_id(index)
+			CurrentMapData.is_saved = false
 		)
 	%TechUpgradeMBstatusCheckBox.toggled.connect(func(toggled_on: bool):
 		if CurrentMapData.selected_tech_upgrade:
 			CurrentMapData.selected_tech_upgrade.mb_status = toggled_on
+			CurrentMapData.is_saved = false
 		)
 	%TUAddItemButton.pressed.connect(func():
 		if not CurrentMapData.selected_tech_upgrade: return
@@ -345,3 +347,4 @@ func update_countdown() -> void:
 		countdown_units += (int(%MinutesSpinBox.value)*60)*1024
 		countdown_units += int(%SecondsSpinBox.value)*1024
 		CurrentMapData.selected_bomb.countdown = countdown_units
+		CurrentMapData.is_saved = false
