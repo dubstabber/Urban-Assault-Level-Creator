@@ -37,6 +37,7 @@ func _ready() -> void:
 	EventSystem.toggled_typ_map_images_visibility.connect(func(): 
 		typ_map_images_visible = not typ_map_images_visible
 		queue_redraw())
+	
 
 
 func _physics_process(delta):
@@ -51,6 +52,8 @@ func _physics_process(delta):
 			get_tree().get_root().size_changed.emit()
 
 
+var number_key: int
+var is_number_pressed := false
 func _input(event):
 	if event.is_action_pressed("hold"):
 		is_selection_kept = true
@@ -77,8 +80,10 @@ func _input(event):
 			%MapContextMenu.position = Vector2(right_clicked_x_global, right_clicked_y_global)
 			%MapContextMenu.popup()
 	if event is InputEventKey and event.pressed:
-		var number_key = event.unicode - KEY_0
+		number_key = event.unicode - KEY_0
 		if number_key >= 0 and number_key <= 7:
+			is_number_pressed = true
+			handle_selection(round(get_local_mouse_position().x), round(get_local_mouse_position().y))
 			if CurrentMapData.selected_sector_idx >= 0 and CurrentMapData.own_map.size() > 0:
 				if CurrentMapData.blg_map[CurrentMapData.selected_sector_idx] != 0 and number_key == 0:
 					CurrentMapData.own_map[CurrentMapData.selected_sector_idx] = 7
@@ -86,6 +91,11 @@ func _input(event):
 					CurrentMapData.own_map[CurrentMapData.selected_sector_idx] = number_key
 				CurrentMapData.is_saved = false
 				EventSystem.map_updated.emit()
+	elif event is InputEventKey and event.is_released():
+		is_number_pressed = false
+	if event is InputEventMouseMotion:
+		if is_number_pressed and number_key >= 0 and number_key <= 7:
+			handle_selection(round(get_local_mouse_position().x), round(get_local_mouse_position().y))
 	if (event.is_action_pressed("increment_height") and 
 		CurrentMapData.hgt_map.size() > 0 and
 		CurrentMapData.border_selected_sector_idx >= 0 and
