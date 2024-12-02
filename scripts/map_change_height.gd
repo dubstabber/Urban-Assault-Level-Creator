@@ -10,5 +10,4 @@ func _ready() -> void:
 func _on_index_pressed(index: int) -> void:
 	var item_text = get_parent().get_item_text(index)
 	if item_text == "Change sector height":
-		
 		%SectorHeightWindow.popup()

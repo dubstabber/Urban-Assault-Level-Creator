@@ -60,14 +60,19 @@ func _input(event):
 	elif event.is_action_released("hold"):
 		is_selection_kept = false
 	if event.is_action_pressed("select"):
+		if CurrentMapData.horizontal_sectors <= 0: return
 		handle_selection(round(get_local_mouse_position().x), round(get_local_mouse_position().y))
 		CurrentMapData.selected_unit = CurrentMapData.mouse_over_unit
 		if event.double_click:
 			EventSystem.left_double_clicked.emit()
 	if event.is_action_pressed("context_menu"):
-		if not CurrentMapData.typ_map.size() > 0: return
+		if CurrentMapData.horizontal_sectors <= 0: return
 		right_clicked_x = round(get_local_mouse_position().x)
 		right_clicked_y = round(get_local_mouse_position().y)
+		if CurrentMapData.selected_sectors.size() > 1:
+			%MultiSectorMapMenu.position = Vector2(right_clicked_x_global, right_clicked_y_global)
+			%MultiSectorMapMenu.popup()
+			return
 		handle_selection(right_clicked_x, right_clicked_y)
 		CurrentMapData.selected_unit = CurrentMapData.mouse_over_unit
 		if CurrentMapData.selected_unit:
@@ -77,6 +82,7 @@ func _input(event):
 			%MapContextMenu.position = Vector2(right_clicked_x_global, right_clicked_y_global)
 			%MapContextMenu.popup()
 	if event is InputEventKey and event.pressed:
+		if CurrentMapData.horizontal_sectors <= 0: return
 		number_key = event.unicode - KEY_0
 		if number_key >= 0 and number_key <= 7:
 			is_number_pressed = true
@@ -91,6 +97,7 @@ func _input(event):
 	elif event is InputEventKey and event.is_released():
 		is_number_pressed = false
 	if event is InputEventMouseMotion:
+		if CurrentMapData.horizontal_sectors <= 0: return
 		if is_number_pressed and number_key >= 0 and number_key <= 7:
 			handle_selection(round(get_local_mouse_position().x), round(get_local_mouse_position().y))
 	if (event.is_action_pressed("increment_height") and 
@@ -118,6 +125,7 @@ func _input(event):
 		CurrentMapData.is_saved = false
 		queue_redraw()
 	if event.is_action_pressed("previous_building"):
+		if CurrentMapData.horizontal_sectors <= 0: return
 		if CurrentMapData.selected_sectors.size() > 1:
 			for sector_dict in CurrentMapData.selected_sectors:
 				Utils.decrement_typ_map(sector_dict.idx)
@@ -126,6 +134,7 @@ func _input(event):
 		CurrentMapData.is_saved = false
 		EventSystem.map_updated.emit()
 	if event.is_action_pressed("next_building"):
+		if CurrentMapData.horizontal_sectors <= 0: return
 		if CurrentMapData.selected_sectors.size() > 1:
 			for sector_dict in CurrentMapData.selected_sectors:
 				Utils.increment_typ_map(sector_dict.idx)
@@ -138,8 +147,12 @@ func _input(event):
 	if event.is_action_pressed("show_building_window") and not CurrentMapData.typ_map.is_empty():
 		%SectorBuildingWindow.popup()
 	if event.is_action_pressed("clear_sector") and not CurrentMapData.typ_map.is_empty():
+		if CurrentMapData.selected_sectors.size() > 1:
+			for sector_dict in CurrentMapData.selected_sectors:
+				CurrentMapData.clear_sector(sector_dict.idx)
+		else:
+			CurrentMapData.clear_sector(CurrentMapData.selected_sector_idx)
 		CurrentMapData.is_saved = false
-		CurrentMapData.clear_sector()
 	if event is InputEventMouseButton and event.button_index == MOUSE_BUTTON_LEFT and event.double_click:
 		if not CurrentMapData.selected_unit:
 			EventSystem.left_double_clicked.emit()

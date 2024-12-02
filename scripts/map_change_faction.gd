@@ -12,6 +12,10 @@ func _ready() -> void:
 	sector_faction_submenu.id_pressed.connect(
 		func(id): 
 			if CurrentMapData.selected_sector_idx >= 0 and CurrentMapData.own_map.size() > 0:
-				CurrentMapData.own_map[CurrentMapData.selected_sector_idx] = id
+				if CurrentMapData.selected_sectors.size() > 1:
+					for sector_dict in CurrentMapData.selected_sectors:
+						CurrentMapData.own_map[sector_dict.idx] = id
+				else:
+					CurrentMapData.own_map[CurrentMapData.selected_sector_idx] = id
 				EventSystem.map_updated.emit())
 	get_parent().add_submenu_item("Change sector faction", "sector_faction")

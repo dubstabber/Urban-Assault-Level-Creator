@@ -41,7 +41,13 @@ func _id_pressed(id: int) -> void:
 
 func add_special_building(building_id: int, typ_map: int, own_map: int) -> void:
 	if CurrentMapData.selected_sector_idx >= 0 and CurrentMapData.blg_map.size() > 0:
-		CurrentMapData.blg_map[CurrentMapData.selected_sector_idx] = building_id
-		CurrentMapData.typ_map[CurrentMapData.selected_sector_idx] = typ_map
-		CurrentMapData.own_map[CurrentMapData.selected_sector_idx] = own_map
+		if CurrentMapData.selected_sectors.size() > 1:
+			for sector_dict in CurrentMapData.selected_sectors:
+				CurrentMapData.blg_map[sector_dict.idx] = building_id
+				CurrentMapData.typ_map[sector_dict.idx] = typ_map
+				CurrentMapData.own_map[sector_dict.idx] = own_map
+		else:
+			CurrentMapData.blg_map[CurrentMapData.selected_sector_idx] = building_id
+			CurrentMapData.typ_map[CurrentMapData.selected_sector_idx] = typ_map
+			CurrentMapData.own_map[CurrentMapData.selected_sector_idx] = own_map
 		EventSystem.map_updated.emit()

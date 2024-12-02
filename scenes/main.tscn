@@ -206,40 +206,6 @@ ok_button_text = "Yes"
 dialog_text = "The current map is not saved. Do you want to save it now?"
 cancel_button_text = "No"
 
-[node name="MapContextMenu" type="PopupMenu" parent="."]
-unique_name_in_owner = true
-
-[node name="AddHostStation" type="Node" parent="MapContextMenu"]
-script = ExtResource("3_u1dll")
-
-[node name="AddSquad" type="Node" parent="MapContextMenu"]
-script = ExtResource("4_cqc5q")
-
-[node name="ChangeFaction" type="Node" parent="MapContextMenu"]
-script = ExtResource("5_gscij")
-
-[node name="ChangeHeight" type="Node" parent="MapContextMenu"]
-script = ExtResource("6_tt5fx")
-
-[node name="AddBuilding" type="Node" parent="MapContextMenu"]
-script = ExtResource("7_i78ot")
-
-[node name="AddSpecialBuilding" type="Node" parent="MapContextMenu"]
-script = ExtResource("7_tn0yk")
-
-[node name="AddItem" type="Node" parent="MapContextMenu"]
-script = ExtResource("8_jye6k")
-
-[node name="CleanSector" type="Node" parent="MapContextMenu"]
-script = ExtResource("9_gtrn7")
-
-[node name="UnitContextMenu" type="PopupMenu" parent="."]
-unique_name_in_owner = true
-size = Vector2i(100, 20)
-
-[node name="RemoveUnit" type="Node" parent="UnitContextMenu"]
-script = ExtResource("10_ip5i1")
-
 [node name="PanelContainer" type="PanelContainer" parent="."]
 layout_mode = 1
 anchors_preset = 15
@@ -312,6 +278,58 @@ mouse_filter = 1
 
 [node name="Squads" type="Control" parent="PanelContainer/MarginContainer/VBoxContainer/HSplitContainer/MapContainer/SubViewportMapContainer/SubViewport/Map"]
 anchors_preset = 0
+
+[node name="MapContextMenu" type="PopupMenu" parent="PanelContainer/MarginContainer/VBoxContainer/HSplitContainer/MapContainer/SubViewportMapContainer/SubViewport"]
+unique_name_in_owner = true
+
+[node name="AddHostStation" type="Node" parent="PanelContainer/MarginContainer/VBoxContainer/HSplitContainer/MapContainer/SubViewportMapContainer/SubViewport/MapContextMenu"]
+script = ExtResource("3_u1dll")
+
+[node name="AddSquad" type="Node" parent="PanelContainer/MarginContainer/VBoxContainer/HSplitContainer/MapContainer/SubViewportMapContainer/SubViewport/MapContextMenu"]
+script = ExtResource("4_cqc5q")
+
+[node name="ChangeFaction" type="Node" parent="PanelContainer/MarginContainer/VBoxContainer/HSplitContainer/MapContainer/SubViewportMapContainer/SubViewport/MapContextMenu"]
+script = ExtResource("5_gscij")
+
+[node name="ChangeHeight" type="Node" parent="PanelContainer/MarginContainer/VBoxContainer/HSplitContainer/MapContainer/SubViewportMapContainer/SubViewport/MapContextMenu"]
+script = ExtResource("6_tt5fx")
+
+[node name="AddBuilding" type="Node" parent="PanelContainer/MarginContainer/VBoxContainer/HSplitContainer/MapContainer/SubViewportMapContainer/SubViewport/MapContextMenu"]
+script = ExtResource("7_i78ot")
+
+[node name="AddSpecialBuilding" type="Node" parent="PanelContainer/MarginContainer/VBoxContainer/HSplitContainer/MapContainer/SubViewportMapContainer/SubViewport/MapContextMenu"]
+script = ExtResource("7_tn0yk")
+
+[node name="AddItem" type="Node" parent="PanelContainer/MarginContainer/VBoxContainer/HSplitContainer/MapContainer/SubViewportMapContainer/SubViewport/MapContextMenu"]
+script = ExtResource("8_jye6k")
+
+[node name="CleanSector" type="Node" parent="PanelContainer/MarginContainer/VBoxContainer/HSplitContainer/MapContainer/SubViewportMapContainer/SubViewport/MapContextMenu"]
+script = ExtResource("9_gtrn7")
+
+[node name="UnitContextMenu" type="PopupMenu" parent="PanelContainer/MarginContainer/VBoxContainer/HSplitContainer/MapContainer/SubViewportMapContainer/SubViewport"]
+unique_name_in_owner = true
+size = Vector2i(100, 20)
+
+[node name="RemoveUnit" type="Node" parent="PanelContainer/MarginContainer/VBoxContainer/HSplitContainer/MapContainer/SubViewportMapContainer/SubViewport/UnitContextMenu"]
+script = ExtResource("10_ip5i1")
+
+[node name="MultiSectorMapMenu" type="PopupMenu" parent="PanelContainer/MarginContainer/VBoxContainer/HSplitContainer/MapContainer/SubViewportMapContainer/SubViewport"]
+unique_name_in_owner = true
+
+[node name="ChangeFaction" type="Node" parent="PanelContainer/MarginContainer/VBoxContainer/HSplitContainer/MapContainer/SubViewportMapContainer/SubViewport/MultiSectorMapMenu"]
+script = ExtResource("5_gscij")
+
+[node name="ChangeHeight" type="Node" parent="PanelContainer/MarginContainer/VBoxContainer/HSplitContainer/MapContainer/SubViewportMapContainer/SubViewport/MultiSectorMapMenu"]
+script = ExtResource("6_tt5fx")
+
+[node name="AddBuilding" type="Node" parent="PanelContainer/MarginContainer/VBoxContainer/HSplitContainer/MapContainer/SubViewportMapContainer/SubViewport/MultiSectorMapMenu"]
+script = ExtResource("7_i78ot")
+
+[node name="AddSpecialBuilding" type="Node" parent="PanelContainer/MarginContainer/VBoxContainer/HSplitContainer/MapContainer/SubViewportMapContainer/SubViewport/MultiSectorMapMenu"]
+script = ExtResource("7_tn0yk")
+
+[node name="CleanSector" type="Node" parent="PanelContainer/MarginContainer/VBoxContainer/HSplitContainer/MapContainer/SubViewportMapContainer/SubViewport/MultiSectorMapMenu"]
+script = ExtResource("9_gtrn7")
 
 [node name="PropertiesContainer" type="PanelContainer" parent="PanelContainer/MarginContainer/VBoxContainer/HSplitContainer"]
 unique_name_in_owner = true

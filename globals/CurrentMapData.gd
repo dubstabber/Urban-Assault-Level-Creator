@@ -188,10 +188,10 @@ func close_map() -> void:
 	DisplayServer.window_set_title("Urban Assault Level Creator")
 
 
-func clear_sector() -> void:
-	typ_map[selected_sector_idx] = 0
-	blg_map[selected_sector_idx] = 0
-	own_map[selected_sector_idx] = 0
+func clear_sector(index: int) -> void:
+	typ_map[index] = 0
+	blg_map[index] = 0
+	own_map[index] = 0
 	
 	beam_gates.erase(selected_beam_gate)
 	selected_beam_gate = null

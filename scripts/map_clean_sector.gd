@@ -10,4 +10,9 @@ func _ready() -> void:
 func _on_index_pressed(index: int) -> void:
 	var item_text = get_parent().get_item_text(index)
 	if item_text == "Clean this sector":
-		CurrentMapData.clear_sector()
+		if CurrentMapData.horizontal_sectors > 0:
+			if CurrentMapData.selected_sectors.size() > 1:
+				for sector_dict in CurrentMapData.selected_sectors:
+					CurrentMapData.clear_sector(sector_dict.idx)
+			else:
+				CurrentMapData.clear_sector(CurrentMapData.selected_sector_idx)
