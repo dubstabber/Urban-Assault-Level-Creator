@@ -133,6 +133,20 @@ func _update_properties() -> void:
 	if (CurrentMapData.horizontal_sectors > 0 and CurrentMapData.vertical_sectors > 0 and 
 		CurrentMapData.selected_sector_idx >= 0 and CurrentMapData.border_selected_sector_idx >= 0):
 		%NoSectorLabel.hide()
+		%MultiSectorContainer.hide()
+		
+		for child in %MultiSectorContainer.get_children():
+			child.queue_free()
+		if CurrentMapData.selected_sectors.size() > 1:
+			%SectorPropertiesContainer.hide()
+			%MultiSectorContainer.show()
+			for sector_dict in CurrentMapData.selected_sectors:
+				var sector_label = Label.new()
+				sector_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+				sector_label.text = "Selected sector X:%s Y:%s" % [sector_dict.x, sector_dict.y]
+				%MultiSectorContainer.add_child(sector_label)
+			return
+		
 		%SectorPropertiesContainer.show()
 		%SectorPositionLabel.text = "Sector X: %s Y: %s" % [CurrentMapData.selected_sector.x, CurrentMapData.selected_sector.y]
 		

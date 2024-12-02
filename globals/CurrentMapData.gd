@@ -59,6 +59,7 @@ var selected_unit: Unit = null:
 var selected_sector_idx: int = -1
 var border_selected_sector_idx: int = -1
 var selected_sector: Vector2i = Vector2i(-1, -1)
+var selected_sectors: Array[Dictionary] = []
 var selected_beam_gate: BeamGate = null
 var selected_bomb: StoudsonBomb = null
 var selected_tech_upgrade: TechUpgrade = null

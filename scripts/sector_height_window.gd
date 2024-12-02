@@ -7,7 +7,11 @@ func _on_ok_button_pressed() -> void:
 	hide()
 	
 	if height_value_spin_box.value >= 0 and height_value_spin_box.value < 256:
-		if CurrentMapData.border_selected_sector_idx >= 0 and CurrentMapData.hgt_map.size() > 0:
+		if CurrentMapData.selected_sectors.size() > 1 and CurrentMapData.hgt_map.size() > 0:
+			for sector_dict in CurrentMapData.selected_sectors:
+				CurrentMapData.hgt_map[sector_dict.border_idx] = int(height_value_spin_box.value)
+			EventSystem.map_updated.emit()
+		elif CurrentMapData.border_selected_sector_idx >= 0 and CurrentMapData.hgt_map.size() > 0:
 			CurrentMapData.hgt_map[CurrentMapData.border_selected_sector_idx] = int(height_value_spin_box.value)
 			EventSystem.map_updated.emit()
 	else:

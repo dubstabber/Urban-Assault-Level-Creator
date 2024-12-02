@@ -64,9 +64,6 @@ func _input(event):
 		CurrentMapData.selected_unit = CurrentMapData.mouse_over_unit
 		if event.double_click:
 			EventSystem.left_double_clicked.emit()
-		if is_selection_kept:
-			#TODO: Implement multi-sector selection
-			print('selection is kept')
 	if event.is_action_pressed("context_menu"):
 		if not CurrentMapData.typ_map.size() > 0: return
 		right_clicked_x = round(get_local_mouse_position().x)
@@ -100,22 +97,40 @@ func _input(event):
 		CurrentMapData.hgt_map.size() > 0 and
 		CurrentMapData.border_selected_sector_idx >= 0 and
 		CurrentMapData.hgt_map[CurrentMapData.border_selected_sector_idx] < 255):
-		CurrentMapData.hgt_map[CurrentMapData.border_selected_sector_idx] += 1
+		if CurrentMapData.selected_sectors.size() > 1:
+			for sector_dict in CurrentMapData.selected_sectors:
+				if CurrentMapData.hgt_map[sector_dict.border_idx] < 255:
+					CurrentMapData.hgt_map[sector_dict.border_idx] += 1
+		else:
+			CurrentMapData.hgt_map[CurrentMapData.border_selected_sector_idx] += 1
 		CurrentMapData.is_saved = false
 		queue_redraw()
 	if (event.is_action_pressed("decrement_height") and 
 		CurrentMapData.hgt_map.size() > 0 and
 		CurrentMapData.border_selected_sector_idx >= 0 and
 		CurrentMapData.hgt_map[CurrentMapData.border_selected_sector_idx] > 0):
-		CurrentMapData.hgt_map[CurrentMapData.border_selected_sector_idx] -= 1
+		if CurrentMapData.selected_sectors.size() > 1:
+			for sector_dict in CurrentMapData.selected_sectors:
+				if CurrentMapData.hgt_map[sector_dict.border_idx] > 0:
+					CurrentMapData.hgt_map[sector_dict.border_idx] -= 1
+		else:
+			CurrentMapData.hgt_map[CurrentMapData.border_selected_sector_idx] -= 1
 		CurrentMapData.is_saved = false
 		queue_redraw()
 	if event.is_action_pressed("previous_building"):
-		Utils.decrement_typ_map()
+		if CurrentMapData.selected_sectors.size() > 1:
+			for sector_dict in CurrentMapData.selected_sectors:
+				Utils.decrement_typ_map(sector_dict.idx)
+		else:
+			Utils.decrement_typ_map(CurrentMapData.selected_sector_idx)
 		CurrentMapData.is_saved = false
 		EventSystem.map_updated.emit()
 	if event.is_action_pressed("next_building"):
-		Utils.increment_typ_map()
+		if CurrentMapData.selected_sectors.size() > 1:
+			for sector_dict in CurrentMapData.selected_sectors:
+				Utils.increment_typ_map(sector_dict.idx)
+		else:
+			Utils.increment_typ_map(CurrentMapData.selected_sector_idx)
 		CurrentMapData.is_saved = false
 		EventSystem.map_updated.emit()
 	if event.is_action_pressed("show_height_window") and not CurrentMapData.hgt_map.is_empty():
@@ -185,9 +200,11 @@ func _draw():
 					draw_line(Vector2(h_grid+sector_indent/3.0,v_grid+sector_indent), Vector2(h_grid+sector_indent/3.0,v_grid+1200-sector_indent), Color.AQUA, sector_indent/2)
 				
 				current_sector += 1
-			if current_border_sector == CurrentMapData.border_selected_sector_idx: 
-				# Highlight for selection
+			
+			# Highlight for selection
+			if CurrentMapData.selected_sectors.any(func(dict): return dict.border_idx == current_border_sector):
 				draw_rect(Rect2(h_grid,v_grid, 1200,1200), Color(0.184314, 0.309804, 0.309804, 0.6))
+			
 			h_grid += 1200
 			current_border_sector += 1
 		v_grid += 1200
@@ -295,6 +312,9 @@ func handle_selection(clicked_x: int, clicked_y: int):
 	var border_sector_counter := 0
 	var h_size := 0
 	var v_size := 0
+	if not is_selection_kept:
+		CurrentMapData.selected_sectors.clear()
+	
 	for y_sector in CurrentMapData.vertical_sectors+2:
 		for x_sector in CurrentMapData.horizontal_sectors+2:
 			if clicked_x > h_size and clicked_x < h_size + 1200 and clicked_y > v_size and clicked_y < v_size + 1200:
@@ -302,6 +322,14 @@ func handle_selection(clicked_x: int, clicked_y: int):
 				CurrentMapData.border_selected_sector_idx = border_sector_counter
 				CurrentMapData.selected_sector.x = x_sector
 				CurrentMapData.selected_sector.y = y_sector
+				if not CurrentMapData.selected_sectors.any(func(dict): return dict.border_idx == border_sector_counter):
+					CurrentMapData.selected_sectors.append(
+						{
+							"border_idx": border_sector_counter, 
+							"idx": sector_counter,
+							"x": x_sector, 
+							"y":y_sector
+						})
 				break
 			h_size += 1200
 			border_sector_counter += 1

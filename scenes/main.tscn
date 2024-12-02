@@ -325,11 +325,12 @@ mouse_filter = 1
 layout_mode = 2
 size_flags_horizontal = 3
 size_flags_vertical = 3
-current_tab = 0
+current_tab = 1
 clip_tabs = false
 script = SubResource("GDScript_hihdk")
 
 [node name="Unit" type="TabBar" parent="PanelContainer/MarginContainer/VBoxContainer/HSplitContainer/PropertiesContainer/TabContainer"]
+visible = false
 layout_mode = 2
 tab_alignment = 1
 script = ExtResource("17_a4oqg")
@@ -1019,7 +1020,6 @@ theme_override_font_sizes/font_size = 12
 text = "Make this squad invisible in the Mission Briefing"
 
 [node name="Sector" type="TabBar" parent="PanelContainer/MarginContainer/VBoxContainer/HSplitContainer/PropertiesContainer/TabContainer"]
-visible = false
 layout_mode = 2
 script = ExtResource("19_3h4ps")
 metadata/_tab_index = 1
@@ -1485,6 +1485,32 @@ layout_mode = 2
 
 [node name="BombKeySectorVBox2" parent="PanelContainer/MarginContainer/VBoxContainer/HSplitContainer/PropertiesContainer/TabContainer/Sector/ScrollContainer/MarginContainer/SectorPropertiesContainer/BombKeySectorSection" instance=ExtResource("24_aq0rs")]
 layout_mode = 2
+
+[node name="MultiSectorContainer" type="VBoxContainer" parent="PanelContainer/MarginContainer/VBoxContainer/HSplitContainer/PropertiesContainer/TabContainer/Sector/ScrollContainer/MarginContainer"]
+unique_name_in_owner = true
+visible = false
+layout_mode = 2
+alignment = 1
+
+[node name="Label" type="Label" parent="PanelContainer/MarginContainer/VBoxContainer/HSplitContainer/PropertiesContainer/TabContainer/Sector/ScrollContainer/MarginContainer/MultiSectorContainer"]
+layout_mode = 2
+text = "Selected sector X:N Y:M"
+horizontal_alignment = 1
+
+[node name="Label2" type="Label" parent="PanelContainer/MarginContainer/VBoxContainer/HSplitContainer/PropertiesContainer/TabContainer/Sector/ScrollContainer/MarginContainer/MultiSectorContainer"]
+layout_mode = 2
+text = "Selected sector X:N Y:M"
+horizontal_alignment = 1
+
+[node name="Label3" type="Label" parent="PanelContainer/MarginContainer/VBoxContainer/HSplitContainer/PropertiesContainer/TabContainer/Sector/ScrollContainer/MarginContainer/MultiSectorContainer"]
+layout_mode = 2
+text = "Selected sector X:N Y:M"
+horizontal_alignment = 1
+
+[node name="Label4" type="Label" parent="PanelContainer/MarginContainer/VBoxContainer/HSplitContainer/PropertiesContainer/TabContainer/Sector/ScrollContainer/MarginContainer/MultiSectorContainer"]
+layout_mode = 2
+text = "Selected sector X:N Y:M"
+horizontal_alignment = 1
 
 [node name="MarginContainer" type="MarginContainer" parent="PanelContainer/MarginContainer/VBoxContainer/HSplitContainer/PropertiesContainer"]
 layout_mode = 2

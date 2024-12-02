@@ -1,10 +1,10 @@
 extends Node
 
 
-func increment_typ_map() -> void:
-	if CurrentMapData.typ_map.is_empty() or CurrentMapData.selected_sector_idx < 0: 
+func increment_typ_map(index: int) -> void:
+	if CurrentMapData.typ_map.is_empty() or index < 0: 
 		return
-	var temp := CurrentMapData.typ_map[CurrentMapData.selected_sector_idx]
+	var temp := CurrentMapData.typ_map[index]
 	temp += 1
 	if temp > 255:
 		temp = 0
@@ -78,14 +78,14 @@ func increment_typ_map() -> void:
 			if temp > 205 and temp < 207: temp = 207
 			if temp > 208 and temp < 228: temp = 228
 			if temp > 235 and temp < 239: temp = 239
-	CurrentMapData.typ_map[CurrentMapData.selected_sector_idx] = temp
+	CurrentMapData.typ_map[index] = temp
 
 
-func decrement_typ_map() -> void:
-	if CurrentMapData.typ_map.is_empty() or CurrentMapData.selected_sector_idx < 0: 
+func decrement_typ_map(index: int) -> void:
+	if CurrentMapData.typ_map.is_empty() or index < 0: 
 		return
 	
-	var temp := CurrentMapData.typ_map[CurrentMapData.selected_sector_idx]
+	var temp := CurrentMapData.typ_map[index]
 	temp -= 1
 	if temp < 0:
 		temp = 255
@@ -159,7 +159,7 @@ func decrement_typ_map() -> void:
 			if temp > 205 and temp < 207: temp = 205
 			if temp > 208 and temp < 228: temp = 208
 			if temp > 235 and temp < 239: temp = 235
-	CurrentMapData.typ_map[CurrentMapData.selected_sector_idx] = temp
+	CurrentMapData.typ_map[index] = temp
 
 
 func randomize_whole_typ_map() -> void:
