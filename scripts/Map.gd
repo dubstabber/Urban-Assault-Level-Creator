@@ -16,13 +16,6 @@ var right_clicked_x: int
 var right_clicked_y: int
 var is_selection_kept := false
 
-var typ_map_values_visible := false
-var own_map_values_visible := false
-var hgt_map_values_visible := false
-var blg_map_values_visible := false
-
-var typ_map_images_visible := true
-
 @onready var map_camera = $Camera2D
 
 
@@ -33,11 +26,6 @@ func _ready() -> void:
 	EventSystem.hoststation_added.connect(add_hoststation)
 	EventSystem.squad_added.connect(add_squad)
 	EventSystem.map_updated.connect(queue_redraw)
-	EventSystem.toggled_values_visibility.connect(toggle_values_visibility)
-	EventSystem.toggled_typ_map_images_visibility.connect(func(): 
-		typ_map_images_visible = not typ_map_images_visible
-		queue_redraw())
-	
 
 
 func _physics_process(delta):
@@ -170,7 +158,7 @@ func _draw():
 			if (x_sector > 0 and x_sector < CurrentMapData.horizontal_sectors+1 and 
 				y_sector > 0 and y_sector < CurrentMapData.vertical_sectors+1):
 				if Preloads.building_top_images[CurrentMapData.level_set].has(CurrentMapData.typ_map[current_sector]):
-					if typ_map_images_visible:
+					if CurrentMapData.typ_map_images_visible:
 						draw_texture_rect(Preloads.building_top_images[CurrentMapData.level_set][CurrentMapData.typ_map[current_sector]], Rect2(h_grid, v_grid, 1200, 1200), false)
 				else:
 					draw_texture_rect(Preloads.error_sign, Rect2(h_grid+sector_indent,v_grid+sector_indent, 1200-(sector_indent*2),1200-(sector_indent*2)), false)
@@ -253,14 +241,14 @@ func _draw():
 		for x_sector in CurrentMapData.horizontal_sectors+2:
 			if (x_sector > 0 and x_sector < CurrentMapData.horizontal_sectors+1 and 
 				y_sector > 0 and y_sector < CurrentMapData.vertical_sectors+1):
-				if typ_map_values_visible:
+				if CurrentMapData.typ_map_values_visible:
 					draw_string(font, Vector2(h_grid+50, v_grid+sector_font_size), "typ_map: "+ str(CurrentMapData.typ_map[current_sector]), HORIZONTAL_ALIGNMENT_LEFT, -1, sector_font_size)
-				if own_map_values_visible:
+				if CurrentMapData.own_map_values_visible:
 					draw_string(font, Vector2(h_grid+50, v_grid+sector_font_size*2), "own_map: "+ str(CurrentMapData.own_map[current_sector]), HORIZONTAL_ALIGNMENT_LEFT, -1, sector_font_size)
-				if blg_map_values_visible:
+				if CurrentMapData.blg_map_values_visible:
 					draw_string(font, Vector2(h_grid+50, v_grid+sector_font_size*4), "blg_map: "+ str(CurrentMapData.blg_map[current_sector]), HORIZONTAL_ALIGNMENT_LEFT, -1, sector_font_size)
 				current_sector += 1
-			if hgt_map_values_visible:
+			if CurrentMapData.hgt_map_values_visible:
 				draw_string(font, Vector2(h_grid+50, v_grid+sector_font_size*3), "hgt_map: "+ str(CurrentMapData.hgt_map[current_border_sector]), HORIZONTAL_ALIGNMENT_LEFT, -1, sector_font_size)
 			h_grid += 1200
 			current_border_sector += 1
@@ -354,17 +342,4 @@ func handle_selection(clicked_x: int, clicked_y: int):
 		if tu.sec_x == CurrentMapData.selected_sector.x and tu.sec_y == CurrentMapData.selected_sector.y:
 			CurrentMapData.selected_tech_upgrade = tu
 	EventSystem.sector_selected.emit()
-	queue_redraw()
-
-
-func toggle_values_visibility(type: String) -> void:
-	match type:
-		"typ_map":
-			typ_map_values_visible = not typ_map_values_visible
-		"own_map":
-			own_map_values_visible = not own_map_values_visible
-		"hgt_map":
-			hgt_map_values_visible = not hgt_map_values_visible
-		"blg_map":
-			blg_map_values_visible = not blg_map_values_visible
 	queue_redraw()

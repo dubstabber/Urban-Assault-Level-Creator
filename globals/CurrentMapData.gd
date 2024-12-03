@@ -68,6 +68,27 @@ var selected_bomb_key_sector: Vector2i = Vector2i(-1, -1)
 
 var mouse_over_unit: Unit = null
 
+var typ_map_images_visible := true:
+	set(value):
+		typ_map_images_visible = value
+		EventSystem.map_updated.emit()
+var typ_map_values_visible := false:
+	set(value):
+		typ_map_values_visible = value
+		EventSystem.map_updated.emit()
+var own_map_values_visible := false:
+	set(value):
+		own_map_values_visible = value
+		EventSystem.map_updated.emit()
+var hgt_map_values_visible := false:
+	set(value):
+		hgt_map_values_visible = value
+		EventSystem.map_updated.emit()
+var blg_map_values_visible := false:
+	set(value):
+		blg_map_values_visible = value
+		EventSystem.map_updated.emit()
+
 var units_db := {}
 var blg_names := {}
 var weapons_db := {}

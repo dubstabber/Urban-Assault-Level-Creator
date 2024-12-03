@@ -336,7 +336,6 @@ unique_name_in_owner = true
 visible = false
 layout_mode = 2
 size_flags_horizontal = 3
-tooltip_text = "lolz"
 mouse_filter = 1
 
 [node name="TabContainer" type="TabContainer" parent="PanelContainer/MarginContainer/VBoxContainer/HSplitContainer/PropertiesContainer"]
