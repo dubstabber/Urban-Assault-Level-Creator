@@ -277,19 +277,8 @@ func add_hoststation(owner_id: int, vehicle_id: int):
 	var hoststation = Preloads.HOSTSTATION.instantiate()
 	CurrentMapData.host_stations.add_child(hoststation)
 	hoststation.create(owner_id, vehicle_id)
-	if right_clicked_x < 1200: 
-		hoststation.position.x = 1205
-	elif right_clicked_x > ((CurrentMapData.horizontal_sectors+1) * 1200): 
-		hoststation.position.x = ((CurrentMapData.horizontal_sectors+1) * 1200) - 5
-	else:
-		hoststation.position.x = right_clicked_x
-	
-	if right_clicked_y < 1200: 
-		hoststation.position.y = 1205
-	elif right_clicked_y > ((CurrentMapData.vertical_sectors+1) * 1200): 
-		hoststation.position.y = ((CurrentMapData.vertical_sectors+1) * 1200) - 5
-	else:
-		hoststation.position.y = right_clicked_y
+	hoststation.position.x = clampi(right_clicked_x, 1205, ((CurrentMapData.horizontal_sectors+1) * 1200) - 5)
+	hoststation.position.y = clampi(right_clicked_y, 1205, ((CurrentMapData.vertical_sectors+1) * 1200) - 5)
 
 	CurrentMapData.selected_unit = hoststation
 	if CurrentMapData.player_host_station == null:
@@ -302,20 +291,9 @@ func add_squad(owner_id: int, vehicle_id: int):
 	var squad = Preloads.SQUAD.instantiate()
 	CurrentMapData.squads.add_child(squad)
 	squad.create(owner_id, vehicle_id)
-	if right_clicked_x < 1200: 
-		squad.position.x = 1205
-	elif right_clicked_x > ((CurrentMapData.horizontal_sectors+1) * 1200): 
-		squad.position.x = ((CurrentMapData.horizontal_sectors+1) * 1200) - 5
-	else:
-		squad.position.x = right_clicked_x
+	squad.position.x = clampi(right_clicked_x, 1205, ((CurrentMapData.horizontal_sectors+1) * 1200) - 5)
+	squad.position.y = clampi(right_clicked_y, 1205, ((CurrentMapData.vertical_sectors+1) * 1200) - 5)
 	
-	if right_clicked_y < 1200: 
-		squad.position.y = 1205
-	elif right_clicked_y > ((CurrentMapData.vertical_sectors+1) * 1200): 
-		squad.position.y = ((CurrentMapData.vertical_sectors+1) * 1200) - 5
-	else:
-		squad.position.y = right_clicked_y
-		
 	CurrentMapData.is_saved = false
 	CurrentMapData.selected_unit = squad
 
