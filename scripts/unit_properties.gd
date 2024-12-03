@@ -34,6 +34,27 @@ func _ready():
 		CurrentMapData.selected_unit.reload_const_enabled = toggled
 		%ReloadConstLineEdit.editable = toggled
 	)
+	%XposHostStationLineEdit.text_submitted.connect(func(text_value: String):
+		var pos_x = clampi(int(text_value), 1205, ((CurrentMapData.horizontal_sectors+1) * 1200)-5)
+		if CurrentMapData.selected_unit.position.x != pos_x: 
+			CurrentMapData.is_saved = false
+			%XposHostStationLineEdit.text = str(pos_x)
+		CurrentMapData.selected_unit.position.x = pos_x
+		)
+	%YposHostStationLineEdit.text_submitted.connect(func(text_value: String):
+		var pos_y = int(text_value) if int(text_value) <= 0 else -int(text_value)
+		if CurrentMapData.selected_unit.pos_y != pos_y: 
+			CurrentMapData.is_saved = false
+			%YposHostStationLineEdit.text = str(pos_y)
+		CurrentMapData.selected_unit.pos_y = pos_y
+		)
+	%ZposHostStationLineEdit.text_submitted.connect(func(text_value: String):
+		var pos_z = clampi(abs(int(text_value)), 1205, ((CurrentMapData.vertical_sectors+1) * 1200)-5)
+		if CurrentMapData.selected_unit.position.y != pos_z: 
+			CurrentMapData.is_saved = false
+			%ZposHostStationLineEdit.text = "-%s" % str(pos_z)
+		CurrentMapData.selected_unit.position.y = pos_z
+		)
 	%ConqueringHSlider.value_changed.connect(func(value_changed: int):
 		if CurrentMapData.selected_unit.con_budget != value_changed: CurrentMapData.is_saved = false
 		CurrentMapData.selected_unit.con_budget = value_changed
@@ -194,6 +215,20 @@ func _ready():
 	%FactionOptionButton.item_selected.connect(func(index: int):
 		CurrentMapData.selected_unit.change_faction(%FactionOptionButton.get_item_id(index))
 		CurrentMapData.is_saved = false
+	)
+	%XposSquadLineEdit.text_submitted.connect(func(text_value: String):
+		var pos_x = clampi(int(text_value), 1205, ((CurrentMapData.horizontal_sectors+1) * 1200)-5)
+		if CurrentMapData.selected_unit.position.x != pos_x: 
+			CurrentMapData.is_saved = false
+			%XposSquadLineEdit.text = str(pos_x)
+		CurrentMapData.selected_unit.position.x = pos_x
+	)
+	%ZposSquadLineEdit.text_submitted.connect(func(text_value: String):
+		var pos_z = clampi(abs(int(text_value)), 1205, ((CurrentMapData.vertical_sectors+1) * 1200)-5)
+		if CurrentMapData.selected_unit.position.y != pos_z: 
+			CurrentMapData.is_saved = false
+			%ZposSquadLineEdit.text = "-%s" % str(pos_z)
+		CurrentMapData.selected_unit.position.y = pos_z
 	)
 	%UseableCheckBox.toggled.connect(func(toggled: bool):
 		if CurrentMapData.selected_unit.useable != toggled: CurrentMapData.is_saved = false
