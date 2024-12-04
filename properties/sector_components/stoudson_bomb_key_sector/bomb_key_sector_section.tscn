@@ -1,0 +1,14 @@
+[gd_scene load_steps=3 format=3 uid="uid://cxn42lptsqsdc"]
+
+[ext_resource type="Script" path="res://properties/sector_components/stoudson_bomb_key_sector/bomb_key_sector_section.gd" id="1_2vctj"]
+[ext_resource type="PackedScene" uid="uid://v6hlaoteehbu" path="res://properties/sector_components/stoudson_bomb_key_sector/bomb_key_sector_v_box.tscn" id="1_q2411"]
+
+[node name="BombKeySectorSection" type="VBoxContainer"]
+script = ExtResource("1_2vctj")
+STOUDSON_BOMB_KEY_SECTOR_CONTAINER = ExtResource("1_q2411")
+
+[node name="BombKeySectorVBox" parent="." instance=ExtResource("1_q2411")]
+layout_mode = 2
+
+[node name="BombKeySectorVBox2" parent="." instance=ExtResource("1_q2411")]
+layout_mode = 2

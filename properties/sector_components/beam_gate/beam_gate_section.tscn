@@ -1,0 +1,121 @@
+[gd_scene load_steps=3 format=3 uid="uid://3ccusunnblri"]
+
+[ext_resource type="Script" path="res://properties/sector_components/beam_gate/beam_gate_section.gd" id="1_e4y4o"]
+[ext_resource type="PackedScene" uid="uid://bbeqrroj2yuc6" path="res://properties/sector_components/beam_gate/subcomponents/level_unlocked_container.tscn" id="1_fje0i"]
+
+[node name="BeamGateSection" type="VBoxContainer"]
+alignment = 1
+script = ExtResource("1_e4y4o")
+UNLOCKED_LEVEL_CONTAINER = ExtResource("1_fje0i")
+
+[node name="HSeparator" type="HSeparator" parent="."]
+layout_mode = 2
+
+[node name="BeamGateInfoLabel" type="Label" parent="."]
+unique_name_in_owner = true
+layout_mode = 2
+text = "Beam gate N"
+horizontal_alignment = 1
+
+[node name="HBoxContainer" type="HBoxContainer" parent="."]
+layout_mode = 2
+alignment = 1
+
+[node name="BGBuildingLabel" type="Label" parent="HBoxContainer"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 12
+text = "Beam gate building:"
+
+[node name="BGBuildingOptionButton" type="OptionButton" parent="HBoxContainer"]
+unique_name_in_owner = true
+layout_mode = 2
+theme_override_font_sizes/font_size = 12
+alignment = 1
+selected = 0
+item_count = 2
+popup/item_0/text = "With road"
+popup/item_1/text = "Without road"
+popup/item_1/id = 1
+
+[node name="BeamGateMBStatus" type="CheckBox" parent="."]
+unique_name_in_owner = true
+layout_mode = 2
+theme_override_font_sizes/font_size = 12
+text = "Make this beam gate invisible in the Mission Briefing"
+
+[node name="BGKeySectorLabel" type="Label" parent="."]
+unique_name_in_owner = true
+layout_mode = 2
+theme_override_font_sizes/font_size = 14
+text = "This beam gate contains key sectors:"
+horizontal_alignment = 1
+
+[node name="BGKeySectorsContainer" type="VBoxContainer" parent="."]
+unique_name_in_owner = true
+layout_mode = 2
+alignment = 1
+
+[node name="TestLabel" type="Label" parent="BGKeySectorsContainer"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 12
+text = "Key sector 1 at X:x Y:y"
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[node name="TestLabel2" type="Label" parent="BGKeySectorsContainer"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 12
+text = "Key sector 2 at X:x Y:y"
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[node name="LevelUnlockerContainer" type="HBoxContainer" parent="."]
+layout_mode = 2
+alignment = 1
+
+[node name="Label" type="Label" parent="LevelUnlockerContainer"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 14
+text = "Unlock new Level:"
+
+[node name="LevelsOptionButton" type="OptionButton" parent="LevelUnlockerContainer"]
+unique_name_in_owner = true
+layout_mode = 2
+theme_override_font_sizes/font_size = 14
+selected = 0
+item_count = 2
+popup/item_0/text = "L0101"
+popup/item_1/text = "L0202"
+popup/item_1/id = 1
+
+[node name="AddLevelButton" type="Button" parent="LevelUnlockerContainer"]
+unique_name_in_owner = true
+layout_mode = 2
+theme_override_font_sizes/font_size = 14
+text = "Add"
+
+[node name="HSeparator2" type="HSeparator" parent="."]
+layout_mode = 2
+
+[node name="NoUnlockedLevelLabel" type="Label" parent="."]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(100, 30)
+layout_mode = 2
+theme_override_colors/font_color = Color(1, 0, 0, 1)
+theme_override_font_sizes/font_size = 14
+text = "Unlock at least one level to prevent the game from crashing"
+horizontal_alignment = 1
+autowrap_mode = 2
+
+[node name="UnlockLevelsContainer" type="VBoxContainer" parent="."]
+unique_name_in_owner = true
+layout_mode = 2
+alignment = 1
+
+[node name="LevelUnlockedContainer" parent="UnlockLevelsContainer" instance=ExtResource("1_fje0i")]
+visible = false
+layout_mode = 2
+
+[node name="LevelUnlockedContainer2" parent="UnlockLevelsContainer" instance=ExtResource("1_fje0i")]
+visible = false
+layout_mode = 2

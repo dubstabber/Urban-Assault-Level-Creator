@@ -1,0 +1,60 @@
+[gd_scene load_steps=2 format=3 uid="uid://bn561fiqobkc3"]
+
+[ext_resource type="Script" path="res://modals/level_description_window.gd" id="1_5582k"]
+
+[node name="LevelDescriptionWindow" type="Window"]
+auto_translate_mode = 1
+title = "Write level description"
+initial_position = 1
+size = Vector2i(800, 600)
+transient = true
+exclusive = true
+script = ExtResource("1_5582k")
+
+[node name="PanelContainer" type="PanelContainer" parent="."]
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="ScrollContainer" type="ScrollContainer" parent="PanelContainer"]
+layout_mode = 2
+
+[node name="MarginContainer" type="MarginContainer" parent="PanelContainer/ScrollContainer"]
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_vertical = 3
+theme_override_constants/margin_left = 12
+theme_override_constants/margin_top = 12
+theme_override_constants/margin_right = 12
+theme_override_constants/margin_bottom = 12
+
+[node name="VBoxContainer" type="VBoxContainer" parent="PanelContainer/ScrollContainer/MarginContainer"]
+layout_mode = 2
+
+[node name="Label" type="Label" parent="PanelContainer/ScrollContainer/MarginContainer/VBoxContainer"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 14
+text = "You can write a description for this level here, which will be added at the beginning of the LDF file"
+horizontal_alignment = 1
+
+[node name="LevelDescriptionTextEdit" type="TextEdit" parent="PanelContainer/ScrollContainer/MarginContainer/VBoxContainer"]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_vertical = 3
+theme_override_font_sizes/font_size = 14
+text = "Testing this area
+
+with a multiline text
+
+and even more text"
+
+[node name="Button" type="Button" parent="PanelContainer/ScrollContainer/MarginContainer/VBoxContainer"]
+layout_mode = 2
+size_flags_horizontal = 4
+text = "Close"
+
+[connection signal="about_to_popup" from="." to="." method="_on_about_to_popup"]
+[connection signal="close_requested" from="." to="." method="close"]
+[connection signal="pressed" from="PanelContainer/ScrollContainer/MarginContainer/VBoxContainer/Button" to="." method="close"]

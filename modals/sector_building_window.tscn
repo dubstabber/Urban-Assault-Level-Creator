@@ -1,0 +1,65 @@
+[gd_scene load_steps=2 format=3 uid="uid://x4kwkajlf23r"]
+
+[ext_resource type="Script" path="res://modals/sector_building_window.gd" id="1_tvkoi"]
+
+[node name="SectorBuildingWindow" type="Window"]
+auto_translate_mode = 1
+title = "Add building"
+initial_position = 1
+size = Vector2i(350, 120)
+transient = true
+exclusive = true
+unresizable = true
+script = ExtResource("1_tvkoi")
+
+[node name="PanelContainer" type="PanelContainer" parent="."]
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="VBoxContainer" type="VBoxContainer" parent="PanelContainer"]
+layout_mode = 2
+theme_override_constants/separation = 12
+alignment = 1
+
+[node name="MarginContainer" type="MarginContainer" parent="PanelContainer/VBoxContainer"]
+layout_mode = 2
+
+[node name="Label" type="Label" parent="PanelContainer/VBoxContainer/MarginContainer"]
+layout_mode = 2
+text = "Please enter a value between 0 and 255"
+horizontal_alignment = 1
+
+[node name="MarginContainer2" type="MarginContainer" parent="PanelContainer/VBoxContainer"]
+layout_mode = 2
+theme_override_constants/margin_left = 100
+theme_override_constants/margin_right = 100
+
+[node name="SpinBox" type="SpinBox" parent="PanelContainer/VBoxContainer/MarginContainer2"]
+layout_mode = 2
+size_flags_vertical = 4
+max_value = 255.0
+alignment = 1
+
+[node name="MarginContainer3" type="MarginContainer" parent="PanelContainer/VBoxContainer"]
+layout_mode = 2
+
+[node name="HBoxContainer" type="HBoxContainer" parent="PanelContainer/VBoxContainer/MarginContainer3"]
+layout_mode = 2
+theme_override_constants/separation = 15
+alignment = 1
+
+[node name="CancelButton" type="Button" parent="PanelContainer/VBoxContainer/MarginContainer3/HBoxContainer"]
+layout_mode = 2
+text = "Cancel"
+
+[node name="OKButton" type="Button" parent="PanelContainer/VBoxContainer/MarginContainer3/HBoxContainer"]
+layout_mode = 2
+text = "OK"
+
+[connection signal="about_to_popup" from="." to="." method="_on_about_to_popup"]
+[connection signal="close_requested" from="." to="." method="close"]
+[connection signal="pressed" from="PanelContainer/VBoxContainer/MarginContainer3/HBoxContainer/CancelButton" to="." method="close"]
+[connection signal="pressed" from="PanelContainer/VBoxContainer/MarginContainer3/HBoxContainer/OKButton" to="." method="_on_ok_button_pressed"]

@@ -1,0 +1,918 @@
+[gd_scene load_steps=16 format=3 uid="uid://dg5m8iyihbvmu"]
+
+[ext_resource type="Script" path="res://properties/unit_properties.gd" id="1_cdtuf"]
+[ext_resource type="Theme" uid="uid://cdrs6kxi0mn0v" path="res://resources/themes/ua_theme.tres" id="2_58axt"]
+[ext_resource type="Script" path="res://properties/sector_properties.gd" id="3_gcote"]
+[ext_resource type="PackedScene" uid="uid://3ccusunnblri" path="res://properties/sector_components/beam_gate/beam_gate_section.tscn" id="4_cct16"]
+[ext_resource type="PackedScene" uid="uid://deva3qdr8h12x" path="res://properties/sector_components/stoudson_bomb/stoudson_bomb_section.tscn" id="5_1jnyc"]
+[ext_resource type="PackedScene" uid="uid://bwoqr46387uyb" path="res://properties/sector_components/tech_upgrade/tech_upgrade_section.tscn" id="6_ar1xs"]
+[ext_resource type="PackedScene" uid="uid://483vyvqaia2i" path="res://properties/sector_components/beam_gate_key_sector/beam_gate_key_sector_section.tscn" id="7_h4xm4"]
+[ext_resource type="PackedScene" uid="uid://cxn42lptsqsdc" path="res://properties/sector_components/stoudson_bomb_key_sector/bomb_key_sector_section.tscn" id="8_n8f44"]
+[ext_resource type="Script" path="res://properties/multi_sector_container.gd" id="9_yapal"]
+
+[sub_resource type="GDScript" id="GDScript_hihdk"]
+script/source = "extends TabContainer
+
+
+func _ready() -> void:
+	EventSystem.hoststation_added.connect(func(_owner_id, _vehicle_id): 
+		owner.show()
+		$Unit.show()
+	)
+	EventSystem.squad_added.connect(func(_owner_id, _vehicle_id): $Unit.show())
+	EventSystem.item_updated.connect(func(): $Sector.show())
+	EventSystem.left_double_clicked.connect(func():
+		if CurrentMapData.selected_unit:
+			$Unit.show()
+			owner.show()
+		else:
+			$Sector.show()
+			owner.show()
+		)
+"
+
+[sub_resource type="PlaceholderTexture2D" id="PlaceholderTexture2D_37be0"]
+
+[sub_resource type="PlaceholderTexture2D" id="PlaceholderTexture2D_0xn5w"]
+
+[sub_resource type="LabelSettings" id="LabelSettings_e380m"]
+font_color = Color(1, 0, 0, 1)
+
+[sub_resource type="PlaceholderTexture2D" id="PlaceholderTexture2D_rs20u"]
+size = Vector2(30, 30)
+
+[sub_resource type="GDScript" id="GDScript_crt75"]
+script/source = "extends TextureButton
+
+
+func _ready() -> void:
+	pressed.connect(func(): owner.hide())
+"
+
+[node name="PropertiesContainer" type="PanelContainer"]
+visible = false
+size_flags_horizontal = 3
+mouse_filter = 1
+
+[node name="TabContainer" type="TabContainer" parent="."]
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_vertical = 3
+current_tab = 1
+clip_tabs = false
+script = SubResource("GDScript_hihdk")
+
+[node name="Unit" type="TabBar" parent="TabContainer"]
+visible = false
+layout_mode = 2
+tab_alignment = 1
+script = ExtResource("1_cdtuf")
+metadata/_tab_index = 0
+
+[node name="ScrollContainer" type="ScrollContainer" parent="TabContainer/Unit"]
+layout_mode = 2
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="MarginContainer" type="MarginContainer" parent="TabContainer/Unit/ScrollContainer"]
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_vertical = 3
+theme_override_constants/margin_left = 20
+theme_override_constants/margin_top = 10
+theme_override_constants/margin_right = 20
+theme_override_constants/margin_bottom = 10
+
+[node name="NoUnitLabel" type="Label" parent="TabContainer/Unit/ScrollContainer/MarginContainer"]
+unique_name_in_owner = true
+layout_mode = 2
+text = "No unit selected"
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[node name="HostStationProperties" type="VBoxContainer" parent="TabContainer/Unit/ScrollContainer/MarginContainer"]
+unique_name_in_owner = true
+visible = false
+layout_mode = 2
+
+[node name="HBoxContainer" type="HBoxContainer" parent="TabContainer/Unit/ScrollContainer/MarginContainer/HostStationProperties"]
+layout_mode = 2
+alignment = 1
+
+[node name="HSnumberLabel" type="Label" parent="TabContainer/Unit/ScrollContainer/MarginContainer/HostStationProperties/HBoxContainer"]
+unique_name_in_owner = true
+layout_mode = 2
+text = "Host station N:"
+
+[node name="HSnameLabel" type="Label" parent="TabContainer/Unit/ScrollContainer/MarginContainer/HostStationProperties/HBoxContainer"]
+unique_name_in_owner = true
+layout_mode = 2
+text = "HostStationName"
+
+[node name="HSeparator3" type="HSeparator" parent="TabContainer/Unit/ScrollContainer/MarginContainer/HostStationProperties"]
+layout_mode = 2
+
+[node name="HBoxContainer5" type="HBoxContainer" parent="TabContainer/Unit/ScrollContainer/MarginContainer/HostStationProperties"]
+layout_mode = 2
+alignment = 1
+
+[node name="GridContainer2" type="GridContainer" parent="TabContainer/Unit/ScrollContainer/MarginContainer/HostStationProperties/HBoxContainer5"]
+layout_mode = 2
+columns = 3
+
+[node name="EnergyLabel" type="Label" parent="TabContainer/Unit/ScrollContainer/MarginContainer/HostStationProperties/HBoxContainer5/GridContainer2"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 12
+text = "Energy: "
+
+[node name="EnergyLineEdit" type="LineEdit" parent="TabContainer/Unit/ScrollContainer/MarginContainer/HostStationProperties/HBoxContainer5/GridContainer2"]
+unique_name_in_owner = true
+layout_mode = 2
+theme_override_font_sizes/font_size = 12
+text = "0000"
+shortcut_keys_enabled = false
+
+[node name="Control" type="Control" parent="TabContainer/Unit/ScrollContainer/MarginContainer/HostStationProperties/HBoxContainer5/GridContainer2"]
+layout_mode = 2
+
+[node name="ViewAngleLabel" type="Label" parent="TabContainer/Unit/ScrollContainer/MarginContainer/HostStationProperties/HBoxContainer5/GridContainer2"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 12
+text = "View angle: "
+
+[node name="ViewAngleLineEdit" type="LineEdit" parent="TabContainer/Unit/ScrollContainer/MarginContainer/HostStationProperties/HBoxContainer5/GridContainer2"]
+unique_name_in_owner = true
+layout_mode = 2
+theme_override_font_sizes/font_size = 12
+text = "000"
+
+[node name="ViewAngleCheckButton" type="CheckButton" parent="TabContainer/Unit/ScrollContainer/MarginContainer/HostStationProperties/HBoxContainer5/GridContainer2"]
+unique_name_in_owner = true
+layout_mode = 2
+theme_override_font_sizes/font_size = 12
+
+[node name="ReloadConstLabel" type="Label" parent="TabContainer/Unit/ScrollContainer/MarginContainer/HostStationProperties/HBoxContainer5/GridContainer2"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 12
+text = "Reload const: "
+
+[node name="ReloadConstLineEdit" type="LineEdit" parent="TabContainer/Unit/ScrollContainer/MarginContainer/HostStationProperties/HBoxContainer5/GridContainer2"]
+unique_name_in_owner = true
+layout_mode = 2
+theme_override_font_sizes/font_size = 12
+text = "00000"
+
+[node name="ReloadConstCheckButton" type="CheckButton" parent="TabContainer/Unit/ScrollContainer/MarginContainer/HostStationProperties/HBoxContainer5/GridContainer2"]
+unique_name_in_owner = true
+layout_mode = 2
+theme_override_font_sizes/font_size = 12
+
+[node name="HSeparator" type="HSeparator" parent="TabContainer/Unit/ScrollContainer/MarginContainer/HostStationProperties"]
+layout_mode = 2
+
+[node name="HBoxContainer2" type="HBoxContainer" parent="TabContainer/Unit/ScrollContainer/MarginContainer/HostStationProperties"]
+layout_mode = 2
+alignment = 1
+
+[node name="XposLabel" type="Label" parent="TabContainer/Unit/ScrollContainer/MarginContainer/HostStationProperties/HBoxContainer2"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 12
+text = "x: "
+
+[node name="XposHostStationLineEdit" type="LineEdit" parent="TabContainer/Unit/ScrollContainer/MarginContainer/HostStationProperties/HBoxContainer2"]
+unique_name_in_owner = true
+layout_mode = 2
+theme_override_font_sizes/font_size = 12
+text = "0000"
+
+[node name="YposLabel" type="Label" parent="TabContainer/Unit/ScrollContainer/MarginContainer/HostStationProperties/HBoxContainer2"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 12
+text = "y: "
+
+[node name="YposHostStationLineEdit" type="LineEdit" parent="TabContainer/Unit/ScrollContainer/MarginContainer/HostStationProperties/HBoxContainer2"]
+unique_name_in_owner = true
+layout_mode = 2
+theme_override_font_sizes/font_size = 12
+text = "0000"
+
+[node name="ZposLabel" type="Label" parent="TabContainer/Unit/ScrollContainer/MarginContainer/HostStationProperties/HBoxContainer2"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 12
+text = "z: "
+
+[node name="ZposHostStationLineEdit" type="LineEdit" parent="TabContainer/Unit/ScrollContainer/MarginContainer/HostStationProperties/HBoxContainer2"]
+unique_name_in_owner = true
+layout_mode = 2
+theme_override_font_sizes/font_size = 12
+text = "0000"
+
+[node name="HSeparator2" type="HSeparator" parent="TabContainer/Unit/ScrollContainer/MarginContainer/HostStationProperties"]
+layout_mode = 2
+
+[node name="EnemyBehaviorLabel" type="Label" parent="TabContainer/Unit/ScrollContainer/MarginContainer/HostStationProperties"]
+layout_mode = 2
+size_flags_horizontal = 4
+theme_override_font_sizes/font_size = 12
+text = "Enemy behavior (AI only):"
+
+[node name="GridContainer" type="GridContainer" parent="TabContainer/Unit/ScrollContainer/MarginContainer/HostStationProperties"]
+layout_mode = 2
+columns = 4
+
+[node name="ConqueringLabel" type="Label" parent="TabContainer/Unit/ScrollContainer/MarginContainer/HostStationProperties/GridContainer"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 12
+text = "Conquering sectors:"
+
+[node name="ConqueringHSlider" type="HSlider" parent="TabContainer/Unit/ScrollContainer/MarginContainer/HostStationProperties/GridContainer"]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_vertical = 4
+
+[node name="ConqueringValueLabel" type="Label" parent="TabContainer/Unit/ScrollContainer/MarginContainer/HostStationProperties/GridContainer"]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_horizontal = 8
+theme = ExtResource("2_58axt")
+theme_override_font_sizes/font_size = 12
+text = "000"
+
+[node name="ConqueringPercentLabel" type="Label" parent="TabContainer/Unit/ScrollContainer/MarginContainer/HostStationProperties/GridContainer"]
+layout_mode = 2
+size_flags_horizontal = 0
+theme_override_font_sizes/font_size = 12
+text = "%"
+
+[node name="ConqueringDelayLabel" type="Label" parent="TabContainer/Unit/ScrollContainer/MarginContainer/HostStationProperties/GridContainer"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 12
+text = "Conquering delay:"
+
+[node name="ConqueringDelayLineEdit" type="LineEdit" parent="TabContainer/Unit/ScrollContainer/MarginContainer/HostStationProperties/GridContainer"]
+unique_name_in_owner = true
+layout_mode = 2
+theme_override_constants/minimum_character_width = 2
+theme_override_font_sizes/font_size = 12
+text = "000"
+
+[node name="ConqueringDelaySecondsLabel" type="Label" parent="TabContainer/Unit/ScrollContainer/MarginContainer/HostStationProperties/GridContainer"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 12
+text = "sec"
+
+[node name="Filler" type="Control" parent="TabContainer/Unit/ScrollContainer/MarginContainer/HostStationProperties/GridContainer"]
+layout_mode = 2
+
+[node name="DefenseLabel" type="Label" parent="TabContainer/Unit/ScrollContainer/MarginContainer/HostStationProperties/GridContainer"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 12
+text = "Defense:"
+
+[node name="DefenseHSlider" type="HSlider" parent="TabContainer/Unit/ScrollContainer/MarginContainer/HostStationProperties/GridContainer"]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_vertical = 4
+
+[node name="DefenseValueLabel" type="Label" parent="TabContainer/Unit/ScrollContainer/MarginContainer/HostStationProperties/GridContainer"]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_horizontal = 8
+theme_override_font_sizes/font_size = 12
+text = "000"
+
+[node name="DefensePercentLabel" type="Label" parent="TabContainer/Unit/ScrollContainer/MarginContainer/HostStationProperties/GridContainer"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 12
+text = "%"
+
+[node name="DefenseDelayLabel" type="Label" parent="TabContainer/Unit/ScrollContainer/MarginContainer/HostStationProperties/GridContainer"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 12
+text = "Defense delay:"
+
+[node name="DefenseDelayLineEdit" type="LineEdit" parent="TabContainer/Unit/ScrollContainer/MarginContainer/HostStationProperties/GridContainer"]
+unique_name_in_owner = true
+layout_mode = 2
+theme_override_constants/minimum_character_width = 2
+theme_override_font_sizes/font_size = 12
+text = "000"
+
+[node name="DefenseDelaySecondsLabel" type="Label" parent="TabContainer/Unit/ScrollContainer/MarginContainer/HostStationProperties/GridContainer"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 12
+text = "sec"
+
+[node name="Filler2" type="Control" parent="TabContainer/Unit/ScrollContainer/MarginContainer/HostStationProperties/GridContainer"]
+layout_mode = 2
+
+[node name="ReconnaissanceLabel" type="Label" parent="TabContainer/Unit/ScrollContainer/MarginContainer/HostStationProperties/GridContainer"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 12
+text = "Reconnaissance:"
+
+[node name="ReconnaissanceHSlider" type="HSlider" parent="TabContainer/Unit/ScrollContainer/MarginContainer/HostStationProperties/GridContainer"]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_vertical = 4
+
+[node name="ReconnaissanceValueLabel" type="Label" parent="TabContainer/Unit/ScrollContainer/MarginContainer/HostStationProperties/GridContainer"]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_horizontal = 8
+theme_override_font_sizes/font_size = 12
+text = "000"
+
+[node name="ReconnaissancePercentLabel" type="Label" parent="TabContainer/Unit/ScrollContainer/MarginContainer/HostStationProperties/GridContainer"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 12
+text = "%"
+
+[node name="ReconnaissanceDelayLabel" type="Label" parent="TabContainer/Unit/ScrollContainer/MarginContainer/HostStationProperties/GridContainer"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 12
+text = "Reconnaissance delay:"
+
+[node name="ReconnaissanceDelayLineEdit" type="LineEdit" parent="TabContainer/Unit/ScrollContainer/MarginContainer/HostStationProperties/GridContainer"]
+unique_name_in_owner = true
+layout_mode = 2
+theme_override_constants/minimum_character_width = 2
+theme_override_font_sizes/font_size = 12
+text = "000"
+
+[node name="ReconnaissanceDelaySecondsLabel" type="Label" parent="TabContainer/Unit/ScrollContainer/MarginContainer/HostStationProperties/GridContainer"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 12
+text = "sec"
+
+[node name="Filler3" type="Control" parent="TabContainer/Unit/ScrollContainer/MarginContainer/HostStationProperties/GridContainer"]
+layout_mode = 2
+
+[node name="AttackingLabel" type="Label" parent="TabContainer/Unit/ScrollContainer/MarginContainer/HostStationProperties/GridContainer"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 12
+text = "Attacking:"
+
+[node name="AttackingHSlider" type="HSlider" parent="TabContainer/Unit/ScrollContainer/MarginContainer/HostStationProperties/GridContainer"]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_vertical = 4
+
+[node name="AttackingValueLabel" type="Label" parent="TabContainer/Unit/ScrollContainer/MarginContainer/HostStationProperties/GridContainer"]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_horizontal = 8
+theme_override_font_sizes/font_size = 12
+text = "000"
+
+[node name="AttackingPercentLabel" type="Label" parent="TabContainer/Unit/ScrollContainer/MarginContainer/HostStationProperties/GridContainer"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 12
+text = "%"
+
+[node name="AttackingDelayLabel" type="Label" parent="TabContainer/Unit/ScrollContainer/MarginContainer/HostStationProperties/GridContainer"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 12
+text = "Attacking delay:"
+
+[node name="AttackingDelayLineEdit" type="LineEdit" parent="TabContainer/Unit/ScrollContainer/MarginContainer/HostStationProperties/GridContainer"]
+unique_name_in_owner = true
+layout_mode = 2
+theme_override_constants/minimum_character_width = 2
+theme_override_font_sizes/font_size = 12
+text = "000"
+
+[node name="AttackingDelaySecondsLabel" type="Label" parent="TabContainer/Unit/ScrollContainer/MarginContainer/HostStationProperties/GridContainer"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 12
+text = "sec"
+
+[node name="Filler4" type="Control" parent="TabContainer/Unit/ScrollContainer/MarginContainer/HostStationProperties/GridContainer"]
+layout_mode = 2
+
+[node name="PowerBuildingLabel" type="Label" parent="TabContainer/Unit/ScrollContainer/MarginContainer/HostStationProperties/GridContainer"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 12
+text = "Power building:"
+
+[node name="PowerBuildingHSlider" type="HSlider" parent="TabContainer/Unit/ScrollContainer/MarginContainer/HostStationProperties/GridContainer"]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_vertical = 4
+
+[node name="PowerBuildingValueLabel" type="Label" parent="TabContainer/Unit/ScrollContainer/MarginContainer/HostStationProperties/GridContainer"]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_horizontal = 8
+theme_override_font_sizes/font_size = 12
+text = "000"
+
+[node name="PowerBuildingPercentLabel" type="Label" parent="TabContainer/Unit/ScrollContainer/MarginContainer/HostStationProperties/GridContainer"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 12
+text = "%"
+
+[node name="PowerBuildingDelayLabel" type="Label" parent="TabContainer/Unit/ScrollContainer/MarginContainer/HostStationProperties/GridContainer"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 12
+text = "Power building delay:"
+
+[node name="PowerBuildingDelayLineEdit" type="LineEdit" parent="TabContainer/Unit/ScrollContainer/MarginContainer/HostStationProperties/GridContainer"]
+unique_name_in_owner = true
+layout_mode = 2
+theme_override_constants/minimum_character_width = 2
+theme_override_font_sizes/font_size = 12
+text = "000"
+
+[node name="PowerBuildingDelaySecondsLabel" type="Label" parent="TabContainer/Unit/ScrollContainer/MarginContainer/HostStationProperties/GridContainer"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 12
+text = "sec"
+
+[node name="Filler5" type="Control" parent="TabContainer/Unit/ScrollContainer/MarginContainer/HostStationProperties/GridContainer"]
+layout_mode = 2
+
+[node name="RadarBuildingLabel" type="Label" parent="TabContainer/Unit/ScrollContainer/MarginContainer/HostStationProperties/GridContainer"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 12
+text = "Radar building:"
+
+[node name="RadarBuildingHSlider" type="HSlider" parent="TabContainer/Unit/ScrollContainer/MarginContainer/HostStationProperties/GridContainer"]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_vertical = 4
+
+[node name="RadarBuildingValueLabel" type="Label" parent="TabContainer/Unit/ScrollContainer/MarginContainer/HostStationProperties/GridContainer"]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_horizontal = 8
+theme_override_font_sizes/font_size = 12
+text = "000"
+
+[node name="RadarBuildingPercentLabel" type="Label" parent="TabContainer/Unit/ScrollContainer/MarginContainer/HostStationProperties/GridContainer"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 12
+text = "%"
+
+[node name="RadarBuildingDelayLabel" type="Label" parent="TabContainer/Unit/ScrollContainer/MarginContainer/HostStationProperties/GridContainer"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 12
+text = "Radar building delay:"
+
+[node name="RadarBuildingDelayLineEdit" type="LineEdit" parent="TabContainer/Unit/ScrollContainer/MarginContainer/HostStationProperties/GridContainer"]
+unique_name_in_owner = true
+layout_mode = 2
+theme_override_constants/minimum_character_width = 2
+theme_override_font_sizes/font_size = 12
+text = "000"
+
+[node name="RadarBuildingDelaySecondsLabel" type="Label" parent="TabContainer/Unit/ScrollContainer/MarginContainer/HostStationProperties/GridContainer"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 12
+text = "sec"
+
+[node name="Filler6" type="Control" parent="TabContainer/Unit/ScrollContainer/MarginContainer/HostStationProperties/GridContainer"]
+layout_mode = 2
+
+[node name="FlakBuildingLabel" type="Label" parent="TabContainer/Unit/ScrollContainer/MarginContainer/HostStationProperties/GridContainer"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 12
+text = "Flak building:"
+
+[node name="FlakBuildingHSlider" type="HSlider" parent="TabContainer/Unit/ScrollContainer/MarginContainer/HostStationProperties/GridContainer"]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_vertical = 4
+
+[node name="FlakBuildingValueLabel" type="Label" parent="TabContainer/Unit/ScrollContainer/MarginContainer/HostStationProperties/GridContainer"]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_horizontal = 8
+theme_override_font_sizes/font_size = 12
+text = "000"
+
+[node name="FlakBuildingPercentLabel" type="Label" parent="TabContainer/Unit/ScrollContainer/MarginContainer/HostStationProperties/GridContainer"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 12
+text = "%"
+
+[node name="FlakBuildingDelayLabel" type="Label" parent="TabContainer/Unit/ScrollContainer/MarginContainer/HostStationProperties/GridContainer"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 12
+text = "Flak building delay:"
+
+[node name="FlakBuildingDelayLineEdit" type="LineEdit" parent="TabContainer/Unit/ScrollContainer/MarginContainer/HostStationProperties/GridContainer"]
+unique_name_in_owner = true
+layout_mode = 2
+theme_override_constants/minimum_character_width = 2
+theme_override_font_sizes/font_size = 12
+text = "000"
+
+[node name="FlakBuildingDelaySecondsLabel" type="Label" parent="TabContainer/Unit/ScrollContainer/MarginContainer/HostStationProperties/GridContainer"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 12
+text = "sec"
+
+[node name="Filler7" type="Control" parent="TabContainer/Unit/ScrollContainer/MarginContainer/HostStationProperties/GridContainer"]
+layout_mode = 2
+
+[node name="MovingStationLabel" type="Label" parent="TabContainer/Unit/ScrollContainer/MarginContainer/HostStationProperties/GridContainer"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 12
+text = "Moving station:"
+
+[node name="MovingStationHSlider" type="HSlider" parent="TabContainer/Unit/ScrollContainer/MarginContainer/HostStationProperties/GridContainer"]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_vertical = 4
+
+[node name="MovingStationValueLabel" type="Label" parent="TabContainer/Unit/ScrollContainer/MarginContainer/HostStationProperties/GridContainer"]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_horizontal = 8
+theme_override_font_sizes/font_size = 12
+text = "000"
+
+[node name="MovingStationPercentLabel" type="Label" parent="TabContainer/Unit/ScrollContainer/MarginContainer/HostStationProperties/GridContainer"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 12
+text = "%"
+
+[node name="MovingStationDelayLabel" type="Label" parent="TabContainer/Unit/ScrollContainer/MarginContainer/HostStationProperties/GridContainer"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 12
+text = "Moving station delay:"
+
+[node name="MovingStationDelayLineEdit" type="LineEdit" parent="TabContainer/Unit/ScrollContainer/MarginContainer/HostStationProperties/GridContainer"]
+unique_name_in_owner = true
+layout_mode = 2
+theme_override_constants/minimum_character_width = 2
+theme_override_font_sizes/font_size = 12
+text = "000"
+
+[node name="MovingStationDelaySecondsLabel" type="Label" parent="TabContainer/Unit/ScrollContainer/MarginContainer/HostStationProperties/GridContainer"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 12
+text = "sec"
+
+[node name="Filler8" type="Control" parent="TabContainer/Unit/ScrollContainer/MarginContainer/HostStationProperties/GridContainer"]
+layout_mode = 2
+
+[node name="HSeparator4" type="HSeparator" parent="TabContainer/Unit/ScrollContainer/MarginContainer/HostStationProperties"]
+layout_mode = 2
+
+[node name="MBstatusLabel" type="Label" parent="TabContainer/Unit/ScrollContainer/MarginContainer/HostStationProperties"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 12
+text = "MB status:"
+horizontal_alignment = 1
+
+[node name="MBstatusHostStationCheckBox" type="CheckBox" parent="TabContainer/Unit/ScrollContainer/MarginContainer/HostStationProperties"]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_horizontal = 0
+theme_override_font_sizes/font_size = 12
+text = "Make this host station invisible in the Mission Briefing"
+
+[node name="HSeparator6" type="HSeparator" parent="TabContainer/Unit/ScrollContainer/MarginContainer/HostStationProperties"]
+layout_mode = 2
+
+[node name="HostStationLabel" type="Label" parent="TabContainer/Unit/ScrollContainer/MarginContainer/HostStationProperties"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 12
+text = "Host station type:"
+horizontal_alignment = 1
+
+[node name="HBoxContainer3" type="HBoxContainer" parent="TabContainer/Unit/ScrollContainer/MarginContainer/HostStationProperties"]
+layout_mode = 2
+alignment = 1
+
+[node name="HostStationRoboTextureRect" type="TextureRect" parent="TabContainer/Unit/ScrollContainer/MarginContainer/HostStationProperties/HBoxContainer3"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(30, 30)
+layout_mode = 2
+
+[node name="HostStationRoboOptionButton" type="OptionButton" parent="TabContainer/Unit/ScrollContainer/MarginContainer/HostStationProperties/HBoxContainer3"]
+unique_name_in_owner = true
+layout_mode = 2
+theme_override_font_sizes/font_size = 12
+
+[node name="HSeparator5" type="HSeparator" parent="TabContainer/Unit/ScrollContainer/MarginContainer/HostStationProperties"]
+layout_mode = 2
+
+[node name="Label4" type="Label" parent="TabContainer/Unit/ScrollContainer/MarginContainer/HostStationProperties"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 12
+text = "Host station behavior in file"
+horizontal_alignment = 1
+
+[node name="HBoxContainer4" type="HBoxContainer" parent="TabContainer/Unit/ScrollContainer/MarginContainer/HostStationProperties"]
+layout_mode = 2
+alignment = 1
+
+[node name="LoadBehaviorFileButton" type="Button" parent="TabContainer/Unit/ScrollContainer/MarginContainer/HostStationProperties/HBoxContainer4"]
+unique_name_in_owner = true
+layout_mode = 2
+theme_override_font_sizes/font_size = 12
+text = "Load behavior from file"
+
+[node name="SaveBehaviorFileButton" type="Button" parent="TabContainer/Unit/ScrollContainer/MarginContainer/HostStationProperties/HBoxContainer4"]
+unique_name_in_owner = true
+layout_mode = 2
+theme_override_font_sizes/font_size = 12
+text = "Save behavior to file"
+
+[node name="SquadProperties" type="VBoxContainer" parent="TabContainer/Unit/ScrollContainer/MarginContainer"]
+unique_name_in_owner = true
+visible = false
+layout_mode = 2
+alignment = 1
+
+[node name="HBoxContainer" type="HBoxContainer" parent="TabContainer/Unit/ScrollContainer/MarginContainer/SquadProperties"]
+layout_mode = 2
+alignment = 1
+
+[node name="SquadIcon" type="TextureRect" parent="TabContainer/Unit/ScrollContainer/MarginContainer/SquadProperties/HBoxContainer"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(20, 20)
+layout_mode = 2
+texture = SubResource("PlaceholderTexture2D_37be0")
+
+[node name="SquadLabel" type="Label" parent="TabContainer/Unit/ScrollContainer/MarginContainer/SquadProperties/HBoxContainer"]
+layout_mode = 2
+text = "Squad:"
+
+[node name="SquadNameLabel" type="Label" parent="TabContainer/Unit/ScrollContainer/MarginContainer/SquadProperties/HBoxContainer"]
+unique_name_in_owner = true
+layout_mode = 2
+text = "SquadName"
+
+[node name="HSeparator" type="HSeparator" parent="TabContainer/Unit/ScrollContainer/MarginContainer/SquadProperties"]
+layout_mode = 2
+
+[node name="HBoxContainer2" type="HBoxContainer" parent="TabContainer/Unit/ScrollContainer/MarginContainer/SquadProperties"]
+layout_mode = 2
+alignment = 1
+
+[node name="GridContainer" type="GridContainer" parent="TabContainer/Unit/ScrollContainer/MarginContainer/SquadProperties/HBoxContainer2"]
+layout_mode = 2
+columns = 2
+
+[node name="QuantityLabel" type="Label" parent="TabContainer/Unit/ScrollContainer/MarginContainer/SquadProperties/HBoxContainer2/GridContainer"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 12
+text = "Number of units: "
+
+[node name="QuantitySpinBox" type="SpinBox" parent="TabContainer/Unit/ScrollContainer/MarginContainer/SquadProperties/HBoxContainer2/GridContainer"]
+unique_name_in_owner = true
+layout_mode = 2
+theme = ExtResource("2_58axt")
+min_value = 1.0
+max_value = 32.0
+value = 1.0
+update_on_text_changed = true
+
+[node name="FactionLabel" type="Label" parent="TabContainer/Unit/ScrollContainer/MarginContainer/SquadProperties/HBoxContainer2/GridContainer"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 12
+text = "Unit faction: "
+
+[node name="FactionOptionButton" type="OptionButton" parent="TabContainer/Unit/ScrollContainer/MarginContainer/SquadProperties/HBoxContainer2/GridContainer"]
+unique_name_in_owner = true
+layout_mode = 2
+theme_override_font_sizes/font_size = 12
+
+[node name="HSeparator2" type="HSeparator" parent="TabContainer/Unit/ScrollContainer/MarginContainer/SquadProperties"]
+layout_mode = 2
+
+[node name="HBoxContainer3" type="HBoxContainer" parent="TabContainer/Unit/ScrollContainer/MarginContainer/SquadProperties"]
+layout_mode = 2
+alignment = 1
+
+[node name="XposLabel" type="Label" parent="TabContainer/Unit/ScrollContainer/MarginContainer/SquadProperties/HBoxContainer3"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 12
+text = "x: "
+
+[node name="XposSquadLineEdit" type="LineEdit" parent="TabContainer/Unit/ScrollContainer/MarginContainer/SquadProperties/HBoxContainer3"]
+unique_name_in_owner = true
+layout_mode = 2
+theme_override_font_sizes/font_size = 12
+text = "000"
+
+[node name="ZposLabel" type="Label" parent="TabContainer/Unit/ScrollContainer/MarginContainer/SquadProperties/HBoxContainer3"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 12
+text = "z: 
+"
+
+[node name="ZposSquadLineEdit" type="LineEdit" parent="TabContainer/Unit/ScrollContainer/MarginContainer/SquadProperties/HBoxContainer3"]
+unique_name_in_owner = true
+layout_mode = 2
+theme_override_font_sizes/font_size = 12
+text = "000"
+
+[node name="HSeparator3" type="HSeparator" parent="TabContainer/Unit/ScrollContainer/MarginContainer/SquadProperties"]
+layout_mode = 2
+
+[node name="UseableLabel" type="Label" parent="TabContainer/Unit/ScrollContainer/MarginContainer/SquadProperties"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 12
+text = "Useable:"
+horizontal_alignment = 1
+
+[node name="UseableCheckBox" type="CheckBox" parent="TabContainer/Unit/ScrollContainer/MarginContainer/SquadProperties"]
+unique_name_in_owner = true
+layout_mode = 2
+theme_override_font_sizes/font_size = 12
+text = "AI may use this squad as normal units"
+
+[node name="HSeparator4" type="HSeparator" parent="TabContainer/Unit/ScrollContainer/MarginContainer/SquadProperties"]
+layout_mode = 2
+
+[node name="MBstatusLabel" type="Label" parent="TabContainer/Unit/ScrollContainer/MarginContainer/SquadProperties"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 12
+text = "MB status: "
+horizontal_alignment = 1
+
+[node name="MBstatusSquadCheckBox" type="CheckBox" parent="TabContainer/Unit/ScrollContainer/MarginContainer/SquadProperties"]
+unique_name_in_owner = true
+layout_mode = 2
+theme_override_font_sizes/font_size = 12
+text = "Make this squad invisible in the Mission Briefing"
+
+[node name="Sector" type="TabBar" parent="TabContainer"]
+layout_mode = 2
+script = ExtResource("3_gcote")
+metadata/_tab_index = 1
+
+[node name="ScrollContainer" type="ScrollContainer" parent="TabContainer/Sector"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="MarginContainer" type="MarginContainer" parent="TabContainer/Sector/ScrollContainer"]
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_vertical = 3
+theme_override_constants/margin_left = 20
+theme_override_constants/margin_top = 10
+theme_override_constants/margin_right = 20
+theme_override_constants/margin_bottom = 10
+
+[node name="NoSectorLabel" type="Label" parent="TabContainer/Sector/ScrollContainer/MarginContainer"]
+unique_name_in_owner = true
+layout_mode = 2
+text = "No sector selected"
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[node name="SectorPropertiesContainer" type="VBoxContainer" parent="TabContainer/Sector/ScrollContainer/MarginContainer"]
+unique_name_in_owner = true
+visible = false
+layout_mode = 2
+alignment = 1
+
+[node name="SectorPositionLabel" type="Label" parent="TabContainer/Sector/ScrollContainer/MarginContainer/SectorPropertiesContainer"]
+unique_name_in_owner = true
+layout_mode = 2
+text = "Sector X: x Y: y"
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[node name="HSeparator" type="HSeparator" parent="TabContainer/Sector/ScrollContainer/MarginContainer/SectorPropertiesContainer"]
+layout_mode = 2
+
+[node name="GridContainer" type="GridContainer" parent="TabContainer/Sector/ScrollContainer/MarginContainer/SectorPropertiesContainer"]
+layout_mode = 2
+size_flags_horizontal = 4
+columns = 2
+
+[node name="SectorOwnerTextLabel" type="Label" parent="TabContainer/Sector/ScrollContainer/MarginContainer/SectorPropertiesContainer/GridContainer"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 12
+text = "Sector owner:"
+
+[node name="SectorOwnerLabel" type="Label" parent="TabContainer/Sector/ScrollContainer/MarginContainer/SectorPropertiesContainer/GridContainer"]
+unique_name_in_owner = true
+layout_mode = 2
+theme_override_font_sizes/font_size = 12
+text = "Faction"
+
+[node name="SpecialBuildingTextLabel" type="Label" parent="TabContainer/Sector/ScrollContainer/MarginContainer/SectorPropertiesContainer/GridContainer"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 12
+text = "Special building:"
+
+[node name="SpecialBuildingLabel" type="Label" parent="TabContainer/Sector/ScrollContainer/MarginContainer/SectorPropertiesContainer/GridContainer"]
+unique_name_in_owner = true
+layout_mode = 2
+theme_override_font_sizes/font_size = 12
+text = "Special Building Name"
+
+[node name="HSeparator2" type="HSeparator" parent="TabContainer/Sector/ScrollContainer/MarginContainer/SectorPropertiesContainer"]
+layout_mode = 2
+
+[node name="BuildingTextLabel" type="Label" parent="TabContainer/Sector/ScrollContainer/MarginContainer/SectorPropertiesContainer"]
+unique_name_in_owner = true
+layout_mode = 2
+text = "Building N"
+horizontal_alignment = 1
+
+[node name="BuildingTexture" type="TextureRect" parent="TabContainer/Sector/ScrollContainer/MarginContainer/SectorPropertiesContainer"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(250, 250)
+layout_mode = 2
+size_flags_horizontal = 4
+size_flags_vertical = 4
+texture = SubResource("PlaceholderTexture2D_0xn5w")
+
+[node name="InvalidTypMapLabel" type="Label" parent="TabContainer/Sector/ScrollContainer/MarginContainer/SectorPropertiesContainer"]
+unique_name_in_owner = true
+visible = false
+custom_minimum_size = Vector2(220, 40)
+layout_mode = 2
+text = "This building index is not valid, which will cause the game to crash"
+label_settings = SubResource("LabelSettings_e380m")
+horizontal_alignment = 1
+autowrap_mode = 3
+
+[node name="BeamGateSection" parent="TabContainer/Sector/ScrollContainer/MarginContainer/SectorPropertiesContainer" instance=ExtResource("4_cct16")]
+unique_name_in_owner = true
+visible = false
+layout_mode = 2
+
+[node name="StoudsonBombSection" parent="TabContainer/Sector/ScrollContainer/MarginContainer/SectorPropertiesContainer" instance=ExtResource("5_1jnyc")]
+unique_name_in_owner = true
+visible = false
+layout_mode = 2
+
+[node name="TechUpgradeSection" parent="TabContainer/Sector/ScrollContainer/MarginContainer/SectorPropertiesContainer" instance=ExtResource("6_ar1xs")]
+unique_name_in_owner = true
+visible = false
+layout_mode = 2
+
+[node name="BeamGateKeySectorSection" parent="TabContainer/Sector/ScrollContainer/MarginContainer/SectorPropertiesContainer" instance=ExtResource("7_h4xm4")]
+unique_name_in_owner = true
+visible = false
+layout_mode = 2
+
+[node name="BombKeySectorSection" parent="TabContainer/Sector/ScrollContainer/MarginContainer/SectorPropertiesContainer" instance=ExtResource("8_n8f44")]
+unique_name_in_owner = true
+visible = false
+layout_mode = 2
+
+[node name="MultiSectorContainer" type="VBoxContainer" parent="TabContainer/Sector/ScrollContainer/MarginContainer"]
+unique_name_in_owner = true
+visible = false
+layout_mode = 2
+alignment = 1
+script = ExtResource("9_yapal")
+
+[node name="Label" type="Label" parent="TabContainer/Sector/ScrollContainer/MarginContainer/MultiSectorContainer"]
+layout_mode = 2
+text = "Selected sector X:N Y:M"
+horizontal_alignment = 1
+
+[node name="Label2" type="Label" parent="TabContainer/Sector/ScrollContainer/MarginContainer/MultiSectorContainer"]
+layout_mode = 2
+text = "Selected sector X:N Y:M"
+horizontal_alignment = 1
+
+[node name="Label3" type="Label" parent="TabContainer/Sector/ScrollContainer/MarginContainer/MultiSectorContainer"]
+layout_mode = 2
+text = "Selected sector X:N Y:M"
+horizontal_alignment = 1
+
+[node name="Label4" type="Label" parent="TabContainer/Sector/ScrollContainer/MarginContainer/MultiSectorContainer"]
+layout_mode = 2
+text = "Selected sector X:N Y:M"
+horizontal_alignment = 1
+
+[node name="MarginContainer" type="MarginContainer" parent="."]
+layout_mode = 2
+size_flags_horizontal = 8
+size_flags_vertical = 0
+theme_override_constants/margin_right = 10
+
+[node name="ClosePropertiesButton" type="TextureButton" parent="MarginContainer"]
+custom_minimum_size = Vector2(30, 30)
+layout_mode = 2
+size_flags_horizontal = 8
+size_flags_vertical = 0
+texture_normal = SubResource("PlaceholderTexture2D_rs20u")
+script = SubResource("GDScript_crt75")

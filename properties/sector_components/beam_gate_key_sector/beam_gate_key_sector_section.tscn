@@ -1,0 +1,18 @@
+[gd_scene load_steps=3 format=3 uid="uid://483vyvqaia2i"]
+
+[ext_resource type="PackedScene" uid="uid://co34kw1wyoao3" path="res://properties/sector_components/beam_gate_key_sector/beam_gate_key_sector_v_box.tscn" id="1_cbqfn"]
+[ext_resource type="Script" path="res://properties/sector_components/beam_gate_key_sector/beam_gate_key_sector_section.gd" id="1_t5th8"]
+
+[node name="BeamGateKeySectorSection" type="VBoxContainer"]
+alignment = 1
+script = ExtResource("1_t5th8")
+BEAM_GATE_KEY_SECTOR_CONTAINER = ExtResource("1_cbqfn")
+
+[node name="BeamGateKeySectorVBox" parent="." instance=ExtResource("1_cbqfn")]
+layout_mode = 2
+
+[node name="BeamGateKeySectorVBox2" parent="." instance=ExtResource("1_cbqfn")]
+layout_mode = 2
+
+[node name="BeamGateKeySectorVBox3" parent="." instance=ExtResource("1_cbqfn")]
+layout_mode = 2

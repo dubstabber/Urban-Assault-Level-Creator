@@ -1,0 +1,16 @@
+[gd_scene load_steps=2 format=3 uid="uid://bfmapkerqoldp"]
+
+[ext_resource type="Script" path="res://modals/components/item_check_box_container.gd" id="1_fweap"]
+
+[node name="ItemCheckBoxContainer" type="HBoxContainer"]
+script = ExtResource("1_fweap")
+
+[node name="UnitTexture" type="TextureRect" parent="."]
+custom_minimum_size = Vector2(15, 15)
+layout_mode = 2
+size_flags_horizontal = 4
+size_flags_vertical = 4
+
+[node name="UnitCheckBox" type="CheckBox" parent="."]
+layout_mode = 2
+theme_override_font_sizes/font_size = 12

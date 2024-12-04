@@ -6,11 +6,17 @@ signal save_map_requested
 signal save_as_map_requested
 signal close_map_requested
 signal exit_editor_requested
+signal load_hs_behavior_dialog_requested
+signal save_hs_behavior_dialog_requested
+signal behavior_loaded(behavior_data: Dictionary)
+signal sector_height_window_requested
+signal sector_building_windows_requested
 
 signal map_created
 signal unit_selected
 signal sector_selected
 signal left_double_clicked
+signal global_right_clicked(clicked_x: int, clicked_y: int)
 
 signal game_type_changed
 signal hoststation_added(owner_id: int, vehicle_id: int)

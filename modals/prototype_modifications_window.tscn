@@ -1,0 +1,85 @@
+[gd_scene load_steps=2 format=3 uid="uid://ddlqlnhwj21fc"]
+
+[ext_resource type="Script" path="res://modals/prototype_modifications_window.gd" id="1_mlj6c"]
+
+[node name="PrototypeModificationsWindow" type="Window"]
+auto_translate_mode = 1
+title = "Prototype modifications"
+initial_position = 1
+size = Vector2i(800, 600)
+transient = true
+exclusive = true
+script = ExtResource("1_mlj6c")
+
+[node name="PanelContainer" type="PanelContainer" parent="."]
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="ScrollContainer" type="ScrollContainer" parent="PanelContainer"]
+layout_mode = 2
+
+[node name="MarginContainer" type="MarginContainer" parent="PanelContainer/ScrollContainer"]
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_vertical = 3
+theme_override_constants/margin_left = 12
+theme_override_constants/margin_top = 12
+theme_override_constants/margin_right = 12
+theme_override_constants/margin_bottom = 12
+
+[node name="VBoxContainer" type="VBoxContainer" parent="PanelContainer/ScrollContainer/MarginContainer"]
+layout_mode = 2
+
+[node name="Label" type="Label" parent="PanelContainer/ScrollContainer/MarginContainer/VBoxContainer"]
+custom_minimum_size = Vector2(50, 10)
+layout_mode = 2
+theme_override_font_sizes/font_size = 14
+text = "This section allows you to modify any vehicle, weapon, or building. Be aware that entering incorrect data may cause the game to crash"
+horizontal_alignment = 1
+autowrap_mode = 2
+
+[node name="PrototypeModificationsTextEdit" type="TextEdit" parent="PanelContainer/ScrollContainer/MarginContainer/VBoxContainer"]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_vertical = 3
+theme_override_font_sizes/font_size = 14
+text = "include data:scripts/startup2.scr"
+
+[node name="HBoxContainer" type="HBoxContainer" parent="PanelContainer/ScrollContainer/MarginContainer/VBoxContainer"]
+layout_mode = 2
+theme_override_constants/separation = 15
+alignment = 1
+
+[node name="OriginalResetButton" type="Button" parent="PanelContainer/ScrollContainer/MarginContainer/VBoxContainer/HBoxContainer"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 12
+text = "Reset for original campaign"
+
+[node name="MDGhorkovResetButton" type="Button" parent="PanelContainer/ScrollContainer/MarginContainer/VBoxContainer/HBoxContainer"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 12
+text = "Reset for Metropolis Dawn(Ghorkov)"
+
+[node name="MDTaerkastenTesetButton" type="Button" parent="PanelContainer/ScrollContainer/MarginContainer/VBoxContainer/HBoxContainer"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 12
+text = "Reset for Metropolis Dawn(Taerkasten)"
+
+[node name="HSeparator" type="HSeparator" parent="PanelContainer/ScrollContainer/MarginContainer/VBoxContainer"]
+layout_mode = 2
+
+[node name="CloseButton" type="Button" parent="PanelContainer/ScrollContainer/MarginContainer/VBoxContainer"]
+layout_mode = 2
+size_flags_horizontal = 4
+theme_override_font_sizes/font_size = 14
+text = "Close"
+
+[connection signal="about_to_popup" from="." to="." method="_on_about_to_popup"]
+[connection signal="close_requested" from="." to="." method="close"]
+[connection signal="pressed" from="PanelContainer/ScrollContainer/MarginContainer/VBoxContainer/HBoxContainer/OriginalResetButton" to="." method="_on_original_reset_button_pressed"]
+[connection signal="pressed" from="PanelContainer/ScrollContainer/MarginContainer/VBoxContainer/HBoxContainer/MDGhorkovResetButton" to="." method="_on_md_ghorkov_reset_button_pressed"]
+[connection signal="pressed" from="PanelContainer/ScrollContainer/MarginContainer/VBoxContainer/HBoxContainer/MDTaerkastenTesetButton" to="." method="_on_md_taerkasten_teset_button_pressed"]
+[connection signal="pressed" from="PanelContainer/ScrollContainer/MarginContainer/VBoxContainer/CloseButton" to="." method="close"]

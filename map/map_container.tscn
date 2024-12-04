@@ -1,0 +1,100 @@
+[gd_scene load_steps=12 format=3 uid="uid://dy8lh8y52680p"]
+
+[ext_resource type="Script" path="res://map/map_container.gd" id="1_5foj2"]
+[ext_resource type="Script" path="res://map/map_renderer.gd" id="2_v1tro"]
+[ext_resource type="Script" path="res://map/context_menu_builders/add_host_station_context_menu.gd" id="3_5rxkp"]
+[ext_resource type="Script" path="res://map/context_menu_builders/add_squad_context_menu.gd" id="4_k643x"]
+[ext_resource type="Script" path="res://map/context_menu_builders/change_faction_context_menu.gd" id="5_r6vs5"]
+[ext_resource type="Script" path="res://map/context_menu_builders/change_height_context_menu.gd" id="6_ixe4a"]
+[ext_resource type="Script" path="res://map/context_menu_builders/add_building_context_menu.gd" id="7_wljrt"]
+[ext_resource type="Script" path="res://map/context_menu_builders/add_special_building_context_menu.gd" id="8_g5uc3"]
+[ext_resource type="Script" path="res://map/context_menu_builders/add_item_context_menu.gd" id="9_t3ijr"]
+[ext_resource type="Script" path="res://map/context_menu_builders/clean_sector_context_menu.gd" id="10_g5mjj"]
+[ext_resource type="Script" path="res://map/context_menu_builders/remove_unit_context_menu.gd" id="11_3ytp4"]
+
+[node name="MapContainer" type="ScrollContainer"]
+custom_minimum_size = Vector2(200, 200)
+script = ExtResource("1_5foj2")
+
+[node name="SubViewportMapContainer" type="SubViewportContainer" parent="."]
+unique_name_in_owner = true
+layout_mode = 2
+stretch = true
+
+[node name="SubViewport" type="SubViewport" parent="SubViewportMapContainer"]
+handle_input_locally = false
+size = Vector2i(2, 2)
+render_target_update_mode = 4
+
+[node name="Map" type="Control" parent="SubViewportMapContainer/SubViewport"]
+unique_name_in_owner = true
+layout_mode = 3
+anchors_preset = 0
+mouse_filter = 1
+script = ExtResource("2_v1tro")
+
+[node name="Camera2D" type="Camera2D" parent="SubViewportMapContainer/SubViewport/Map"]
+anchor_mode = 0
+zoom = Vector2(0.1, 0.1)
+
+[node name="HostStations" type="Control" parent="SubViewportMapContainer/SubViewport/Map"]
+anchors_preset = 0
+mouse_filter = 1
+
+[node name="Squads" type="Control" parent="SubViewportMapContainer/SubViewport/Map"]
+anchors_preset = 0
+
+[node name="MapContextMenu" type="PopupMenu" parent="SubViewportMapContainer/SubViewport"]
+unique_name_in_owner = true
+auto_translate_mode = 1
+
+[node name="AddHostStation" type="Node" parent="SubViewportMapContainer/SubViewport/MapContextMenu"]
+script = ExtResource("3_5rxkp")
+
+[node name="AddSquad" type="Node" parent="SubViewportMapContainer/SubViewport/MapContextMenu"]
+script = ExtResource("4_k643x")
+
+[node name="ChangeFaction" type="Node" parent="SubViewportMapContainer/SubViewport/MapContextMenu"]
+script = ExtResource("5_r6vs5")
+
+[node name="ChangeHeight" type="Node" parent="SubViewportMapContainer/SubViewport/MapContextMenu"]
+script = ExtResource("6_ixe4a")
+
+[node name="AddBuilding" type="Node" parent="SubViewportMapContainer/SubViewport/MapContextMenu"]
+script = ExtResource("7_wljrt")
+
+[node name="AddSpecialBuilding" type="Node" parent="SubViewportMapContainer/SubViewport/MapContextMenu"]
+script = ExtResource("8_g5uc3")
+
+[node name="AddItem" type="Node" parent="SubViewportMapContainer/SubViewport/MapContextMenu"]
+script = ExtResource("9_t3ijr")
+
+[node name="CleanSector" type="Node" parent="SubViewportMapContainer/SubViewport/MapContextMenu"]
+script = ExtResource("10_g5mjj")
+
+[node name="UnitContextMenu" type="PopupMenu" parent="SubViewportMapContainer/SubViewport"]
+unique_name_in_owner = true
+auto_translate_mode = 1
+size = Vector2i(100, 20)
+
+[node name="RemoveUnit" type="Node" parent="SubViewportMapContainer/SubViewport/UnitContextMenu"]
+script = ExtResource("11_3ytp4")
+
+[node name="MultiSectorMapContextMenu" type="PopupMenu" parent="SubViewportMapContainer/SubViewport"]
+unique_name_in_owner = true
+auto_translate_mode = 1
+
+[node name="ChangeFaction" type="Node" parent="SubViewportMapContainer/SubViewport/MultiSectorMapContextMenu"]
+script = ExtResource("5_r6vs5")
+
+[node name="ChangeHeight" type="Node" parent="SubViewportMapContainer/SubViewport/MultiSectorMapContextMenu"]
+script = ExtResource("6_ixe4a")
+
+[node name="AddBuilding" type="Node" parent="SubViewportMapContainer/SubViewport/MultiSectorMapContextMenu"]
+script = ExtResource("7_wljrt")
+
+[node name="AddSpecialBuilding" type="Node" parent="SubViewportMapContainer/SubViewport/MultiSectorMapContextMenu"]
+script = ExtResource("8_g5uc3")
+
+[node name="CleanSector" type="Node" parent="SubViewportMapContainer/SubViewport/MultiSectorMapContextMenu"]
+script = ExtResource("10_g5mjj")

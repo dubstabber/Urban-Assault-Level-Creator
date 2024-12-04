@@ -2,8 +2,8 @@ extends Node
 
 var ua_data: JSON = preload("res://resources/UAdata.json")
 
-const HOSTSTATION = preload("res://scenes/host_station.tscn")
-const SQUAD = preload("res://scenes/squad.tscn")
+const HOSTSTATION = preload("res://map/ua_structures/host_station.tscn")
+const SQUAD = preload("res://map/ua_structures/squad.tscn")
 
 var hs_images := {}
 var hs_robo_images := {}

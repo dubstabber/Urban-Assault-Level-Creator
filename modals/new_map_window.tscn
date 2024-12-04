@@ -1,0 +1,87 @@
+[gd_scene load_steps=2 format=3 uid="uid://c3kputnns5tlf"]
+
+[ext_resource type="Script" path="res://modals/new_map_window.gd" id="1_0khff"]
+
+[node name="NewMapWindow" type="Window"]
+auto_translate_mode = 1
+title = "Create a new map"
+initial_position = 1
+size = Vector2i(530, 200)
+visible = false
+transient = true
+exclusive = true
+unresizable = true
+script = ExtResource("1_0khff")
+
+[node name="PanelContainer" type="PanelContainer" parent="."]
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="MarginContainer" type="MarginContainer" parent="PanelContainer"]
+layout_mode = 2
+theme_override_constants/margin_top = 8
+
+[node name="Label" type="Label" parent="PanelContainer/MarginContainer"]
+layout_mode = 2
+size_flags_horizontal = 4
+size_flags_vertical = 0
+text = "Enter number of sectors for horizontal and vertical space:"
+
+[node name="MarginContainer2" type="MarginContainer" parent="PanelContainer"]
+layout_mode = 2
+size_flags_vertical = 4
+theme_override_constants/margin_left = 100
+theme_override_constants/margin_bottom = 25
+
+[node name="GridContainer" type="GridContainer" parent="PanelContainer/MarginContainer2"]
+layout_mode = 2
+columns = 2
+
+[node name="Label" type="Label" parent="PanelContainer/MarginContainer2/GridContainer"]
+layout_mode = 2
+text = "Horizontal sectors:"
+horizontal_alignment = 2
+
+[node name="SpinBox" type="SpinBox" parent="PanelContainer/MarginContainer2/GridContainer"]
+layout_mode = 2
+min_value = 1.0
+max_value = 1000.0
+value = 6.0
+allow_greater = true
+
+[node name="Label2" type="Label" parent="PanelContainer/MarginContainer2/GridContainer"]
+layout_mode = 2
+text = "Vertical sectors:"
+horizontal_alignment = 2
+
+[node name="SpinBox2" type="SpinBox" parent="PanelContainer/MarginContainer2/GridContainer"]
+layout_mode = 2
+min_value = 1.0
+max_value = 1000.0
+value = 6.0
+allow_greater = true
+
+[node name="MarginContainer3" type="MarginContainer" parent="PanelContainer"]
+layout_mode = 2
+size_flags_horizontal = 4
+size_flags_vertical = 8
+theme_override_constants/margin_bottom = 15
+
+[node name="HBoxContainer" type="HBoxContainer" parent="PanelContainer/MarginContainer3"]
+layout_mode = 2
+theme_override_constants/separation = 20
+
+[node name="CancelButton" type="Button" parent="PanelContainer/MarginContainer3/HBoxContainer"]
+layout_mode = 2
+text = "Cancel"
+
+[node name="CreateButton" type="Button" parent="PanelContainer/MarginContainer3/HBoxContainer"]
+layout_mode = 2
+text = "Create"
+
+[connection signal="close_requested" from="." to="." method="hide"]
+[connection signal="pressed" from="PanelContainer/MarginContainer3/HBoxContainer/CancelButton" to="." method="hide"]
+[connection signal="pressed" from="PanelContainer/MarginContainer3/HBoxContainer/CreateButton" to="." method="_on_create_button_pressed"]

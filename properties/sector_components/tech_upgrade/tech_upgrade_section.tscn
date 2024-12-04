@@ -1,0 +1,130 @@
+[gd_scene load_steps=5 format=3 uid="uid://bwoqr46387uyb"]
+
+[ext_resource type="PackedScene" uid="uid://1tb0vcurfq8p" path="res://properties/sector_components/tech_upgrade/tech_upgrade_modifiers/tech_upgrade_modifier_1.tscn" id="1_i1upn"]
+[ext_resource type="Script" path="res://properties/sector_components/tech_upgrade/tech_upgrade_section.gd" id="1_rs1k5"]
+[ext_resource type="PackedScene" uid="uid://cr4k2w8eq5ovg" path="res://properties/sector_components/tech_upgrade/tech_upgrade_modifiers/tech_upgrade_modifier_2.tscn" id="2_8gbl3"]
+[ext_resource type="PackedScene" uid="uid://brldpw5luakhu" path="res://properties/sector_components/tech_upgrade/tech_upgrade_modifiers/tech_upgrade_modifier_3.tscn" id="4_4dhvb"]
+
+[node name="TechUpgradeSection" type="VBoxContainer"]
+alignment = 1
+script = ExtResource("1_rs1k5")
+TECH_UPGRADE_MODIFIER_1 = ExtResource("1_i1upn")
+TECH_UPGRADE_MODIFIER_2 = ExtResource("2_8gbl3")
+TECH_UPGRADE_MODIFIER_3 = ExtResource("4_4dhvb")
+
+[node name="HSeparator" type="HSeparator" parent="."]
+layout_mode = 2
+
+[node name="Label" type="Label" parent="."]
+layout_mode = 2
+text = "Tech upgrade"
+horizontal_alignment = 1
+
+[node name="HBoxContainer" type="HBoxContainer" parent="."]
+layout_mode = 2
+alignment = 1
+
+[node name="Label" type="Label" parent="HBoxContainer"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 12
+text = "Building type: "
+
+[node name="TUOptionButton" type="OptionButton" parent="HBoxContainer"]
+unique_name_in_owner = true
+layout_mode = 2
+theme_override_font_sizes/font_size = 11
+alignment = 1
+selected = 0
+item_count = 9
+popup/item_0/text = "Sphinx(set 5 only)"
+popup/item_0/id = 60
+popup/item_1/text = "Wall left"
+popup/item_1/id = 61
+popup/item_2/text = "Gate and street"
+popup/item_2/id = 4
+popup/item_3/text = "Gate with flak and street"
+popup/item_3/id = 7
+popup/item_4/text = "Cross"
+popup/item_4/id = 15
+popup/item_5/text = "Wall at the top with tower"
+popup/item_5/id = 51
+popup/item_6/text = "4 towers"
+popup/item_6/id = 50
+popup/item_7/text = "Square"
+popup/item_7/id = 16
+popup/item_8/text = "1 tower"
+popup/item_8/id = 65
+
+[node name="HBoxContainer2" type="HBoxContainer" parent="."]
+layout_mode = 2
+alignment = 1
+
+[node name="Label" type="Label" parent="HBoxContainer2"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 12
+text = "Sound type: "
+
+[node name="SoundTypeOptionButton" type="OptionButton" parent="HBoxContainer2"]
+unique_name_in_owner = true
+layout_mode = 2
+theme_override_font_sizes/font_size = 11
+alignment = 1
+selected = 0
+item_count = 6
+popup/item_0/text = "Weapon upgrade"
+popup/item_0/id = 1
+popup/item_1/text = "Shield upgrade"
+popup/item_1/id = 2
+popup/item_2/text = "New vehicle"
+popup/item_2/id = 3
+popup/item_3/text = "New building"
+popup/item_3/id = 4
+popup/item_4/text = "Radar station expansion for the scout"
+popup/item_4/id = 5
+popup/item_5/text = "none"
+popup/item_5/id = 99
+
+[node name="TechUpgradeMBstatusCheckBox" type="CheckBox" parent="."]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_horizontal = 4
+theme_override_font_sizes/font_size = 10
+text = "Make this tech upgrade invisible in the Mission Briefing"
+
+[node name="HBoxContainer3" type="HBoxContainer" parent="."]
+layout_mode = 2
+alignment = 1
+
+[node name="Label" type="Label" parent="HBoxContainer3"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 12
+text = "Modify: "
+
+[node name="TUmodifyOptionButton" type="OptionButton" parent="HBoxContainer3"]
+unique_name_in_owner = true
+layout_mode = 2
+theme_override_font_sizes/font_size = 12
+selected = 0
+item_count = 2
+popup/item_0/text = "Test item 1"
+popup/item_1/text = "Test item 2"
+popup/item_1/id = 1
+
+[node name="TUAddItemButton" type="Button" parent="HBoxContainer3"]
+unique_name_in_owner = true
+layout_mode = 2
+text = "+"
+
+[node name="TechUpgradeModifiersContainer" type="VBoxContainer" parent="."]
+unique_name_in_owner = true
+layout_mode = 2
+alignment = 1
+
+[node name="TechUpgradeModifier1" parent="TechUpgradeModifiersContainer" instance=ExtResource("1_i1upn")]
+layout_mode = 2
+
+[node name="TechUpgradeModifier2" parent="TechUpgradeModifiersContainer" instance=ExtResource("1_i1upn")]
+layout_mode = 2
+
+[node name="TechUpgradeModifier3" parent="TechUpgradeModifiersContainer" instance=ExtResource("2_8gbl3")]
+layout_mode = 2
