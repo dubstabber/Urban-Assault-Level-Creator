@@ -546,6 +546,8 @@ static func _handle_modifications(file: FileAccess) -> void:
 			CurrentMapData.prototype_modifications += string_line + '\n'
 			string_line = file.get_line()
 			if not string_line.is_empty() and string_line[0] == ';': break
+		
+		CurrentMapData.prototype_modifications = CurrentMapData.prototype_modifications.strip_edges()
 
 
 static func _handle_prototype_enabling(file: FileAccess) -> void:
