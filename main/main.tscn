@@ -1,4 +1,4 @@
-[gd_scene load_steps=29 format=3 uid="uid://ctgiwn3scteuk"]
+[gd_scene load_steps=30 format=3 uid="uid://ctgiwn3scteuk"]
 
 [ext_resource type="Script" path="res://main/main.gd" id="1_7pb5r"]
 [ext_resource type="Script" path="res://modals/modals.gd" id="2_glk8b"]
@@ -24,6 +24,7 @@
 [ext_resource type="Script" path="res://modals/open_level_file_dialog.gd" id="17_g67l2"]
 [ext_resource type="Script" path="res://modals/save_level_file_dialog.gd" id="17_tgjwx"]
 [ext_resource type="PackedScene" uid="uid://dy8lh8y52680p" path="res://map/map_container.tscn" id="19_hkn6c"]
+[ext_resource type="Script" path="res://modals/open_map_error_accept_dialog.gd" id="20_272kt"]
 [ext_resource type="PackedScene" uid="uid://dg5m8iyihbvmu" path="res://properties/properties_container.tscn" id="20_eh4tf"]
 
 [sub_resource type="ButtonGroup" id="ButtonGroup_238se"]
@@ -162,6 +163,12 @@ initial_position = 1
 ok_button_text = "Yes"
 dialog_text = "The current map is not saved. Do you want to save it now?"
 cancel_button_text = "No"
+
+[node name="OpenMapErrorAcceptDialog" type="AcceptDialog" parent="Modals"]
+title = "Open map error"
+initial_position = 1
+size = Vector2i(300, 100)
+script = ExtResource("20_272kt")
 
 [node name="PanelContainer" type="PanelContainer" parent="."]
 layout_mode = 1

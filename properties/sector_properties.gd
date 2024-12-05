@@ -15,7 +15,7 @@ func _update_properties() -> void:
 		else: %MultiSectorContainer.hide()
 		
 		%SectorPropertiesContainer.show()
-		%SectorPositionLabel.text = "Sector X: %s Y: %s" % [CurrentMapData.selected_sector.x, CurrentMapData.selected_sector.y]
+		%SectorPositionLabel.text = "Selected sector X: %s Y: %s" % [CurrentMapData.selected_sector.x, CurrentMapData.selected_sector.y]
 		
 		if CurrentMapData.own_map[CurrentMapData.selected_sector_idx] == 0:
 			%SectorOwnerLabel.text = "Neutral"

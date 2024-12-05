@@ -32,7 +32,7 @@ static func load_level() -> void:
 		printerr("Vertical sectors: %s" % CurrentMapData.vertical_sectors)
 		printerr("Total sectors: %s" % total_sectors)
 		printerr("Total sectors with borders: %s" % total_border_sectors)
-		EventSystem.open_map_errored.emit()
+		EventSystem.open_map_failed.emit()
 		return
 	
 	file.seek(0)
