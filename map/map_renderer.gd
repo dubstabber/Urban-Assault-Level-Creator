@@ -236,6 +236,8 @@ func _draw():
 		var pos_x = tech_upgrade.sec_x * 1200 + sector_indent
 		var pos_y = tech_upgrade.sec_y * 1200 + sector_indent
 		draw_texture_rect(Preloads.sector_item_images.tech_upgrades[tech_upgrade.building_id], Rect2(pos_x, pos_y,1200-(sector_indent*2),1200-(sector_indent*2)), false)
+		if tech_upgrade.building_id == 60 and CurrentMapData.level_set != 5:
+			draw_texture_rect(Preloads.error_sign, Rect2(pos_x, pos_y,1200-(sector_indent*2),1200-(sector_indent*2)), false)
 	
 	current_sector = 0
 	current_border_sector = 0

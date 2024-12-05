@@ -63,6 +63,11 @@ func _ready() -> void:
 func _update_properties() -> void:
 	if CurrentMapData.selected_tech_upgrade:
 		show()
+		if CurrentMapData.selected_tech_upgrade.building_id == 60 and CurrentMapData.level_set != 5:
+			%InvalidBuildingLabel.show()
+		else:
+			%InvalidBuildingLabel.hide()
+		
 		%TUOptionButton.select(%TUOptionButton.get_item_index(CurrentMapData.selected_tech_upgrade.building_id))
 		%SoundTypeOptionButton.select(%SoundTypeOptionButton.get_item_index(CurrentMapData.selected_tech_upgrade.type))
 		%TechUpgradeMBstatusCheckBox.button_pressed = CurrentMapData.selected_tech_upgrade.mb_status
@@ -91,7 +96,7 @@ func _update_properties() -> void:
 				tu_modifier1.update_ui()
 				%TechUpgradeModifiersContainer.add_child(tu_modifier1)
 			else:
-				printerr("TECH_UPGRADE_MODIFIER_1 scene could not be find")
+				printerr("TECH_UPGRADE_MODIFIER_1 scene could not be found")
 		
 		for weapon_modifier in CurrentMapData.selected_tech_upgrade.weapons:
 			if CurrentMapData.selected_tech_upgrade.vehicles.any(func(vehicle):
