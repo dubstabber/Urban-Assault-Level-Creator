@@ -29,6 +29,12 @@ func _update_properties() -> void:
 			%SpecialBuildingLabel.text = 'None'
 		elif CurrentMapData.blg_names.has(str(CurrentMapData.blg_map[CurrentMapData.selected_sector_idx])):
 			%SpecialBuildingLabel.text = CurrentMapData.blg_names[(str(CurrentMapData.blg_map[CurrentMapData.selected_sector_idx]))]
+		elif CurrentMapData.blg_map[CurrentMapData.selected_sector_idx] in [5, 25]:
+			%SpecialBuildingLabel.text = 'Beam gate'
+		elif CurrentMapData.blg_map[CurrentMapData.selected_sector_idx] in [35, 68]:
+			%SpecialBuildingLabel.text = 'Stoudson bomb'
+		elif CurrentMapData.blg_map[CurrentMapData.selected_sector_idx] in [60, 61, 4, 7, 15, 51, 50, 16, 65]:
+			%SpecialBuildingLabel.text = 'Tech upgrade'
 		else:
 			%SpecialBuildingLabel.text = 'Unknown'
 		

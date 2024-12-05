@@ -47,9 +47,12 @@ func _ready() -> void:
 			tu_modifier3.item_name = item_name
 			%TechUpgradeModifiersContainer.add_child(tu_modifier3)
 		elif item_name in CurrentMapData.units_db:
-			var tu_modifier1 = TECH_UPGRADE_MODIFIER_1.instantiate()
-			tu_modifier1.item_name = item_name
-			%TechUpgradeModifiersContainer.add_child(tu_modifier1)
+			if TECH_UPGRADE_MODIFIER_1:
+				var tu_modifier1 = TECH_UPGRADE_MODIFIER_1.instantiate()
+				tu_modifier1.item_name = item_name
+				%TechUpgradeModifiersContainer.add_child(tu_modifier1)
+			else:
+				printerr("TECH_UPGRADE_MODIFIER_1 scene could not be find")
 		elif item_name in CurrentMapData.blg_names.values():
 			var tu_modifier2 = TECH_UPGRADE_MODIFIER_2.instantiate()
 			tu_modifier2.item_name = item_name
@@ -59,7 +62,7 @@ func _ready() -> void:
 
 func _update_properties() -> void:
 	if CurrentMapData.selected_tech_upgrade:
-		%TechUpgradeSection.show()
+		show()
 		%TUOptionButton.select(%TUOptionButton.get_item_index(CurrentMapData.selected_tech_upgrade.building_id))
 		%SoundTypeOptionButton.select(%SoundTypeOptionButton.get_item_index(CurrentMapData.selected_tech_upgrade.type))
 		%TechUpgradeMBstatusCheckBox.button_pressed = CurrentMapData.selected_tech_upgrade.mb_status
@@ -72,20 +75,23 @@ func _update_properties() -> void:
 		for modifier in %TechUpgradeModifiersContainer.get_children():
 			modifier.queue_free()
 		for vehicle_modifier in CurrentMapData.selected_tech_upgrade.vehicles:
-			var tu_modifier1 = TECH_UPGRADE_MODIFIER_1.instantiate()
-			tu_modifier1.vehicle_modifier = vehicle_modifier
-			var vehicle_name: String
-			for unit in CurrentMapData.units_db:
-				if CurrentMapData.units_db[unit] == vehicle_modifier.vehicle_id:
-					vehicle_name = unit
-					break
-			
-			tu_modifier1.item_name = vehicle_name
-			for weapon_modifier in CurrentMapData.selected_tech_upgrade.weapons:
-				if weapon_modifier.weapon_id == vehicle_modifier.vehicle_id:
-					tu_modifier1.weapon_modifier = weapon_modifier
-			tu_modifier1.update_ui()
-			%TechUpgradeModifiersContainer.add_child(tu_modifier1)
+			if TECH_UPGRADE_MODIFIER_1:
+				var tu_modifier1 = TECH_UPGRADE_MODIFIER_1.instantiate()
+				tu_modifier1.vehicle_modifier = vehicle_modifier
+				var vehicle_name: String
+				for unit in CurrentMapData.units_db:
+					if CurrentMapData.units_db[unit] == vehicle_modifier.vehicle_id:
+						vehicle_name = unit
+						break
+				
+				tu_modifier1.item_name = vehicle_name
+				for weapon_modifier in CurrentMapData.selected_tech_upgrade.weapons:
+					if weapon_modifier.weapon_id == vehicle_modifier.vehicle_id:
+						tu_modifier1.weapon_modifier = weapon_modifier
+				tu_modifier1.update_ui()
+				%TechUpgradeModifiersContainer.add_child(tu_modifier1)
+			else:
+				printerr("TECH_UPGRADE_MODIFIER_1 scene could not be find")
 		
 		for weapon_modifier in CurrentMapData.selected_tech_upgrade.weapons:
 			if CurrentMapData.selected_tech_upgrade.vehicles.any(func(vehicle):
@@ -120,4 +126,4 @@ func _update_properties() -> void:
 			tu_modifier2.update_ui()
 			%TechUpgradeModifiersContainer.add_child(tu_modifier2)
 	else:
-		%TechUpgradeSection.hide()
+		hide()

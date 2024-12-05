@@ -1,0 +1,124 @@
+[gd_scene load_steps=4 format=3 uid="uid://wmfw6govhni3"]
+
+[ext_resource type="Script" path="res://properties/unit_components/squad/squad_properties.gd" id="1_6qsq1"]
+[ext_resource type="Theme" uid="uid://cdrs6kxi0mn0v" path="res://resources/themes/ua_theme.tres" id="1_iwvux"]
+
+[sub_resource type="PlaceholderTexture2D" id="PlaceholderTexture2D_37be0"]
+
+[node name="SquadProperties" type="VBoxContainer"]
+alignment = 1
+script = ExtResource("1_6qsq1")
+
+[node name="HBoxContainer" type="HBoxContainer" parent="."]
+layout_mode = 2
+alignment = 1
+
+[node name="SquadIcon" type="TextureRect" parent="HBoxContainer"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(20, 20)
+layout_mode = 2
+texture = SubResource("PlaceholderTexture2D_37be0")
+
+[node name="SquadLabel" type="Label" parent="HBoxContainer"]
+layout_mode = 2
+text = "Squad:"
+
+[node name="SquadNameLabel" type="Label" parent="HBoxContainer"]
+unique_name_in_owner = true
+layout_mode = 2
+text = "SquadName"
+
+[node name="HSeparator" type="HSeparator" parent="."]
+layout_mode = 2
+
+[node name="HBoxContainer2" type="HBoxContainer" parent="."]
+layout_mode = 2
+alignment = 1
+
+[node name="GridContainer" type="GridContainer" parent="HBoxContainer2"]
+layout_mode = 2
+columns = 2
+
+[node name="QuantityLabel" type="Label" parent="HBoxContainer2/GridContainer"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 12
+text = "Number of units: "
+
+[node name="QuantitySpinBox" type="SpinBox" parent="HBoxContainer2/GridContainer"]
+unique_name_in_owner = true
+layout_mode = 2
+theme = ExtResource("1_iwvux")
+min_value = 1.0
+max_value = 32.0
+value = 1.0
+update_on_text_changed = true
+
+[node name="FactionLabel" type="Label" parent="HBoxContainer2/GridContainer"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 12
+text = "Unit faction: "
+
+[node name="FactionOptionButton" type="OptionButton" parent="HBoxContainer2/GridContainer"]
+unique_name_in_owner = true
+layout_mode = 2
+theme_override_font_sizes/font_size = 12
+
+[node name="HSeparator2" type="HSeparator" parent="."]
+layout_mode = 2
+
+[node name="HBoxContainer3" type="HBoxContainer" parent="."]
+layout_mode = 2
+alignment = 1
+
+[node name="XposLabel" type="Label" parent="HBoxContainer3"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 12
+text = "x: "
+
+[node name="XposSquadLineEdit" type="LineEdit" parent="HBoxContainer3"]
+unique_name_in_owner = true
+layout_mode = 2
+theme_override_font_sizes/font_size = 12
+text = "000"
+
+[node name="ZposLabel" type="Label" parent="HBoxContainer3"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 12
+text = "z: 
+"
+
+[node name="ZposSquadLineEdit" type="LineEdit" parent="HBoxContainer3"]
+unique_name_in_owner = true
+layout_mode = 2
+theme_override_font_sizes/font_size = 12
+text = "000"
+
+[node name="HSeparator3" type="HSeparator" parent="."]
+layout_mode = 2
+
+[node name="UseableLabel" type="Label" parent="."]
+layout_mode = 2
+theme_override_font_sizes/font_size = 12
+text = "Useable:"
+horizontal_alignment = 1
+
+[node name="UseableCheckBox" type="CheckBox" parent="."]
+unique_name_in_owner = true
+layout_mode = 2
+theme_override_font_sizes/font_size = 12
+text = "AI may use this squad as normal units"
+
+[node name="HSeparator4" type="HSeparator" parent="."]
+layout_mode = 2
+
+[node name="MBstatusLabel" type="Label" parent="."]
+layout_mode = 2
+theme_override_font_sizes/font_size = 12
+text = "MB status: "
+horizontal_alignment = 1
+
+[node name="MBstatusSquadCheckBox" type="CheckBox" parent="."]
+unique_name_in_owner = true
+layout_mode = 2
+theme_override_font_sizes/font_size = 12
+text = "Make this squad invisible in the Mission Briefing"

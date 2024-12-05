@@ -80,7 +80,7 @@ func _input(event):
 			is_number_pressed = true
 			handle_selection(round(get_local_mouse_position().x), round(get_local_mouse_position().y))
 			if CurrentMapData.selected_sector_idx >= 0 and CurrentMapData.own_map.size() > 0:
-				if CurrentMapData.blg_map[CurrentMapData.selected_sector_idx] != 0 and number_key == 0:
+				if CurrentMapData.blg_map[CurrentMapData.selected_sector_idx] not in [0, 35, 68] and number_key == 0:
 					CurrentMapData.own_map[CurrentMapData.selected_sector_idx] = 7
 				else:
 					CurrentMapData.own_map[CurrentMapData.selected_sector_idx] = number_key

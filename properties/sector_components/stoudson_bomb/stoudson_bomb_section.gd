@@ -47,7 +47,7 @@ func _ready() -> void:
 
 func _update_properties() -> void:
 	if CurrentMapData.selected_bomb:
-		%StoudsonBombSection.show()
+		show()
 		%BombInfoLabel.text = "Stoudson bomb %s" % (CurrentMapData.stoudson_bombs.find(CurrentMapData.selected_bomb)+1)
 		if CurrentMapData.selected_bomb.inactive_bp == 35:
 			%BombBuildingOptionButton.selected = 0
@@ -77,7 +77,7 @@ func _update_properties() -> void:
 			%BombKeySectorsLabel.hide()
 			%BombKeySectorsListContainer.hide()
 	else:
-		%StoudsonBombSection.hide()
+		hide()
 
 
 func _update_countdown() -> void:

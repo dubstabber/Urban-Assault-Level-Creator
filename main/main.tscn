@@ -202,4 +202,5 @@ layout_mode = 2
 
 [node name="PropertiesContainer" parent="PanelContainer/MarginContainer/VBoxContainer/HSplitContainer" instance=ExtResource("20_eh4tf")]
 unique_name_in_owner = true
+visible = false
 layout_mode = 2
