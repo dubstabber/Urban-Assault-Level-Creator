@@ -17,6 +17,24 @@ static func load_level() -> void:
 		_handle_hgt_map(file)
 		_handle_blg_map(file)
 	
+	var total_sectors = CurrentMapData.horizontal_sectors * CurrentMapData.vertical_sectors
+	var total_border_sectors = (CurrentMapData.horizontal_sectors+2) * (CurrentMapData.vertical_sectors+2)
+	if (CurrentMapData.typ_map.size() != total_sectors or CurrentMapData.own_map.size() != total_sectors or 
+		CurrentMapData.blg_map.size() != total_sectors or CurrentMapData.horizontal_sectors == 0 or CurrentMapData.vertical_sectors == 0 or 
+		CurrentMapData.hgt_map.size() != total_border_sectors or CurrentMapData.typ_map.is_empty() or CurrentMapData.own_map.is_empty() or 
+		CurrentMapData.blg_map.is_empty() or CurrentMapData.hgt_map.is_empty()):
+		printerr("Something went wrong while opening the file")
+		printerr("typ_map size: %s" % CurrentMapData.typ_map.size())
+		printerr("own_map size: %s" % CurrentMapData.own_map.size())
+		printerr("blg_map size: %s" % CurrentMapData.blg_map.size())
+		printerr("hgt_map size: %s" % CurrentMapData.hgt_map.size())
+		printerr("Horizontal sectors: %s" % CurrentMapData.horizontal_sectors)
+		printerr("Vertical sectors: %s" % CurrentMapData.vertical_sectors)
+		printerr("Total sectors: %s" % total_sectors)
+		printerr("Total sectors with borders: %s" % total_border_sectors)
+		EventSystem.open_map_errored.emit()
+		return
+	
 	file.seek(0)
 	
 	_handle_description(file)

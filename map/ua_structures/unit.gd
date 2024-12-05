@@ -59,6 +59,7 @@ func recalculate_limits():
 
 func _on_button_mouse_entered() -> void:
 	CurrentMapData.mouse_over_unit = self
+	set_default_cursor_shape(CursorShape.CURSOR_POINTING_HAND)
 
 
 func _on_button_mouse_exited() -> void:

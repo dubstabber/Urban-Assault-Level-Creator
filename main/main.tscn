@@ -1,6 +1,7 @@
-[gd_scene load_steps=26 format=3 uid="uid://ctgiwn3scteuk"]
+[gd_scene load_steps=29 format=3 uid="uid://ctgiwn3scteuk"]
 
 [ext_resource type="Script" path="res://main/main.gd" id="1_7pb5r"]
+[ext_resource type="Script" path="res://modals/modals.gd" id="2_glk8b"]
 [ext_resource type="PackedScene" uid="uid://dww5muvu8c87j" path="res://modals/level_parameters_window.tscn" id="5_jupt5"]
 [ext_resource type="PackedScene" uid="uid://dcv40f0ranhcs" path="res://modals/squad_enabler_window.tscn" id="6_cohuk"]
 [ext_resource type="Script" path="res://main/nav_bar/menu_bar_file.gd" id="6_i86yq"]
@@ -20,6 +21,8 @@
 [ext_resource type="Script" path="res://properties/unit_components/host_station/save_behavior_file_dialog.gd" id="16_defsv"]
 [ext_resource type="Script" path="res://main/nav_bar/menu_bar_options.gd" id="16_eeds7"]
 [ext_resource type="Script" path="res://main/nav_bar/menu_bar_help.gd" id="17_0pxun"]
+[ext_resource type="Script" path="res://modals/open_level_file_dialog.gd" id="17_g67l2"]
+[ext_resource type="Script" path="res://modals/save_level_file_dialog.gd" id="17_tgjwx"]
 [ext_resource type="PackedScene" uid="uid://dy8lh8y52680p" path="res://map/map_container.tscn" id="19_hkn6c"]
 [ext_resource type="PackedScene" uid="uid://dg5m8iyihbvmu" path="res://properties/properties_container.tscn" id="20_eh4tf"]
 
@@ -53,6 +56,7 @@ script = ExtResource("1_7pb5r")
 anchor_mode = 0
 
 [node name="Modals" type="Node" parent="."]
+script = ExtResource("2_glk8b")
 
 [node name="NewMapWindow" parent="Modals" instance=ExtResource("11_kalue")]
 unique_name_in_owner = true
@@ -139,6 +143,7 @@ initial_position = 1
 size = Vector2i(900, 600)
 access = 2
 filters = PackedStringArray("*.ldf;Urban Assault Level File")
+script = ExtResource("17_tgjwx")
 
 [node name="OpenLevelFileDialog" type="FileDialog" parent="Modals"]
 unique_name_in_owner = true
@@ -149,6 +154,7 @@ ok_button_text = "Open"
 file_mode = 0
 access = 2
 filters = PackedStringArray("*.ldf;Urban Assault Level File")
+script = ExtResource("17_g67l2")
 
 [node name="UnsavedMapConfirmationDialog" type="ConfirmationDialog" parent="Modals"]
 unique_name_in_owner = true

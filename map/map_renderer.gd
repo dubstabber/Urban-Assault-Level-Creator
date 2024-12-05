@@ -275,7 +275,7 @@ func add_hoststation(owner_id: int, vehicle_id: int):
 	hoststation.position.y = clampi(right_clicked_y, 1205, ((CurrentMapData.vertical_sectors+1) * 1200) - 5)
 
 	CurrentMapData.selected_unit = hoststation
-	if CurrentMapData.player_host_station == null:
+	if CurrentMapData.player_host_station == null or not is_instance_valid(CurrentMapData.player_host_station):
 		CurrentMapData.player_host_station = CurrentMapData.host_stations.get_child(0)
 	CurrentMapData.is_saved = false
 

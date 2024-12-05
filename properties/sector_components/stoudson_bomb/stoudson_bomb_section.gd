@@ -24,24 +24,34 @@ func _ready() -> void:
 		)
 	%SecondsSpinBox.value_changed.connect(func(value: float) -> void:
 		if int(value) < 0: return
+		
 		var minutes:int = int(value/60.0)
 		var hours:int = int(minutes/60.0)
-		%SecondsSpinBox.value = int(value)%60
-		%MinutesSpinBox.value += minutes%60
-		%HoursSpinBox.value += hours
-		_update_countdown()
+		var seconds_from_bomb:int = int(CurrentMapData.selected_bomb.countdown/1024.0) % 60
+		if %SecondsSpinBox.value != seconds_from_bomb: 
+			%SecondsSpinBox.value = int(value)%60
+			%MinutesSpinBox.value += minutes%60
+			%HoursSpinBox.value += hours
+			_update_countdown()
 		)
 	%MinutesSpinBox.value_changed.connect(func(value: float) -> void:
 		if int(value) < 0: return
 		var hours:int = int(value/60)
-		%MinutesSpinBox.value = int(value)%60
-		%HoursSpinBox.value += hours
-		_update_countdown()
+		var seconds_from_bomb:int = int(CurrentMapData.selected_bomb.countdown/1024.0)
+		var minutes_from_bomb:int = int(seconds_from_bomb/60.0) % 60
+		if %MinutesSpinBox.value != minutes_from_bomb: 
+			%MinutesSpinBox.value = int(value)%60
+			%HoursSpinBox.value += hours
+			_update_countdown()
 		)
 	%HoursSpinBox.value_changed.connect(func(value: float):
 		if int(value) < 0: return
-		%HoursSpinBox.value = int(value)
-		_update_countdown()
+		var seconds_from_bomb:int = int(CurrentMapData.selected_bomb.countdown/1024.0)
+		var minutes_from_bomb:int = int(seconds_from_bomb/60.0)
+		var hours_from_bomb:int = int(minutes_from_bomb/60.0)
+		if %HoursSpinBox.value != hours_from_bomb: 
+			%HoursSpinBox.value = int(value)
+			_update_countdown()
 		)
 
 
@@ -85,5 +95,5 @@ func _update_countdown() -> void:
 		var countdown_units = ((int(%HoursSpinBox.value)*60)*60)*1024
 		countdown_units += (int(%MinutesSpinBox.value)*60)*1024
 		countdown_units += int(%SecondsSpinBox.value)*1024
+		if CurrentMapData.selected_bomb.countdown != countdown_units: CurrentMapData.is_saved = false
 		CurrentMapData.selected_bomb.countdown = countdown_units
-		CurrentMapData.is_saved = false
