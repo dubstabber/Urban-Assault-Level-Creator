@@ -129,6 +129,7 @@ static func _handle_description(file: FileAccess) -> void:
 	file.get_line()
 	file.get_line()
 	file.get_line()
+	file.get_line()
 	string_line = file.get_line().strip_edges(true, false)
 	
 	while(not string_line.is_empty() and string_line[0] == ';' and file.get_position() < file.get_length()):
