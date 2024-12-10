@@ -59,15 +59,21 @@ func _update_properties() -> void:
 	if CurrentMapData.selected_bomb:
 		show()
 		%BombInfoLabel.text = "Stoudson bomb %s" % (CurrentMapData.stoudson_bombs.find(CurrentMapData.selected_bomb)+1)
+		
 		if CurrentMapData.selected_bomb.inactive_bp == 35:
 			%BombBuildingOptionButton.selected = 0
+			%InvalidBuildingLabel.hide()
 		elif CurrentMapData.selected_bomb.inactive_bp == 68:
 			%BombBuildingOptionButton.selected = 1
+			if CurrentMapData.level_set != 6:
+				%InvalidBuildingLabel.show()
+			else:
+				%InvalidBuildingLabel.hide()
 		
 		var seconds:int = int(CurrentMapData.selected_bomb.countdown/1024.0)
 		var minutes:int = int(seconds/60.0)
 		var hours:int = int(minutes/60.0)
-		%HoursSpinBox.value = hours%60
+		%HoursSpinBox.value = hours
 		%MinutesSpinBox.value = minutes%60
 		%SecondsSpinBox.value = seconds%60
 		

@@ -15,6 +15,17 @@ layout_mode = 2
 text = "Stoudson bomb N"
 horizontal_alignment = 1
 
+[node name="InvalidBuildingLabel" type="Label" parent="."]
+unique_name_in_owner = true
+visible = false
+custom_minimum_size = Vector2(20, 20)
+layout_mode = 2
+theme_override_colors/font_color = Color(1, 0, 0, 1)
+theme_override_font_sizes/font_size = 14
+text = "The building for this bomb is invalid, which will cause the game to crash"
+horizontal_alignment = 1
+autowrap_mode = 3
+
 [node name="HBoxContainer" type="HBoxContainer" parent="."]
 layout_mode = 2
 alignment = 1

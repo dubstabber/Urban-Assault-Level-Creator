@@ -12,7 +12,6 @@ func _update_properties() -> void:
 		%NoSectorLabel.hide()
 		
 		if CurrentMapData.selected_sectors.size() > 1: return
-		else: %MultiSectorContainer.hide()
 		
 		%SectorPropertiesContainer.show()
 		%SectorPositionLabel.text = "Selected sector X: %s Y: %s" % [CurrentMapData.selected_sector.x, CurrentMapData.selected_sector.y]

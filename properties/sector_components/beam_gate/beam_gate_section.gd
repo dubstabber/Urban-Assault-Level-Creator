@@ -51,11 +51,14 @@ func _update_properties() -> void:
 			%BGBuildingOptionButton.selected = 0
 		elif CurrentMapData.selected_beam_gate.closed_bp == 25:
 			%BGBuildingOptionButton.selected = 1
+			
 		%BeamGateMBStatus.button_pressed = CurrentMapData.selected_beam_gate.mb_status
+		
 		if CurrentMapData.selected_beam_gate.key_sectors.size() > 0:
 			%BGKeySectorLabel.show()
 			%BGKeySectorsContainer.show()
 			for ks_label in %BGKeySectorsContainer.get_children():
+				%BGKeySectorsContainer.remove_child(ks_label)
 				ks_label.queue_free()
 			
 			for i in CurrentMapData.selected_beam_gate.key_sectors.size():

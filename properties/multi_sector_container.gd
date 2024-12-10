@@ -17,3 +17,5 @@ func _update_properties() -> void:
 			sector_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 			sector_label.text = "Selected sector X:%s Y:%s" % [sector_dict.x, sector_dict.y]
 			add_child(sector_label)
+	else:
+		hide()
