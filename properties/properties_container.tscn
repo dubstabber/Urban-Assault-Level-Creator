@@ -140,6 +140,14 @@ text = "Selected sector X: x Y: y"
 horizontal_alignment = 1
 vertical_alignment = 1
 
+[node name="BorderInfoLabel" type="Label" parent="TabContainer/Sector/ScrollContainer/MarginContainer/SectorPropertiesContainer"]
+unique_name_in_owner = true
+visible = false
+layout_mode = 2
+theme_override_font_sizes/font_size = 14
+text = "This sector is a border"
+horizontal_alignment = 1
+
 [node name="HSeparator" type="HSeparator" parent="TabContainer/Sector/ScrollContainer/MarginContainer/SectorPropertiesContainer"]
 layout_mode = 2
 
