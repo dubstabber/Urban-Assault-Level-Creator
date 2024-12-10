@@ -10,6 +10,7 @@
 [ext_resource type="PackedScene" uid="uid://483vyvqaia2i" path="res://properties/sector_components/beam_gate_key_sector/beam_gate_key_sector_section.tscn" id="7_h4xm4"]
 [ext_resource type="PackedScene" uid="uid://cxn42lptsqsdc" path="res://properties/sector_components/stoudson_bomb_key_sector/bomb_key_sector_section.tscn" id="8_n8f44"]
 [ext_resource type="Script" path="res://properties/multi_sector_container.gd" id="9_yapal"]
+[ext_resource type="Texture2D" uid="uid://v8g3mn0iikby" path="res://resources/img/ui_icons/close.png" id="11_yrk2l"]
 
 [sub_resource type="GDScript" id="GDScript_hihdk"]
 script/source = "extends TabContainer
@@ -36,9 +37,6 @@ func _ready() -> void:
 
 [sub_resource type="LabelSettings" id="LabelSettings_e380m"]
 font_color = Color(1, 0, 0, 1)
-
-[sub_resource type="PlaceholderTexture2D" id="PlaceholderTexture2D_rs20u"]
-size = Vector2(30, 30)
 
 [sub_resource type="GDScript" id="GDScript_crt75"]
 script/source = "extends TextureButton
@@ -255,12 +253,15 @@ horizontal_alignment = 1
 layout_mode = 2
 size_flags_horizontal = 8
 size_flags_vertical = 0
-theme_override_constants/margin_right = 10
+theme_override_constants/margin_top = 2
+theme_override_constants/margin_right = 5
 
 [node name="ClosePropertiesButton" type="TextureButton" parent="MarginContainer"]
 custom_minimum_size = Vector2(30, 30)
 layout_mode = 2
 size_flags_horizontal = 8
 size_flags_vertical = 0
-texture_normal = SubResource("PlaceholderTexture2D_rs20u")
+texture_normal = ExtResource("11_yrk2l")
+ignore_texture_size = true
+stretch_mode = 0
 script = SubResource("GDScript_crt75")
