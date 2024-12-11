@@ -151,6 +151,7 @@ func close_map() -> void:
 	selected_sector_idx = -1
 	border_selected_sector_idx = -1
 	selected_sector = Vector2i(-1, -1)
+	selected_sectors.clear()
 	selected_beam_gate = null
 	selected_bomb = null
 	selected_tech_upgrade = null
