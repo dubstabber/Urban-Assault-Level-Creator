@@ -14,6 +14,9 @@ config/name="Urban Assault Level Creator"
 run/main_scene="res://main/main.tscn"
 config/features=PackedStringArray("4.3", "GL Compatibility")
 run/low_processor_mode=true
+boot_splash/bg_color=Color(0.141176, 0.141176, 0.141176, 0)
+boot_splash/image="res://resources/img/loading.png"
+boot_splash/fullsize=false
 config/icon="res://resources/img/icon.png"
 
 [autoload]
