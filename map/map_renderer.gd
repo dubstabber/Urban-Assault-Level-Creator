@@ -182,6 +182,8 @@ func _draw():
 					draw_texture_rect(Preloads.error_sign, Rect2(h_grid+sector_indent,v_grid+sector_indent, 1200-(sector_indent*2),1200-(sector_indent*2)), false)
 				if CurrentMapData.blg_map[current_sector] == 62 and CurrentMapData.level_set in [3, 4, 5]:
 					draw_texture_rect(Preloads.error_sign, Rect2(h_grid+sector_indent,v_grid+sector_indent, 1200-(sector_indent*2),1200-(sector_indent*2)), false)
+				if CurrentMapData.blg_map[current_sector] == 55 and CurrentMapData.level_set in [2, 5]:
+					draw_texture_rect(Preloads.error_sign, Rect2(h_grid+sector_indent,v_grid+sector_indent, 1200-(sector_indent*2),1200-(sector_indent*2)), false)
 				if Preloads.special_building_images.has(str(CurrentMapData.blg_map[current_sector])):
 					draw_texture_rect(Preloads.special_building_images[str(CurrentMapData.blg_map[current_sector])], Rect2(h_grid+sector_indent,v_grid+sector_indent, 1200-(sector_indent*2),1200-(sector_indent*2)),false)
 				var sector_color

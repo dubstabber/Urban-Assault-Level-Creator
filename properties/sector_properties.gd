@@ -55,7 +55,8 @@ func _update_properties() -> void:
 			%SpecialBuildingLabel.text = 'Tech upgrade'
 		else:
 			%SpecialBuildingLabel.text = 'Unknown'
-		if CurrentMapData.blg_map[CurrentMapData.selected_sector_idx] == 62 and CurrentMapData.level_set in [3, 4, 5]:
+		if ((CurrentMapData.blg_map[CurrentMapData.selected_sector_idx] == 62 and CurrentMapData.level_set in [3, 4, 5]) or
+			(CurrentMapData.blg_map[CurrentMapData.selected_sector_idx] == 55 and CurrentMapData.level_set in [2, 5])):
 			%InvalidBlgMapLabel.show()
 		else:
 			%InvalidBlgMapLabel.hide()
