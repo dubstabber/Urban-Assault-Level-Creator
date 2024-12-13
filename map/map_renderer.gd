@@ -46,17 +46,26 @@ func _physics_process(delta):
 
 var number_key: int
 var is_number_pressed := false
+var is_left_pressed := false
 func _input(event):
 	if event.is_action_pressed("hold"):
 		is_selection_kept = true
 	elif event.is_action_released("hold"):
 		is_selection_kept = false
 	if event.is_action_pressed("select"):
+		is_left_pressed = true
 		if CurrentMapData.horizontal_sectors <= 0: return
+		if EditorState.mode == EditorState.State.TypMapDesign and is_left_pressed:
+			handle_selection(round(get_local_mouse_position().x), round(get_local_mouse_position().y))
+			CurrentMapData.typ_map[CurrentMapData.selected_sector_idx] = EditorState.selected_typ_map
+			CurrentMapData.is_saved = false
+			return
 		handle_selection(round(get_local_mouse_position().x), round(get_local_mouse_position().y))
 		CurrentMapData.selected_unit = CurrentMapData.mouse_over_unit
 		if event.double_click:
 			EventSystem.left_double_clicked.emit()
+	elif event.is_action_released("select"):
+		is_left_pressed = false
 	if event.is_action_pressed("context_menu"):
 		if CurrentMapData.horizontal_sectors <= 0: return
 		right_clicked_x = round(get_local_mouse_position().x)
@@ -88,9 +97,14 @@ func _input(event):
 				EventSystem.map_updated.emit()
 	elif event is InputEventKey and event.is_released():
 		is_number_pressed = false
+	
 	if event is InputEventMouseMotion:
 		if CurrentMapData.horizontal_sectors <= 0: return
-		if is_number_pressed and number_key >= 0 and number_key <= 7:
+		if EditorState.mode == EditorState.State.TypMapDesign and is_left_pressed:
+			handle_selection(round(get_local_mouse_position().x), round(get_local_mouse_position().y))
+			CurrentMapData.typ_map[CurrentMapData.selected_sector_idx] = EditorState.selected_typ_map
+			CurrentMapData.is_saved = false
+		elif is_number_pressed and number_key >= 0 and number_key <= 7:
 			handle_selection(round(get_local_mouse_position().x), round(get_local_mouse_position().y))
 	if (event.is_action_pressed("increment_height") and 
 		CurrentMapData.hgt_map.size() > 0 and
@@ -165,6 +179,8 @@ func _draw():
 					if CurrentMapData.typ_map_images_visible:
 						draw_texture_rect(Preloads.building_top_images[CurrentMapData.level_set][CurrentMapData.typ_map[current_sector]], Rect2(h_grid, v_grid, 1200, 1200), false)
 				else:
+					draw_texture_rect(Preloads.error_sign, Rect2(h_grid+sector_indent,v_grid+sector_indent, 1200-(sector_indent*2),1200-(sector_indent*2)), false)
+				if CurrentMapData.blg_map[current_sector] == 62 and CurrentMapData.level_set in [3, 4, 5]:
 					draw_texture_rect(Preloads.error_sign, Rect2(h_grid+sector_indent,v_grid+sector_indent, 1200-(sector_indent*2),1200-(sector_indent*2)), false)
 				if Preloads.special_building_images.has(str(CurrentMapData.blg_map[current_sector])):
 					draw_texture_rect(Preloads.special_building_images[str(CurrentMapData.blg_map[current_sector])], Rect2(h_grid+sector_indent,v_grid+sector_indent, 1200-(sector_indent*2),1200-(sector_indent*2)),false)

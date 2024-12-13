@@ -17,6 +17,7 @@ signal unit_selected
 signal sector_selected
 signal left_double_clicked
 signal global_right_clicked(clicked_x: int, clicked_y: int)
+signal level_set_changed
 
 signal game_type_changed
 signal hoststation_added(owner_id: int, vehicle_id: int)
@@ -30,3 +31,5 @@ signal special_building_added(blg_map: int, typ_map: int, own_map: int)
 signal building_added(typ_map: int)
 
 signal open_map_failed
+
+signal editor_mode_changed

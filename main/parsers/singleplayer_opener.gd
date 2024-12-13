@@ -147,8 +147,8 @@ static func _handle_level_parameters(file: FileAccess) -> void:
 				string_line = string_line.replacen("set", "").replacen("=", "").strip_edges()
 				CurrentMapData.level_set = int(string_line)
 				
-			if string_line.containsn("sky"):
-				string_line = string_line.replacen("sky", "").replacen("=", "").strip_edges()
+			if string_line.begins_with("sky"):
+				string_line = string_line.replace("sky", "").replacen("=", "").strip_edges()
 				string_line = string_line.get_slice('/', 1).replacen(".base", "").replacen(".bas", "")
 				CurrentMapData.sky = Utils.convert_sky_name_case(string_line)
 			

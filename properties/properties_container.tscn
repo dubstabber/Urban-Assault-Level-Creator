@@ -17,6 +17,10 @@ script/source = "extends TabContainer
 
 
 func _ready() -> void:
+	owner.visibility_changed.connect(func():
+		if owner.visible:
+			EditorState.mode = EditorState.State.Select
+		)
 	EventSystem.hoststation_added.connect(func(_owner_id, _vehicle_id): 
 		owner.show()
 		$Unit.show()
@@ -30,6 +34,10 @@ func _ready() -> void:
 		else:
 			$Sector.show()
 			owner.show()
+		)
+	EventSystem.editor_mode_changed.connect(func(): 
+		if EditorState.mode == EditorState.State.TypMapDesign:
+			owner.hide()
 		)
 "
 
@@ -177,6 +185,28 @@ unique_name_in_owner = true
 layout_mode = 2
 theme_override_font_sizes/font_size = 12
 text = "Special Building Name"
+
+[node name="InvalidBlgMapLabel" type="Label" parent="TabContainer/Sector/ScrollContainer/MarginContainer/SectorPropertiesContainer"]
+unique_name_in_owner = true
+visible = false
+custom_minimum_size = Vector2(20, 20)
+layout_mode = 2
+theme_override_colors/font_color = Color(1, 0, 0, 1)
+theme_override_font_sizes/font_size = 14
+text = "This special building is invalid, which will cause the game to crash"
+horizontal_alignment = 1
+autowrap_mode = 3
+
+[node name="WarningBlgMapLabel" type="Label" parent="TabContainer/Sector/ScrollContainer/MarginContainer/SectorPropertiesContainer"]
+unique_name_in_owner = true
+visible = false
+custom_minimum_size = Vector2(20, 20)
+layout_mode = 2
+theme_override_colors/font_color = Color(0.714734, 0.481875, 0, 1)
+theme_override_font_sizes/font_size = 14
+text = "This special building is not designed for the current level set"
+horizontal_alignment = 1
+autowrap_mode = 3
 
 [node name="HSeparator2" type="HSeparator" parent="TabContainer/Sector/ScrollContainer/MarginContainer/SectorPropertiesContainer"]
 layout_mode = 2

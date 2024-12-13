@@ -254,4 +254,4 @@ func convert_sky_name_case(sky_name: String) -> String:
 		if sky.to_lower() == sky_name.to_lower():
 			return sky
 	
-	return Preloads.skies.get(0)
+	return Preloads.skies.keys()[0]
