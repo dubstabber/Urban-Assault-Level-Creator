@@ -1,14 +1,46 @@
-[gd_scene load_steps=6 format=3 uid="uid://3c4x0gmdhcwn"]
+[gd_scene load_steps=20 format=3 uid="uid://3c4x0gmdhcwn"]
 
 [ext_resource type="Script" path="res://typ_map_designer/typ_map_designer_container.gd" id="1_chs5p"]
 [ext_resource type="Texture2D" uid="uid://v8g3mn0iikby" path="res://resources/img/ui_icons/close.png" id="2_ks7xp"]
 [ext_resource type="Script" path="res://typ_map_designer/close_button.gd" id="3_hggst"]
 [ext_resource type="Script" path="res://typ_map_designer/typ_map_images_container.gd" id="4_6wcmy"]
+[ext_resource type="ButtonGroup" uid="uid://u68msd2vjhjf" path="res://themes/building_view_button_group.tres" id="5_5ull5"]
+[ext_resource type="PackedScene" uid="uid://bev7jns5uf1v8" path="res://typ_map_designer/components/building_button.tscn" id="5_tphco"]
 
-[sub_resource type="PlaceholderTexture2D" id="PlaceholderTexture2D_5j4uj"]
+[sub_resource type="ButtonGroup" id="ButtonGroup_uwvf4"]
+
+[sub_resource type="ButtonGroup" id="ButtonGroup_5xfbj"]
+
+[sub_resource type="ButtonGroup" id="ButtonGroup_fvw2a"]
+
+[sub_resource type="ButtonGroup" id="ButtonGroup_ni8hx"]
+
+[sub_resource type="ButtonGroup" id="ButtonGroup_1wcek"]
+
+[sub_resource type="ButtonGroup" id="ButtonGroup_nhcsg"]
+
+[sub_resource type="ButtonGroup" id="ButtonGroup_sxupm"]
+
+[sub_resource type="ButtonGroup" id="ButtonGroup_pdduy"]
+
+[sub_resource type="ButtonGroup" id="ButtonGroup_2ykvw"]
+
+[sub_resource type="ButtonGroup" id="ButtonGroup_fmvi6"]
+
+[sub_resource type="ButtonGroup" id="ButtonGroup_0tn1g"]
+
+[sub_resource type="ButtonGroup" id="ButtonGroup_pv2fe"]
+
+[sub_resource type="ButtonGroup" id="ButtonGroup_lkcdc"]
 
 [node name="TypMapDesignerContainer" type="PanelContainer"]
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
 script = ExtResource("1_chs5p")
+BUILDING_BUTTON = ExtResource("5_tphco")
 
 [node name="VBoxContainer" type="VBoxContainer" parent="."]
 layout_mode = 2
@@ -33,6 +65,49 @@ ignore_texture_size = true
 stretch_mode = 0
 script = ExtResource("3_hggst")
 
+[node name="HBoxContainer" type="HBoxContainer" parent="VBoxContainer"]
+layout_mode = 2
+alignment = 1
+
+[node name="Label" type="Label" parent="VBoxContainer/HBoxContainer"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 14
+text = "Size of images:"
+
+[node name="ImagesSlider" type="HSlider" parent="VBoxContainer/HBoxContainer"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(100, 0)
+layout_mode = 2
+min_value = 80.0
+max_value = 260.0
+step = 20.0
+value = 100.0
+
+[node name="HSeparator" type="HSeparator" parent="VBoxContainer"]
+layout_mode = 2
+
+[node name="HBoxContainer2" type="HBoxContainer" parent="VBoxContainer"]
+layout_mode = 2
+alignment = 1
+
+[node name="SideViewCheckBox" type="CheckBox" parent="VBoxContainer/HBoxContainer2"]
+unique_name_in_owner = true
+layout_mode = 2
+theme_override_font_sizes/font_size = 14
+button_pressed = true
+button_group = ExtResource("5_5ull5")
+text = "Side view"
+
+[node name="TopViewCheckBox" type="CheckBox" parent="VBoxContainer/HBoxContainer2"]
+unique_name_in_owner = true
+layout_mode = 2
+theme_override_font_sizes/font_size = 14
+button_group = ExtResource("5_5ull5")
+text = "Top view"
+
+[node name="HSeparator2" type="HSeparator" parent="VBoxContainer"]
+layout_mode = 2
+
 [node name="ScrollContainer" type="ScrollContainer" parent="VBoxContainer"]
 layout_mode = 2
 size_flags_vertical = 3
@@ -48,68 +123,59 @@ theme_override_constants/margin_bottom = 10
 [node name="TypMapImagesContainer" type="GridContainer" parent="VBoxContainer/ScrollContainer/MarginContainer"]
 unique_name_in_owner = true
 layout_mode = 2
+theme_override_constants/h_separation = 0
+theme_override_constants/v_separation = 0
 columns = 4
 script = ExtResource("4_6wcmy")
 
-[node name="TextureButton" type="TextureButton" parent="VBoxContainer/ScrollContainer/MarginContainer/TypMapImagesContainer"]
-custom_minimum_size = Vector2(90, 90)
+[node name="BuildingButton" parent="VBoxContainer/ScrollContainer/MarginContainer/TypMapImagesContainer" instance=ExtResource("5_tphco")]
 layout_mode = 2
-texture_normal = SubResource("PlaceholderTexture2D_5j4uj")
-ignore_texture_size = true
-stretch_mode = 0
+button_group = SubResource("ButtonGroup_uwvf4")
 
-[node name="TextureButton2" type="TextureButton" parent="VBoxContainer/ScrollContainer/MarginContainer/TypMapImagesContainer"]
-custom_minimum_size = Vector2(90, 90)
+[node name="BuildingButton2" parent="VBoxContainer/ScrollContainer/MarginContainer/TypMapImagesContainer" instance=ExtResource("5_tphco")]
 layout_mode = 2
-texture_normal = SubResource("PlaceholderTexture2D_5j4uj")
-ignore_texture_size = true
-stretch_mode = 0
+button_group = SubResource("ButtonGroup_5xfbj")
 
-[node name="TextureButton3" type="TextureButton" parent="VBoxContainer/ScrollContainer/MarginContainer/TypMapImagesContainer"]
-custom_minimum_size = Vector2(90, 90)
+[node name="BuildingButton3" parent="VBoxContainer/ScrollContainer/MarginContainer/TypMapImagesContainer" instance=ExtResource("5_tphco")]
 layout_mode = 2
-texture_normal = SubResource("PlaceholderTexture2D_5j4uj")
-ignore_texture_size = true
-stretch_mode = 0
+button_group = SubResource("ButtonGroup_fvw2a")
 
-[node name="TextureButton4" type="TextureButton" parent="VBoxContainer/ScrollContainer/MarginContainer/TypMapImagesContainer"]
-custom_minimum_size = Vector2(90, 90)
+[node name="BuildingButton4" parent="VBoxContainer/ScrollContainer/MarginContainer/TypMapImagesContainer" instance=ExtResource("5_tphco")]
 layout_mode = 2
-texture_normal = SubResource("PlaceholderTexture2D_5j4uj")
-ignore_texture_size = true
-stretch_mode = 0
+button_group = SubResource("ButtonGroup_ni8hx")
 
-[node name="TextureButton5" type="TextureButton" parent="VBoxContainer/ScrollContainer/MarginContainer/TypMapImagesContainer"]
-custom_minimum_size = Vector2(90, 90)
+[node name="BuildingButton5" parent="VBoxContainer/ScrollContainer/MarginContainer/TypMapImagesContainer" instance=ExtResource("5_tphco")]
 layout_mode = 2
-texture_normal = SubResource("PlaceholderTexture2D_5j4uj")
-ignore_texture_size = true
-stretch_mode = 0
+button_group = SubResource("ButtonGroup_1wcek")
 
-[node name="TextureButton6" type="TextureButton" parent="VBoxContainer/ScrollContainer/MarginContainer/TypMapImagesContainer"]
-custom_minimum_size = Vector2(90, 90)
+[node name="BuildingButton6" parent="VBoxContainer/ScrollContainer/MarginContainer/TypMapImagesContainer" instance=ExtResource("5_tphco")]
 layout_mode = 2
-texture_normal = SubResource("PlaceholderTexture2D_5j4uj")
-ignore_texture_size = true
-stretch_mode = 0
+button_group = SubResource("ButtonGroup_nhcsg")
 
-[node name="TextureButton7" type="TextureButton" parent="VBoxContainer/ScrollContainer/MarginContainer/TypMapImagesContainer"]
-custom_minimum_size = Vector2(90, 90)
+[node name="BuildingButton7" parent="VBoxContainer/ScrollContainer/MarginContainer/TypMapImagesContainer" instance=ExtResource("5_tphco")]
 layout_mode = 2
-texture_normal = SubResource("PlaceholderTexture2D_5j4uj")
-ignore_texture_size = true
-stretch_mode = 0
+button_group = SubResource("ButtonGroup_sxupm")
 
-[node name="TextureButton8" type="TextureButton" parent="VBoxContainer/ScrollContainer/MarginContainer/TypMapImagesContainer"]
-custom_minimum_size = Vector2(90, 90)
+[node name="BuildingButton8" parent="VBoxContainer/ScrollContainer/MarginContainer/TypMapImagesContainer" instance=ExtResource("5_tphco")]
 layout_mode = 2
-texture_normal = SubResource("PlaceholderTexture2D_5j4uj")
-ignore_texture_size = true
-stretch_mode = 0
+button_group = SubResource("ButtonGroup_pdduy")
 
-[node name="TextureButton9" type="TextureButton" parent="VBoxContainer/ScrollContainer/MarginContainer/TypMapImagesContainer"]
-custom_minimum_size = Vector2(90, 90)
+[node name="BuildingButton9" parent="VBoxContainer/ScrollContainer/MarginContainer/TypMapImagesContainer" instance=ExtResource("5_tphco")]
 layout_mode = 2
-texture_normal = SubResource("PlaceholderTexture2D_5j4uj")
-ignore_texture_size = true
-stretch_mode = 0
+button_group = SubResource("ButtonGroup_2ykvw")
+
+[node name="BuildingButton10" parent="VBoxContainer/ScrollContainer/MarginContainer/TypMapImagesContainer" instance=ExtResource("5_tphco")]
+layout_mode = 2
+button_group = SubResource("ButtonGroup_fmvi6")
+
+[node name="BuildingButton11" parent="VBoxContainer/ScrollContainer/MarginContainer/TypMapImagesContainer" instance=ExtResource("5_tphco")]
+layout_mode = 2
+button_group = SubResource("ButtonGroup_0tn1g")
+
+[node name="BuildingButton12" parent="VBoxContainer/ScrollContainer/MarginContainer/TypMapImagesContainer" instance=ExtResource("5_tphco")]
+layout_mode = 2
+button_group = SubResource("ButtonGroup_pv2fe")
+
+[node name="BuildingButton13" parent="VBoxContainer/ScrollContainer/MarginContainer/TypMapImagesContainer" instance=ExtResource("5_tphco")]
+layout_mode = 2
+button_group = SubResource("ButtonGroup_lkcdc")

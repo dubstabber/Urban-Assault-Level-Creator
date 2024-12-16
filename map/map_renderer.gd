@@ -32,7 +32,7 @@ func _ready() -> void:
 	)
 
 
-func _physics_process(delta):
+func _process(delta):
 	if Input.is_action_pressed("zoom_out"):
 		if map_camera.zoom > zoom_minimum:
 			map_camera.zoom -= zoom_speed * delta
@@ -188,22 +188,14 @@ func _draw():
 					draw_texture_rect(Preloads.special_building_images[str(CurrentMapData.blg_map[current_sector])], Rect2(h_grid+sector_indent,v_grid+sector_indent, 1200-(sector_indent*2),1200-(sector_indent*2)),false)
 				var sector_color
 				match CurrentMapData.own_map[current_sector]:
-					0:
-						sector_color = Color.BLACK
-					1:
-						sector_color = Color.BLUE
-					2:
-						sector_color = Color.GREEN
-					3:
-						sector_color = Color.WHITE
-					4:
-						sector_color = Color.YELLOW
-					5:
-						sector_color = Color.DIM_GRAY
-					6:
-						sector_color = Color.RED
-					7:
-						sector_color = Color.BLACK
+					0: sector_color = Color.BLACK
+					1: sector_color = Color.BLUE
+					2: sector_color = Color.GREEN
+					3: sector_color = Color.WHITE
+					4: sector_color = Color.YELLOW
+					5: sector_color = Color.DIM_GRAY
+					6: sector_color = Color.RED
+					7: sector_color = Color.BLACK
 				draw_rect(Rect2(h_grid+sector_indent,v_grid+sector_indent, 1200-(sector_indent*2),1200-(sector_indent*2)), sector_color, false, 30.0)
 				
 				if (y_sector > 1 and
