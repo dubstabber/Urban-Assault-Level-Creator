@@ -63,7 +63,8 @@ func _refresh_images() -> void:
 		typ_map_button.building_id = idx
 		typ_map_button.custom_minimum_size = Vector2(button_size, button_size)
 		%TypMapImagesContainer.add_child(typ_map_button)
-		typ_map_button.show_side_image()
+		if view_mode == ViewModes.Side: typ_map_button.show_side_image()
+		elif view_mode == ViewModes.Top: typ_map_button.show_top_image()
 
 
 func _notification(what):
