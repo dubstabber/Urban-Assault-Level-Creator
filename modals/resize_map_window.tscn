@@ -6,7 +6,7 @@
 auto_translate_mode = 1
 title = "Resize the map"
 initial_position = 1
-size = Vector2i(550, 270)
+size = Vector2i(550, 300)
 transient = true
 exclusive = true
 script = ExtResource("1_lwil0")
@@ -67,15 +67,27 @@ min_value = 1.0
 max_value = 9999.0
 value = 1.0
 
-[node name="HSeparator" type="HSeparator" parent="PanelContainer/VBoxContainer"]
+[node name="HSeparator3" type="HSeparator" parent="PanelContainer/VBoxContainer"]
 layout_mode = 2
 
 [node name="Label" type="Label" parent="PanelContainer/VBoxContainer"]
 custom_minimum_size = Vector2(20, 20)
 layout_mode = 2
+theme_override_colors/font_color = Color(0.760784, 0.760784, 0.760784, 1)
+theme_override_font_sizes/font_size = 14
+text = "Note: The map borders will automatically be added to these values"
+horizontal_alignment = 1
+autowrap_mode = 3
+
+[node name="HSeparator" type="HSeparator" parent="PanelContainer/VBoxContainer"]
+layout_mode = 2
+
+[node name="Label2" type="Label" parent="PanelContainer/VBoxContainer"]
+custom_minimum_size = Vector2(20, 20)
+layout_mode = 2
 theme_override_colors/font_color = Color(0.814241, 0.584624, 0.228865, 1)
 theme_override_font_sizes/font_size = 14
-text = "Warning: When resizing the map, keep in mind that all units (host stations, squads) and buildings (special and items) may be removed from the level if their positions exceed the borders of the newly specified sector sizes."
+text = "Warning: When resizing the map, keep in mind that all units (host stations, squads) and buildings (special and items) are going to be removed from the level if their positions exceed the borders of the newly specified sector sizes."
 horizontal_alignment = 1
 autowrap_mode = 3
 

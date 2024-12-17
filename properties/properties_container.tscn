@@ -1,4 +1,4 @@
-[gd_scene load_steps=16 format=3 uid="uid://dg5m8iyihbvmu"]
+[gd_scene load_steps=17 format=3 uid="uid://dg5m8iyihbvmu"]
 
 [ext_resource type="Script" path="res://properties/unit_properties.gd" id="1_cdtuf"]
 [ext_resource type="PackedScene" uid="uid://d21eco4mp6ath" path="res://properties/unit_components/host_station/host_station_properties.tscn" id="2_ipxpa"]
@@ -11,6 +11,7 @@
 [ext_resource type="PackedScene" uid="uid://cxn42lptsqsdc" path="res://properties/sector_components/stoudson_bomb_key_sector/bomb_key_sector_section.tscn" id="8_n8f44"]
 [ext_resource type="Script" path="res://properties/multi_sector_container.gd" id="9_yapal"]
 [ext_resource type="Texture2D" uid="uid://v8g3mn0iikby" path="res://resources/img/ui_icons/close.png" id="11_yrk2l"]
+[ext_resource type="Texture2D" uid="uid://dmhafem3n0yam" path="res://resources/img/ui_icons/close-hovered.png" id="12_hk2i5"]
 
 [sub_resource type="GDScript" id="GDScript_hihdk"]
 script/source = "extends TabContainer
@@ -55,6 +56,11 @@ func _ready() -> void:
 "
 
 [node name="PropertiesContainer" type="PanelContainer"]
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
 size_flags_horizontal = 3
 mouse_filter = 1
 
@@ -299,7 +305,9 @@ custom_minimum_size = Vector2(30, 30)
 layout_mode = 2
 size_flags_horizontal = 8
 size_flags_vertical = 0
+tooltip_text = "Close properties"
 texture_normal = ExtResource("11_yrk2l")
+texture_hover = ExtResource("12_hk2i5")
 ignore_texture_size = true
 stretch_mode = 0
 script = SubResource("GDScript_crt75")

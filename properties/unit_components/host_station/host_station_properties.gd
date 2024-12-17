@@ -61,8 +61,9 @@ func _ready() -> void:
 		%ConqueringValueLabel.text = str(value_changed)
 	)
 	%ConqueringDelayLineEdit.text_changed.connect(func(value_changed: String):
-		if CurrentMapData.selected_unit.con_delay != abs(int(value_changed)): CurrentMapData.is_saved = false
-		CurrentMapData.selected_unit.con_delay = abs(int(value_changed))
+		var converted_value = abs(int(value_changed)) * 1000
+		if CurrentMapData.selected_unit.con_delay != converted_value: CurrentMapData.is_saved = false
+		CurrentMapData.selected_unit.con_delay = converted_value
 	)
 	%DefenseHSlider.value_changed.connect(func(value_changed: int):
 		if CurrentMapData.selected_unit.def_budget != value_changed: CurrentMapData.is_saved = false
@@ -70,8 +71,9 @@ func _ready() -> void:
 		%DefenseValueLabel.text = str(value_changed)
 	)
 	%DefenseDelayLineEdit.text_changed.connect(func(value_changed: String):
-		if CurrentMapData.selected_unit.def_delay != abs(int(value_changed)): CurrentMapData.is_saved = false
-		CurrentMapData.selected_unit.def_delay = abs(int(value_changed))
+		var converted_value = abs(int(value_changed)) * 1000
+		if CurrentMapData.selected_unit.def_delay != converted_value: CurrentMapData.is_saved = false
+		CurrentMapData.selected_unit.def_delay = converted_value
 	)
 	%ReconnaissanceHSlider.value_changed.connect(func(value_changed: int):
 		if CurrentMapData.selected_unit.rec_budget != value_changed: CurrentMapData.is_saved = false
@@ -79,8 +81,9 @@ func _ready() -> void:
 		%ReconnaissanceValueLabel.text = str(value_changed)
 	)
 	%ReconnaissanceDelayLineEdit.text_changed.connect(func(value_changed: String):
-		if CurrentMapData.selected_unit.rec_delay != abs(int(value_changed)): CurrentMapData.is_saved = false
-		CurrentMapData.selected_unit.rec_delay = abs(int(value_changed))
+		var converted_value = abs(int(value_changed)) * 1000
+		if CurrentMapData.selected_unit.rec_delay != converted_value: CurrentMapData.is_saved = false
+		CurrentMapData.selected_unit.rec_delay = converted_value
 	)
 	%AttackingHSlider.value_changed.connect(func(value_changed: int):
 		if CurrentMapData.selected_unit.rob_budget != value_changed: CurrentMapData.is_saved = false
@@ -88,8 +91,9 @@ func _ready() -> void:
 		%AttackingValueLabel.text = str(value_changed)
 	)
 	%AttackingDelayLineEdit.text_changed.connect(func(value_changed: String):
-		if CurrentMapData.selected_unit.rob_delay != abs(int(value_changed)): CurrentMapData.is_saved = false
-		CurrentMapData.selected_unit.rob_delay = abs(int(value_changed))
+		var converted_value = abs(int(value_changed)) * 1000
+		if CurrentMapData.selected_unit.rob_delay != converted_value: CurrentMapData.is_saved = false
+		CurrentMapData.selected_unit.rob_delay = converted_value
 	)
 	%PowerBuildingHSlider.value_changed.connect(func(value_changed: int):
 		if CurrentMapData.selected_unit.pow_budget != value_changed: CurrentMapData.is_saved = false
@@ -97,8 +101,9 @@ func _ready() -> void:
 		%PowerBuildingValueLabel.text = str(value_changed)
 	)
 	%PowerBuildingDelayLineEdit.text_changed.connect(func(value_changed: String):
-		if CurrentMapData.selected_unit.pow_delay != abs(int(value_changed)): CurrentMapData.is_saved = false
-		CurrentMapData.selected_unit.pow_delay = abs(int(value_changed))
+		var converted_value = abs(int(value_changed)) * 1000
+		if CurrentMapData.selected_unit.pow_delay != converted_value: CurrentMapData.is_saved = false
+		CurrentMapData.selected_unit.pow_delay = converted_value
 	)
 	%RadarBuildingHSlider.value_changed.connect(func(value_changed: int):
 		if CurrentMapData.selected_unit.rad_budget != value_changed: CurrentMapData.is_saved = false
@@ -106,8 +111,9 @@ func _ready() -> void:
 		%RadarBuildingValueLabel.text = str(value_changed)
 	)
 	%RadarBuildingDelayLineEdit.text_changed.connect(func(value_changed: String):
-		if CurrentMapData.selected_unit.rad_delay != abs(int(value_changed)): CurrentMapData.is_saved = false
-		CurrentMapData.selected_unit.rad_delay = abs(int(value_changed))
+		var converted_value = abs(int(value_changed)) * 1000
+		if CurrentMapData.selected_unit.rad_delay != converted_value: CurrentMapData.is_saved = false
+		CurrentMapData.selected_unit.rad_delay = converted_value
 	)
 	%FlakBuildingHSlider.value_changed.connect(func(value_changed: int):
 		if CurrentMapData.selected_unit.saf_budget != value_changed: CurrentMapData.is_saved = false
@@ -115,8 +121,9 @@ func _ready() -> void:
 		%FlakBuildingValueLabel.text = str(value_changed)
 	)
 	%FlakBuildingDelayLineEdit.text_changed.connect(func(value_changed: String):
-		if CurrentMapData.selected_unit.saf_delay != abs(int(value_changed)): CurrentMapData.is_saved = false
-		CurrentMapData.selected_unit.saf_delay = abs(int(value_changed))
+		var converted_value = abs(int(value_changed)) * 1000
+		if CurrentMapData.selected_unit.saf_delay != converted_value: CurrentMapData.is_saved = false
+		CurrentMapData.selected_unit.saf_delay = converted_value
 	)
 	%MovingStationHSlider.value_changed.connect(func(value_changed: int):
 		if CurrentMapData.selected_unit.cpl_budget != value_changed: CurrentMapData.is_saved = false
@@ -124,8 +131,9 @@ func _ready() -> void:
 		%MovingStationValueLabel.text = str(value_changed)
 	)
 	%MovingStationDelayLineEdit.text_changed.connect(func(value_changed: String):
-		if CurrentMapData.selected_unit.cpl_delay != abs(int(value_changed)): CurrentMapData.is_saved = false
-		CurrentMapData.selected_unit.cpl_delay = abs(int(value_changed))
+		var converted_value = abs(int(value_changed)) * 1000
+		if CurrentMapData.selected_unit.cpl_delay != converted_value: CurrentMapData.is_saved = false
+		CurrentMapData.selected_unit.cpl_delay = converted_value
 	)
 	%MBstatusHostStationCheckBox.toggled.connect(func(toggled: bool):
 		if CurrentMapData.selected_unit.mb_status != toggled: CurrentMapData.is_saved = false
@@ -212,28 +220,28 @@ func _update_properties() -> void:
 		
 		%ConqueringHSlider.value = CurrentMapData.selected_unit.con_budget
 		%ConqueringValueLabel.text = str(CurrentMapData.selected_unit.con_budget)
-		%ConqueringDelayLineEdit.text = str(CurrentMapData.selected_unit.con_delay)
+		%ConqueringDelayLineEdit.text = str(CurrentMapData.selected_unit.con_delay/1000)
 		%DefenseHSlider.value = CurrentMapData.selected_unit.def_budget
 		%DefenseValueLabel.text = str(CurrentMapData.selected_unit.def_budget)
-		%DefenseDelayLineEdit.text = str(CurrentMapData.selected_unit.def_delay)
+		%DefenseDelayLineEdit.text = str(CurrentMapData.selected_unit.def_delay/1000)
 		%ReconnaissanceHSlider.value = CurrentMapData.selected_unit.rec_budget
 		%ReconnaissanceValueLabel.text = str(CurrentMapData.selected_unit.rec_budget)
-		%ReconnaissanceDelayLineEdit.text = str(CurrentMapData.selected_unit.rec_delay)
+		%ReconnaissanceDelayLineEdit.text = str(CurrentMapData.selected_unit.rec_delay/1000)
 		%AttackingHSlider.value = CurrentMapData.selected_unit.rob_budget
 		%AttackingValueLabel.text = str(CurrentMapData.selected_unit.rob_budget)
-		%AttackingDelayLineEdit.text = str(CurrentMapData.selected_unit.rob_delay)
+		%AttackingDelayLineEdit.text = str(CurrentMapData.selected_unit.rob_delay/1000)
 		%PowerBuildingHSlider.value = CurrentMapData.selected_unit.pow_budget
 		%PowerBuildingValueLabel.text = str(CurrentMapData.selected_unit.pow_budget)
-		%PowerBuildingDelayLineEdit.text = str(CurrentMapData.selected_unit.pow_delay)
+		%PowerBuildingDelayLineEdit.text = str(CurrentMapData.selected_unit.pow_delay/1000)
 		%RadarBuildingHSlider.value = CurrentMapData.selected_unit.rad_budget
 		%RadarBuildingValueLabel.text = str(CurrentMapData.selected_unit.rad_budget)
-		%RadarBuildingDelayLineEdit.text = str(CurrentMapData.selected_unit.rad_delay)
+		%RadarBuildingDelayLineEdit.text = str(CurrentMapData.selected_unit.rad_delay/1000)
 		%FlakBuildingHSlider.value = CurrentMapData.selected_unit.saf_budget
 		%FlakBuildingValueLabel.text = str(CurrentMapData.selected_unit.saf_budget)
-		%FlakBuildingDelayLineEdit.text = str(CurrentMapData.selected_unit.saf_delay)
+		%FlakBuildingDelayLineEdit.text = str(CurrentMapData.selected_unit.saf_delay/1000)
 		%MovingStationHSlider.value = CurrentMapData.selected_unit.cpl_budget
 		%MovingStationValueLabel.text = str(CurrentMapData.selected_unit.cpl_budget)
-		%MovingStationDelayLineEdit.text = str(CurrentMapData.selected_unit.cpl_delay)
+		%MovingStationDelayLineEdit.text = str(CurrentMapData.selected_unit.cpl_delay/1000)
 		
 		%MBstatusHostStationCheckBox.button_pressed = CurrentMapData.selected_unit.mb_status
 		

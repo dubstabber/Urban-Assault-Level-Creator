@@ -1,37 +1,38 @@
-[gd_scene load_steps=20 format=3 uid="uid://3c4x0gmdhcwn"]
+[gd_scene load_steps=21 format=3 uid="uid://3c4x0gmdhcwn"]
 
 [ext_resource type="Script" path="res://typ_map_designer/typ_map_designer_container.gd" id="1_chs5p"]
 [ext_resource type="Texture2D" uid="uid://v8g3mn0iikby" path="res://resources/img/ui_icons/close.png" id="2_ks7xp"]
 [ext_resource type="Script" path="res://typ_map_designer/close_button.gd" id="3_hggst"]
 [ext_resource type="Script" path="res://typ_map_designer/typ_map_images_container.gd" id="4_6wcmy"]
+[ext_resource type="Texture2D" uid="uid://dmhafem3n0yam" path="res://resources/img/ui_icons/close-hovered.png" id="4_gf4sm"]
 [ext_resource type="ButtonGroup" uid="uid://u68msd2vjhjf" path="res://themes/building_view_button_group.tres" id="5_5ull5"]
 [ext_resource type="PackedScene" uid="uid://bev7jns5uf1v8" path="res://typ_map_designer/components/building_button.tscn" id="5_tphco"]
 
-[sub_resource type="ButtonGroup" id="ButtonGroup_uwvf4"]
+[sub_resource type="ButtonGroup" id="ButtonGroup_4vcva"]
 
-[sub_resource type="ButtonGroup" id="ButtonGroup_5xfbj"]
+[sub_resource type="ButtonGroup" id="ButtonGroup_36fje"]
 
-[sub_resource type="ButtonGroup" id="ButtonGroup_fvw2a"]
+[sub_resource type="ButtonGroup" id="ButtonGroup_piyfn"]
 
-[sub_resource type="ButtonGroup" id="ButtonGroup_ni8hx"]
+[sub_resource type="ButtonGroup" id="ButtonGroup_horrw"]
 
-[sub_resource type="ButtonGroup" id="ButtonGroup_1wcek"]
+[sub_resource type="ButtonGroup" id="ButtonGroup_k2f1x"]
 
-[sub_resource type="ButtonGroup" id="ButtonGroup_nhcsg"]
+[sub_resource type="ButtonGroup" id="ButtonGroup_n545k"]
 
-[sub_resource type="ButtonGroup" id="ButtonGroup_sxupm"]
+[sub_resource type="ButtonGroup" id="ButtonGroup_eo4me"]
 
-[sub_resource type="ButtonGroup" id="ButtonGroup_pdduy"]
+[sub_resource type="ButtonGroup" id="ButtonGroup_tfi7v"]
 
-[sub_resource type="ButtonGroup" id="ButtonGroup_2ykvw"]
+[sub_resource type="ButtonGroup" id="ButtonGroup_i57k1"]
 
-[sub_resource type="ButtonGroup" id="ButtonGroup_fmvi6"]
+[sub_resource type="ButtonGroup" id="ButtonGroup_yfw6b"]
 
-[sub_resource type="ButtonGroup" id="ButtonGroup_0tn1g"]
+[sub_resource type="ButtonGroup" id="ButtonGroup_wsh3t"]
 
-[sub_resource type="ButtonGroup" id="ButtonGroup_pv2fe"]
+[sub_resource type="ButtonGroup" id="ButtonGroup_8u60w"]
 
-[sub_resource type="ButtonGroup" id="ButtonGroup_lkcdc"]
+[sub_resource type="ButtonGroup" id="ButtonGroup_qxklj"]
 
 [node name="TypMapDesignerContainer" type="PanelContainer"]
 anchors_preset = 15
@@ -60,7 +61,9 @@ custom_minimum_size = Vector2(30, 30)
 layout_mode = 2
 size_flags_horizontal = 8
 size_flags_vertical = 4
+tooltip_text = "Close and switch to select mode"
 texture_normal = ExtResource("2_ks7xp")
+texture_hover = ExtResource("4_gf4sm")
 ignore_texture_size = true
 stretch_mode = 0
 script = ExtResource("3_hggst")
@@ -130,52 +133,52 @@ script = ExtResource("4_6wcmy")
 
 [node name="BuildingButton" parent="VBoxContainer/ScrollContainer/MarginContainer/TypMapImagesContainer" instance=ExtResource("5_tphco")]
 layout_mode = 2
-button_group = SubResource("ButtonGroup_uwvf4")
+button_group = SubResource("ButtonGroup_4vcva")
 
 [node name="BuildingButton2" parent="VBoxContainer/ScrollContainer/MarginContainer/TypMapImagesContainer" instance=ExtResource("5_tphco")]
 layout_mode = 2
-button_group = SubResource("ButtonGroup_5xfbj")
+button_group = SubResource("ButtonGroup_36fje")
 
 [node name="BuildingButton3" parent="VBoxContainer/ScrollContainer/MarginContainer/TypMapImagesContainer" instance=ExtResource("5_tphco")]
 layout_mode = 2
-button_group = SubResource("ButtonGroup_fvw2a")
+button_group = SubResource("ButtonGroup_piyfn")
 
 [node name="BuildingButton4" parent="VBoxContainer/ScrollContainer/MarginContainer/TypMapImagesContainer" instance=ExtResource("5_tphco")]
 layout_mode = 2
-button_group = SubResource("ButtonGroup_ni8hx")
+button_group = SubResource("ButtonGroup_horrw")
 
 [node name="BuildingButton5" parent="VBoxContainer/ScrollContainer/MarginContainer/TypMapImagesContainer" instance=ExtResource("5_tphco")]
 layout_mode = 2
-button_group = SubResource("ButtonGroup_1wcek")
+button_group = SubResource("ButtonGroup_k2f1x")
 
 [node name="BuildingButton6" parent="VBoxContainer/ScrollContainer/MarginContainer/TypMapImagesContainer" instance=ExtResource("5_tphco")]
 layout_mode = 2
-button_group = SubResource("ButtonGroup_nhcsg")
+button_group = SubResource("ButtonGroup_n545k")
 
 [node name="BuildingButton7" parent="VBoxContainer/ScrollContainer/MarginContainer/TypMapImagesContainer" instance=ExtResource("5_tphco")]
 layout_mode = 2
-button_group = SubResource("ButtonGroup_sxupm")
+button_group = SubResource("ButtonGroup_eo4me")
 
 [node name="BuildingButton8" parent="VBoxContainer/ScrollContainer/MarginContainer/TypMapImagesContainer" instance=ExtResource("5_tphco")]
 layout_mode = 2
-button_group = SubResource("ButtonGroup_pdduy")
+button_group = SubResource("ButtonGroup_tfi7v")
 
 [node name="BuildingButton9" parent="VBoxContainer/ScrollContainer/MarginContainer/TypMapImagesContainer" instance=ExtResource("5_tphco")]
 layout_mode = 2
-button_group = SubResource("ButtonGroup_2ykvw")
+button_group = SubResource("ButtonGroup_i57k1")
 
 [node name="BuildingButton10" parent="VBoxContainer/ScrollContainer/MarginContainer/TypMapImagesContainer" instance=ExtResource("5_tphco")]
 layout_mode = 2
-button_group = SubResource("ButtonGroup_fmvi6")
+button_group = SubResource("ButtonGroup_yfw6b")
 
 [node name="BuildingButton11" parent="VBoxContainer/ScrollContainer/MarginContainer/TypMapImagesContainer" instance=ExtResource("5_tphco")]
 layout_mode = 2
-button_group = SubResource("ButtonGroup_0tn1g")
+button_group = SubResource("ButtonGroup_wsh3t")
 
 [node name="BuildingButton12" parent="VBoxContainer/ScrollContainer/MarginContainer/TypMapImagesContainer" instance=ExtResource("5_tphco")]
 layout_mode = 2
-button_group = SubResource("ButtonGroup_pv2fe")
+button_group = SubResource("ButtonGroup_8u60w")
 
 [node name="BuildingButton13" parent="VBoxContainer/ScrollContainer/MarginContainer/TypMapImagesContainer" instance=ExtResource("5_tphco")]
 layout_mode = 2
-button_group = SubResource("ButtonGroup_lkcdc")
+button_group = SubResource("ButtonGroup_qxklj")
