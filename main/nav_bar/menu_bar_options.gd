@@ -8,7 +8,6 @@ func _ready() -> void:
 	add_item("Select a host station for the player...")
 	add_item("Write level description...")
 	add_item("Prototype modifications...")
-	add_item("Generate buildings randomly")
 	add_item("Additional game content...")
 	index_pressed.connect(_on_index_pressed)
 
@@ -27,7 +26,5 @@ func _on_index_pressed(index: int) -> void:
 			%LevelDescriptionWindow.popup()
 		"Prototype modifications...":
 			%PrototypeModificationsWindow.popup()
-		"Generate buildings randomly":
-			%RandomizeTypMapConfirmationDialog.popup()
 		"Additional game content...":
 			%GameContentWindow.popup()

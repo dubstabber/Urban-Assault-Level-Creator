@@ -100,11 +100,15 @@ var map_path := ""
 var is_saved := true:
 	set(value):
 		is_saved = value
-		if not map_path.is_empty() and CurrentMapData.horizontal_sectors and CurrentMapData.vertical_sectors:
-			if is_saved:
-				DisplayServer.window_set_title("%s (%sx%s) - %s" % [CurrentMapData.map_path, CurrentMapData.horizontal_sectors, CurrentMapData.vertical_sectors, "Urban Assault Level Creator"])
+		if CurrentMapData.horizontal_sectors and CurrentMapData.vertical_sectors:
+			if map_path.is_empty():
+				DisplayServer.window_set_title("[not saved] (%sx%s) - %s" % [CurrentMapData.horizontal_sectors, CurrentMapData.vertical_sectors, "Urban Assault Level Creator"])
 			else:
-				DisplayServer.window_set_title("*%s (%sx%s) - %s" % [CurrentMapData.map_path, CurrentMapData.horizontal_sectors, CurrentMapData.vertical_sectors, "Urban Assault Level Creator"])
+				if is_saved:
+					DisplayServer.window_set_title("%s (%sx%s) - %s" % [CurrentMapData.map_path, CurrentMapData.horizontal_sectors, CurrentMapData.vertical_sectors, "Urban Assault Level Creator"])
+				else:
+					DisplayServer.window_set_title("*%s (%sx%s) - %s" % [CurrentMapData.map_path, CurrentMapData.horizontal_sectors, CurrentMapData.vertical_sectors, "Urban Assault Level Creator"])
+		
 
 
 func _ready():

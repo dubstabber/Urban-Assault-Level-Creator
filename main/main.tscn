@@ -1,4 +1,4 @@
-[gd_scene load_steps=32 format=3 uid="uid://ctgiwn3scteuk"]
+[gd_scene load_steps=34 format=3 uid="uid://ctgiwn3scteuk"]
 
 [ext_resource type="Script" path="res://main/main.gd" id="1_7pb5r"]
 [ext_resource type="Script" path="res://modals/modals.gd" id="2_glk8b"]
@@ -14,6 +14,7 @@
 [ext_resource type="PackedScene" uid="uid://c3kputnns5tlf" path="res://modals/new_map_window.tscn" id="11_kalue"]
 [ext_resource type="PackedScene" uid="uid://duerssxf27lsy" path="res://modals/campaign_maps_window.tscn" id="12_4i7vk"]
 [ext_resource type="PackedScene" uid="uid://dfamq5n451pat" path="res://modals/sector_height_window.tscn" id="12_wpowt"]
+[ext_resource type="PackedScene" uid="uid://bmwjudhyg4v4" path="res://modals/resize_map_window.tscn" id="12_xkl20"]
 [ext_resource type="PackedScene" uid="uid://x4kwkajlf23r" path="res://modals/sector_building_window.tscn" id="13_kug0f"]
 [ext_resource type="PackedScene" uid="uid://d1s7m85hngi8m" path="res://modals/keyboard_shortcuts_window.tscn" id="13_pa8eg"]
 [ext_resource type="PackedScene" uid="uid://c83t7utfh71k1" path="res://modals/about_window.tscn" id="14_i2xml"]
@@ -26,6 +27,7 @@
 [ext_resource type="PackedScene" uid="uid://dy8lh8y52680p" path="res://map/map_container.tscn" id="19_hkn6c"]
 [ext_resource type="Script" path="res://modals/open_map_error_accept_dialog.gd" id="20_272kt"]
 [ext_resource type="PackedScene" uid="uid://dg5m8iyihbvmu" path="res://properties/properties_container.tscn" id="20_eh4tf"]
+[ext_resource type="Script" path="res://main/nav_bar/menu_bar_tools.gd" id="24_h3xa5"]
 [ext_resource type="PackedScene" uid="uid://3c4x0gmdhcwn" path="res://typ_map_designer/typ_map_designer_container.tscn" id="27_45wxb"]
 [ext_resource type="Script" path="res://main/status_bar_container.gd" id="27_esd3e"]
 
@@ -63,6 +65,7 @@ script = ExtResource("2_glk8b")
 
 [node name="NewMapWindow" parent="Modals" instance=ExtResource("11_kalue")]
 unique_name_in_owner = true
+visible = false
 
 [node name="SectorHeightWindow" parent="Modals" instance=ExtResource("12_wpowt")]
 unique_name_in_owner = true
@@ -104,6 +107,10 @@ ok_button_text = "Yes"
 dialog_text = "This will change the building in every sector based on the selected level set. Are you sure you want to proceed?"
 cancel_button_text = "No"
 script = SubResource("GDScript_pxw2i")
+
+[node name="ResizeMapWindow" parent="Modals" instance=ExtResource("12_xkl20")]
+unique_name_in_owner = true
+visible = false
 
 [node name="GameContentWindow" parent="Modals" instance=ExtResource("11_jobpe")]
 unique_name_in_owner = true
@@ -201,6 +208,9 @@ script = ExtResource("10_vou7b")
 
 [node name="Options" type="PopupMenu" parent="PanelContainer/MarginContainer/VBoxContainer/MenuBar"]
 script = ExtResource("16_eeds7")
+
+[node name="Tools" type="PopupMenu" parent="PanelContainer/MarginContainer/VBoxContainer/MenuBar"]
+script = ExtResource("24_h3xa5")
 
 [node name="Help" type="PopupMenu" parent="PanelContainer/MarginContainer/VBoxContainer/MenuBar"]
 script = ExtResource("17_0pxun")
