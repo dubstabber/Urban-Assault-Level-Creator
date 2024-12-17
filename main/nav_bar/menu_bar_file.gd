@@ -3,6 +3,7 @@ extends PopupMenu
 
 func _ready():
 	add_item("New map")
+	add_separator()
 	add_item("Open map")
 	add_separator()
 	add_item("Save map")

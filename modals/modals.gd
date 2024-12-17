@@ -16,6 +16,14 @@ func _ready() -> void:
 			await unsaved_decided
 		%OpenLevelFileDialog.popup()
 		)
+	EventSystem.open_map_drag_requested.connect(func(file_path: String):
+		if not CurrentMapData.is_saved:
+			%UnsavedMapConfirmationDialog.show()
+			await unsaved_decided
+		CurrentMapData.close_map()
+		CurrentMapData.map_path = file_path
+		SingleplayerOpener.load_level()
+		)
 	EventSystem.save_map_requested.connect(func():
 		if CurrentMapData.horizontal_sectors == 0 or CurrentMapData.vertical_sectors == 0:
 			return

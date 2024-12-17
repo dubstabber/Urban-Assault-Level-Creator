@@ -2,12 +2,16 @@ extends Window
 
 
 func _on_about_to_popup() -> void:
-	if CurrentMapData.horizontal_sectors:
+	if CurrentMapData.horizontal_sectors > 0 and CurrentMapData.vertical_sectors > 0:
 		%HorizontalSpinBox.value = CurrentMapData.horizontal_sectors
 		%VerticalSpinBox.value = CurrentMapData.vertical_sectors
 
 
 func _on_ok_button_pressed() -> void:
+	if CurrentMapData.horizontal_sectors <= 0 or CurrentMapData.vertical_sectors <= 0:
+		hide()
+		return
+	
 	CurrentMapData.selected_unit = null
 	CurrentMapData.selected_sector_idx = -1
 	CurrentMapData.border_selected_sector_idx = -1
@@ -54,7 +58,6 @@ func _on_ok_button_pressed() -> void:
 	for row in range(min(CurrentMapData.vertical_sectors+2, vertical_sectors+2)):
 		for col in range(min(CurrentMapData.horizontal_sectors+2, horizontal_sectors+2)):
 			resized_hgt_map[row * horizontal_sectors + col] = CurrentMapData.hgt_map[row * CurrentMapData.horizontal_sectors + col]
-	
 	
 	CurrentMapData.beam_gates = CurrentMapData.beam_gates.filter(func(bg: BeamGate):
 		return not(bg.sec_x > horizontal_sectors or bg.sec_y > vertical_sectors)

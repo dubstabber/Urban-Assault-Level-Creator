@@ -2,6 +2,7 @@ extends Node
 
 signal new_map_requested
 signal open_map_requested
+signal open_map_drag_requested(file_path: String)
 signal save_map_requested
 signal save_as_map_requested
 signal close_map_requested

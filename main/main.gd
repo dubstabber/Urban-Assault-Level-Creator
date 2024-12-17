@@ -3,6 +3,13 @@ extends Control
 
 func _ready():
 	get_tree().set_auto_accept_quit(false)
+	get_viewport().files_dropped.connect(_on_files_dropped)
+
+
+func _on_files_dropped(files: Array):
+	if not files.is_empty():
+		var file_path = files[0]
+		EventSystem.open_map_drag_requested.emit(file_path)
 
 
 func _input(event):

@@ -11,7 +11,6 @@ func _ready() -> void:
 	add_check_item("Toggle blg_map values")
 	set_default_values()
 	index_pressed.connect(_on_index_pressed)
-	
 
 
 func set_default_values() -> void:
@@ -43,13 +42,3 @@ func _on_index_pressed(index: int) -> void:
 		"Toggle blg_map values":
 			CurrentMapData.blg_map_values_visible = not CurrentMapData.blg_map_values_visible
 			set_item_checked(index, CurrentMapData.blg_map_values_visible)
-
-
-
-
-
-func _get_item_index_by_text(text: String) -> int:
-	for i in range(get_item_count()):
-		if get_item_text(i) == text:
-			return i
-	return -1

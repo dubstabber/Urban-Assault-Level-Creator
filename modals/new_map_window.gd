@@ -1,7 +1,7 @@
 extends Window
 
-@onready var horizontal_sectors_spinbox = $PanelContainer/MarginContainer2/GridContainer/SpinBox
-@onready var vertical_sectors_spinbox = $PanelContainer/MarginContainer2/GridContainer/SpinBox2
+@onready var horizontal_sectors_spinbox = %HorizontalSpinBox
+@onready var vertical_sectors_spinbox = %VerticalSpinBox
 
 
 func _on_create_button_pressed() -> void:
