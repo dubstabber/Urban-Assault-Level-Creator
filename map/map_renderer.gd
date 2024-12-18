@@ -290,6 +290,8 @@ func add_hoststation(owner_id: int, vehicle_id: int):
 	if CurrentMapData.player_host_station == null or not is_instance_valid(CurrentMapData.player_host_station):
 		CurrentMapData.player_host_station = CurrentMapData.host_stations.get_child(0)
 	CurrentMapData.is_saved = false
+	if CurrentMapData.host_stations.get_child_count() > 8:
+		EventSystem.safe_host_station_limit_exceeded.emit()
 
 
 func add_squad(owner_id: int, vehicle_id: int):

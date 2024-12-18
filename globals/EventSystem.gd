@@ -34,3 +34,4 @@ signal building_added(typ_map: int)
 signal open_map_failed
 
 signal editor_mode_changed
+signal safe_host_station_limit_exceeded
