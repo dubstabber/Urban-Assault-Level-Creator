@@ -1,6 +1,7 @@
-[gd_scene load_steps=3 format=3 uid="uid://dww5muvu8c87j"]
+[gd_scene load_steps=4 format=3 uid="uid://dww5muvu8c87j"]
 
 [ext_resource type="Script" path="res://modals/level_parameters_window.gd" id="1_st6e7"]
+[ext_resource type="Script" path="res://modals/components/sky_option_button.gd" id="2_mmmkj"]
 
 [sub_resource type="PlaceholderTexture2D" id="PlaceholderTexture2D_0ppun"]
 
@@ -47,6 +48,7 @@ text = "Select sector environment"
 unique_name_in_owner = true
 layout_mode = 2
 size_flags_horizontal = 4
+focus_mode = 0
 selected = 0
 item_count = 6
 popup/item_0/text = "Set 1 - City"
@@ -73,6 +75,7 @@ text = "Select movie"
 unique_name_in_owner = true
 layout_mode = 2
 size_flags_horizontal = 4
+focus_mode = 0
 selected = 0
 item_count = 12
 popup/item_0/text = "none"
@@ -110,6 +113,7 @@ text = "Select event loop"
 unique_name_in_owner = true
 layout_mode = 2
 size_flags_horizontal = 4
+focus_mode = 0
 selected = 0
 item_count = 4
 popup/item_0/text = "none"
@@ -135,6 +139,7 @@ text = "Select level sky"
 [node name="SkyOptionButton" type="OptionButton" parent="PanelContainer/MarginContainer/VBoxContainer/HBoxContainer2"]
 unique_name_in_owner = true
 layout_mode = 2
+focus_mode = 1
 selected = 0
 item_count = 72
 popup/item_0/text = "1998_01"
@@ -280,6 +285,7 @@ popup/item_70/text = "xb"
 popup/item_70/id = 70
 popup/item_71/text = "xc"
 popup/item_71/id = 71
+script = ExtResource("2_mmmkj")
 
 [node name="SkyTexture" type="TextureRect" parent="PanelContainer/MarginContainer/VBoxContainer"]
 unique_name_in_owner = true
@@ -309,6 +315,7 @@ alignment = 1
 unique_name_in_owner = true
 layout_mode = 2
 size_flags_horizontal = 0
+focus_mode = 0
 selected = 0
 item_count = 6
 popup/item_0/text = "none"
@@ -326,6 +333,7 @@ popup/item_5/id = 6
 [node name="MusicButton" type="Button" parent="PanelContainer/MarginContainer/VBoxContainer/VBoxContainer/HBoxContainer"]
 unique_name_in_owner = true
 layout_mode = 2
+focus_mode = 0
 toggle_mode = true
 text = "Play"
 
@@ -344,6 +352,7 @@ text = "Minimum break:"
 [node name="MinBreakLineEdit" type="LineEdit" parent="PanelContainer/MarginContainer/VBoxContainer/VBoxContainer/GridContainer"]
 unique_name_in_owner = true
 layout_mode = 2
+focus_mode = 1
 text = "0"
 
 [node name="Label2" type="Label" parent="PanelContainer/MarginContainer/VBoxContainer/VBoxContainer/GridContainer"]
@@ -353,6 +362,7 @@ text = "Maximum break:"
 [node name="MaxBreakLineEdit" type="LineEdit" parent="PanelContainer/MarginContainer/VBoxContainer/VBoxContainer/GridContainer"]
 unique_name_in_owner = true
 layout_mode = 2
+focus_mode = 1
 text = "0"
 
 [node name="HSeparator3" type="HSeparator" parent="PanelContainer/MarginContainer/VBoxContainer"]
@@ -367,11 +377,13 @@ alignment = 1
 [node name="CancelButton" type="Button" parent="PanelContainer/MarginContainer/VBoxContainer/HBoxContainer3"]
 layout_mode = 2
 size_flags_horizontal = 4
+focus_mode = 0
 text = "Cancel"
 
 [node name="SaveButton" type="Button" parent="PanelContainer/MarginContainer/VBoxContainer/HBoxContainer3"]
 layout_mode = 2
 size_flags_horizontal = 4
+focus_mode = 0
 text = "Save"
 
 [connection signal="about_to_popup" from="." to="." method="_on_about_to_popup"]
