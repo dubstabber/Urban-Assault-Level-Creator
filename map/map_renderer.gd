@@ -238,7 +238,7 @@ func _draw():
 		var pos_x = bomb.sec_x * 1200 + sector_indent
 		var pos_y = bomb.sec_y * 1200 + sector_indent
 		draw_texture_rect(Preloads.sector_item_images.stoudson_bomb, Rect2(pos_x, pos_y,1200-(sector_indent*2),1200-(sector_indent*2)), false)
-		if bomb.inactive_bp == 68 and CurrentMapData.level_set != 6:
+		if bomb.inactive_bp == 68 and CurrentMapData.level_set in [2, 3, 4, 5]:
 			draw_texture_rect(Preloads.error_sign, Rect2(pos_x, pos_y, 1200-(sector_indent*2),1200-(sector_indent*2)), false)
 		for key_sector in bomb.key_sectors:
 			var kpos_x = key_sector.x * 1200 + sector_indent

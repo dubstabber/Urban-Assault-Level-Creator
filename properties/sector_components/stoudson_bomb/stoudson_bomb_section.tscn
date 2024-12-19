@@ -26,6 +26,17 @@ text = "The building for this bomb is invalid, which will cause the game to cras
 horizontal_alignment = 1
 autowrap_mode = 3
 
+[node name="WarningBuildingLabel" type="Label" parent="."]
+unique_name_in_owner = true
+visible = false
+custom_minimum_size = Vector2(10, 10)
+layout_mode = 2
+theme_override_colors/font_color = Color(0.713726, 0.482353, 0, 1)
+theme_override_font_sizes/font_size = 14
+text = "This bomb building is not designed for the current level set"
+horizontal_alignment = 1
+autowrap_mode = 3
+
 [node name="HBoxContainer" type="HBoxContainer" parent="."]
 layout_mode = 2
 alignment = 1

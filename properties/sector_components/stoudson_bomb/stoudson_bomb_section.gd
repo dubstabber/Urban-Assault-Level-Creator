@@ -65,10 +65,15 @@ func _update_properties() -> void:
 			%InvalidBuildingLabel.hide()
 		elif EditorState.selected_bomb.inactive_bp == 68:
 			%BombBuildingOptionButton.selected = 1
-			if CurrentMapData.level_set != 6:
+			if CurrentMapData.level_set in [2, 3, 4, 5]:
 				%InvalidBuildingLabel.show()
+				%WarningBuildingLabel.hide()
+			elif CurrentMapData.level_set == 1:
+				%WarningBuildingLabel.show()
+				%InvalidBuildingLabel.hide()
 			else:
 				%InvalidBuildingLabel.hide()
+				%WarningBuildingLabel.hide()
 		
 		var seconds:int = int(EditorState.selected_bomb.countdown/1024.0)
 		var minutes:int = int(seconds/60.0)
