@@ -8,31 +8,31 @@
 [ext_resource type="ButtonGroup" uid="uid://u68msd2vjhjf" path="res://themes/building_view_button_group.tres" id="5_5ull5"]
 [ext_resource type="PackedScene" uid="uid://bev7jns5uf1v8" path="res://typ_map_designer/components/building_button.tscn" id="5_tphco"]
 
-[sub_resource type="ButtonGroup" id="ButtonGroup_4vcva"]
+[sub_resource type="ButtonGroup" id="ButtonGroup_8m2tl"]
 
-[sub_resource type="ButtonGroup" id="ButtonGroup_36fje"]
+[sub_resource type="ButtonGroup" id="ButtonGroup_k81gm"]
 
-[sub_resource type="ButtonGroup" id="ButtonGroup_piyfn"]
+[sub_resource type="ButtonGroup" id="ButtonGroup_xvnw1"]
 
-[sub_resource type="ButtonGroup" id="ButtonGroup_horrw"]
+[sub_resource type="ButtonGroup" id="ButtonGroup_5o0h3"]
 
-[sub_resource type="ButtonGroup" id="ButtonGroup_k2f1x"]
+[sub_resource type="ButtonGroup" id="ButtonGroup_i3ygb"]
 
-[sub_resource type="ButtonGroup" id="ButtonGroup_n545k"]
+[sub_resource type="ButtonGroup" id="ButtonGroup_l57tx"]
 
-[sub_resource type="ButtonGroup" id="ButtonGroup_eo4me"]
+[sub_resource type="ButtonGroup" id="ButtonGroup_4nob4"]
 
-[sub_resource type="ButtonGroup" id="ButtonGroup_tfi7v"]
+[sub_resource type="ButtonGroup" id="ButtonGroup_1l4sr"]
 
-[sub_resource type="ButtonGroup" id="ButtonGroup_i57k1"]
+[sub_resource type="ButtonGroup" id="ButtonGroup_t18t3"]
 
-[sub_resource type="ButtonGroup" id="ButtonGroup_yfw6b"]
+[sub_resource type="ButtonGroup" id="ButtonGroup_r27rn"]
 
-[sub_resource type="ButtonGroup" id="ButtonGroup_wsh3t"]
+[sub_resource type="ButtonGroup" id="ButtonGroup_daygf"]
 
-[sub_resource type="ButtonGroup" id="ButtonGroup_8u60w"]
+[sub_resource type="ButtonGroup" id="ButtonGroup_t3o5o"]
 
-[sub_resource type="ButtonGroup" id="ButtonGroup_qxklj"]
+[sub_resource type="ButtonGroup" id="ButtonGroup_jv1kj"]
 
 [node name="TypMapDesignerContainer" type="PanelContainer"]
 anchors_preset = 15
@@ -133,52 +133,52 @@ script = ExtResource("4_6wcmy")
 
 [node name="BuildingButton" parent="VBoxContainer/ScrollContainer/MarginContainer/TypMapImagesContainer" instance=ExtResource("5_tphco")]
 layout_mode = 2
-button_group = SubResource("ButtonGroup_4vcva")
+button_group = SubResource("ButtonGroup_8m2tl")
 
 [node name="BuildingButton2" parent="VBoxContainer/ScrollContainer/MarginContainer/TypMapImagesContainer" instance=ExtResource("5_tphco")]
 layout_mode = 2
-button_group = SubResource("ButtonGroup_36fje")
+button_group = SubResource("ButtonGroup_k81gm")
 
 [node name="BuildingButton3" parent="VBoxContainer/ScrollContainer/MarginContainer/TypMapImagesContainer" instance=ExtResource("5_tphco")]
 layout_mode = 2
-button_group = SubResource("ButtonGroup_piyfn")
+button_group = SubResource("ButtonGroup_xvnw1")
 
 [node name="BuildingButton4" parent="VBoxContainer/ScrollContainer/MarginContainer/TypMapImagesContainer" instance=ExtResource("5_tphco")]
 layout_mode = 2
-button_group = SubResource("ButtonGroup_horrw")
+button_group = SubResource("ButtonGroup_5o0h3")
 
 [node name="BuildingButton5" parent="VBoxContainer/ScrollContainer/MarginContainer/TypMapImagesContainer" instance=ExtResource("5_tphco")]
 layout_mode = 2
-button_group = SubResource("ButtonGroup_k2f1x")
+button_group = SubResource("ButtonGroup_i3ygb")
 
 [node name="BuildingButton6" parent="VBoxContainer/ScrollContainer/MarginContainer/TypMapImagesContainer" instance=ExtResource("5_tphco")]
 layout_mode = 2
-button_group = SubResource("ButtonGroup_n545k")
+button_group = SubResource("ButtonGroup_l57tx")
 
 [node name="BuildingButton7" parent="VBoxContainer/ScrollContainer/MarginContainer/TypMapImagesContainer" instance=ExtResource("5_tphco")]
 layout_mode = 2
-button_group = SubResource("ButtonGroup_eo4me")
+button_group = SubResource("ButtonGroup_4nob4")
 
 [node name="BuildingButton8" parent="VBoxContainer/ScrollContainer/MarginContainer/TypMapImagesContainer" instance=ExtResource("5_tphco")]
 layout_mode = 2
-button_group = SubResource("ButtonGroup_tfi7v")
+button_group = SubResource("ButtonGroup_1l4sr")
 
 [node name="BuildingButton9" parent="VBoxContainer/ScrollContainer/MarginContainer/TypMapImagesContainer" instance=ExtResource("5_tphco")]
 layout_mode = 2
-button_group = SubResource("ButtonGroup_i57k1")
+button_group = SubResource("ButtonGroup_t18t3")
 
 [node name="BuildingButton10" parent="VBoxContainer/ScrollContainer/MarginContainer/TypMapImagesContainer" instance=ExtResource("5_tphco")]
 layout_mode = 2
-button_group = SubResource("ButtonGroup_yfw6b")
+button_group = SubResource("ButtonGroup_r27rn")
 
 [node name="BuildingButton11" parent="VBoxContainer/ScrollContainer/MarginContainer/TypMapImagesContainer" instance=ExtResource("5_tphco")]
 layout_mode = 2
-button_group = SubResource("ButtonGroup_wsh3t")
+button_group = SubResource("ButtonGroup_daygf")
 
 [node name="BuildingButton12" parent="VBoxContainer/ScrollContainer/MarginContainer/TypMapImagesContainer" instance=ExtResource("5_tphco")]
 layout_mode = 2
-button_group = SubResource("ButtonGroup_8u60w")
+button_group = SubResource("ButtonGroup_t3o5o")
 
 [node name="BuildingButton13" parent="VBoxContainer/ScrollContainer/MarginContainer/TypMapImagesContainer" instance=ExtResource("5_tphco")]
 layout_mode = 2
-button_group = SubResource("ButtonGroup_qxklj")
+button_group = SubResource("ButtonGroup_jv1kj")

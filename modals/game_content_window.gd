@@ -15,7 +15,7 @@ func _on_about_to_popup() -> void:
 		check_box.size_flags_horizontal = Control.SIZE_SHRINK_BEGIN
 		check_box["theme_override_font_sizes/font_size"] = 12
 		%ContentContainer.add_child(check_box)
-		if CurrentMapData.game_data_type == game_mode:
+		if EditorState.game_data_type == game_mode:
 			check_box.button_pressed = true
 
 
@@ -24,5 +24,5 @@ func close() -> void:
 
 
 func _on_save_button_pressed() -> void:
-	CurrentMapData.game_data_type = button_group.get_pressed_button().text
+	EditorState.game_data_type = button_group.get_pressed_button().text
 	hide()

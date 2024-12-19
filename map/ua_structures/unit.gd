@@ -12,8 +12,8 @@ var vehicle: int:
 	set(value):
 		vehicle = value
 		if self is HostStation:
-			for hs in Preloads.ua_data.data[CurrentMapData.game_data_type].hoststations:
-				for robo in Preloads.ua_data.data[CurrentMapData.game_data_type].hoststations[hs].robos:
+			for hs in Preloads.ua_data.data[EditorState.game_data_type].hoststations:
+				for robo in Preloads.ua_data.data[EditorState.game_data_type].hoststations[hs].robos:
 					if robo.id == vehicle:
 						if "player_id" in robo:
 							player_vehicle = robo.player_id
@@ -58,11 +58,11 @@ func recalculate_limits():
 
 
 func _on_button_mouse_entered() -> void:
-	CurrentMapData.mouse_over_unit = self
+	EditorState.mouse_over_unit = self
 	set_default_cursor_shape(CursorShape.CURSOR_POINTING_HAND)
 
 
 func _on_button_mouse_exited() -> void:
-	if self == CurrentMapData.mouse_over_unit:
-		CurrentMapData.mouse_over_unit = null
+	if self == EditorState.mouse_over_unit:
+		EditorState.mouse_over_unit = null
 	

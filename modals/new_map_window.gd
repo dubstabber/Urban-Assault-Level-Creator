@@ -29,3 +29,4 @@ func _on_create_button_pressed() -> void:
 	
 	DisplayServer.window_set_title("[not saved] (%sx%s) - %s" % [CurrentMapData.horizontal_sectors, CurrentMapData.vertical_sectors, "Urban Assault Level Creator"])
 	EventSystem.map_created.emit()
+	EventSystem.item_updated.emit()

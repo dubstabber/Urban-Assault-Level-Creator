@@ -46,83 +46,83 @@ func _ready() -> void:
 
 
 func _new_item(index:int, new_item_submenu: PopupMenu) -> void:
-	if not(CurrentMapData.selected_sector.x > 0 and 
-	CurrentMapData.selected_sector.x < CurrentMapData.horizontal_sectors+1 and
-	CurrentMapData.selected_sector.y > 0 and 
-	CurrentMapData.selected_sector.y < CurrentMapData.vertical_sectors+1):
+	if not(EditorState.selected_sector.x > 0 and 
+	EditorState.selected_sector.x < CurrentMapData.horizontal_sectors+1 and
+	EditorState.selected_sector.y > 0 and 
+	EditorState.selected_sector.y < CurrentMapData.vertical_sectors+1):
 		return
 	var item_text = new_item_submenu.get_item_text(index)
 	match item_text:
 		'Beam Gate':
 			for bg in CurrentMapData.beam_gates:
-				if bg.sec_x == CurrentMapData.selected_sector.x and bg.sec_y == CurrentMapData.selected_sector.y:
+				if bg.sec_x == EditorState.selected_sector.x and bg.sec_y == EditorState.selected_sector.y:
 					return
 			
-			var bg = BeamGate.new(CurrentMapData.selected_sector.x,CurrentMapData.selected_sector.y)
+			var bg = BeamGate.new(EditorState.selected_sector.x,EditorState.selected_sector.y)
 			CurrentMapData.beam_gates.append(bg)
-			CurrentMapData.typ_map[CurrentMapData.selected_sector_idx] = 202
-			CurrentMapData.blg_map[CurrentMapData.selected_sector_idx] = bg.closed_bp
-			CurrentMapData.selected_beam_gate = bg
+			CurrentMapData.typ_map[EditorState.selected_sector_idx] = 202
+			CurrentMapData.blg_map[EditorState.selected_sector_idx] = bg.closed_bp
+			EditorState.selected_beam_gate = bg
 			EventSystem.item_updated.emit()
 		'Stoudson Bomb':
 			for bomb in CurrentMapData.stoudson_bombs:
-				if bomb.sec_x == CurrentMapData.selected_sector.x and bomb.sec_y == CurrentMapData.selected_sector.y:
+				if bomb.sec_x == EditorState.selected_sector.x and bomb.sec_y == EditorState.selected_sector.y:
 					return
 			
-			var bomb = StoudsonBomb.new(CurrentMapData.selected_sector.x,CurrentMapData.selected_sector.y)
+			var bomb = StoudsonBomb.new(EditorState.selected_sector.x,EditorState.selected_sector.y)
 			CurrentMapData.stoudson_bombs.append(bomb)
-			CurrentMapData.typ_map[CurrentMapData.selected_sector_idx] = 245
-			CurrentMapData.blg_map[CurrentMapData.selected_sector_idx] = bomb.inactive_bp
-			CurrentMapData.selected_bomb = bomb
+			CurrentMapData.typ_map[EditorState.selected_sector_idx] = 245
+			CurrentMapData.blg_map[EditorState.selected_sector_idx] = bomb.inactive_bp
+			EditorState.selected_bomb = bomb
 			EventSystem.item_updated.emit()
 		'Tech Upgrade':
 			for tu in CurrentMapData.tech_upgrades:
-				if tu.sec_x == CurrentMapData.selected_sector.x and tu.sec_y == CurrentMapData.selected_sector.y:
+				if tu.sec_x == EditorState.selected_sector.x and tu.sec_y == EditorState.selected_sector.y:
 					return
 			
-			var tu = TechUpgrade.new(CurrentMapData.selected_sector.x,CurrentMapData.selected_sector.y)
+			var tu = TechUpgrade.new(EditorState.selected_sector.x,EditorState.selected_sector.y)
 			CurrentMapData.tech_upgrades.append(tu)
-			CurrentMapData.typ_map[CurrentMapData.selected_sector_idx] = 100
-			CurrentMapData.blg_map[CurrentMapData.selected_sector_idx] = tu.building_id
-			CurrentMapData.selected_tech_upgrade = tu
+			CurrentMapData.typ_map[EditorState.selected_sector_idx] = 100
+			CurrentMapData.blg_map[EditorState.selected_sector_idx] = tu.building_id
+			EditorState.selected_tech_upgrade = tu
 			EventSystem.item_updated.emit()
 	EventSystem.map_updated.emit()
 
 
 func _add_beam_gate_key_sector(index: int) -> void:
-	if not(CurrentMapData.selected_sector.x > 0 and 
-	CurrentMapData.selected_sector.x < CurrentMapData.horizontal_sectors+1 and
-	CurrentMapData.selected_sector.y > 0 and 
-	CurrentMapData.selected_sector.y < CurrentMapData.vertical_sectors+1):
+	if not(EditorState.selected_sector.x > 0 and 
+	EditorState.selected_sector.x < CurrentMapData.horizontal_sectors+1 and
+	EditorState.selected_sector.y > 0 and 
+	EditorState.selected_sector.y < CurrentMapData.vertical_sectors+1):
 		return
 	
 	# Prevent key sector duplication in the same sector
 	for ks in CurrentMapData.beam_gates[index].key_sectors:
-		if ks.x == CurrentMapData.selected_sector.x and ks.y == CurrentMapData.selected_sector.y:
+		if ks.x == EditorState.selected_sector.x and ks.y == EditorState.selected_sector.y:
 			return
 	
-	var key_sector = Vector2i(CurrentMapData.selected_sector.x, CurrentMapData.selected_sector.y)
+	var key_sector = Vector2i(EditorState.selected_sector.x, EditorState.selected_sector.y)
 	CurrentMapData.beam_gates[index].key_sectors.append(key_sector)
-	CurrentMapData.selected_bg_key_sector = key_sector
+	EditorState.selected_bg_key_sector = key_sector
 	EventSystem.map_updated.emit()
 
 
 func _add_bomb_key_sector(index: int) -> void:
-	if not(CurrentMapData.selected_sector.x > 0 and 
-	CurrentMapData.selected_sector.x < CurrentMapData.horizontal_sectors+1 and
-	CurrentMapData.selected_sector.y > 0 and 
-	CurrentMapData.selected_sector.y < CurrentMapData.vertical_sectors+1):
+	if not(EditorState.selected_sector.x > 0 and 
+	EditorState.selected_sector.x < CurrentMapData.horizontal_sectors+1 and
+	EditorState.selected_sector.y > 0 and 
+	EditorState.selected_sector.y < CurrentMapData.vertical_sectors+1):
 		return
 	
 	# Prevent key sector duplication in the same sector
 	for ks in CurrentMapData.stoudson_bombs[index].key_sectors:
-		if ks.x == CurrentMapData.selected_sector.x and ks.y == CurrentMapData.selected_sector.y:
+		if ks.x == EditorState.selected_sector.x and ks.y == EditorState.selected_sector.y:
 			return
 	
-	var bomb_key_sector = Vector2i(CurrentMapData.selected_sector.x, CurrentMapData.selected_sector.y)
+	var bomb_key_sector = Vector2i(EditorState.selected_sector.x, EditorState.selected_sector.y)
 	CurrentMapData.stoudson_bombs[index].key_sectors.append(bomb_key_sector)
-	CurrentMapData.typ_map[CurrentMapData.selected_sector_idx] = 243
-	CurrentMapData.selected_bomb_key_sector = bomb_key_sector
+	CurrentMapData.typ_map[EditorState.selected_sector_idx] = 243
+	EditorState.selected_bomb_key_sector = bomb_key_sector
 	EventSystem.map_updated.emit()
 
 

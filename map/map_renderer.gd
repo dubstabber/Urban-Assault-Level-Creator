@@ -55,13 +55,13 @@ func _input(event):
 	if event.is_action_pressed("select"):
 		is_left_pressed = true
 		if CurrentMapData.horizontal_sectors <= 0: return
-		if EditorState.mode == EditorState.State.TypMapDesign and is_left_pressed:
+		if EditorState.mode == EditorState.States.TypMapDesign and is_left_pressed:
 			handle_selection(round(get_local_mouse_position().x), round(get_local_mouse_position().y))
-			CurrentMapData.typ_map[CurrentMapData.selected_sector_idx] = EditorState.selected_typ_map
+			CurrentMapData.typ_map[EditorState.selected_sector_idx] = EditorState.selected_typ_map
 			CurrentMapData.is_saved = false
 			return
 		handle_selection(round(get_local_mouse_position().x), round(get_local_mouse_position().y))
-		CurrentMapData.selected_unit = CurrentMapData.mouse_over_unit
+		EditorState.selected_unit = EditorState.mouse_over_unit
 		if event.double_click:
 			EventSystem.left_double_clicked.emit()
 	elif event.is_action_released("select"):
@@ -70,13 +70,13 @@ func _input(event):
 		if CurrentMapData.horizontal_sectors <= 0: return
 		right_clicked_x = round(get_local_mouse_position().x)
 		right_clicked_y = round(get_local_mouse_position().y)
-		if CurrentMapData.selected_sectors.size() > 1:
+		if EditorState.selected_sectors.size() > 1:
 			%MultiSectorMapContextMenu.position = Vector2(right_clicked_x_global, right_clicked_y_global)
 			%MultiSectorMapContextMenu.popup()
 			return
 		handle_selection(right_clicked_x, right_clicked_y)
-		CurrentMapData.selected_unit = CurrentMapData.mouse_over_unit
-		if CurrentMapData.selected_unit:
+		EditorState.selected_unit = EditorState.mouse_over_unit
+		if EditorState.selected_unit:
 			%UnitContextMenu.position = Vector2(right_clicked_x_global, right_clicked_y_global)
 			%UnitContextMenu.popup()
 		else:
@@ -88,11 +88,11 @@ func _input(event):
 		if number_key >= 0 and number_key <= 7:
 			is_number_pressed = true
 			handle_selection(round(get_local_mouse_position().x), round(get_local_mouse_position().y))
-			if CurrentMapData.selected_sector_idx >= 0 and CurrentMapData.own_map.size() > 0:
-				if CurrentMapData.blg_map[CurrentMapData.selected_sector_idx] not in [0, 35, 68] and number_key == 0:
-					CurrentMapData.own_map[CurrentMapData.selected_sector_idx] = 7
+			if EditorState.selected_sector_idx >= 0 and CurrentMapData.own_map.size() > 0:
+				if CurrentMapData.blg_map[EditorState.selected_sector_idx] not in [0, 35, 68] and number_key == 0:
+					CurrentMapData.own_map[EditorState.selected_sector_idx] = 7
 				else:
-					CurrentMapData.own_map[CurrentMapData.selected_sector_idx] = number_key
+					CurrentMapData.own_map[EditorState.selected_sector_idx] = number_key
 				CurrentMapData.is_saved = false
 				EventSystem.map_updated.emit()
 	elif event is InputEventKey and event.is_released():
@@ -100,52 +100,52 @@ func _input(event):
 	
 	if event is InputEventMouseMotion:
 		if CurrentMapData.horizontal_sectors <= 0: return
-		if EditorState.mode == EditorState.State.TypMapDesign and is_left_pressed:
+		if EditorState.mode == EditorState.States.TypMapDesign and is_left_pressed:
 			handle_selection(round(get_local_mouse_position().x), round(get_local_mouse_position().y))
-			CurrentMapData.typ_map[CurrentMapData.selected_sector_idx] = EditorState.selected_typ_map
+			CurrentMapData.typ_map[EditorState.selected_sector_idx] = EditorState.selected_typ_map
 			CurrentMapData.is_saved = false
 		elif is_number_pressed and number_key >= 0 and number_key <= 7:
 			handle_selection(round(get_local_mouse_position().x), round(get_local_mouse_position().y))
 	if (event.is_action_pressed("increment_height") and 
 		CurrentMapData.hgt_map.size() > 0 and
-		CurrentMapData.border_selected_sector_idx >= 0 and
-		CurrentMapData.hgt_map[CurrentMapData.border_selected_sector_idx] < 255):
-		if CurrentMapData.selected_sectors.size() > 1:
-			for sector_dict in CurrentMapData.selected_sectors:
+		EditorState.border_selected_sector_idx >= 0 and
+		CurrentMapData.hgt_map[EditorState.border_selected_sector_idx] < 255):
+		if EditorState.selected_sectors.size() > 1:
+			for sector_dict in EditorState.selected_sectors:
 				if CurrentMapData.hgt_map[sector_dict.border_idx] < 255:
 					CurrentMapData.hgt_map[sector_dict.border_idx] += 1
 		else:
-			CurrentMapData.hgt_map[CurrentMapData.border_selected_sector_idx] += 1
+			CurrentMapData.hgt_map[EditorState.border_selected_sector_idx] += 1
 		CurrentMapData.is_saved = false
 		queue_redraw()
 	if (event.is_action_pressed("decrement_height") and 
 		CurrentMapData.hgt_map.size() > 0 and
-		CurrentMapData.border_selected_sector_idx >= 0 and
-		CurrentMapData.hgt_map[CurrentMapData.border_selected_sector_idx] > 0):
-		if CurrentMapData.selected_sectors.size() > 1:
-			for sector_dict in CurrentMapData.selected_sectors:
+		EditorState.border_selected_sector_idx >= 0 and
+		CurrentMapData.hgt_map[EditorState.border_selected_sector_idx] > 0):
+		if EditorState.selected_sectors.size() > 1:
+			for sector_dict in EditorState.selected_sectors:
 				if CurrentMapData.hgt_map[sector_dict.border_idx] > 0:
 					CurrentMapData.hgt_map[sector_dict.border_idx] -= 1
 		else:
-			CurrentMapData.hgt_map[CurrentMapData.border_selected_sector_idx] -= 1
+			CurrentMapData.hgt_map[EditorState.border_selected_sector_idx] -= 1
 		CurrentMapData.is_saved = false
 		queue_redraw()
 	if event.is_action_pressed("previous_building"):
 		if CurrentMapData.horizontal_sectors <= 0: return
-		if CurrentMapData.selected_sectors.size() > 1:
-			for sector_dict in CurrentMapData.selected_sectors:
+		if EditorState.selected_sectors.size() > 1:
+			for sector_dict in EditorState.selected_sectors:
 				Utils.decrement_typ_map(sector_dict.idx)
 		else:
-			Utils.decrement_typ_map(CurrentMapData.selected_sector_idx)
+			Utils.decrement_typ_map(EditorState.selected_sector_idx)
 		CurrentMapData.is_saved = false
 		EventSystem.map_updated.emit()
 	if event.is_action_pressed("next_building"):
 		if CurrentMapData.horizontal_sectors <= 0: return
-		if CurrentMapData.selected_sectors.size() > 1:
-			for sector_dict in CurrentMapData.selected_sectors:
+		if EditorState.selected_sectors.size() > 1:
+			for sector_dict in EditorState.selected_sectors:
 				Utils.increment_typ_map(sector_dict.idx)
 		else:
-			Utils.increment_typ_map(CurrentMapData.selected_sector_idx)
+			Utils.increment_typ_map(EditorState.selected_sector_idx)
 		CurrentMapData.is_saved = false
 		EventSystem.map_updated.emit()
 	if event.is_action_pressed("show_height_window") and not CurrentMapData.hgt_map.is_empty():
@@ -153,14 +153,14 @@ func _input(event):
 	if event.is_action_pressed("show_building_window") and not CurrentMapData.typ_map.is_empty():
 		EventSystem.sector_building_windows_requested.emit()
 	if event.is_action_pressed("clear_sector") and not CurrentMapData.typ_map.is_empty():
-		if CurrentMapData.selected_sectors.size() > 1:
-			for sector_dict in CurrentMapData.selected_sectors:
+		if EditorState.selected_sectors.size() > 1:
+			for sector_dict in EditorState.selected_sectors:
 				CurrentMapData.clear_sector(sector_dict.idx)
 		else:
-			CurrentMapData.clear_sector(CurrentMapData.selected_sector_idx)
+			CurrentMapData.clear_sector(EditorState.selected_sector_idx)
 		CurrentMapData.is_saved = false
 	if event is InputEventMouseButton and event.button_index == MOUSE_BUTTON_LEFT and event.double_click:
-		if not CurrentMapData.selected_unit:
+		if not EditorState.selected_unit:
 			EventSystem.left_double_clicked.emit()
 
 
@@ -176,7 +176,7 @@ func _draw():
 			if (x_sector > 0 and x_sector < CurrentMapData.horizontal_sectors+1 and 
 				y_sector > 0 and y_sector < CurrentMapData.vertical_sectors+1):
 				if Preloads.building_top_images[CurrentMapData.level_set].has(CurrentMapData.typ_map[current_sector]):
-					if CurrentMapData.typ_map_images_visible:
+					if EditorState.typ_map_images_visible:
 						draw_texture_rect(Preloads.building_top_images[CurrentMapData.level_set][CurrentMapData.typ_map[current_sector]], Rect2(h_grid, v_grid, 1200, 1200), false)
 				else:
 					draw_texture_rect(Preloads.error_sign, Rect2(h_grid+sector_indent,v_grid+sector_indent, 1200-(sector_indent*2),1200-(sector_indent*2)), false)
@@ -195,7 +195,7 @@ func _draw():
 					4: sector_color = Color.YELLOW
 					5: sector_color = Color.DIM_GRAY
 					6: sector_color = Color.RED
-					7: sector_color = Color.BLACK
+					7: sector_color = Color(0.070588, 0.0, 0.168627, 1)
 				draw_rect(Rect2(h_grid+sector_indent,v_grid+sector_indent, 1200-(sector_indent*2),1200-(sector_indent*2)), sector_color, false, 30.0)
 				
 				if (y_sector > 1 and
@@ -217,7 +217,7 @@ func _draw():
 				current_sector += 1
 			
 			# Highlight for selection
-			if CurrentMapData.selected_sectors.any(func(dict): return dict.border_idx == current_border_sector):
+			if EditorState.selected_sectors.any(func(dict): return dict.border_idx == current_border_sector):
 				draw_rect(Rect2(h_grid,v_grid, 1200,1200), Color(0.184314, 0.309804, 0.309804, 0.6))
 			
 			h_grid += 1200
@@ -259,14 +259,14 @@ func _draw():
 		for x_sector in CurrentMapData.horizontal_sectors+2:
 			if (x_sector > 0 and x_sector < CurrentMapData.horizontal_sectors+1 and 
 				y_sector > 0 and y_sector < CurrentMapData.vertical_sectors+1):
-				if CurrentMapData.typ_map_values_visible:
+				if EditorState.typ_map_values_visible:
 					draw_string(font, Vector2(h_grid+50, v_grid+sector_font_size), "typ_map: "+ str(CurrentMapData.typ_map[current_sector]), HORIZONTAL_ALIGNMENT_LEFT, -1, sector_font_size)
-				if CurrentMapData.own_map_values_visible:
+				if EditorState.own_map_values_visible:
 					draw_string(font, Vector2(h_grid+50, v_grid+sector_font_size*2), "own_map: "+ str(CurrentMapData.own_map[current_sector]), HORIZONTAL_ALIGNMENT_LEFT, -1, sector_font_size)
-				if CurrentMapData.blg_map_values_visible:
+				if EditorState.blg_map_values_visible:
 					draw_string(font, Vector2(h_grid+50, v_grid+sector_font_size*4), "blg_map: "+ str(CurrentMapData.blg_map[current_sector]), HORIZONTAL_ALIGNMENT_LEFT, -1, sector_font_size)
 				current_sector += 1
-			if CurrentMapData.hgt_map_values_visible:
+			if EditorState.hgt_map_values_visible:
 				draw_string(font, Vector2(h_grid+50, v_grid+sector_font_size*3), "hgt_map: "+ str(CurrentMapData.hgt_map[current_border_sector]), HORIZONTAL_ALIGNMENT_LEFT, -1, sector_font_size)
 			h_grid += 1200
 			current_border_sector += 1
@@ -286,7 +286,7 @@ func add_hoststation(owner_id: int, vehicle_id: int):
 	hoststation.position.x = clampi(right_clicked_x, 1205, ((CurrentMapData.horizontal_sectors+1) * 1200) - 5)
 	hoststation.position.y = clampi(right_clicked_y, 1205, ((CurrentMapData.vertical_sectors+1) * 1200) - 5)
 
-	CurrentMapData.selected_unit = hoststation
+	EditorState.selected_unit = hoststation
 	if CurrentMapData.player_host_station == null or not is_instance_valid(CurrentMapData.player_host_station):
 		CurrentMapData.player_host_station = CurrentMapData.host_stations.get_child(0)
 	CurrentMapData.is_saved = false
@@ -302,7 +302,7 @@ func add_squad(owner_id: int, vehicle_id: int):
 	squad.position.y = clampi(right_clicked_y, 1205, ((CurrentMapData.vertical_sectors+1) * 1200) - 5)
 	
 	CurrentMapData.is_saved = false
-	CurrentMapData.selected_unit = squad
+	EditorState.selected_unit = squad
 
 
 func handle_selection(clicked_x: int, clicked_y: int):
@@ -310,18 +310,17 @@ func handle_selection(clicked_x: int, clicked_y: int):
 	var border_sector_counter := 0
 	var h_size := 0
 	var v_size := 0
-	if not is_selection_kept:
-		CurrentMapData.selected_sectors.clear()
+	if not is_selection_kept: EditorState.selected_sectors.clear()
 	
 	for y_sector in CurrentMapData.vertical_sectors+2:
 		for x_sector in CurrentMapData.horizontal_sectors+2:
 			if clicked_x > h_size and clicked_x < h_size + 1200 and clicked_y > v_size and clicked_y < v_size + 1200:
-				CurrentMapData.selected_sector_idx = sector_counter
-				CurrentMapData.border_selected_sector_idx = border_sector_counter
-				CurrentMapData.selected_sector.x = x_sector
-				CurrentMapData.selected_sector.y = y_sector
-				if not CurrentMapData.selected_sectors.any(func(dict): return dict.border_idx == border_sector_counter):
-					CurrentMapData.selected_sectors.append(
+				EditorState.selected_sector_idx = sector_counter
+				EditorState.border_selected_sector_idx = border_sector_counter
+				EditorState.selected_sector.x = x_sector
+				EditorState.selected_sector.y = y_sector
+				if not EditorState.selected_sectors.any(func(dict): return dict.border_idx == border_sector_counter):
+					EditorState.selected_sectors.append(
 						{
 							"border_idx": border_sector_counter, 
 							"idx": sector_counter,
@@ -339,26 +338,29 @@ func handle_selection(clicked_x: int, clicked_y: int):
 		v_size += 1200
 		h_size = 0
 	
-	CurrentMapData.selected_beam_gate = null
-	CurrentMapData.selected_bomb = null
-	CurrentMapData.selected_bg_key_sector = Vector2i(-1, -1)
-	CurrentMapData.selected_bomb_key_sector = Vector2i(-1, -1)
-	CurrentMapData.selected_tech_upgrade = null
+	EditorState.selected_beam_gate = null
+	EditorState.selected_bomb = null
+	EditorState.selected_bg_key_sector = Vector2i(-1, -1)
+	EditorState.selected_bomb_key_sector = Vector2i(-1, -1)
+	EditorState.selected_tech_upgrade = null
 	
 	for bg in CurrentMapData.beam_gates:
-		if bg.sec_x == CurrentMapData.selected_sector.x and bg.sec_y == CurrentMapData.selected_sector.y:
-			CurrentMapData.selected_beam_gate = bg
+		if bg.sec_x == EditorState.selected_sector.x and bg.sec_y == EditorState.selected_sector.y:
+			EditorState.selected_beam_gate = bg
 		for ks in bg.key_sectors:
-			if ks.x == CurrentMapData.selected_sector.x and ks.y == CurrentMapData.selected_sector.y:
-				CurrentMapData.selected_bg_key_sector = ks
+			if ks.x == EditorState.selected_sector.x and ks.y == EditorState.selected_sector.y:
+				EditorState.selected_bg_key_sector = ks
+				break
 	for bomb in CurrentMapData.stoudson_bombs:
-		if bomb.sec_x == CurrentMapData.selected_sector.x and bomb.sec_y == CurrentMapData.selected_sector.y:
-			CurrentMapData.selected_bomb = bomb
+		if bomb.sec_x == EditorState.selected_sector.x and bomb.sec_y == EditorState.selected_sector.y:
+			EditorState.selected_bomb = bomb
 		for ks in bomb.key_sectors:
-			if ks.x == CurrentMapData.selected_sector.x and ks.y == CurrentMapData.selected_sector.y:
-				CurrentMapData.selected_bomb_key_sector = ks
+			if ks.x == EditorState.selected_sector.x and ks.y == EditorState.selected_sector.y:
+				EditorState.selected_bomb_key_sector = ks
+				break
 	for tu in CurrentMapData.tech_upgrades:
-		if tu.sec_x == CurrentMapData.selected_sector.x and tu.sec_y == CurrentMapData.selected_sector.y:
-			CurrentMapData.selected_tech_upgrade = tu
+		if tu.sec_x == EditorState.selected_sector.x and tu.sec_y == EditorState.selected_sector.y:
+			EditorState.selected_tech_upgrade = tu
+			break
 	EventSystem.sector_selected.emit()
 	queue_redraw()

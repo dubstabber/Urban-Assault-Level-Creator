@@ -6,10 +6,10 @@ func _ready():
 
 
 func _update_properties():
-	if CurrentMapData.selected_unit:
+	if EditorState.selected_unit:
 		%NoUnitLabel.hide()
-		if CurrentMapData.selected_unit is HostStation: %SquadProperties.hide()
-		elif CurrentMapData.selected_unit is Squad: %HostStationProperties.hide()
+		if EditorState.selected_unit is HostStation: %SquadProperties.hide()
+		elif EditorState.selected_unit is Squad: %HostStationProperties.hide()
 	else:
 		%NoUnitLabel.show()
 		%HostStationProperties.hide()

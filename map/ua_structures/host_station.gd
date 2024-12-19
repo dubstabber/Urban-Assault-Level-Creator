@@ -38,7 +38,7 @@ func create(_owner_id, _vehicle):
 
 
 func setup_properties() -> void:
-	for hs in Preloads.ua_data.data[CurrentMapData.game_data_type].hoststations.keys():
-		if Preloads.ua_data.data[CurrentMapData.game_data_type].hoststations[hs].owner == owner_id:
+	for hs in Preloads.ua_data.data[EditorState.game_data_type].hoststations.keys():
+		if Preloads.ua_data.data[EditorState.game_data_type].hoststations[hs].owner == owner_id:
 			unit_name = hs
 			return

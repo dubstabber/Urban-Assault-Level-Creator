@@ -12,26 +12,17 @@ func _on_ok_button_pressed() -> void:
 		hide()
 		return
 	
-	CurrentMapData.selected_unit = null
-	CurrentMapData.selected_sector_idx = -1
-	CurrentMapData.border_selected_sector_idx = -1
-	CurrentMapData.selected_sector = Vector2i(-1, -1)
-	CurrentMapData.selected_sectors.clear()
-	CurrentMapData.selected_beam_gate = null
-	CurrentMapData.selected_bomb = null
-	CurrentMapData.selected_tech_upgrade = null
-	CurrentMapData.selected_bg_key_sector = Vector2i(-1, -1)
-	CurrentMapData.selected_bomb_key_sector = Vector2i(-1, -1)
+	EditorState.unselect_all()
 	
 	var right_sector_limit: int = (int(%HorizontalSpinBox.value)+1)*1200
 	var bottom_sector_limit: int = (int(%VerticalSpinBox.value)+1)*1200
 	for hs: HostStation in CurrentMapData.host_stations.get_children():
 		if hs.position.x > right_sector_limit or hs.position.y > bottom_sector_limit:
-			if hs == CurrentMapData.selected_unit: CurrentMapData.selected_unit = null
+			if hs == EditorState.selected_unit: EditorState.selected_unit = null
 			hs.queue_free()
 	for squad: Squad in CurrentMapData.squads.get_children():
 		if squad.position.x > right_sector_limit or squad.position.y > bottom_sector_limit:
-			if squad == CurrentMapData.selected_unit: CurrentMapData.selected_unit = null
+			if squad == EditorState.selected_unit: EditorState.selected_unit = null
 			squad.queue_free()
 	
 	var resized_typ_map: Array[int] = []

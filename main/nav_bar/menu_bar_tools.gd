@@ -14,7 +14,7 @@ func _ready() -> void:
 func set_default_values() -> void:
 	for i in range(get_item_count()):
 		match get_item_text(i):
-			"Switch to building design mode": set_item_checked(i, EditorState.mode == EditorState.State.TypMapDesign)
+			"Switch to building design mode": set_item_checked(i, EditorState.mode == EditorState.States.TypMapDesign)
 
 
 func _on_index_pressed(index: int) -> void:

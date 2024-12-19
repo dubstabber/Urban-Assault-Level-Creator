@@ -23,16 +23,7 @@ func _input(event):
 		if %PropertiesContainer.visible:
 			%PropertiesContainer.hide()
 		else:
-			CurrentMapData.selected_unit = null
-			CurrentMapData.selected_sector_idx = -1
-			CurrentMapData.border_selected_sector_idx = -1
-			CurrentMapData.selected_sector = Vector2i(-1, -1)
-			CurrentMapData.selected_sectors.clear()
-			CurrentMapData.selected_beam_gate = null
-			CurrentMapData.selected_bomb = null
-			CurrentMapData.selected_tech_upgrade = null
-			CurrentMapData.selected_bg_key_sector = Vector2i(-1, -1)
-			CurrentMapData.selected_bomb_key_sector = Vector2i(-1, -1)
+			EditorState.unselect_all()
 			EventSystem.map_updated.emit()
 
 

@@ -8,7 +8,7 @@ func _ready() -> void:
 
 func _change_state_labels() -> void:
 	match EditorState.mode:
-		EditorState.State.Select:
+		EditorState.States.Select:
 			%EditorModeLabel.text = "Mode: %s" % "Select"
-		EditorState.State.TypMapDesign:
+		EditorState.States.TypMapDesign:
 			%EditorModeLabel.text = "Mode: %s" % "Building design"

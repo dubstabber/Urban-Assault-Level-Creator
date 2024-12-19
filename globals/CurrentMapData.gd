@@ -1,11 +1,5 @@
 extends Node
 
-var game_data_type:String:
-	set(value):
-		game_data_type = value
-		EventSystem.game_type_changed.emit()
-		EventSystem.map_updated.emit()
-
 var level_set := 1:
 	set(value):
 		level_set = value
@@ -54,53 +48,11 @@ var sulgogar_enabled_buildings: Array[int] = []
 var blacksect_enabled_buildings: Array[int] = []
 var training_enabled_buildings: Array[int] = []
 
-
-var selected_unit: Unit = null:
-	set(value):
-		selected_unit = value
-		EventSystem.unit_selected.emit()
-var selected_sector_idx: int = -1
-var border_selected_sector_idx: int = -1
-var selected_sector: Vector2i = Vector2i(-1, -1)
-var selected_sectors: Array[Dictionary] = []
-var selected_beam_gate: BeamGate = null
-var selected_bomb: StoudsonBomb = null
-var selected_tech_upgrade: TechUpgrade = null
-var selected_bg_key_sector: Vector2i = Vector2i(-1, -1)
-var selected_bomb_key_sector: Vector2i = Vector2i(-1, -1)
-
-var mouse_over_unit: Unit = null
-
-var typ_map_images_visible := true:
-	set(value):
-		typ_map_images_visible = value
-		EventSystem.map_updated.emit()
-var typ_map_values_visible := false:
-	set(value):
-		typ_map_values_visible = value
-		EventSystem.map_updated.emit()
-var own_map_values_visible := false:
-	set(value):
-		own_map_values_visible = value
-		EventSystem.map_updated.emit()
-var hgt_map_values_visible := false:
-	set(value):
-		hgt_map_values_visible = value
-		EventSystem.map_updated.emit()
-var blg_map_values_visible := false:
-	set(value):
-		blg_map_values_visible = value
-		EventSystem.map_updated.emit()
-
-var units_db := {}
-var blg_names := {}
-var weapons_db := {}
-
 var map_path := ""
 var is_saved := true:
 	set(value):
-		is_saved = value
 		if CurrentMapData.horizontal_sectors and CurrentMapData.vertical_sectors:
+			is_saved = value
 			if map_path.is_empty():
 				DisplayServer.window_set_title("[not saved] (%sx%s) - %s" % [CurrentMapData.horizontal_sectors, CurrentMapData.vertical_sectors, "Urban Assault Level Creator"])
 			else:
@@ -108,64 +60,19 @@ var is_saved := true:
 					DisplayServer.window_set_title("%s (%sx%s) - %s" % [CurrentMapData.map_path, CurrentMapData.horizontal_sectors, CurrentMapData.vertical_sectors, "Urban Assault Level Creator"])
 				else:
 					DisplayServer.window_set_title("*%s (%sx%s) - %s" % [CurrentMapData.map_path, CurrentMapData.horizontal_sectors, CurrentMapData.vertical_sectors, "Urban Assault Level Creator"])
-		
+		else:
+			is_saved = true
 
 
-func _ready():
-	game_data_type = Preloads.ua_data.data.keys()[0]
-	reload()
-	EventSystem.game_type_changed.connect(reload)
-	EventSystem.map_updated.connect(func(): CurrentMapData.is_saved = false)
-	EventSystem.item_updated.connect(func(): CurrentMapData.is_saved = false)
-
-
-func reload() -> void:
-	if (not briefing_map in Preloads.ua_data.data[game_data_type].missionBriefingMaps and
-		not briefing_map in Preloads.ua_data.data[game_data_type].missionDebriefingMaps):
-		briefing_map = Preloads.ua_data.data[game_data_type].missionBriefingMaps[0]
-	if (not debriefing_map in Preloads.ua_data.data[game_data_type].missionDebriefingMaps and 
-		not debriefing_map in Preloads.ua_data.data[game_data_type].missionBriefingMaps):
-		debriefing_map = Preloads.ua_data.data[game_data_type].missionDebriefingMaps[0]
-	
-	units_db.clear()
-	blg_names.clear()
-	weapons_db.clear()
-	
-	for hs in Preloads.ua_data.data[game_data_type].hoststations:
-		for robo: Dictionary in Preloads.ua_data.data[game_data_type].hoststations[hs].robos:
-			if host_stations:
-				for hss: HostStation in host_stations.get_children():
-					if hss.vehicle == robo.id:
-						if "player_id" in robo:
-							hss.player_vehicle = robo.player_id
-						else:
-							hss.player_vehicle = -1
-		for unit: Dictionary in Preloads.ua_data.data[game_data_type].hoststations[hs].units:
-			units_db[unit.name] = unit.id
-		for building: Dictionary in Preloads.ua_data.data[game_data_type].hoststations[hs].buildings:
-			blg_names[str(building.id)] = building.name
-	for building: Dictionary in Preloads.ua_data.data[game_data_type].other.buildings:
-		blg_names[str(building.id)] = building.name
-	for unit: Dictionary in Preloads.ua_data.data[game_data_type].other.units:
-		units_db[unit.name] = unit.id
-	for weapon in Preloads.ua_data.data[game_data_type].techUpgrade:
-		units_db[weapon.name] = weapon.id
-		weapons_db[weapon.name] = weapon.id
+func _ready() -> void:
+	EventSystem.map_updated.connect(func(): is_saved = false)
+	EventSystem.item_updated.connect(func(): is_saved = false)
 
 
 func close_map() -> void:
-	selected_unit = null
-	selected_sector_idx = -1
-	border_selected_sector_idx = -1
-	selected_sector = Vector2i(-1, -1)
-	selected_sectors.clear()
-	selected_beam_gate = null
-	selected_bomb = null
-	selected_tech_upgrade = null
-	selected_bg_key_sector = Vector2i(-1, -1)
-	selected_bomb_key_sector = Vector2i(-1, -1)
+	EditorState.unselect_all()
 	map_path = ""
-	game_data_type = Preloads.ua_data.data.keys()[0]
+	EditorState.game_data_type = Preloads.ua_data.data.keys()[0]
 	level_set = 1
 	movie = ""
 	event_loop = 0
@@ -222,17 +129,17 @@ func clear_sector(index: int) -> void:
 	blg_map[index] = 0
 	own_map[index] = 0
 	
-	beam_gates.erase(selected_beam_gate)
-	selected_beam_gate = null
-	stoudson_bombs.erase(selected_bomb)
-	selected_bomb = null
-	tech_upgrades.erase(selected_tech_upgrade)
-	selected_tech_upgrade = null
+	beam_gates.erase(EditorState.selected_beam_gate)
+	EditorState.selected_beam_gate = null
+	stoudson_bombs.erase(EditorState.selected_bomb)
+	EditorState.selected_bomb = null
+	tech_upgrades.erase(EditorState.selected_tech_upgrade)
+	EditorState.selected_tech_upgrade = null
 	for bg in beam_gates:
-		bg.key_sectors.erase(selected_bg_key_sector)
-	selected_bg_key_sector = Vector2i(-1,-1)
+		bg.key_sectors.erase(EditorState.selected_bg_key_sector)
+	EditorState.selected_bg_key_sector = Vector2i(-1,-1)
 	for bomb in stoudson_bombs:
-		bomb.key_sectors.erase(selected_bomb_key_sector)
-	selected_bomb_key_sector = Vector2i(-1,-1)
+		bomb.key_sectors.erase(EditorState.selected_bomb_key_sector)
+	EditorState.selected_bomb_key_sector = Vector2i(-1,-1)
 	EventSystem.map_updated.emit()
 	EventSystem.item_updated.emit()

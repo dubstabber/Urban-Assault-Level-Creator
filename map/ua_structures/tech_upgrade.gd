@@ -24,48 +24,48 @@ func synchronize(modifier, property: String) -> void:
 					var rng = randi_range(0,1)
 					if rng: 
 						building_id = 4
-						CurrentMapData.typ_map[CurrentMapData.selected_sector_idx] = 100
+						CurrentMapData.typ_map[EditorState.selected_sector_idx] = 100
 					else: 
 						building_id = 7
-						CurrentMapData.typ_map[CurrentMapData.selected_sector_idx] = 73
+						CurrentMapData.typ_map[EditorState.selected_sector_idx] = 73
 					type = 3
 				'energy','shield':
 					building_id = 50
 					type = 2
-					CurrentMapData.typ_map[CurrentMapData.selected_sector_idx] = 102
+					CurrentMapData.typ_map[EditorState.selected_sector_idx] = 102
 				'num_weapons':
 					building_id = 15
 					type = 1
-					CurrentMapData.typ_map[CurrentMapData.selected_sector_idx] = 104
+					CurrentMapData.typ_map[EditorState.selected_sector_idx] = 104
 				'radar':
 					building_id = 15
 					type = 5
-					CurrentMapData.typ_map[CurrentMapData.selected_sector_idx] = 104
+					CurrentMapData.typ_map[EditorState.selected_sector_idx] = 104
 		elif modifier is ModifyWeapon:
 			weapons.append(modifier)
 			match property:
 				'energy':
 					var found_weapon := false
-					for weapon_id in CurrentMapData.weapons_db.values():
+					for weapon_id in EditorState.weapons_db.values():
 						if weapon_id == modifier.weapon_id:
 							found_weapon = true
 							break
 					if found_weapon:
 						building_id = 61
-						CurrentMapData.typ_map[CurrentMapData.selected_sector_idx] = 113
+						CurrentMapData.typ_map[EditorState.selected_sector_idx] = 113
 					else:
 						building_id = 51
-						CurrentMapData.typ_map[CurrentMapData.selected_sector_idx] = 101
+						CurrentMapData.typ_map[EditorState.selected_sector_idx] = 101
 					type = 1
 				'shot_time', 'shot_time_user':
 					building_id = 51
 					type = 1
-					CurrentMapData.typ_map[CurrentMapData.selected_sector_idx] = 101
+					CurrentMapData.typ_map[EditorState.selected_sector_idx] = 101
 		elif modifier is ModifyBuilding:
 			buildings.append(modifier)
 			building_id = 16
 			type = 4
-			CurrentMapData.typ_map[CurrentMapData.selected_sector_idx] = 103
+			CurrentMapData.typ_map[EditorState.selected_sector_idx] = 103
 	
 	elif modifier is ModifyVehicle and not vehicles.has(modifier):
 		vehicles.append(modifier)

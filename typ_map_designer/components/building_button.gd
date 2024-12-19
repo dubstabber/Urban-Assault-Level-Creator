@@ -20,6 +20,7 @@ func _ready() -> void:
 		get_tree().call_group("building_button", "_unpress")
 		button_pressed = true
 		)
+	tooltip_text = "Building index: %s" % building_id
 
 
 func _resize() -> void:

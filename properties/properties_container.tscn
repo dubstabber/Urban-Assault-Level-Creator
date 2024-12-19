@@ -20,7 +20,7 @@ script/source = "extends TabContainer
 func _ready() -> void:
 	owner.visibility_changed.connect(func():
 		if owner.visible:
-			EditorState.mode = EditorState.State.Select
+			EditorState.mode = EditorState.States.Select
 		)
 	EventSystem.hoststation_added.connect(func(_owner_id, _vehicle_id): 
 		owner.show()
@@ -29,7 +29,7 @@ func _ready() -> void:
 	EventSystem.squad_added.connect(func(_owner_id, _vehicle_id): $Unit.show())
 	EventSystem.item_updated.connect(func(): $Sector.show())
 	EventSystem.left_double_clicked.connect(func():
-		if CurrentMapData.selected_unit:
+		if EditorState.selected_unit:
 			$Unit.show()
 			owner.show()
 		else:
@@ -37,7 +37,7 @@ func _ready() -> void:
 			owner.show()
 		)
 	EventSystem.editor_mode_changed.connect(func(): 
-		if EditorState.mode == EditorState.State.TypMapDesign:
+		if EditorState.mode == EditorState.States.TypMapDesign:
 			owner.hide()
 		)
 "

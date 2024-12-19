@@ -820,7 +820,7 @@ static func _infer_game_type() -> void:
 							player_hs.player_vehicle = int(robo.player_id)
 							player_hs.vehicle = int(robo.id)
 							inferred_game_type = game_type
-							CurrentMapData.game_data_type = inferred_game_type
+							EditorState.game_data_type = inferred_game_type
 							return
 	
 	if ((CurrentMapData.prototype_modifications.containsn("include script:startupG.scr") or 
@@ -829,4 +829,4 @@ static func _infer_game_type() -> void:
 		inferred_game_type = "metropolisDawn"
 	
 	if not inferred_game_type.is_empty():
-		CurrentMapData.game_data_type = inferred_game_type
+		EditorState.game_data_type = inferred_game_type

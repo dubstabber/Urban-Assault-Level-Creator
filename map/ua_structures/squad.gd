@@ -22,13 +22,13 @@ func create(_owner_id: int, _vehicle_id: int):
 
 
 func setup_properties() -> void:
-	for hs in Preloads.ua_data.data[CurrentMapData.game_data_type].hoststations:
-		for squad: Dictionary in Preloads.ua_data.data[CurrentMapData.game_data_type].hoststations[hs].units:
+	for hs in Preloads.ua_data.data[EditorState.game_data_type].hoststations:
+		for squad: Dictionary in Preloads.ua_data.data[EditorState.game_data_type].hoststations[hs].units:
 			if squad.id == vehicle:
 				map_icon = squad.map_icon
 				unit_name = squad.name
 				return
-	for squad: Dictionary in Preloads.ua_data.data[CurrentMapData.game_data_type].other.units:
+	for squad: Dictionary in Preloads.ua_data.data[EditorState.game_data_type].other.units:
 		if squad.id == vehicle:
 			map_icon = squad.map_icon
 			unit_name = squad.name

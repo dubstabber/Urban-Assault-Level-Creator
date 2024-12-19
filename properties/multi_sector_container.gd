@@ -9,10 +9,10 @@ func _ready() -> void:
 func _update_properties() -> void:
 	for child in get_children():
 		child.queue_free()
-	if CurrentMapData.selected_sectors.size() > 1:
+	if EditorState.selected_sectors.size() > 1:
 		%SectorPropertiesContainer.hide()
 		show()
-		for sector_dict in CurrentMapData.selected_sectors:
+		for sector_dict in EditorState.selected_sectors:
 			var sector_label = Label.new()
 			sector_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 			sector_label.text = "Selected sector X:%s Y:%s" % [sector_dict.x, sector_dict.y]

@@ -28,38 +28,38 @@ func _ready() -> void:
 	
 	%RemoveButton.pressed.connect(func():
 		if vehicle_modifier:
-			CurrentMapData.selected_tech_upgrade.vehicles.erase(vehicle_modifier)
+			EditorState.selected_tech_upgrade.vehicles.erase(vehicle_modifier)
 		if weapon_modifier:
-			CurrentMapData.selected_tech_upgrade.weapons.erase(weapon_modifier)
+			EditorState.selected_tech_upgrade.weapons.erase(weapon_modifier)
 		CurrentMapData.is_saved = false
 		queue_free()
 		)
 
 
 func enable_vehicle(toggled: bool, property: String) -> void:
-	if not vehicle_modifier: vehicle_modifier = CurrentMapData.selected_tech_upgrade.new_vehicle_modifier(CurrentMapData.units_db[item_name])
+	if not vehicle_modifier: vehicle_modifier = EditorState.selected_tech_upgrade.new_vehicle_modifier(EditorState.units_db[item_name])
 	vehicle_modifier[property] = toggled
-	CurrentMapData.selected_tech_upgrade.synchronize(vehicle_modifier, "enable")
+	EditorState.selected_tech_upgrade.synchronize(vehicle_modifier, "enable")
 	CurrentMapData.is_saved = false
 
 
 func modify_vehicle(new_text: String, property: String) -> void:
-	if not vehicle_modifier: vehicle_modifier = CurrentMapData.selected_tech_upgrade.new_vehicle_modifier(CurrentMapData.units_db[item_name])
+	if not vehicle_modifier: vehicle_modifier = EditorState.selected_tech_upgrade.new_vehicle_modifier(EditorState.units_db[item_name])
 	if property == "energy":
 		vehicle_modifier[property] = int(new_text) * 100
 	else:
 		vehicle_modifier[property] = int(new_text)
-	CurrentMapData.selected_tech_upgrade.synchronize(vehicle_modifier, property)
+	EditorState.selected_tech_upgrade.synchronize(vehicle_modifier, property)
 	CurrentMapData.is_saved = false
 
 
 func modify_weapon(new_text: String, property: String) -> void:
-	if not weapon_modifier: weapon_modifier = CurrentMapData.selected_tech_upgrade.new_weapon_modifier(CurrentMapData.units_db[item_name])
+	if not weapon_modifier: weapon_modifier = EditorState.selected_tech_upgrade.new_weapon_modifier(EditorState.units_db[item_name])
 	if property == "energy":
 		weapon_modifier[property] = int(new_text) * 100
 	else:
 		weapon_modifier[property] = int(new_text)
-	CurrentMapData.selected_tech_upgrade.synchronize(weapon_modifier, property)
+	EditorState.selected_tech_upgrade.synchronize(weapon_modifier, property)
 	CurrentMapData.is_saved = false
 
 

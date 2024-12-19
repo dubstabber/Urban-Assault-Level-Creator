@@ -13,18 +13,18 @@ func _ready() -> void:
 	%AddShotTimeUserLineEdit.text_changed.connect(modify_weapon.bind("shot_time_user"))
 	%RemoveButton.pressed.connect(func():
 		if weapon_modifier:
-			CurrentMapData.selected_tech_upgrade.weapons.erase(weapon_modifier)
+			EditorState.selected_tech_upgrade.weapons.erase(weapon_modifier)
 			CurrentMapData.is_saved = false
 		queue_free()
 		)
 
 func modify_weapon(new_text: String, property: String) -> void:
-	if not weapon_modifier: weapon_modifier = CurrentMapData.selected_tech_upgrade.new_weapon_modifier(CurrentMapData.units_db[item_name])
+	if not weapon_modifier: weapon_modifier = EditorState.selected_tech_upgrade.new_weapon_modifier(EditorState.units_db[item_name])
 	if property == "energy":
 		weapon_modifier[property] = int(new_text) * 100
 	else:
 		weapon_modifier[property] = int(new_text)
-	CurrentMapData.selected_tech_upgrade.synchronize(weapon_modifier, property)
+	EditorState.selected_tech_upgrade.synchronize(weapon_modifier, property)
 	CurrentMapData.is_saved = false
 
 

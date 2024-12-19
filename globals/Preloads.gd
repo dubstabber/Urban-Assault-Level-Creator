@@ -291,35 +291,37 @@ func _ready():
 
 
 func reload_units_and_buildings() -> void:
+	if EditorState.game_data_type.is_empty():
+		return
 	squad_images.clear()
 	special_building_images.clear()
 	
-	for hs in ua_data.data[CurrentMapData.game_data_type].hoststations:
-		hs_images[str(ua_data.data[CurrentMapData.game_data_type].hoststations[hs].owner)] = load("res://resources/img/hostStationImages/"+ ua_data.data[CurrentMapData.game_data_type].hoststations[hs].image_file)
-		for robo in ua_data.data[CurrentMapData.game_data_type].hoststations[hs].robos:
+	for hs in ua_data.data[EditorState.game_data_type].hoststations:
+		hs_images[str(ua_data.data[EditorState.game_data_type].hoststations[hs].owner)] = load("res://resources/img/hostStationImages/"+ ua_data.data[EditorState.game_data_type].hoststations[hs].image_file)
+		for robo in ua_data.data[EditorState.game_data_type].hoststations[hs].robos:
 			hs_robo_images[int(robo.id)] = {
 				"name": robo.name,
 				"image": load("res://resources/img/hostStationRoboImages/"+robo.image_file)
 			}
-		for squad in ua_data.data[CurrentMapData.game_data_type].hoststations[hs].units:
+		for squad in ua_data.data[EditorState.game_data_type].hoststations[hs].units:
 			squad_images[str(squad.id)] = load("res://resources/img/squadImages/" + squad.image_file)
-		for building in ua_data.data[CurrentMapData.game_data_type].hoststations[hs].buildings:
+		for building in ua_data.data[EditorState.game_data_type].hoststations[hs].buildings:
 			special_building_images[str(building.id)] = load("res://resources/img/blgMapImages/" + building.image_file)
 	
-	for squad in ua_data.data[CurrentMapData.game_data_type].other.units:
+	for squad in ua_data.data[EditorState.game_data_type].other.units:
 		squad_images[str(squad.id)] = load("res://resources/img/squadImages/" + squad.image_file)
-	for building in ua_data.data[CurrentMapData.game_data_type].other.buildings:
+	for building in ua_data.data[EditorState.game_data_type].other.buildings:
 		special_building_images[str(building.id)] = load("res://resources/img/blgMapImages/" + building.image_file)
 
 
 func reload_mb_db_maps() -> void:
 	var map_name := ""
 	mbmaps.clear()
-	for file_name in DirAccess.get_files_at("res://resources/img/mbgfx/%s/" % CurrentMapData.game_data_type):
+	for file_name in DirAccess.get_files_at("res://resources/img/mbgfx/%s/" % EditorState.game_data_type):
 		if (file_name.get_extension() == "import"):
 			file_name = file_name.replace(".import", "")
 			map_name = file_name.replace(".png", "")
 			if map_name.begins_with("mb"):
-				mbmaps[map_name] = load("res://resources/img/mbgfx/%s/%s" % [CurrentMapData.game_data_type, file_name])
+				mbmaps[map_name] = load("res://resources/img/mbgfx/%s/%s" % [EditorState.game_data_type, file_name])
 			elif map_name.begins_with("db"):
-				mbmaps[map_name] = load("res://resources/img/mbgfx/%s/%s" % [CurrentMapData.game_data_type, file_name])
+				mbmaps[map_name] = load("res://resources/img/mbgfx/%s/%s" % [EditorState.game_data_type, file_name])

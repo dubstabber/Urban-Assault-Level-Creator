@@ -13,8 +13,8 @@ func create(_level_index: int) -> void:
 
 
 func _on_button_pressed() -> void:
-	if not CurrentMapData.selected_beam_gate: return
-	CurrentMapData.selected_beam_gate.target_levels.erase(level_index)
-	if CurrentMapData.selected_beam_gate.target_levels.is_empty():
+	if not EditorState.selected_beam_gate: return
+	EditorState.selected_beam_gate.target_levels.erase(level_index)
+	if EditorState.selected_beam_gate.target_levels.is_empty():
 		EventSystem.map_updated.emit()
 	queue_free()

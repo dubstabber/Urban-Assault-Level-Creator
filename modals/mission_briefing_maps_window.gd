@@ -7,21 +7,21 @@ func _on_about_to_popup() -> void:
 
 func refresh() -> void:
 	%BriefingMapsOptionButton.clear()
-	for mb_map in Preloads.ua_data.data[CurrentMapData.game_data_type].missionBriefingMaps:
+	for mb_map in Preloads.ua_data.data[EditorState.game_data_type].missionBriefingMaps:
 		%BriefingMapsOptionButton.add_item(mb_map)
-	for mb_map in Preloads.ua_data.data[CurrentMapData.game_data_type].missionDebriefingMaps:
+	for mb_map in Preloads.ua_data.data[EditorState.game_data_type].missionDebriefingMaps:
 		%BriefingMapsOptionButton.add_item(mb_map)
 	var mb_index = get_option_index_by_text(%BriefingMapsOptionButton, CurrentMapData.briefing_map)
 	%BriefingMapsOptionButton.selected = mb_index
-	var mb_map_name := CurrentMapData.briefing_map.replace(".%s" %CurrentMapData.briefing_map.get_extension(), "")
+	var mb_map_name := CurrentMapData.briefing_map.replace(".%s" % CurrentMapData.briefing_map.get_extension(), "")
 	%BriefingMapTexture.texture = Preloads.mbmaps[mb_map_name]
 	%MBsizeXSpinBox.value = CurrentMapData.briefing_size_x
 	%MBsizeYSpinBox.value = CurrentMapData.briefing_size_y
 	
 	%DebriefingMapsOptionButton.clear()
-	for db_map in Preloads.ua_data.data[CurrentMapData.game_data_type].missionDebriefingMaps:
+	for db_map in Preloads.ua_data.data[EditorState.game_data_type].missionDebriefingMaps:
 		%DebriefingMapsOptionButton.add_item(db_map)
-	for db_map in Preloads.ua_data.data[CurrentMapData.game_data_type].missionBriefingMaps:
+	for db_map in Preloads.ua_data.data[EditorState.game_data_type].missionBriefingMaps:
 		%DebriefingMapsOptionButton.add_item(db_map)
 	var db_index = get_option_index_by_text(%DebriefingMapsOptionButton, CurrentMapData.debriefing_map)
 	%DebriefingMapsOptionButton.selected = db_index

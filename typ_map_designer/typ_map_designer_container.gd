@@ -22,16 +22,16 @@ var view_mode := ViewModes.Side:
 
 
 func _ready() -> void:
-	if visible: EditorState.mode = EditorState.State.TypMapDesign
-	else: EditorState.mode = EditorState.State.Select
+	if visible: EditorState.mode = EditorState.States.TypMapDesign
+	else: EditorState.mode = EditorState.States.Select
 	visibility_changed.connect(func():
-		if visible: EditorState.mode = EditorState.State.TypMapDesign
-		else: EditorState.mode = EditorState.State.Select
+		if visible: EditorState.mode = EditorState.States.TypMapDesign
+		else: EditorState.mode = EditorState.States.Select
 		)
 	EventSystem.editor_mode_changed.connect(func():
-		if EditorState.mode == EditorState.State.TypMapDesign:
+		if EditorState.mode == EditorState.States.TypMapDesign:
 			show()
-		elif EditorState.mode == EditorState.State.Select:
+		elif EditorState.mode == EditorState.States.Select:
 			hide()
 		)
 	_refresh_images()
