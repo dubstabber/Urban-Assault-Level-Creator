@@ -87,7 +87,7 @@ custom_minimum_size = Vector2(20, 20)
 layout_mode = 2
 theme_override_colors/font_color = Color(0.814241, 0.584624, 0.228865, 1)
 theme_override_font_sizes/font_size = 14
-text = "Warning: When resizing the map, keep in mind that all units (host stations, squads) and buildings (special and items) are going to be removed from the level if their positions exceed the borders of the newly specified sector sizes."
+text = "Warning: When resizing the map, keep in mind that all units (host stations, squads) and buildings (special and items) are going to be removed from the level if their positions exceed the bounds of the newly specified sector sizes."
 horizontal_alignment = 1
 autowrap_mode = 3
 

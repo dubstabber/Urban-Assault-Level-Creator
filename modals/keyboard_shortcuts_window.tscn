@@ -12,120 +12,141 @@ exclusive = true
 min_size = Vector2i(400, 400)
 script = ExtResource("1_3psab")
 
-[node name="ScrollContainer" type="ScrollContainer" parent="."]
+[node name="MarginContainer" type="MarginContainer" parent="."]
 anchors_preset = 15
 anchor_right = 1.0
 anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
-
-[node name="MarginContainer" type="MarginContainer" parent="ScrollContainer"]
-layout_mode = 2
-size_flags_horizontal = 3
-size_flags_vertical = 3
 theme_override_constants/margin_left = 12
 theme_override_constants/margin_top = 12
-theme_override_constants/margin_right = 12
 theme_override_constants/margin_bottom = 12
 
-[node name="VBoxContainer" type="VBoxContainer" parent="ScrollContainer/MarginContainer"]
+[node name="VBoxContainer" type="VBoxContainer" parent="MarginContainer"]
+layout_mode = 2
+
+[node name="ScrollContainer" type="ScrollContainer" parent="MarginContainer/VBoxContainer"]
+layout_mode = 2
+size_flags_vertical = 3
+
+[node name="VBoxContainer" type="VBoxContainer" parent="MarginContainer/VBoxContainer/ScrollContainer"]
 layout_mode = 2
 theme_override_constants/separation = 8
 
-[node name="Label" type="Label" parent="ScrollContainer/MarginContainer/VBoxContainer"]
+[node name="Label" type="Label" parent="MarginContainer/VBoxContainer/ScrollContainer/VBoxContainer"]
 layout_mode = 2
 theme_override_font_sizes/font_size = 14
 text = "'1' - set selected sector owner to resistance"
 
-[node name="Label2" type="Label" parent="ScrollContainer/MarginContainer/VBoxContainer"]
+[node name="Label2" type="Label" parent="MarginContainer/VBoxContainer/ScrollContainer/VBoxContainer"]
 layout_mode = 2
 theme_override_font_sizes/font_size = 14
 text = "'2' - set selected sector owner to sulgogar"
 
-[node name="Label3" type="Label" parent="ScrollContainer/MarginContainer/VBoxContainer"]
+[node name="Label3" type="Label" parent="MarginContainer/VBoxContainer/ScrollContainer/VBoxContainer"]
 layout_mode = 2
 theme_override_font_sizes/font_size = 14
 text = "'3' - set selected sector owner to mykonian"
 
-[node name="Label4" type="Label" parent="ScrollContainer/MarginContainer/VBoxContainer"]
+[node name="Label4" type="Label" parent="MarginContainer/VBoxContainer/ScrollContainer/VBoxContainer"]
 layout_mode = 2
 theme_override_font_sizes/font_size = 14
 text = "'4' - set selected sector owner to taerkasten"
 
-[node name="Label5" type="Label" parent="ScrollContainer/MarginContainer/VBoxContainer"]
+[node name="Label5" type="Label" parent="MarginContainer/VBoxContainer/ScrollContainer/VBoxContainer"]
 layout_mode = 2
 theme_override_font_sizes/font_size = 14
 text = "'5' - set selected sector owner to black sect"
 
-[node name="Label6" type="Label" parent="ScrollContainer/MarginContainer/VBoxContainer"]
+[node name="Label6" type="Label" parent="MarginContainer/VBoxContainer/ScrollContainer/VBoxContainer"]
 layout_mode = 2
 theme_override_font_sizes/font_size = 14
 text = "'6' - set selected sector owner to ghorkov"
 
-[node name="Label7" type="Label" parent="ScrollContainer/MarginContainer/VBoxContainer"]
+[node name="Label7" type="Label" parent="MarginContainer/VBoxContainer/ScrollContainer/VBoxContainer"]
 layout_mode = 2
 theme_override_font_sizes/font_size = 14
 text = "'7' - set selected sector owner to neutral(for buildings)"
 
-[node name="Label8" type="Label" parent="ScrollContainer/MarginContainer/VBoxContainer"]
+[node name="Label8" type="Label" parent="MarginContainer/VBoxContainer/ScrollContainer/VBoxContainer"]
 layout_mode = 2
 theme_override_font_sizes/font_size = 14
 text = "'0' - set selected sector owner to neutral"
 
-[node name="Label9" type="Label" parent="ScrollContainer/MarginContainer/VBoxContainer"]
+[node name="Label22" type="Label" parent="MarginContainer/VBoxContainer/ScrollContainer/VBoxContainer"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 14
+text = "'Hold 0 to 7' - quick sector owner painter"
+
+[node name="Label9" type="Label" parent="MarginContainer/VBoxContainer/ScrollContainer/VBoxContainer"]
 layout_mode = 2
 theme_override_font_sizes/font_size = 14
 text = "'Up' - increase selected sector height by 1"
 
-[node name="Label10" type="Label" parent="ScrollContainer/MarginContainer/VBoxContainer"]
+[node name="Label10" type="Label" parent="MarginContainer/VBoxContainer/ScrollContainer/VBoxContainer"]
 layout_mode = 2
 theme_override_font_sizes/font_size = 14
 text = "'Down' - decrease selected sector height by 1"
 
-[node name="Label11" type="Label" parent="ScrollContainer/MarginContainer/VBoxContainer"]
+[node name="Label11" type="Label" parent="MarginContainer/VBoxContainer/ScrollContainer/VBoxContainer"]
 layout_mode = 2
 theme_override_font_sizes/font_size = 14
 text = "'Right' - change selected sector building to next one"
 
-[node name="Label12" type="Label" parent="ScrollContainer/MarginContainer/VBoxContainer"]
+[node name="Label12" type="Label" parent="MarginContainer/VBoxContainer/ScrollContainer/VBoxContainer"]
 layout_mode = 2
 theme_override_font_sizes/font_size = 14
 text = "'Left' - change selected sector building to previous one"
 
-[node name="Label13" type="Label" parent="ScrollContainer/MarginContainer/VBoxContainer"]
+[node name="Label13" type="Label" parent="MarginContainer/VBoxContainer/ScrollContainer/VBoxContainer"]
 layout_mode = 2
 theme_override_font_sizes/font_size = 14
 text = "'H' - change selected sector height"
 
-[node name="Label17" type="Label" parent="ScrollContainer/MarginContainer/VBoxContainer"]
+[node name="Label17" type="Label" parent="MarginContainer/VBoxContainer/ScrollContainer/VBoxContainer"]
 layout_mode = 2
 theme_override_font_sizes/font_size = 14
 text = "'+' - zoom in map"
 
-[node name="Label18" type="Label" parent="ScrollContainer/MarginContainer/VBoxContainer"]
+[node name="Label18" type="Label" parent="MarginContainer/VBoxContainer/ScrollContainer/VBoxContainer"]
 layout_mode = 2
 theme_override_font_sizes/font_size = 14
 text = "'-' - zoom out map"
 
-[node name="Label14" type="Label" parent="ScrollContainer/MarginContainer/VBoxContainer"]
+[node name="Label14" type="Label" parent="MarginContainer/VBoxContainer/ScrollContainer/VBoxContainer"]
 layout_mode = 2
 theme_override_font_sizes/font_size = 14
 text = "'T' - change selected sector building"
 
-[node name="Label15" type="Label" parent="ScrollContainer/MarginContainer/VBoxContainer"]
+[node name="Label21" type="Label" parent="MarginContainer/VBoxContainer/ScrollContainer/VBoxContainer"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 14
+text = "'Hold Ctrl' - select multiple sectors"
+
+[node name="Label15" type="Label" parent="MarginContainer/VBoxContainer/ScrollContainer/VBoxContainer"]
 layout_mode = 2
 theme_override_font_sizes/font_size = 14
 text = "'Del' - clear selected sector"
 
-[node name="Label16" type="Label" parent="ScrollContainer/MarginContainer/VBoxContainer"]
+[node name="Label16" type="Label" parent="MarginContainer/VBoxContainer/ScrollContainer/VBoxContainer"]
 layout_mode = 2
 theme_override_font_sizes/font_size = 14
 text = "'Ctrl + S' - save current map"
 
-[node name="CloseButton" type="Button" parent="ScrollContainer/MarginContainer/VBoxContainer"]
+[node name="Label19" type="Label" parent="MarginContainer/VBoxContainer/ScrollContainer/VBoxContainer"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 14
+text = "'Ctrl + C' - copy selected sector"
+
+[node name="Label20" type="Label" parent="MarginContainer/VBoxContainer/ScrollContainer/VBoxContainer"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 14
+text = "'Ctrl + V' - paste selected sector"
+
+[node name="CloseButton" type="Button" parent="MarginContainer/VBoxContainer"]
 layout_mode = 2
 size_flags_horizontal = 4
 text = "Close"
 
 [connection signal="close_requested" from="." to="." method="close"]
-[connection signal="pressed" from="ScrollContainer/MarginContainer/VBoxContainer/CloseButton" to="." method="close"]
+[connection signal="pressed" from="MarginContainer/VBoxContainer/CloseButton" to="." method="close"]
