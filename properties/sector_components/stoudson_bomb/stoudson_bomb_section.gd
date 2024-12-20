@@ -63,6 +63,7 @@ func _update_properties() -> void:
 		if EditorState.selected_bomb.inactive_bp == 35:
 			%BombBuildingOptionButton.selected = 0
 			%InvalidBuildingLabel.hide()
+			%WarningBuildingLabel.hide()
 		elif EditorState.selected_bomb.inactive_bp == 68:
 			%BombBuildingOptionButton.selected = 1
 			if CurrentMapData.level_set in [2, 3, 4, 5]:

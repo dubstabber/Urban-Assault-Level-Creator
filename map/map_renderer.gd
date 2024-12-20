@@ -162,6 +162,10 @@ func _input(event):
 	if event is InputEventMouseButton and event.button_index == MOUSE_BUTTON_LEFT and event.double_click:
 		if not EditorState.selected_unit:
 			EventSystem.left_double_clicked.emit()
+	if event.is_action_pressed("copy"):
+		Utils.copy_sector()
+	if event.is_action_pressed("paste"):
+		Utils.paste_sector()
 
 
 func _draw():

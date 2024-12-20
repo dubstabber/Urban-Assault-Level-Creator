@@ -255,3 +255,96 @@ func convert_sky_name_case(sky_name: String) -> String:
 			return sky
 	
 	return Preloads.skies.keys()[0]
+
+
+func copy_sector() -> void:
+	if EditorState.selected_sector_idx >= 0 and CurrentMapData.horizontal_sectors > 0:
+		EditorState.sector_clipboard.typ_map = CurrentMapData.typ_map[EditorState.selected_sector_idx]
+		EditorState.sector_clipboard.own_map = CurrentMapData.own_map[EditorState.selected_sector_idx]
+		EditorState.sector_clipboard.blg_map = CurrentMapData.blg_map[EditorState.selected_sector_idx]
+		EditorState.sector_clipboard.beam_gate = EditorState.selected_beam_gate
+		EditorState.sector_clipboard.stoudson_bomb = EditorState.selected_bomb
+		EditorState.sector_clipboard.tech_upgrade = EditorState.selected_tech_upgrade
+		EditorState.sector_clipboard.bg_key_sector = EditorState.selected_bg_key_sector
+		EditorState.sector_clipboard.bg_key_sector_parent = null
+		if EditorState.selected_bg_key_sector != Vector2i(-1, -1):
+			for bg: BeamGate in CurrentMapData.beam_gates:
+				for ks in bg.key_sectors:
+					if ks == EditorState.selected_bg_key_sector:
+						EditorState.sector_clipboard.bg_key_sector_parent = bg
+						break
+		EditorState.sector_clipboard.bomb_key_sector_parent = null
+		if EditorState.selected_bomb_key_sector != Vector2i(-1, -1):
+			for bomb: StoudsonBomb in CurrentMapData.stoudson_bombs:
+				for ks in bomb.key_sectors:
+					if ks == EditorState.selected_bomb_key_sector:
+						EditorState.sector_clipboard.bomb_key_sector_parent = bomb
+						break
+
+
+func paste_sector() -> void:
+	if EditorState.selected_sector_idx >= 0 and CurrentMapData.horizontal_sectors > 0:
+		if EditorState.sector_clipboard.typ_map >= 0:
+			CurrentMapData.typ_map[EditorState.selected_sector_idx] = EditorState.sector_clipboard.typ_map
+		if EditorState.sector_clipboard.own_map >= 0:
+			CurrentMapData.own_map[EditorState.selected_sector_idx] = EditorState.sector_clipboard.own_map
+		if EditorState.sector_clipboard.blg_map >= 0:
+			CurrentMapData.blg_map[EditorState.selected_sector_idx] = EditorState.sector_clipboard.blg_map
+		if not(EditorState.selected_sector.x > 0 and 
+			EditorState.selected_sector.x < CurrentMapData.horizontal_sectors+1 and
+			EditorState.selected_sector.y > 0 and 
+			EditorState.selected_sector.y < CurrentMapData.vertical_sectors+1):
+			return
+		if EditorState.sector_clipboard.beam_gate:
+			for bg in CurrentMapData.beam_gates:
+				if bg.sec_x == EditorState.selected_sector.x and bg.sec_y == EditorState.selected_sector.y:
+					EventSystem.map_updated.emit()
+					return
+			
+			var bg = BeamGate.new(EditorState.selected_sector.x, EditorState.selected_sector.y)
+			bg.closed_bp = EditorState.sector_clipboard.beam_gate.closed_bp
+			bg.opened_bp = EditorState.sector_clipboard.beam_gate.opened_bp
+			bg.key_sectors = EditorState.sector_clipboard.beam_gate.key_sectors.duplicate()
+			bg.target_levels = EditorState.sector_clipboard.beam_gate.target_levels.duplicate()
+			bg.mb_status = EditorState.sector_clipboard.beam_gate.mb_status
+			CurrentMapData.beam_gates.append(bg)
+			EditorState.selected_beam_gate = bg
+			EventSystem.item_updated.emit()
+		if EditorState.sector_clipboard.stoudson_bomb:
+			for bomb in CurrentMapData.stoudson_bombs:
+				if bomb.sec_x == EditorState.selected_sector.x and bomb.sec_y == EditorState.selected_sector.y:
+					EventSystem.map_updated.emit()
+					return
+			
+			var bomb = StoudsonBomb.new(EditorState.selected_sector.x, EditorState.selected_sector.y)
+			bomb.inactive_bp = EditorState.sector_clipboard.stoudson_bomb.inactive_bp
+			bomb.active_bp = EditorState.sector_clipboard.stoudson_bomb.active_bp
+			bomb.trigger_bp = EditorState.sector_clipboard.stoudson_bomb.trigger_bp
+			bomb.type = EditorState.sector_clipboard.stoudson_bomb.type
+			bomb.countdown = EditorState.sector_clipboard.stoudson_bomb.countdown
+			bomb.key_sectors = EditorState.sector_clipboard.stoudson_bomb.key_sectors.duplicate()
+			CurrentMapData.stoudson_bombs.append(bomb)
+			EditorState.selected_bomb = bomb
+			EventSystem.item_updated.emit()
+		if EditorState.sector_clipboard.tech_upgrade:
+			for tu in CurrentMapData.tech_upgrades:
+				if tu.sec_x == EditorState.selected_sector.x and tu.sec_y == EditorState.selected_sector.y:
+					EventSystem.map_updated.emit()
+					return
+			
+			var tech_upgrade = TechUpgrade.new(EditorState.selected_sector.x, EditorState.selected_sector.y)
+			tech_upgrade.building_id = EditorState.sector_clipboard.tech_upgrade.building_id
+			tech_upgrade.type = EditorState.sector_clipboard.tech_upgrade.type
+			# Arrays of RefCounted classes inside TechUpgrade are probably still a shallow copy
+			tech_upgrade.vehicles = EditorState.sector_clipboard.tech_upgrade.vehicles.duplicate(true)
+			tech_upgrade.weapons = EditorState.sector_clipboard.tech_upgrade.weapons.duplicate(true)
+			tech_upgrade.buildings = EditorState.sector_clipboard.tech_upgrade.buildings.duplicate(true)
+			tech_upgrade.mb_status = EditorState.sector_clipboard.tech_upgrade.mb_status
+			CurrentMapData.tech_upgrades.append(tech_upgrade)
+			EditorState.selected_tech_upgrade = tech_upgrade
+			EventSystem.item_updated.emit()
+		if EditorState.sector_clipboard.bg_key_sector_parent and EditorState.selected_bg_key_sector == Vector2i(-1, -1):
+			EditorState.sector_clipboard.bg_key_sector_parent.key_sectors.append(Vector2i(EditorState.selected_sector.x, EditorState.selected_sector.y))
+		if EditorState.sector_clipboard.bomb_key_sector_parent and EditorState.selected_bomb_key_sector == Vector2i(-1, -1):
+			EditorState.sector_clipboard.bomb_key_sector_parent.key_sectors.append(Vector2i(EditorState.selected_sector.x, EditorState.selected_sector.y))
+		EventSystem.map_updated.emit()

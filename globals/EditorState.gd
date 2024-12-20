@@ -56,6 +56,17 @@ var selected_bomb_key_sector: Vector2i = Vector2i(-1, -1)
 
 var mouse_over_unit: Unit = null
 
+var sector_clipboard := {
+	typ_map = -1,
+	own_map = -1,
+	blg_map = -1,
+	beam_gate = null,
+	stoudson_bomb = null,
+	tech_upgrade = null,
+	bg_key_sector_parent = null,
+	bomb_key_sector_parent = null
+}
+
 var units_db := {}
 var blg_names := {}
 var weapons_db := {}
