@@ -279,8 +279,12 @@ func _draw():
 
 
 func recalculate_size():
-	map_visible_width = map_camera.zoom.x * ((CurrentMapData.horizontal_sectors+2) * 1200)
-	map_visible_height = map_camera.zoom.y * ((CurrentMapData.vertical_sectors+2) * 1200)
+	if CurrentMapData.horizontal_sectors > 0 and CurrentMapData.vertical_sectors > 0:
+		map_visible_width = map_camera.zoom.x * ((CurrentMapData.horizontal_sectors+2) * 1200)
+		map_visible_height = map_camera.zoom.y * ((CurrentMapData.vertical_sectors+2) * 1200)
+	else:
+		map_visible_width = 0
+		map_visible_height = 0
 
 
 func add_hoststation(owner_id: int, vehicle_id: int):

@@ -238,6 +238,7 @@ theme_override_constants/minimum_grab_thickness = 1
 split_offset = 750
 
 [node name="MapContainer" parent="PanelContainer/MarginContainer/VBoxContainer/HSplitContainer" instance=ExtResource("19_hkn6c")]
+custom_minimum_size = Vector2(0, 0)
 layout_mode = 2
 
 [node name="PropertiesContainer" parent="PanelContainer/MarginContainer/VBoxContainer/HSplitContainer" instance=ExtResource("20_eh4tf")]

@@ -15,7 +15,6 @@
 [ext_resource type="Script" path="res://map/context_menu_builders/paste_sector_context_menu.gd" id="12_331mg"]
 
 [node name="MapContainer" type="ScrollContainer"]
-custom_minimum_size = Vector2(200, 200)
 script = ExtResource("1_5foj2")
 
 [node name="SubViewportMapContainer" type="SubViewportContainer" parent="."]
