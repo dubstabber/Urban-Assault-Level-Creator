@@ -1,10 +1,7 @@
 # Urban Assault Level Creator
-###### A comprehensive level editor that simplifies the creation of levels and enables the quick design of various map elements.
-
----
+A comprehensive level editor that simplifies the creation of levels and enables the quick design of various map elements.
 
 ## Features
-
 - **Easy editing**: Effortlessly create new maps. With just a few clicks, your map will be ready to use.
 - **Drag and drop**: Move host stations and squads by simply dragging them with the left mouse button to change their positions dynamically.
 - **Real-Time Preview**: A grid-based map with top-view building images for each level set, instantly updated upon any change.
@@ -23,17 +20,9 @@
 - **Fully Open Source**: Both the editor and its development environment are open source. You can download the entire source code, study it, fork it, and modify it as you wish.
 
 and more...
-
----
-
 ## Download
-
 Check out the [releases page.](https://github.com/dubstabber/Urban-Assault-Level-Creator/releases page.) 
-
----
-
 ## Building
-
 1. Download Godot 4.3 from https://godotengine.org
 2. Clone this repository or download the zip file then extract it
 3. Open the Godot and import the project
@@ -47,9 +36,5 @@ Check out the [releases page.](https://github.com/dubstabber/Urban-Assault-Level
 11. Give a name for the final file and click save
 
 Additional steps may be required depending on the platform you want to export the project to.
-
----
-
 ## License
-
 This project is licensed under the GPL-3.0 license. See `LICENSE` for details.
