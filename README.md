@@ -1,1 +1,1 @@
-Level creator for game Urban Assault
+A level editor for game Urban Assault
