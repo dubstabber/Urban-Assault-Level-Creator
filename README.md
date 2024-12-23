@@ -22,7 +22,6 @@ A comprehensive level editor that simplifies the creation of levels and enables 
 and more...
 ## Download
 Check out the [releases page.](https://github.com/dubstabber/Urban-Assault-Level-Creator/releases) 
-
 ## Building
 1. Download Godot 4.3 from https://godotengine.org
 2. Clone this repository or download the zip file then extract it
