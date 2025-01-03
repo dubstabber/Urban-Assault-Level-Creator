@@ -14,17 +14,6 @@ func _on_ok_button_pressed() -> void:
 	
 	EditorState.unselect_all()
 	
-	var right_sector_limit: int = (int(%HorizontalSpinBox.value)+1)*1200
-	var bottom_sector_limit: int = (int(%VerticalSpinBox.value)+1)*1200
-	for hs: HostStation in CurrentMapData.host_stations.get_children():
-		if hs.position.x > right_sector_limit or hs.position.y > bottom_sector_limit:
-			if hs == EditorState.selected_unit: EditorState.selected_unit = null
-			hs.queue_free()
-	for squad: Squad in CurrentMapData.squads.get_children():
-		if squad.position.x > right_sector_limit or squad.position.y > bottom_sector_limit:
-			if squad == EditorState.selected_unit: EditorState.selected_unit = null
-			squad.queue_free()
-	
 	var resized_typ_map: Array[int] = []
 	var resized_own_map: Array[int] = []
 	var resized_hgt_map: Array[int] = []
@@ -48,7 +37,7 @@ func _on_ok_button_pressed() -> void:
 	
 	for row in range(min(CurrentMapData.vertical_sectors+2, vertical_sectors+2)):
 		for col in range(min(CurrentMapData.horizontal_sectors+2, horizontal_sectors+2)):
-			resized_hgt_map[row * horizontal_sectors + col] = CurrentMapData.hgt_map[row * CurrentMapData.horizontal_sectors + col]
+			resized_hgt_map[row * (horizontal_sectors+2) + col] = CurrentMapData.hgt_map[row * (CurrentMapData.horizontal_sectors+2) + col]
 	
 	CurrentMapData.beam_gates = CurrentMapData.beam_gates.filter(func(bg: BeamGate):
 		return not(bg.sec_x > horizontal_sectors or bg.sec_y > vertical_sectors)
@@ -76,6 +65,19 @@ func _on_ok_button_pressed() -> void:
 	CurrentMapData.own_map = resized_own_map
 	CurrentMapData.hgt_map = resized_hgt_map
 	CurrentMapData.blg_map = resized_blg_map
+	
+	var right_sector_limit: int = (int(%HorizontalSpinBox.value)+1)*1200
+	var bottom_sector_limit: int = (int(%VerticalSpinBox.value)+1)*1200
+	for hs: HostStation in CurrentMapData.host_stations.get_children():
+		if hs.position.x > right_sector_limit or hs.position.y > bottom_sector_limit:
+			if hs == EditorState.selected_unit: EditorState.selected_unit = null
+			hs.queue_free()
+		hs.recalculate_limits()
+	for squad: Squad in CurrentMapData.squads.get_children():
+		if squad.position.x > right_sector_limit or squad.position.y > bottom_sector_limit:
+			if squad == EditorState.selected_unit: EditorState.selected_unit = null
+			squad.queue_free()
+		squad.recalculate_limits()
 	
 	EventSystem.map_updated.emit()
 	get_tree().root.size_changed.emit()
