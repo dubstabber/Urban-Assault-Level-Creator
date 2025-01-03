@@ -4,166 +4,195 @@
 [ext_resource type="PackedScene" uid="uid://bfmapkerqoldp" path="res://modals/components/item_check_box_container.tscn" id="2_uc5tb"]
 
 [node name="SquadEnablerTab" type="TabBar"]
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
 script = ExtResource("1_7dgui")
 ITEM_CHECK_BOX_CONTAINER = ExtResource("2_uc5tb")
 metadata/_tab_index = 0
 
-[node name="VBoxContainer" type="VBoxContainer" parent="."]
-layout_mode = 2
-offset_left = 15.0
-offset_top = 15.0
-offset_right = 471.0
-offset_bottom = 87.0
+[node name="ScrollContainer" type="ScrollContainer" parent="."]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
 
-[node name="UnlockItemsCheckBox" type="CheckBox" parent="VBoxContainer"]
+[node name="MarginContainer" type="MarginContainer" parent="ScrollContainer"]
+layout_mode = 2
+theme_override_constants/margin_left = 15
+theme_override_constants/margin_top = 15
+theme_override_constants/margin_right = 15
+theme_override_constants/margin_bottom = 15
+
+[node name="VBoxContainer" type="VBoxContainer" parent="ScrollContainer/MarginContainer"]
+layout_mode = 2
+
+[node name="UnlockItemsCheckBox" type="CheckBox" parent="ScrollContainer/MarginContainer/VBoxContainer"]
 unique_name_in_owner = true
 layout_mode = 2
+size_flags_horizontal = 0
 theme_override_font_sizes/font_size = 12
 text = "Unlock all items"
 
-[node name="HBoxContainer" type="HBoxContainer" parent="VBoxContainer"]
+[node name="HBoxContainer" type="HBoxContainer" parent="ScrollContainer/MarginContainer/VBoxContainer"]
 layout_mode = 2
 
-[node name="ResVBoxContainer" type="VBoxContainer" parent="VBoxContainer/HBoxContainer"]
+[node name="ResVBoxContainer" type="VBoxContainer" parent="ScrollContainer/MarginContainer/VBoxContainer/HBoxContainer"]
 layout_mode = 2
 
-[node name="Label" type="Label" parent="VBoxContainer/HBoxContainer/ResVBoxContainer"]
+[node name="Label" type="Label" parent="ScrollContainer/MarginContainer/VBoxContainer/HBoxContainer/ResVBoxContainer"]
 layout_mode = 2
 theme_override_font_sizes/font_size = 12
 text = "Resistance
 "
 horizontal_alignment = 1
 
-[node name="ResistanceUnitsContainer" type="VBoxContainer" parent="VBoxContainer/HBoxContainer/ResVBoxContainer"]
+[node name="ResistanceUnitsContainer" type="VBoxContainer" parent="ScrollContainer/MarginContainer/VBoxContainer/HBoxContainer/ResVBoxContainer"]
 unique_name_in_owner = true
 layout_mode = 2
 theme_override_constants/separation = 1
 
-[node name="HSeparator" type="HSeparator" parent="VBoxContainer/HBoxContainer/ResVBoxContainer"]
+[node name="HSeparator" type="HSeparator" parent="ScrollContainer/MarginContainer/VBoxContainer/HBoxContainer/ResVBoxContainer"]
 layout_mode = 2
 
-[node name="ResistanceBuildingsContainer" type="VBoxContainer" parent="VBoxContainer/HBoxContainer/ResVBoxContainer"]
+[node name="ResistanceBuildingsContainer" type="VBoxContainer" parent="ScrollContainer/MarginContainer/VBoxContainer/HBoxContainer/ResVBoxContainer"]
 unique_name_in_owner = true
 layout_mode = 2
 theme_override_constants/separation = 1
 
-[node name="GhorVBoxContainer" type="VBoxContainer" parent="VBoxContainer/HBoxContainer"]
+[node name="GhorVBoxContainer" type="VBoxContainer" parent="ScrollContainer/MarginContainer/VBoxContainer/HBoxContainer"]
 layout_mode = 2
 
-[node name="Label" type="Label" parent="VBoxContainer/HBoxContainer/GhorVBoxContainer"]
+[node name="Label" type="Label" parent="ScrollContainer/MarginContainer/VBoxContainer/HBoxContainer/GhorVBoxContainer"]
 layout_mode = 2
 theme_override_font_sizes/font_size = 12
 text = "Ghorkov"
 horizontal_alignment = 1
 
-[node name="GhorkovUnitsContainer" type="VBoxContainer" parent="VBoxContainer/HBoxContainer/GhorVBoxContainer"]
+[node name="GhorkovUnitsContainer" type="VBoxContainer" parent="ScrollContainer/MarginContainer/VBoxContainer/HBoxContainer/GhorVBoxContainer"]
 unique_name_in_owner = true
 layout_mode = 2
 theme_override_constants/separation = 1
 
-[node name="HSeparator" type="HSeparator" parent="VBoxContainer/HBoxContainer/GhorVBoxContainer"]
+[node name="HSeparator" type="HSeparator" parent="ScrollContainer/MarginContainer/VBoxContainer/HBoxContainer/GhorVBoxContainer"]
 layout_mode = 2
 
-[node name="GhorkovBuildingsContainer" type="VBoxContainer" parent="VBoxContainer/HBoxContainer/GhorVBoxContainer"]
+[node name="GhorkovBuildingsContainer" type="VBoxContainer" parent="ScrollContainer/MarginContainer/VBoxContainer/HBoxContainer/GhorVBoxContainer"]
 unique_name_in_owner = true
 layout_mode = 2
 theme_override_constants/separation = 1
 
-[node name="TaerVBoxContainer" type="VBoxContainer" parent="VBoxContainer/HBoxContainer"]
+[node name="TaerVBoxContainer" type="VBoxContainer" parent="ScrollContainer/MarginContainer/VBoxContainer/HBoxContainer"]
 layout_mode = 2
 
-[node name="Label" type="Label" parent="VBoxContainer/HBoxContainer/TaerVBoxContainer"]
+[node name="Label" type="Label" parent="ScrollContainer/MarginContainer/VBoxContainer/HBoxContainer/TaerVBoxContainer"]
 layout_mode = 2
 theme_override_font_sizes/font_size = 12
 text = "Taerkasten"
 horizontal_alignment = 1
 
-[node name="TaerkastenUnitsContainer" type="VBoxContainer" parent="VBoxContainer/HBoxContainer/TaerVBoxContainer"]
+[node name="TaerkastenUnitsContainer" type="VBoxContainer" parent="ScrollContainer/MarginContainer/VBoxContainer/HBoxContainer/TaerVBoxContainer"]
 unique_name_in_owner = true
 layout_mode = 2
 theme_override_constants/separation = 1
 
-[node name="HSeparator" type="HSeparator" parent="VBoxContainer/HBoxContainer/TaerVBoxContainer"]
+[node name="HSeparator" type="HSeparator" parent="ScrollContainer/MarginContainer/VBoxContainer/HBoxContainer/TaerVBoxContainer"]
 layout_mode = 2
 
-[node name="TaerkastenBuildingsContainer" type="VBoxContainer" parent="VBoxContainer/HBoxContainer/TaerVBoxContainer"]
+[node name="TaerkastenBuildingsContainer" type="VBoxContainer" parent="ScrollContainer/MarginContainer/VBoxContainer/HBoxContainer/TaerVBoxContainer"]
 unique_name_in_owner = true
 layout_mode = 2
 theme_override_constants/separation = 1
 
-[node name="MykoVBoxContainer" type="VBoxContainer" parent="VBoxContainer/HBoxContainer"]
+[node name="MykoVBoxContainer" type="VBoxContainer" parent="ScrollContainer/MarginContainer/VBoxContainer/HBoxContainer"]
 layout_mode = 2
 
-[node name="Label" type="Label" parent="VBoxContainer/HBoxContainer/MykoVBoxContainer"]
+[node name="Label" type="Label" parent="ScrollContainer/MarginContainer/VBoxContainer/HBoxContainer/MykoVBoxContainer"]
 layout_mode = 2
 theme_override_font_sizes/font_size = 12
 text = "Mykonian"
 horizontal_alignment = 1
 
-[node name="MykonianUnitsContainer" type="VBoxContainer" parent="VBoxContainer/HBoxContainer/MykoVBoxContainer"]
+[node name="MykonianUnitsContainer" type="VBoxContainer" parent="ScrollContainer/MarginContainer/VBoxContainer/HBoxContainer/MykoVBoxContainer"]
 unique_name_in_owner = true
 layout_mode = 2
 theme_override_constants/separation = 1
 
-[node name="HSeparator" type="HSeparator" parent="VBoxContainer/HBoxContainer/MykoVBoxContainer"]
+[node name="HSeparator" type="HSeparator" parent="ScrollContainer/MarginContainer/VBoxContainer/HBoxContainer/MykoVBoxContainer"]
 layout_mode = 2
 
-[node name="MykonianBuildingsContainer" type="VBoxContainer" parent="VBoxContainer/HBoxContainer/MykoVBoxContainer"]
+[node name="MykonianBuildingsContainer" type="VBoxContainer" parent="ScrollContainer/MarginContainer/VBoxContainer/HBoxContainer/MykoVBoxContainer"]
 unique_name_in_owner = true
 layout_mode = 2
 theme_override_constants/separation = 1
 
-[node name="SulgVBoxContainer" type="VBoxContainer" parent="VBoxContainer/HBoxContainer"]
+[node name="SulgVBoxContainer" type="VBoxContainer" parent="ScrollContainer/MarginContainer/VBoxContainer/HBoxContainer"]
 layout_mode = 2
 
-[node name="Label" type="Label" parent="VBoxContainer/HBoxContainer/SulgVBoxContainer"]
+[node name="Label" type="Label" parent="ScrollContainer/MarginContainer/VBoxContainer/HBoxContainer/SulgVBoxContainer"]
 layout_mode = 2
 theme_override_font_sizes/font_size = 12
 text = "Sulgogar"
 horizontal_alignment = 1
 
-[node name="SulgogarUnitsContainer" type="VBoxContainer" parent="VBoxContainer/HBoxContainer/SulgVBoxContainer"]
+[node name="SulgogarUnitsContainer" type="VBoxContainer" parent="ScrollContainer/MarginContainer/VBoxContainer/HBoxContainer/SulgVBoxContainer"]
 unique_name_in_owner = true
 layout_mode = 2
 theme_override_constants/separation = 1
 
-[node name="BlackSectVBoxContainer" type="VBoxContainer" parent="VBoxContainer/HBoxContainer"]
+[node name="BlackSectVBoxContainer" type="VBoxContainer" parent="ScrollContainer/MarginContainer/VBoxContainer/HBoxContainer"]
 layout_mode = 2
 
-[node name="Label" type="Label" parent="VBoxContainer/HBoxContainer/BlackSectVBoxContainer"]
+[node name="Label" type="Label" parent="ScrollContainer/MarginContainer/VBoxContainer/HBoxContainer/BlackSectVBoxContainer"]
 layout_mode = 2
 theme_override_font_sizes/font_size = 12
 text = "Black Sect"
 horizontal_alignment = 1
 
-[node name="BlackSectBuildingsContainer" type="VBoxContainer" parent="VBoxContainer/HBoxContainer/BlackSectVBoxContainer"]
+[node name="BlackSectBuildingsContainer" type="VBoxContainer" parent="ScrollContainer/MarginContainer/VBoxContainer/HBoxContainer/BlackSectVBoxContainer"]
 unique_name_in_owner = true
 layout_mode = 2
 theme_override_constants/separation = 1
 
-[node name="TrainingVBoxContainer" type="VBoxContainer" parent="VBoxContainer/HBoxContainer"]
+[node name="TrainingVBoxContainer" type="VBoxContainer" parent="ScrollContainer/MarginContainer/VBoxContainer/HBoxContainer"]
 layout_mode = 2
 
-[node name="Label" type="Label" parent="VBoxContainer/HBoxContainer/TrainingVBoxContainer"]
+[node name="Label" type="Label" parent="ScrollContainer/MarginContainer/VBoxContainer/HBoxContainer/TrainingVBoxContainer"]
 layout_mode = 2
 theme_override_font_sizes/font_size = 12
 text = "Training"
 horizontal_alignment = 1
 
-[node name="TrainingUnitsContainer" type="VBoxContainer" parent="VBoxContainer/HBoxContainer/TrainingVBoxContainer"]
+[node name="TrainingUnitsContainer" type="VBoxContainer" parent="ScrollContainer/MarginContainer/VBoxContainer/HBoxContainer/TrainingVBoxContainer"]
 unique_name_in_owner = true
 layout_mode = 2
 theme_override_constants/separation = 1
 
-[node name="Label2" type="Label" parent="VBoxContainer/HBoxContainer/TrainingVBoxContainer"]
+[node name="MiscVBoxContainer" type="VBoxContainer" parent="ScrollContainer/MarginContainer/VBoxContainer/HBoxContainer"]
+layout_mode = 2
+
+[node name="Label" type="Label" parent="ScrollContainer/MarginContainer/VBoxContainer/HBoxContainer/MiscVBoxContainer"]
 layout_mode = 2
 theme_override_font_sizes/font_size = 12
-text = "Special"
+text = "Miscellaneous"
 horizontal_alignment = 1
 
-[node name="SpecialUnitsContainer" type="VBoxContainer" parent="VBoxContainer/HBoxContainer/TrainingVBoxContainer"]
+[node name="MiscUnitsContainer" type="VBoxContainer" parent="ScrollContainer/MarginContainer/VBoxContainer/HBoxContainer/MiscVBoxContainer"]
 unique_name_in_owner = true
 layout_mode = 2
 theme_override_constants/separation = 1
 
-[connection signal="toggled" from="VBoxContainer/UnlockItemsCheckBox" to="." method="_on_unlock_items_check_box_toggled"]
+[node name="HSeparator" type="HSeparator" parent="ScrollContainer/MarginContainer/VBoxContainer/HBoxContainer/MiscVBoxContainer"]
+layout_mode = 2
+
+[node name="MiscBuildingsContainer" type="VBoxContainer" parent="ScrollContainer/MarginContainer/VBoxContainer/HBoxContainer/MiscVBoxContainer"]
+unique_name_in_owner = true
+layout_mode = 2
+theme_override_constants/separation = 1
+
+[connection signal="resized" from="ScrollContainer/MarginContainer/VBoxContainer" to="." method="_on_v_box_container_resized"]
+[connection signal="toggled" from="ScrollContainer/MarginContainer/VBoxContainer/UnlockItemsCheckBox" to="." method="_on_unlock_items_check_box_toggled"]
