@@ -37,7 +37,7 @@ script = ExtResource("2_v1tro")
 
 [node name="Camera2D" type="Camera2D" parent="SubViewportMapContainer/SubViewport/Map"]
 anchor_mode = 0
-zoom = Vector2(0.1, 0.1)
+zoom = Vector2(0.056, 0.056)
 
 [node name="HostStations" type="Control" parent="SubViewportMapContainer/SubViewport/Map"]
 anchors_preset = 0

@@ -31,6 +31,9 @@ func _ready() -> void:
 		right_clicked_x_global = x
 		right_clicked_y_global = y
 	)
+	EventSystem.map_created.connect(func():
+		map_camera.zoom = Vector2(0.056, 0.056)
+		)
 
 
 func _process(delta):
