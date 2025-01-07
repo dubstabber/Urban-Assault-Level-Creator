@@ -84,13 +84,15 @@ func _update_properties() -> void:
 			if TECH_UPGRADE_MODIFIER_1:
 				var tu_modifier1 = TECH_UPGRADE_MODIFIER_1.instantiate()
 				tu_modifier1.vehicle_modifier = vehicle_modifier
-				var vehicle_name: String
+				var vehicle_name := ""
 				for unit in EditorState.units_db:
 					if EditorState.units_db[unit] == vehicle_modifier.vehicle_id:
 						vehicle_name = unit
 						break
 				
-				tu_modifier1.item_name = vehicle_name
+				if vehicle_name.is_empty(): tu_modifier1.item_name = "Unknown unit"
+				else: tu_modifier1.item_name = vehicle_name
+				
 				for weapon_modifier in EditorState.selected_tech_upgrade.weapons:
 					if weapon_modifier.weapon_id == vehicle_modifier.vehicle_id:
 						tu_modifier1.weapon_modifier = weapon_modifier
@@ -115,20 +117,23 @@ func _update_properties() -> void:
 				tu_modifier = TECH_UPGRADE_MODIFIER_1.instantiate()
 			
 			tu_modifier.weapon_modifier = weapon_modifier
-			var vehicle_name: String
+			var vehicle_name := ""
 			for unit in EditorState.units_db:
 				if EditorState.units_db[unit] == weapon_modifier.weapon_id:
 					vehicle_name = unit
 					break
 			
-			tu_modifier.item_name = vehicle_name
+			if vehicle_name.is_empty(): tu_modifier.item_name = "Unknown unit/weapon"
+			else: tu_modifier.item_name = vehicle_name
 			tu_modifier.update_ui()
 			%TechUpgradeModifiersContainer.add_child(tu_modifier)
 		
 		for building_modifier in EditorState.selected_tech_upgrade.buildings:
 			var tu_modifier2 = TECH_UPGRADE_MODIFIER_2.instantiate()
 			tu_modifier2.building_modifier = building_modifier
-			tu_modifier2.item_name = EditorState.blg_names[str(building_modifier.building_id)]
+			if EditorState.blg_names.has(str(building_modifier.building_id)):
+				tu_modifier2.item_name = EditorState.blg_names[str(building_modifier.building_id)]
+			else: tu_modifier2.item_name = "Unknown building"
 			tu_modifier2.update_ui()
 			%TechUpgradeModifiersContainer.add_child(tu_modifier2)
 	else:

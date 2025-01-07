@@ -73,6 +73,7 @@ func _ready():
 	sector_item_images.tech_upgrades[50] = load("res://resources/img/sectorItems/techupgrademoreshieldvehicle.png")
 	sector_item_images.tech_upgrades[16] = load("res://resources/img/sectorItems/techupgradenewbuilding.png")
 	sector_item_images.tech_upgrades[65] = load("res://resources/img/sectorItems/techupgradenewvehicletower.png")
+	sector_item_images.tech_upgrades["unknown"] = load("res://resources/img/sectorItems/techupgradeunknown.png")
 	
 	
 	sector_item_images.beam_gate_key_sector = load("res://resources/img/sectorItems/keysector.png")
