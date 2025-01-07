@@ -24,6 +24,8 @@ func _ready() -> void:
 		)
 	%BeamGateMBStatus.toggled.connect(func(toggled: bool):
 		if not EditorState.selected_beam_gate: return
+		if EditorState.selected_beam_gate.mb_status != toggled:
+			CurrentMapData.is_saved = false
 		EditorState.selected_beam_gate.mb_status = toggled
 		)
 	%AddLevelButton.pressed.connect(func():

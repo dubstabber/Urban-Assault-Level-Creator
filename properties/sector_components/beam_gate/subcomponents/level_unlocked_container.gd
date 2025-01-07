@@ -17,4 +17,5 @@ func _on_button_pressed() -> void:
 	EditorState.selected_beam_gate.target_levels.erase(level_index)
 	if EditorState.selected_beam_gate.target_levels.is_empty():
 		EventSystem.map_updated.emit()
+	CurrentMapData.is_saved = false
 	queue_free()

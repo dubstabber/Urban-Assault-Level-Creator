@@ -22,23 +22,23 @@ var selected_typ_map: int
 var typ_map_images_visible := true:
 	set(value):
 		typ_map_images_visible = value
-		EventSystem.map_updated.emit()
+		EventSystem.map_view_updated.emit()
 var typ_map_values_visible := false:
 	set(value):
 		typ_map_values_visible = value
-		EventSystem.map_updated.emit()
+		EventSystem.map_view_updated.emit()
 var own_map_values_visible := false:
 	set(value):
 		own_map_values_visible = value
-		EventSystem.map_updated.emit()
+		EventSystem.map_view_updated.emit()
 var hgt_map_values_visible := false:
 	set(value):
 		hgt_map_values_visible = value
-		EventSystem.map_updated.emit()
+		EventSystem.map_view_updated.emit()
 var blg_map_values_visible := false:
 	set(value):
 		blg_map_values_visible = value
-		EventSystem.map_updated.emit()
+		EventSystem.map_view_updated.emit()
 
 var selected_unit: Unit = null:
 	set(value):

@@ -26,6 +26,7 @@ func _ready() -> void:
 	EventSystem.hoststation_added.connect(add_hoststation)
 	EventSystem.squad_added.connect(add_squad)
 	EventSystem.map_updated.connect(queue_redraw)
+	EventSystem.map_view_updated.connect(queue_redraw)
 	EventSystem.global_right_clicked.connect(func(x, y):
 		right_clicked_x_global = x
 		right_clicked_y_global = y

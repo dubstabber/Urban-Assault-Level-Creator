@@ -33,8 +33,9 @@ func _ready() -> void:
 		)
 	%TechUpgradeMBstatusCheckBox.toggled.connect(func(toggled_on: bool):
 		if EditorState.selected_tech_upgrade:
+			if EditorState.selected_tech_upgrade.mb_status != toggled_on:
+				CurrentMapData.is_saved = false
 			EditorState.selected_tech_upgrade.mb_status = toggled_on
-			CurrentMapData.is_saved = false
 		)
 	%TUAddItemButton.pressed.connect(func():
 		if not EditorState.selected_tech_upgrade: return

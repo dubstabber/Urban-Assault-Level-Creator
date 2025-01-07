@@ -24,6 +24,7 @@ signal game_type_changed
 signal hoststation_added(owner_id: int, vehicle_id: int)
 signal squad_added(owner_id: int, vehicle_id: int)
 signal map_updated
+signal map_view_updated
 signal item_updated
 
 signal sector_faction_changed(faction_id: int)
