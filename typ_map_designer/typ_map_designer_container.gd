@@ -56,6 +56,8 @@ func _refresh_images() -> void:
 		%TypMapImagesContainer.remove_child(child)
 		child.queue_free()
 	
+	if CurrentMapData.level_set > 6 or CurrentMapData.level_set < 1: return
+	
 	for idx in Preloads.building_side_images[CurrentMapData.level_set]:
 		var typ_map_button = BUILDING_BUTTON.instantiate()
 		typ_map_button.side_building_texture = Preloads.building_side_images[CurrentMapData.level_set][idx]

@@ -1,4 +1,4 @@
-[gd_scene load_steps=35 format=3 uid="uid://ctgiwn3scteuk"]
+[gd_scene load_steps=36 format=3 uid="uid://ctgiwn3scteuk"]
 
 [ext_resource type="Script" path="res://main/main.gd" id="1_7pb5r"]
 [ext_resource type="Script" path="res://modals/modals.gd" id="2_glk8b"]
@@ -51,6 +51,17 @@ script/source = "extends AcceptDialog
 
 func _ready() -> void:
 	EventSystem.safe_host_station_limit_exceeded.connect(popup)
+"
+
+[sub_resource type="GDScript" id="GDScript_r27t3"]
+script/source = "extends AcceptDialog
+
+
+func _ready() -> void:
+	EventSystem.invalid_set_detected.connect(func(level_set: int):
+		dialog_text = \"Error: The loaded level set (%s) is not supported by the editor. Defaulting to set 1.\" % level_set
+		popup()
+		)
 "
 
 [node name="Main" type="Control"]
@@ -193,6 +204,14 @@ initial_position = 1
 size = Vector2i(653, 100)
 dialog_text = "Warning: Creating more than eight host stations may cause game instability"
 script = SubResource("GDScript_j65sn")
+
+[node name="InvalidLevelSetAcceptDialog" type="AcceptDialog" parent="Modals"]
+unique_name_in_owner = true
+title = "Error"
+initial_position = 1
+size = Vector2i(483, 100)
+dialog_text = "Error: The loaded level set (X) is not supported by the editor. Defaulting to set 1."
+script = SubResource("GDScript_r27t3")
 
 [node name="PanelContainer" type="PanelContainer" parent="."]
 layout_mode = 1

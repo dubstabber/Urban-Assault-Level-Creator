@@ -2,7 +2,11 @@ extends Node
 
 var level_set := 1:
 	set(value):
-		level_set = value
+		if value > 6 or value < 1:
+			EventSystem.invalid_set_detected.emit(value)
+			level_set = 1
+		else:
+			level_set = value
 		EventSystem.level_set_changed.emit()
 var movie := ""
 var event_loop := 0

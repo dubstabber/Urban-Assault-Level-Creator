@@ -44,7 +44,6 @@ func _on_briefing_maps_option_button_item_selected(index: int) -> void:
 	CurrentMapData.briefing_map = item_text
 	var mb_map_name = item_text.replace(".%s" %item_text.get_extension(), "")
 	%BriefingMapTexture.texture = Preloads.mbmaps[mb_map_name]
-	
 
 
 func _on_debriefing_maps_option_button_item_selected(index: int) -> void:

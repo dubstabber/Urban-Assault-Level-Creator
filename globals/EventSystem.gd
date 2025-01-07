@@ -33,6 +33,7 @@ signal special_building_added(blg_map: int, typ_map: int, own_map: int)
 signal building_added(typ_map: int)
 
 signal open_map_failed
+signal invalid_set_detected(level_set: int)
 
 signal editor_mode_changed
 signal safe_host_station_limit_exceeded
