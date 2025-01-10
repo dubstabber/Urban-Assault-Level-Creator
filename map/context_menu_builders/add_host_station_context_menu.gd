@@ -5,6 +5,7 @@ func _ready() -> void:
 	await get_parent().ready
 	var hs_submenu: PopupMenu = PopupMenu.new()
 	hs_submenu.name = "hoststation"
+	hs_submenu["theme_override_fonts/font"] = Preloads.font
 	get_parent().add_child(hs_submenu)
 	for hs in Preloads.ua_data.data[EditorState.game_data_type].hoststations:
 		var hs_owner_id = str(Preloads.ua_data.data[EditorState.game_data_type].hoststations[hs].owner)

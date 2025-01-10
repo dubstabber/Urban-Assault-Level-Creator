@@ -1,8 +1,9 @@
-[gd_scene load_steps=14 format=3 uid="uid://dy8lh8y52680p"]
+[gd_scene load_steps=15 format=3 uid="uid://dy8lh8y52680p"]
 
 [ext_resource type="Script" path="res://map/map_container.gd" id="1_5foj2"]
 [ext_resource type="Script" path="res://map/map_renderer.gd" id="2_v1tro"]
 [ext_resource type="Script" path="res://map/context_menu_builders/add_host_station_context_menu.gd" id="3_5rxkp"]
+[ext_resource type="FontFile" uid="uid://b5bou0wtu243w" path="res://resources/Xolonium-Regular.ttf" id="3_6n7wx"]
 [ext_resource type="Script" path="res://map/context_menu_builders/add_squad_context_menu.gd" id="4_k643x"]
 [ext_resource type="Script" path="res://map/context_menu_builders/change_faction_context_menu.gd" id="5_r6vs5"]
 [ext_resource type="Script" path="res://map/context_menu_builders/change_height_context_menu.gd" id="6_ixe4a"]
@@ -49,6 +50,7 @@ anchors_preset = 0
 [node name="MapContextMenu" type="PopupMenu" parent="SubViewportMapContainer/SubViewport"]
 unique_name_in_owner = true
 auto_translate_mode = 1
+theme_override_fonts/font = ExtResource("3_6n7wx")
 
 [node name="AddHostStation" type="Node" parent="SubViewportMapContainer/SubViewport/MapContextMenu"]
 script = ExtResource("3_5rxkp")
@@ -84,6 +86,7 @@ script = ExtResource("12_331mg")
 unique_name_in_owner = true
 auto_translate_mode = 1
 size = Vector2i(100, 20)
+theme_override_fonts/font = ExtResource("3_6n7wx")
 
 [node name="RemoveUnit" type="Node" parent="SubViewportMapContainer/SubViewport/UnitContextMenu"]
 script = ExtResource("11_3ytp4")
@@ -91,6 +94,7 @@ script = ExtResource("11_3ytp4")
 [node name="MultiSectorMapContextMenu" type="PopupMenu" parent="SubViewportMapContainer/SubViewport"]
 unique_name_in_owner = true
 auto_translate_mode = 1
+theme_override_fonts/font = ExtResource("3_6n7wx")
 
 [node name="ChangeFaction" type="Node" parent="SubViewportMapContainer/SubViewport/MultiSectorMapContextMenu"]
 script = ExtResource("5_r6vs5")

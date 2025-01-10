@@ -1,4 +1,4 @@
-[gd_scene load_steps=36 format=3 uid="uid://ctgiwn3scteuk"]
+[gd_scene load_steps=37 format=3 uid="uid://ctgiwn3scteuk"]
 
 [ext_resource type="Script" path="res://main/main.gd" id="1_7pb5r"]
 [ext_resource type="Script" path="res://modals/modals.gd" id="2_glk8b"]
@@ -27,6 +27,7 @@
 [ext_resource type="PackedScene" uid="uid://dy8lh8y52680p" path="res://map/map_container.tscn" id="19_hkn6c"]
 [ext_resource type="Script" path="res://modals/open_map_error_accept_dialog.gd" id="20_272kt"]
 [ext_resource type="PackedScene" uid="uid://dg5m8iyihbvmu" path="res://properties/properties_container.tscn" id="20_eh4tf"]
+[ext_resource type="FontFile" uid="uid://b5bou0wtu243w" path="res://resources/Xolonium-Regular.ttf" id="22_hbtdp"]
 [ext_resource type="Script" path="res://main/nav_bar/menu_bar_tools.gd" id="24_h3xa5"]
 [ext_resource type="PackedScene" uid="uid://3c4x0gmdhcwn" path="res://typ_map_designer/typ_map_designer_container.tscn" id="27_45wxb"]
 [ext_resource type="Script" path="res://main/status_bar_container.gd" id="27_esd3e"]
@@ -231,22 +232,28 @@ layout_mode = 2
 [node name="MenuBar" type="MenuBar" parent="PanelContainer/MarginContainer/VBoxContainer"]
 custom_minimum_size = Vector2(0, 33)
 layout_mode = 2
+theme_override_fonts/font = ExtResource("22_hbtdp")
 
 [node name="File" type="PopupMenu" parent="PanelContainer/MarginContainer/VBoxContainer/MenuBar"]
 auto_translate_mode = 1
+theme_override_fonts/font = ExtResource("22_hbtdp")
 script = ExtResource("6_i86yq")
 
 [node name="View" type="PopupMenu" parent="PanelContainer/MarginContainer/VBoxContainer/MenuBar"]
 auto_translate_mode = 1
+theme_override_fonts/font = ExtResource("22_hbtdp")
 script = ExtResource("10_vou7b")
 
 [node name="Options" type="PopupMenu" parent="PanelContainer/MarginContainer/VBoxContainer/MenuBar"]
+theme_override_fonts/font = ExtResource("22_hbtdp")
 script = ExtResource("16_eeds7")
 
 [node name="Tools" type="PopupMenu" parent="PanelContainer/MarginContainer/VBoxContainer/MenuBar"]
+theme_override_fonts/font = ExtResource("22_hbtdp")
 script = ExtResource("24_h3xa5")
 
 [node name="Help" type="PopupMenu" parent="PanelContainer/MarginContainer/VBoxContainer/MenuBar"]
+theme_override_fonts/font = ExtResource("22_hbtdp")
 script = ExtResource("17_0pxun")
 
 [node name="HSplitContainer" type="HSplitContainer" parent="PanelContainer/MarginContainer/VBoxContainer"]

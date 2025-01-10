@@ -19,6 +19,7 @@ var movies_db := {}
 var skies := {}
 var musics := {}
 var mbmaps := {}
+var font = preload("res://resources/Xolonium-Regular.ttf")
 
 
 func _ready():

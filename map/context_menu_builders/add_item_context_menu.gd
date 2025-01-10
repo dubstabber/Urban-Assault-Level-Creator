@@ -8,10 +8,12 @@ func _ready() -> void:
 	await get_parent().ready
 	var add_item_submenu: PopupMenu = PopupMenu.new()
 	add_item_submenu.name = 'add_item'
+	add_item_submenu["theme_override_fonts/font"] = Preloads.font
 	get_parent().add_child(add_item_submenu)
 	
 	var new_item_submenu: PopupMenu = PopupMenu.new()
 	new_item_submenu.name = 'new_item'
+	new_item_submenu["theme_override_fonts/font"] = Preloads.font
 	add_item_submenu.add_child(new_item_submenu)
 	
 	var new_beam_gate: PopupMenu = PopupMenu.new()
@@ -26,10 +28,12 @@ func _ready() -> void:
 	
 	add_bg_key_sector_submenu = PopupMenu.new()
 	add_bg_key_sector_submenu.name = 'add_beam_gate_key_sector'
+	add_bg_key_sector_submenu["theme_override_fonts/font"] = Preloads.font
 	add_item_submenu.add_child(add_bg_key_sector_submenu)
 	
 	add_bomb_key_sector_submenu = PopupMenu.new()
 	add_bomb_key_sector_submenu.name = 'add_bomb_key_sector'
+	add_bomb_key_sector_submenu["theme_override_fonts/font"] = Preloads.font
 	add_item_submenu.add_child(add_bomb_key_sector_submenu)
 	
 	new_item_submenu.index_pressed.connect(_new_item.bind(new_item_submenu))

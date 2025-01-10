@@ -1,7 +1,8 @@
-[gd_scene load_steps=5 format=3 uid="uid://duerssxf27lsy"]
+[gd_scene load_steps=6 format=3 uid="uid://duerssxf27lsy"]
 
 [ext_resource type="Texture2D" uid="uid://cn1u5i4mc5wv5" path="res://resources/img/campaignMaps/originalMap.jpg" id="1_73toq"]
 [ext_resource type="Script" path="res://modals/campaign_maps_window.gd" id="1_wcpne"]
+[ext_resource type="FontFile" uid="uid://b5bou0wtu243w" path="res://resources/Xolonium-Regular.ttf" id="2_1thal"]
 [ext_resource type="Texture2D" uid="uid://n2caoutggohf" path="res://resources/img/campaignMaps/MDGhorMap.jpg" id="2_uj755"]
 [ext_resource type="Texture2D" uid="uid://d4ceqrrlaou3j" path="res://resources/img/campaignMaps/MDTaerMap.jpg" id="3_pxwhm"]
 
@@ -9,7 +10,7 @@
 auto_translate_mode = 1
 title = "Campaign maps"
 initial_position = 1
-size = Vector2i(650, 550)
+size = Vector2i(689, 550)
 script = ExtResource("1_wcpne")
 
 [node name="ScrollContainer" type="ScrollContainer" parent="."]
@@ -29,8 +30,6 @@ size_flags_vertical = 3
 layout_mode = 2
 size_flags_horizontal = 3
 size_flags_vertical = 3
-theme_override_constants/margin_left = 12
-theme_override_constants/margin_right = 12
 
 [node name="VBoxContainer" type="VBoxContainer" parent="ScrollContainer/PanelContainer/MarginContainer"]
 layout_mode = 2
@@ -38,6 +37,7 @@ layout_mode = 2
 [node name="TabContainer" type="TabContainer" parent="ScrollContainer/PanelContainer/MarginContainer/VBoxContainer"]
 layout_mode = 2
 size_flags_vertical = 3
+theme_override_fonts/font = ExtResource("2_1thal")
 theme_override_font_sizes/font_size = 14
 tab_alignment = 1
 current_tab = 0

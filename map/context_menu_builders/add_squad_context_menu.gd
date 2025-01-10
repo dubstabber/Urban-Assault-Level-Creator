@@ -6,6 +6,7 @@ var squad_submenu: PopupMenu = PopupMenu.new()
 func _ready() -> void:
 	await get_parent().ready
 	squad_submenu.name = "squad"
+	squad_submenu["theme_override_fonts/font"] = Preloads.font
 	get_parent().add_child(squad_submenu)
 	update_menus()
 	get_parent().add_submenu_item("Add squad", "squad")
@@ -20,6 +21,7 @@ func update_menus() -> void:
 	for hs in Preloads.ua_data.data[EditorState.game_data_type].hoststations:
 		var squads: PopupMenu = PopupMenu.new()
 		squads.name = hs+"-squads"
+		squads["theme_override_fonts/font"] = Preloads.font
 		squad_submenu.add_child(squads)
 		if Preloads.ua_data.data[EditorState.game_data_type].hoststations[hs].units.size() > 0:
 			for squad in Preloads.ua_data.data[EditorState.game_data_type].hoststations[hs].units:
@@ -33,6 +35,7 @@ func update_menus() -> void:
 	if Preloads.ua_data.data[EditorState.game_data_type].other.units.size() > 0:
 		var squads: PopupMenu = PopupMenu.new()
 		squads.name = "special-squads"
+		squads["theme_override_fonts/font"] = Preloads.font
 		squad_submenu.add_child(squads)
 		for squad in Preloads.ua_data.data[EditorState.game_data_type].other.units:
 			var squad_image = Preloads.squad_images[str(squad.id)]

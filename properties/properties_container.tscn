@@ -1,5 +1,6 @@
-[gd_scene load_steps=17 format=3 uid="uid://dg5m8iyihbvmu"]
+[gd_scene load_steps=18 format=3 uid="uid://dg5m8iyihbvmu"]
 
+[ext_resource type="FontFile" uid="uid://b5bou0wtu243w" path="res://resources/Xolonium-Regular.ttf" id="1_183rx"]
 [ext_resource type="Script" path="res://properties/unit_properties.gd" id="1_cdtuf"]
 [ext_resource type="PackedScene" uid="uid://d21eco4mp6ath" path="res://properties/unit_components/host_station/host_station_properties.tscn" id="2_ipxpa"]
 [ext_resource type="PackedScene" uid="uid://wmfw6govhni3" path="res://properties/unit_components/squad/squad_properties.tscn" id="3_5a166"]
@@ -68,6 +69,7 @@ mouse_filter = 1
 layout_mode = 2
 size_flags_horizontal = 3
 size_flags_vertical = 3
+theme_override_fonts/font = ExtResource("1_183rx")
 current_tab = 1
 clip_tabs = false
 script = SubResource("GDScript_hihdk")
