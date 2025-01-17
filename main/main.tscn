@@ -1,4 +1,4 @@
-[gd_scene load_steps=37 format=3 uid="uid://ctgiwn3scteuk"]
+[gd_scene load_steps=38 format=3 uid="uid://ctgiwn3scteuk"]
 
 [ext_resource type="Script" path="res://main/main.gd" id="1_7pb5r"]
 [ext_resource type="Script" path="res://modals/modals.gd" id="2_glk8b"]
@@ -27,6 +27,7 @@
 [ext_resource type="PackedScene" uid="uid://dy8lh8y52680p" path="res://map/map_container.tscn" id="19_hkn6c"]
 [ext_resource type="Script" path="res://modals/open_map_error_accept_dialog.gd" id="20_272kt"]
 [ext_resource type="PackedScene" uid="uid://dg5m8iyihbvmu" path="res://properties/properties_container.tscn" id="20_eh4tf"]
+[ext_resource type="PackedScene" uid="uid://bopbfkpvnejw3" path="res://modals/additional_information_window.tscn" id="22_230yp"]
 [ext_resource type="FontFile" uid="uid://b5bou0wtu243w" path="res://resources/Xolonium-Regular.ttf" id="22_hbtdp"]
 [ext_resource type="Script" path="res://main/nav_bar/menu_bar_tools.gd" id="24_h3xa5"]
 [ext_resource type="PackedScene" uid="uid://3c4x0gmdhcwn" path="res://typ_map_designer/typ_map_designer_container.tscn" id="27_45wxb"]
@@ -213,6 +214,10 @@ initial_position = 1
 size = Vector2i(483, 100)
 dialog_text = "Error: The loaded level set (X) is not supported by the editor. Defaulting to set 1."
 script = SubResource("GDScript_r27t3")
+
+[node name="AdditionalInformationWindow" parent="Modals" instance=ExtResource("22_230yp")]
+unique_name_in_owner = true
+visible = false
 
 [node name="PanelContainer" type="PanelContainer" parent="."]
 layout_mode = 1
