@@ -39,6 +39,12 @@ text = "Energy: "
 [node name="EnergyLineEdit" type="LineEdit" parent="HBoxContainer5/GridContainer2"]
 unique_name_in_owner = true
 layout_mode = 2
+tooltip_text = "Energy represents the total amount of energy available for this host station.
+The user and AI bots interpret and calculate this value differently.
+
+For both, the value is converted using the following formula: energy × 400.
+AI bot host stations have only one energy reservoir, whereas user host stations have four reservoirs (with the fourth being implicit). 
+To ensure balanced gameplay, the AI bot’s energy value is set four times higher to compensate for this difference."
 theme_override_font_sizes/font_size = 12
 text = "0000"
 shortcut_keys_enabled = false
@@ -70,7 +76,8 @@ text = "Reload const: "
 [node name="ReloadConstLineEdit" type="LineEdit" parent="HBoxContainer5/GridContainer2"]
 unique_name_in_owner = true
 layout_mode = 2
-tooltip_text = "Reload Const (Drak Constant) represents the maximum energy regeneration rate. This value is processed internally and differs between the user and AI bots. 
+tooltip_text = "Reload Const (Drak Constant) represents the maximum energy regeneration rate. 
+This value is processed internally and differs between the user and AI bots. 
 For user: reload_const * (60000/255)
 For AI: reload_const * (70000/255)"
 theme_override_font_sizes/font_size = 12
@@ -492,7 +499,7 @@ horizontal_alignment = 1
 [node name="MBstatusHostStationCheckBox" type="CheckBox" parent="."]
 unique_name_in_owner = true
 layout_mode = 2
-size_flags_horizontal = 0
+size_flags_horizontal = 4
 theme_override_font_sizes/font_size = 12
 text = "Make this host station invisible in the Mission Briefing"
 

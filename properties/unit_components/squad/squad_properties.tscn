@@ -105,6 +105,7 @@ horizontal_alignment = 1
 [node name="UseableCheckBox" type="CheckBox" parent="."]
 unique_name_in_owner = true
 layout_mode = 2
+size_flags_horizontal = 4
 theme_override_font_sizes/font_size = 12
 text = "AI may use this squad as normal units"
 
@@ -120,5 +121,6 @@ horizontal_alignment = 1
 [node name="MBstatusSquadCheckBox" type="CheckBox" parent="."]
 unique_name_in_owner = true
 layout_mode = 2
+size_flags_horizontal = 4
 theme_override_font_sizes/font_size = 12
 text = "Make this squad invisible in the Mission Briefing"
