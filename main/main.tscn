@@ -52,7 +52,14 @@ script/source = "extends AcceptDialog
 
 
 func _ready() -> void:
-	EventSystem.safe_host_station_limit_exceeded.connect(popup)
+	EventSystem.safe_host_station_limit_exceeded.connect(func():
+		dialog_text = \"Warning: Creating more than eight host stations may cause game instability\"
+		popup()
+	)
+	EventSystem.saved_with_no_hoststation.connect(func():
+		dialog_text = \"Warning: The level was saved with no hoststation, therefore game will not launch\"
+		popup()
+	)
 "
 
 [sub_resource type="GDScript" id="GDScript_r27t3"]
@@ -61,9 +68,12 @@ script/source = "extends AcceptDialog
 
 func _ready() -> void:
 	EventSystem.invalid_set_detected.connect(func(level_set: int):
-		dialog_text = \"Error: The loaded level set (%s) is not supported by the editor. Defaulting to set 1.\" % level_set
+		dialog_text = \"Error: The loaded level set %s is not supported by the editor. Defaulting to set 1.\" % level_set
 		popup()
-		)
+	)
+	confirmed.connect(func():
+		CurrentMapData.is_saved = false
+	)
 "
 
 [node name="Main" type="Control"]
@@ -200,15 +210,12 @@ initial_position = 1
 size = Vector2i(300, 100)
 script = ExtResource("20_272kt")
 
-[node name="ExceedSafeHSLimitAcceptDialog" type="AcceptDialog" parent="Modals"]
-unique_name_in_owner = true
+[node name="WarningAcceptDialog" type="AcceptDialog" parent="Modals"]
 initial_position = 1
 size = Vector2i(653, 100)
-dialog_text = "Warning: Creating more than eight host stations may cause game instability"
 script = SubResource("GDScript_j65sn")
 
 [node name="InvalidLevelSetAcceptDialog" type="AcceptDialog" parent="Modals"]
-unique_name_in_owner = true
 title = "Error"
 initial_position = 1
 size = Vector2i(483, 100)

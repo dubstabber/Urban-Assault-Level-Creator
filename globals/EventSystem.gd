@@ -37,3 +37,4 @@ signal invalid_set_detected(level_set: int)
 
 signal editor_mode_changed
 signal safe_host_station_limit_exceeded
+signal saved_with_no_hoststation

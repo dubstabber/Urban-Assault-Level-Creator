@@ -55,15 +55,17 @@ var training_enabled_buildings: Array[int] = []
 var map_path := ""
 var is_saved := true:
 	set(value):
-		if CurrentMapData.horizontal_sectors and CurrentMapData.vertical_sectors:
+		if horizontal_sectors and vertical_sectors:
 			is_saved = value
 			if map_path.is_empty():
-				DisplayServer.window_set_title("[not saved] (%sx%s) - %s" % [CurrentMapData.horizontal_sectors, CurrentMapData.vertical_sectors, "Urban Assault Level Creator"])
+				DisplayServer.window_set_title("[not saved] (%sx%s) - %s" % [horizontal_sectors, vertical_sectors, "Urban Assault Level Creator"])
 			else:
 				if is_saved:
-					DisplayServer.window_set_title("%s (%sx%s) - %s" % [CurrentMapData.map_path, CurrentMapData.horizontal_sectors, CurrentMapData.vertical_sectors, "Urban Assault Level Creator"])
+					DisplayServer.window_set_title("%s (%sx%s) - %s" % [map_path, horizontal_sectors, vertical_sectors, "Urban Assault Level Creator"])
+					if host_stations.get_child_count() == 0:
+						EventSystem.saved_with_no_hoststation.emit()
 				else:
-					DisplayServer.window_set_title("*%s (%sx%s) - %s" % [CurrentMapData.map_path, CurrentMapData.horizontal_sectors, CurrentMapData.vertical_sectors, "Urban Assault Level Creator"])
+					DisplayServer.window_set_title("*%s (%sx%s) - %s" % [map_path, horizontal_sectors, vertical_sectors, "Urban Assault Level Creator"])
 		else:
 			is_saved = true
 
