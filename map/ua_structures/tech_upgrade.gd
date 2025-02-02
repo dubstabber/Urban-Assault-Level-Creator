@@ -99,6 +99,42 @@ func new_building_modifier(_building_id: int) -> ModifyBuilding:
 	return building_modifier
 
 
+func duplicate_vehicles() -> Array[ModifyVehicle]:
+	var duplicated_vehicles: Array[ModifyVehicle] = []
+	for vehicle:ModifyVehicle in vehicles:
+		var modifier = ModifyVehicle.new()
+		var modifier_members = modifier.get_script().get_script_property_list()
+		for member in modifier_members:
+			if member.name in vehicle:
+				modifier[member.name] = vehicle[member.name]
+		duplicated_vehicles.append(modifier)
+	return duplicated_vehicles
+
+
+func duplicate_weapons() -> Array[ModifyWeapon]:
+	var duplicated_weapons: Array[ModifyWeapon] = []
+	for weapon:ModifyWeapon in weapons:
+		var modifier = ModifyWeapon.new()
+		var modifier_members = modifier.get_script().get_script_property_list()
+		for member in modifier_members:
+			if member.name in weapon:
+				modifier[member.name] = weapon[member.name]
+		duplicated_weapons.append(modifier)
+	return duplicated_weapons
+
+
+func duplicate_buildings() -> Array[ModifyBuilding]:
+	var duplicated_buildings: Array[ModifyBuilding] = []
+	for building:ModifyBuilding in buildings:
+		var modifier = ModifyBuilding.new()
+		var modifier_members = modifier.get_script().get_script_property_list()
+		for member in modifier_members:
+			if member.name in building:
+				modifier[member.name] = building[member.name]
+		duplicated_buildings.append(modifier)
+	return duplicated_buildings
+
+
 class ModifyVehicle:
 	var vehicle_id := 0
 	var res_enabled := false

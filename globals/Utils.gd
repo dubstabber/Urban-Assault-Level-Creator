@@ -334,10 +334,9 @@ func paste_sector() -> void:
 			var tech_upgrade = TechUpgrade.new(EditorState.selected_sector.x, EditorState.selected_sector.y)
 			tech_upgrade.building_id = EditorState.sector_clipboard.tech_upgrade.building_id
 			tech_upgrade.type = EditorState.sector_clipboard.tech_upgrade.type
-			# Arrays of RefCounted classes inside TechUpgrade are probably still a shallow copy
-			tech_upgrade.vehicles = EditorState.sector_clipboard.tech_upgrade.vehicles.duplicate(true)
-			tech_upgrade.weapons = EditorState.sector_clipboard.tech_upgrade.weapons.duplicate(true)
-			tech_upgrade.buildings = EditorState.sector_clipboard.tech_upgrade.buildings.duplicate(true)
+			tech_upgrade.vehicles = EditorState.sector_clipboard.tech_upgrade.duplicate_vehicles()
+			tech_upgrade.weapons = EditorState.sector_clipboard.tech_upgrade.duplicate_weapons()
+			tech_upgrade.buildings = EditorState.sector_clipboard.tech_upgrade.duplicate_buildings()
 			tech_upgrade.mb_status = EditorState.sector_clipboard.tech_upgrade.mb_status
 			CurrentMapData.tech_upgrades.append(tech_upgrade)
 			EditorState.selected_tech_upgrade = tech_upgrade
