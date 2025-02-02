@@ -23,8 +23,7 @@ func _ready() -> void:
 		EventSystem.map_updated.emit()
 		)
 	%SecondsSpinBox.value_changed.connect(func(value: float) -> void:
-		if int(value) < 0: return
-		
+		if int(value) < 0 or not EditorState.selected_bomb: return
 		var minutes:int = int(value/60.0)
 		var hours:int = int(minutes/60.0)
 		var seconds_from_bomb:int = int(EditorState.selected_bomb.countdown/1024.0) % 60
@@ -35,7 +34,7 @@ func _ready() -> void:
 			_update_countdown()
 		)
 	%MinutesSpinBox.value_changed.connect(func(value: float) -> void:
-		if int(value) < 0: return
+		if int(value) < 0 or not EditorState.selected_bomb: return
 		var hours:int = int(value/60)
 		var seconds_from_bomb:int = int(EditorState.selected_bomb.countdown/1024.0)
 		var minutes_from_bomb:int = int(seconds_from_bomb/60.0) % 60
@@ -45,7 +44,7 @@ func _ready() -> void:
 			_update_countdown()
 		)
 	%HoursSpinBox.value_changed.connect(func(value: float):
-		if int(value) < 0: return
+		if int(value) < 0 or not EditorState.selected_bomb: return
 		var seconds_from_bomb:int = int(EditorState.selected_bomb.countdown/1024.0)
 		var minutes_from_bomb:int = int(seconds_from_bomb/60.0)
 		var hours_from_bomb:int = int(minutes_from_bomb/60.0)

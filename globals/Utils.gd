@@ -265,7 +265,6 @@ func copy_sector() -> void:
 		EditorState.sector_clipboard.beam_gate = EditorState.selected_beam_gate
 		EditorState.sector_clipboard.stoudson_bomb = EditorState.selected_bomb
 		EditorState.sector_clipboard.tech_upgrade = EditorState.selected_tech_upgrade
-		EditorState.sector_clipboard.bg_key_sector = EditorState.selected_bg_key_sector
 		EditorState.sector_clipboard.bg_key_sector_parent = null
 		if EditorState.selected_bg_key_sector != Vector2i(-1, -1):
 			for bg: BeamGate in CurrentMapData.beam_gates:
