@@ -1,4 +1,4 @@
-[gd_scene load_steps=39 format=3 uid="uid://ctgiwn3scteuk"]
+[gd_scene load_steps=40 format=3 uid="uid://ctgiwn3scteuk"]
 
 [ext_resource type="Script" path="res://main/main.gd" id="1_7pb5r"]
 [ext_resource type="Script" path="res://modals/modals.gd" id="2_glk8b"]
@@ -34,6 +34,22 @@
 [ext_resource type="PackedScene" uid="uid://3c4x0gmdhcwn" path="res://typ_map_designer/typ_map_designer_container.tscn" id="27_45wxb"]
 [ext_resource type="Script" path="res://main/status_bar_container.gd" id="27_esd3e"]
 
+[sub_resource type="GDScript" id="GDScript_a23yx"]
+script/source = "extends ConfirmationDialog
+
+signal confirmed_decision(value: bool)
+
+
+func _ready() -> void:
+	EventSystem.too_many_sectors_provided.connect(popup)
+	confirmed.connect(func():
+		confirmed_decision.emit(true)
+	)
+	canceled.connect(func():
+		confirmed_decision.emit(false)
+	)
+"
+
 [sub_resource type="ButtonGroup" id="ButtonGroup_238se"]
 
 [sub_resource type="GDScript" id="GDScript_pxw2i"]
@@ -61,6 +77,7 @@ func _ready() -> void:
 		dialog_text = \"Warning: The level was saved with no host station, therefore game will not launch\"
 		popup()
 	)
+	
 "
 
 [sub_resource type="GDScript" id="GDScript_r27t3"]
@@ -98,6 +115,11 @@ script = ExtResource("2_glk8b")
 [node name="NewMapWindow" parent="Modals" instance=ExtResource("11_kalue")]
 unique_name_in_owner = true
 visible = false
+
+[node name="SectorsWarningConfirmationDialog" type="ConfirmationDialog" parent="Modals/NewMapWindow"]
+initial_position = 1
+dialog_text = "Warning: Playing on a level with number of sectors greater than 64 may be unstable. Do you want to continue?"
+script = SubResource("GDScript_a23yx")
 
 [node name="SectorHeightWindow" parent="Modals" instance=ExtResource("12_wpowt")]
 unique_name_in_owner = true
@@ -213,6 +235,7 @@ size = Vector2i(300, 100)
 script = ExtResource("20_272kt")
 
 [node name="WarningAcceptDialog" type="AcceptDialog" parent="Modals"]
+unique_name_in_owner = true
 initial_position = 1
 size = Vector2i(653, 100)
 script = SubResource("GDScript_j65sn")

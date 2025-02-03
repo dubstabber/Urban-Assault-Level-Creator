@@ -37,5 +37,6 @@ signal open_map_failed
 signal invalid_set_detected(level_set: int)
 
 signal editor_mode_changed
+signal too_many_sectors_provided
 signal safe_host_station_limit_exceeded
 signal saved_with_no_hoststation

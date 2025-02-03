@@ -5,6 +5,10 @@ extends Window
 
 
 func _on_create_button_pressed() -> void:
+	if horizontal_sectors_spinbox.value > 64 or vertical_sectors_spinbox.value > 64:
+		EventSystem.too_many_sectors_provided.emit()
+		var have_decided = await $SectorsWarningConfirmationDialog.confirmed_decision
+		if not have_decided: return
 	CurrentMapData.close_map()
 	CurrentMapData.horizontal_sectors = horizontal_sectors_spinbox.value
 	CurrentMapData.vertical_sectors = vertical_sectors_spinbox.value
