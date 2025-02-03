@@ -8,7 +8,6 @@ func _ready() -> void:
 
 
 func update_menu() -> void:
-	get_parent().clear(true)
 	if EditorState.selected_unit is HostStation:
 		get_parent().add_item("Remove this host station")
 	elif EditorState.selected_unit is Squad:

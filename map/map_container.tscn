@@ -1,4 +1,4 @@
-[gd_scene load_steps=15 format=3 uid="uid://dy8lh8y52680p"]
+[gd_scene load_steps=16 format=3 uid="uid://dy8lh8y52680p"]
 
 [ext_resource type="Script" path="res://map/map_container.gd" id="1_5foj2"]
 [ext_resource type="Script" path="res://map/map_renderer.gd" id="2_v1tro"]
@@ -14,6 +14,7 @@
 [ext_resource type="Script" path="res://map/context_menu_builders/remove_unit_context_menu.gd" id="11_3ytp4"]
 [ext_resource type="Script" path="res://map/context_menu_builders/copy_sector_context_menu.gd" id="11_ngkm6"]
 [ext_resource type="Script" path="res://map/context_menu_builders/paste_sector_context_menu.gd" id="12_331mg"]
+[ext_resource type="Script" path="res://map/context_menu_builders/duplicate_unit.gd" id="14_xa2rc"]
 
 [node name="MapContainer" type="ScrollContainer"]
 script = ExtResource("1_5foj2")
@@ -87,6 +88,9 @@ unique_name_in_owner = true
 auto_translate_mode = 1
 size = Vector2i(100, 20)
 theme_override_fonts/font = ExtResource("3_6n7wx")
+
+[node name="DuplicateUnit" type="Node" parent="SubViewportMapContainer/SubViewport/UnitContextMenu"]
+script = ExtResource("14_xa2rc")
 
 [node name="RemoveUnit" type="Node" parent="SubViewportMapContainer/SubViewport/UnitContextMenu"]
 script = ExtResource("11_3ytp4")
