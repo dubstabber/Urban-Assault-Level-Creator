@@ -90,6 +90,7 @@ func _new_item(index:int, new_item_submenu: PopupMenu) -> void:
 			CurrentMapData.blg_map[EditorState.selected_sector_idx] = tu.building_id
 			EditorState.selected_tech_upgrade = tu
 			EventSystem.item_updated.emit()
+	EventSystem.item_added.emit()
 	EventSystem.map_updated.emit()
 
 

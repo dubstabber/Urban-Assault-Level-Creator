@@ -28,7 +28,12 @@ func _ready() -> void:
 		$Unit.show()
 	)
 	EventSystem.squad_added.connect(func(_owner_id, _vehicle_id): $Unit.show())
-	EventSystem.item_updated.connect(func(): $Sector.show())
+	EventSystem.item_added.connect(func():
+		owner.show()
+	)
+	EventSystem.item_updated.connect(func(): 
+		$Sector.show()
+	)
 	EventSystem.left_double_clicked.connect(func():
 		if EditorState.selected_unit:
 			$Unit.show()
