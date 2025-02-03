@@ -1,25 +1,23 @@
 extends Node
 
-signal unsaved_decided
-
 
 func _ready() -> void:
 	EventSystem.new_map_requested.connect(func():
 		if not CurrentMapData.is_saved:
 			%UnsavedMapConfirmationDialog.show()
-			await unsaved_decided
+			await %UnsavedMapConfirmationDialog.close_requested
 		%NewMapWindow.popup()
 	)
 	EventSystem.open_map_requested.connect(func():
 		if not CurrentMapData.is_saved:
 			%UnsavedMapConfirmationDialog.show()
-			await unsaved_decided
+			await %UnsavedMapConfirmationDialog.close_requested
 		%OpenLevelFileDialog.popup()
 		)
 	EventSystem.open_map_drag_requested.connect(func(file_path: String):
 		if not CurrentMapData.is_saved:
 			%UnsavedMapConfirmationDialog.show()
-			await unsaved_decided
+			await %UnsavedMapConfirmationDialog.close_requested
 		CurrentMapData.close_map()
 		CurrentMapData.map_path = file_path
 		SingleplayerOpener.load_level()
@@ -40,7 +38,7 @@ func _ready() -> void:
 	EventSystem.close_map_requested.connect(func():
 		if not CurrentMapData.is_saved:
 			%UnsavedMapConfirmationDialog.show()
-			await unsaved_decided
+			await %UnsavedMapConfirmationDialog.close_requested
 		CurrentMapData.close_map()
 		EventSystem.map_updated.emit()
 		CurrentMapData.is_saved = true
@@ -49,20 +47,6 @@ func _ready() -> void:
 	EventSystem.exit_editor_requested.connect(func():
 		if not CurrentMapData.is_saved:
 			%UnsavedMapConfirmationDialog.show()
-			await unsaved_decided
+			await %UnsavedMapConfirmationDialog.close_requested
 		get_tree().quit()
 		)
-	%UnsavedMapConfirmationDialog.confirmed.connect(func():
-		if CurrentMapData.horizontal_sectors == 0 or CurrentMapData.vertical_sectors == 0:
-			return
-		if CurrentMapData.map_path.is_empty():
-			%SaveLevelFileDialog.popup()
-			await %SaveLevelFileDialog.file_selected
-		else:
-			SingleplayerSaver.save()
-		unsaved_decided.emit()
-		)
-	%UnsavedMapConfirmationDialog.canceled.connect(func():
-		unsaved_decided.emit()
-		)
-	

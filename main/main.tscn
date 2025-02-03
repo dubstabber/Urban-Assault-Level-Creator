@@ -1,4 +1,4 @@
-[gd_scene load_steps=38 format=3 uid="uid://ctgiwn3scteuk"]
+[gd_scene load_steps=39 format=3 uid="uid://ctgiwn3scteuk"]
 
 [ext_resource type="Script" path="res://main/main.gd" id="1_7pb5r"]
 [ext_resource type="Script" path="res://modals/modals.gd" id="2_glk8b"]
@@ -27,6 +27,7 @@
 [ext_resource type="PackedScene" uid="uid://dy8lh8y52680p" path="res://map/map_container.tscn" id="19_hkn6c"]
 [ext_resource type="Script" path="res://modals/open_map_error_accept_dialog.gd" id="20_272kt"]
 [ext_resource type="PackedScene" uid="uid://dg5m8iyihbvmu" path="res://properties/properties_container.tscn" id="20_eh4tf"]
+[ext_resource type="Script" path="res://modals/unsaved_map_confirmation_dialog.gd" id="21_phvo0"]
 [ext_resource type="PackedScene" uid="uid://bopbfkpvnejw3" path="res://modals/additional_information_window.tscn" id="22_230yp"]
 [ext_resource type="FontFile" uid="uid://b5bou0wtu243w" path="res://resources/Xolonium-Regular.ttf" id="22_hbtdp"]
 [ext_resource type="Script" path="res://main/nav_bar/menu_bar_tools.gd" id="24_h3xa5"]
@@ -57,7 +58,7 @@ func _ready() -> void:
 		popup()
 	)
 	EventSystem.saved_with_no_hoststation.connect(func():
-		dialog_text = \"Warning: The level was saved with no hoststation, therefore game will not launch\"
+		dialog_text = \"Warning: The level was saved with no host station, therefore game will not launch\"
 		popup()
 	)
 "
@@ -203,6 +204,7 @@ initial_position = 1
 ok_button_text = "Yes"
 dialog_text = "The current map is not saved. Do you want to save it now?"
 cancel_button_text = "No"
+script = ExtResource("21_phvo0")
 
 [node name="OpenMapErrorAcceptDialog" type="AcceptDialog" parent="Modals"]
 title = "Open map error"
