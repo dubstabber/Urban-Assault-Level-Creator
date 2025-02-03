@@ -3,6 +3,9 @@ class_name SingleplayerSaver
 
 static func save() -> void:
 	var file = FileAccess.open(CurrentMapData.map_path, FileAccess.WRITE)
+	if not file: 
+		printerr("Error: File '%s' cannot be saved" % CurrentMapData.map_path)
+		return
 	_handle_header(file)
 	_handle_description(file)
 	_handle_level_parameters(file)

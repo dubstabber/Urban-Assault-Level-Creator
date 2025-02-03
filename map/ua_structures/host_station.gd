@@ -33,7 +33,7 @@ func create(_owner_id, _vehicle):
 	setup_properties()
 	texture = Preloads.hs_images[str(owner_id)]
 	pivot_offset = Vector2(texture.get_width()/2.0, texture.get_height()/2.0)
-	scale = Vector2(10,10)
+	scale = Vector2(16,16)
 	$Button.tooltip_text = "%s\nEnergy: %s" % [unit_name, energy/400.0] 
 
 

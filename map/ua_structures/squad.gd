@@ -17,7 +17,7 @@ func _ready() -> void:
 func create(_owner_id: int, _vehicle_id: int):
 	vehicle = _vehicle_id
 	setup_properties()
-	scale = Vector2(5,5)
+	scale = Vector2(6,6)
 	change_faction(_owner_id)
 
 
