@@ -118,7 +118,7 @@ visible = false
 
 [node name="SectorsWarningConfirmationDialog" type="ConfirmationDialog" parent="Modals/NewMapWindow"]
 initial_position = 1
-dialog_text = "Warning: Playing on a level with number of sectors greater than 64 may be unstable. Do you want to continue?"
+dialog_text = "Warning: Playing on a level with more than 64 sectors may cause instability. Do you want to continue?"
 script = SubResource("GDScript_a23yx")
 
 [node name="SectorHeightWindow" parent="Modals" instance=ExtResource("12_wpowt")]
