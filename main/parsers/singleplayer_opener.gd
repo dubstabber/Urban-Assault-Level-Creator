@@ -62,7 +62,7 @@ static func load_level() -> void:
 
 
 static func _handle_typ_map(file: FileAccess) -> void:
-	if string_line.begins_with('typ_map'):
+	if string_line.to_lower().begins_with('typ_map'):
 		string_line = file.get_line().strip_edges()
 		for i in len(string_line):
 			if string_line[i] == " ":
@@ -83,7 +83,7 @@ static func _handle_typ_map(file: FileAccess) -> void:
 
 
 static func _handle_own_map(file: FileAccess) -> void:
-	if string_line.begins_with('own_map'):
+	if string_line.to_lower().begins_with('own_map'):
 		string_line = file.get_line()
 		string_line = file.get_line()
 		for v in CurrentMapData.vertical_sectors:
@@ -97,7 +97,7 @@ static func _handle_own_map(file: FileAccess) -> void:
 
 
 static func _handle_hgt_map(file: FileAccess) -> void:
-	if string_line.begins_with('hgt_map'):
+	if string_line.to_lower().begins_with('hgt_map'):
 		string_line = file.get_line()
 		for v in CurrentMapData.vertical_sectors+2:
 			string_line = file.get_line().strip_edges()
@@ -110,7 +110,7 @@ static func _handle_hgt_map(file: FileAccess) -> void:
 
 
 static func _handle_blg_map(file: FileAccess) -> void:
-	if string_line.begins_with('blg_map'):
+	if string_line.to_lower().begins_with('blg_map'):
 		string_line = file.get_line()
 		string_line = file.get_line()
 		for v in CurrentMapData.vertical_sectors:
@@ -138,25 +138,28 @@ static func _handle_description(file: FileAccess) -> void:
 
 
 static func _handle_level_parameters(file: FileAccess) -> void:
-	if string_line.begins_with('begin_level'):
+	if string_line.to_lower().begins_with('begin_level'):
 		while(string_line != "end" and file.get_position() < file.get_length()):
 			string_line = file.get_line().get_slice(';', 0).strip_edges()
 			if string_line.is_empty(): continue
 			
-			if string_line.containsn("set"):
+			if string_line.to_lower().begins_with("set"):
 				string_line = string_line.replacen("set", "").replacen("=", "").strip_edges()
 				CurrentMapData.level_set = int(string_line)
 				
-			if string_line.begins_with("sky"):
-				string_line = string_line.replace("sky", "").replacen("=", "").strip_edges()
-				string_line = string_line.get_slice('/', 1).replacen(".base", "").replacen(".bas", "")
-				CurrentMapData.sky = Utils.convert_sky_name_case(string_line)
+			if string_line.to_lower().begins_with("sky"):
+				var pos = string_line.to_lower().find("sky")
+				if pos != -1:
+					string_line = string_line.substr(0, pos) + string_line.substr(pos + 3)
+					string_line = string_line.replacen("=", "").strip_edges()
+					string_line = string_line.get_slice('/', 1).replacen(".base", "").replacen(".bas", "")
+					CurrentMapData.sky = Utils.convert_sky_name_case(string_line)
 			
-			if string_line.containsn("event_loop"):
+			if string_line.to_lower().begins_with("event_loop"):
 				string_line = string_line.replacen("event_loop", "").replacen("=", "").strip_edges()
 				CurrentMapData.event_loop = int(string_line)
 			
-			if string_line.containsn("ambiencetrack"):
+			if string_line.to_lower().begins_with("ambiencetrack"):
 				string_line = string_line.replacen("ambiencetrack", "").replacen("=", "").strip_edges()
 				var music_data = string_line.split('_')
 				CurrentMapData.music = int(music_data[0])
@@ -164,49 +167,49 @@ static func _handle_level_parameters(file: FileAccess) -> void:
 					CurrentMapData.min_break = int(music_data[1])
 					CurrentMapData.max_break = int(music_data[2])
 			
-			if string_line.begins_with("movie"):
+			if string_line.to_lower().begins_with("movie"):
 				string_line = string_line.replacen("movie", "").replacen("=", "").strip_edges()
 				CurrentMapData.movie = string_line.replacen("mov:", "")
 
 
 static func _handle_briefing_maps(file: FileAccess) -> void:
-	if string_line.begins_with('begin_mbmap'):
+	if string_line.to_lower().begins_with('begin_mbmap'):
 		while(string_line != "end" and file.get_position() < file.get_length()):
 			string_line = file.get_line().get_slice(';', 0).strip_edges()
 			if string_line.is_empty(): continue
 			
-			if string_line.containsn("name"):
+			if string_line.to_lower().begins_with("name"):
 				string_line = string_line.replacen("name", "").replacen("=", "").strip_edges()
 				CurrentMapData.briefing_map = string_line.to_lower()
 			
-			if string_line.containsn("size_x"):
+			if string_line.to_lower().begins_with("size_x"):
 				string_line = string_line.replacen("size_x", "").replacen("=", "").strip_edges()
 				CurrentMapData.briefing_size_x = int(string_line)
 				
-			if string_line.containsn("size_y"):
+			if string_line.to_lower().begins_with("size_y"):
 				string_line = string_line.replacen("size_y", "").replacen("=", "").strip_edges()
 				CurrentMapData.briefing_size_y = int(string_line)
 				
-	if string_line.begins_with('begin_dbmap'):
+	if string_line.to_lower().begins_with('begin_dbmap'):
 		while(string_line != "end" and file.get_position() < file.get_length()):
 			string_line = file.get_line().get_slice(';', 0).strip_edges()
 			if string_line.is_empty(): continue
 			
-			if string_line.containsn("name"):
+			if string_line.to_lower().begins_with("name"):
 				string_line = string_line.replacen("name", "").replacen("=", "").strip_edges()
 				CurrentMapData.debriefing_map = string_line.to_lower()
 			
-			if string_line.containsn("size_x"):
+			if string_line.to_lower().begins_with("size_x"):
 				string_line = string_line.replacen("size_x", "").replacen("=", "").strip_edges()
 				CurrentMapData.debriefing_size_x = int(string_line)
 				
-			if string_line.containsn("size_y"):
+			if string_line.to_lower().begins_with("size_y"):
 				string_line = string_line.replacen("size_y", "").replacen("=", "").strip_edges()
 				CurrentMapData.debriefing_size_y = int(string_line)
 
 
 static func _handle_beam_gates(file: FileAccess) -> void:
-	if string_line.begins_with('begin_gate'):
+	if string_line.to_lower().begins_with('begin_gate'):
 		var sec_x: int
 		var sec_y: int
 		var closed_bp: int
@@ -220,36 +223,36 @@ static func _handle_beam_gates(file: FileAccess) -> void:
 			string_line = file.get_line().get_slice(';', 0).strip_edges()
 			if string_line.is_empty(): continue
 			
-			if string_line.begins_with("sec_x"):
+			if string_line.to_lower().begins_with("sec_x"):
 				string_line = string_line.replacen("sec_x", "").replacen("=", "").strip_edges()
 				sec_x = int(string_line)
 			
-			if string_line.begins_with("sec_y"):
+			if string_line.to_lower().begins_with("sec_y"):
 				string_line = string_line.replacen("sec_y", "").replacen("=", "").strip_edges()
 				sec_y = int(string_line)
 			
-			if string_line.begins_with("closed_bp"):
+			if string_line.to_lower().begins_with("closed_bp"):
 				string_line = string_line.replacen("closed_bp", "").replacen("=", "").strip_edges()
 				closed_bp = int(string_line)
 			
-			if string_line.begins_with("opened_bp"):
+			if string_line.to_lower().begins_with("opened_bp"):
 				string_line = string_line.replacen("opened_bp", "").replacen("=", "").strip_edges()
 				opened_bp = int(string_line)
 			
-			if string_line.begins_with("target_level"):
+			if string_line.to_lower().begins_with("target_level"):
 				string_line = string_line.replacen("target_level", "").replacen("=", "").strip_edges()
 				target_levels.append(int(string_line))
 			
-			if string_line.begins_with("keysec_x"):
+			if string_line.to_lower().begins_with("keysec_x"):
 				string_line = string_line.replacen("keysec_x", "").replacen("=", "").strip_edges()
 				key_sector.x = int(string_line)
 			
-			if string_line.begins_with("keysec_y"):
+			if string_line.to_lower().begins_with("keysec_y"):
 				string_line = string_line.replacen("keysec_y", "").replacen("=", "").strip_edges()
 				key_sector.y = int(string_line)
 				key_sectors.append(key_sector)
 			
-			if string_line.begins_with("mb_status"):
+			if string_line.to_lower().begins_with("mb_status"):
 				mb_status = true
 		
 		var beam_gate = BeamGate.new(sec_x, sec_y)
@@ -262,7 +265,7 @@ static func _handle_beam_gates(file: FileAccess) -> void:
 
 
 static func _handle_host_stations(file: FileAccess) -> void:
-	if string_line.begins_with('begin_robo'):
+	if string_line.to_lower().begins_with('begin_robo'):
 		var owner_id: int
 		var vehicle_id: int
 		var pos_x: int
@@ -295,104 +298,104 @@ static func _handle_host_stations(file: FileAccess) -> void:
 			string_line = file.get_line().get_slice(';', 0).strip_edges()
 			if string_line.is_empty(): continue
 			
-			if string_line.containsn("owner"):
+			if string_line.to_lower().begins_with("owner"):
 				string_line = string_line.replacen("owner", "").replacen("=", "").strip_edges()
 				owner_id = int(string_line)
 			
-			if string_line.containsn("vehicle"):
+			if string_line.to_lower().begins_with("vehicle"):
 				string_line = string_line.replacen("vehicle", "").replacen("=", "").strip_edges()
 				vehicle_id = int(string_line)
 			
-			if string_line.containsn("pos_x"):
+			if string_line.to_lower().begins_with("pos_x"):
 				string_line = string_line.replacen("pos_x", "").replacen("=", "").strip_edges()
 				pos_x = int(string_line)
 			
-			if string_line.containsn("pos_y"):
+			if string_line.to_lower().begins_with("pos_y"):
 				string_line = string_line.replacen("pos_y", "").replacen("=", "").strip_edges()
 				pos_y = int(string_line)
 			
-			if string_line.containsn("pos_z"):
+			if string_line.to_lower().begins_with("pos_z"):
 				string_line = string_line.replacen("pos_z", "").replacen("=", "").strip_edges()
 				pos_z = int(string_line)
 			
-			if string_line.containsn("energy"):
+			if string_line.to_lower().begins_with("energy"):
 				string_line = string_line.replacen("energy", "").replacen("=", "").strip_edges()
 				energy = int(string_line)
 			
-			if string_line.containsn("reload_const"):
+			if string_line.to_lower().begins_with("reload_const"):
 				string_line = string_line.replacen("reload_const", "").replacen("=", "").strip_edges()
 				reload_const = int(string_line)
 				reload_const_enabled = true
 			
-			if string_line.containsn("viewangle"):
+			if string_line.to_lower().begins_with("viewangle"):
 				string_line = string_line.replacen("viewangle", "").replacen("=", "").strip_edges()
 				view_angle = int(string_line)
 				view_angle_enabled = true
 			
-			if string_line.containsn("mb_status"):
+			if string_line.to_lower().begins_with("mb_status"):
 				mb_status = true
 			
-			if string_line.containsn("con_budget"):
+			if string_line.to_lower().begins_with("con_budget"):
 				string_line = string_line.replacen("con_budget", "").replacen("=", "").strip_edges()
 				con_budget = int(string_line)
 			
-			if string_line.containsn("con_delay"):
+			if string_line.to_lower().begins_with("con_delay"):
 				string_line = string_line.replacen("con_delay", "").replacen("=", "").strip_edges()
 				con_delay = int(string_line)
 			
-			if string_line.containsn("def_budget"):
+			if string_line.to_lower().begins_with("def_budget"):
 				string_line = string_line.replacen("def_budget", "").replacen("=", "").strip_edges()
 				def_budget = int(string_line)
 			
-			if string_line.containsn("def_delay"):
+			if string_line.to_lower().begins_with("def_delay"):
 				string_line = string_line.replacen("def_delay", "").replacen("=", "").strip_edges()
 				def_delay = int(string_line)
 			
-			if string_line.containsn("rec_budget"):
+			if string_line.to_lower().begins_with("rec_budget"):
 				string_line = string_line.replacen("rec_budget", "").replacen("=", "").strip_edges()
 				rec_budget = int(string_line)
 			
-			if string_line.containsn("rec_delay"):
+			if string_line.to_lower().begins_with("rec_delay"):
 				string_line = string_line.replacen("rec_delay", "").replacen("=", "").strip_edges()
 				rec_delay = int(string_line)
 			
-			if string_line.containsn("rob_budget"):
+			if string_line.to_lower().begins_with("rob_budget"):
 				string_line = string_line.replacen("rob_budget", "").replacen("=", "").strip_edges()
 				rob_budget = int(string_line)
 			
-			if string_line.containsn("rob_delay"):
+			if string_line.to_lower().begins_with("rob_delay"):
 				string_line = string_line.replacen("rob_delay", "").replacen("=", "").strip_edges()
 				rob_delay = int(string_line)
 			
-			if string_line.containsn("pow_budget"):
+			if string_line.to_lower().begins_with("pow_budget"):
 				string_line = string_line.replacen("pow_budget", "").replacen("=", "").strip_edges()
 				pow_budget = int(string_line)
 			
-			if string_line.containsn("pow_delay"):
+			if string_line.to_lower().begins_with("pow_delay"):
 				string_line = string_line.replacen("pow_delay", "").replacen("=", "").strip_edges()
 				pow_delay = int(string_line)
 			
-			if string_line.containsn("rad_budget"):
+			if string_line.to_lower().begins_with("rad_budget"):
 				string_line = string_line.replacen("rad_budget", "").replacen("=", "").strip_edges()
 				rad_budget = int(string_line)
 			
-			if string_line.containsn("rad_delay"):
+			if string_line.to_lower().begins_with("rad_delay"):
 				string_line = string_line.replacen("rad_delay", "").replacen("=", "").strip_edges()
 				rad_delay = int(string_line)
 			
-			if string_line.containsn("saf_budget"):
+			if string_line.to_lower().begins_with("saf_budget"):
 				string_line = string_line.replacen("saf_budget", "").replacen("=", "").strip_edges()
 				saf_budget = int(string_line)
 			
-			if string_line.containsn("saf_delay"):
+			if string_line.to_lower().begins_with("saf_delay"):
 				string_line = string_line.replacen("saf_delay", "").replacen("=", "").strip_edges()
 				saf_delay = int(string_line)
 			
-			if string_line.containsn("cpl_budget"):
+			if string_line.to_lower().begins_with("cpl_budget"):
 				string_line = string_line.replacen("cpl_budget", "").replacen("=", "").strip_edges()
 				cpl_budget = int(string_line)
 			
-			if string_line.containsn("cpl_delay"):
+			if string_line.to_lower().begins_with("cpl_delay"):
 				string_line = string_line.replacen("cpl_delay", "").replacen("=", "").strip_edges()
 				cpl_delay = int(string_line)
 		
@@ -429,7 +432,7 @@ static func _handle_host_stations(file: FileAccess) -> void:
 
 
 static func _handle_bombs(file: FileAccess) -> void:
-	if string_line.begins_with('begin_item'):
+	if string_line.to_lower().begins_with('begin_item'):
 		var sec_x: int
 		var sec_y: int
 		var inactive_bp: int
@@ -444,39 +447,39 @@ static func _handle_bombs(file: FileAccess) -> void:
 			string_line = file.get_line().get_slice(';', 0).strip_edges()
 			if string_line.is_empty(): continue
 			
-			if string_line.begins_with("sec_x"):
+			if string_line.to_lower().begins_with("sec_x"):
 				string_line = string_line.replacen("sec_x", "").replacen("=", "").strip_edges()
 				sec_x = int(string_line)
 			
-			if string_line.begins_with("sec_y"):
+			if string_line.to_lower().begins_with("sec_y"):
 				string_line = string_line.replacen("sec_y", "").replacen("=", "").strip_edges()
 				sec_y = int(string_line)
 			
-			if string_line.begins_with("inactive_bp"):
+			if string_line.to_lower().begins_with("inactive_bp"):
 				string_line = string_line.replacen("inactive_bp", "").replacen("=", "").strip_edges()
 				inactive_bp = int(string_line)
 			
-			if string_line.begins_with("active_bp"):
+			if string_line.to_lower().begins_with("active_bp"):
 				string_line = string_line.replacen("active_bp", "").replacen("=", "").strip_edges()
 				active_bp = int(string_line)
 			
-			if string_line.begins_with("trigger_bp"):
+			if string_line.to_lower().begins_with("trigger_bp"):
 				string_line = string_line.replacen("trigger_bp", "").replacen("=", "").strip_edges()
 				trigger_bp = int(string_line)
 			
-			if string_line.begins_with("type"):
+			if string_line.to_lower().begins_with("type"):
 				string_line = string_line.replacen("type", "").replacen("=", "").strip_edges()
 				type = int(string_line)
 			
-			if string_line.begins_with("countdown"):
+			if string_line.to_lower().begins_with("countdown"):
 				string_line = string_line.replacen("countdown", "").replacen("=", "").strip_edges()
 				countdown = int(string_line)
 			
-			if string_line.begins_with("keysec_x"):
+			if string_line.to_lower().begins_with("keysec_x"):
 				string_line = string_line.replacen("keysec_x", "").replacen("=", "").strip_edges()
 				key_sector.x = int(string_line)
 			
-			if string_line.begins_with("keysec_y"):
+			if string_line.to_lower().begins_with("keysec_y"):
 				string_line = string_line.replacen("keysec_y", "").replacen("=", "").strip_edges()
 				key_sector.y = int(string_line)
 				key_sectors.append(key_sector)
@@ -492,7 +495,7 @@ static func _handle_bombs(file: FileAccess) -> void:
 
 
 static func _handle_predefined_squads(file: FileAccess) -> void:
-	if string_line.begins_with('begin_squad'):
+	if string_line.to_lower().begins_with('begin_squad'):
 		var owner_id: int
 		var vehicle_id: int
 		var quantity: int
@@ -505,30 +508,30 @@ static func _handle_predefined_squads(file: FileAccess) -> void:
 			string_line = file.get_line().get_slice(';', 0).strip_edges()
 			if string_line.is_empty(): continue
 			
-			if string_line.containsn("owner"):
+			if string_line.to_lower().begins_with("owner"):
 				string_line = string_line.replacen("owner", "").replacen("=", "").strip_edges()
 				owner_id = int(string_line)
 			
-			if string_line.containsn("vehicle"):
+			if string_line.to_lower().begins_with("vehicle"):
 				string_line = string_line.replacen("vehicle", "").replacen("=", "").strip_edges()
 				vehicle_id = int(string_line)
 			
-			if string_line.begins_with("num"):
+			if string_line.to_lower().begins_with("num"):
 				string_line = string_line.replacen("num", "").replacen("=", "").strip_edges()
 				quantity = int(string_line)
 			
-			if string_line.containsn("pos_x"):
+			if string_line.to_lower().begins_with("pos_x"):
 				string_line = string_line.replacen("pos_x", "").replacen("=", "").strip_edges()
 				pos_x = int(string_line)
 			
-			if string_line.containsn("pos_z"):
+			if string_line.to_lower().begins_with("pos_z"):
 				string_line = string_line.replacen("pos_z", "").replacen("=", "").strip_edges()
 				pos_z = int(string_line)
 			
-			if string_line.containsn("useable"):
+			if string_line.to_lower().begins_with("useable"):
 				useable = true
 			
-			if string_line.containsn("mb_status"):
+			if string_line.to_lower().begins_with("mb_status"):
 				mb_status = true
 		
 		var squad = Preloads.SQUAD.instantiate()
@@ -542,7 +545,7 @@ static func _handle_predefined_squads(file: FileAccess) -> void:
 
 
 static func _handle_modifications(file: FileAccess) -> void:
-	if string_line.begins_with('include'):
+	if string_line.to_lower().begins_with('include'):
 		while(file.get_position() < file.get_length()):
 			CurrentMapData.prototype_modifications += string_line + '\n'
 			string_line = file.get_line()
@@ -552,7 +555,7 @@ static func _handle_modifications(file: FileAccess) -> void:
 
 
 static func _handle_prototype_enabling(file: FileAccess) -> void:
-	if string_line.begins_with("begin_enable"):
+	if string_line.to_lower().begins_with("begin_enable"):
 		string_line = string_line.replace("begin_enable", "").replace("=", "").strip_edges()
 		var owner_id = int(string_line)
 		
@@ -560,7 +563,7 @@ static func _handle_prototype_enabling(file: FileAccess) -> void:
 			string_line = file.get_line().get_slice(';', 0).strip_edges()
 			if string_line.is_empty(): continue
 			
-			if string_line.containsn("vehicle"):
+			if string_line.to_lower().begins_with("vehicle"):
 				string_line = string_line.replacen("vehicle", "").replacen("=", "").strip_edges()
 				match owner_id:
 					1: CurrentMapData.resistance_enabled_units.append(int(string_line))
@@ -571,7 +574,7 @@ static func _handle_prototype_enabling(file: FileAccess) -> void:
 					6: CurrentMapData.ghorkov_enabled_units.append(int(string_line))
 					7: CurrentMapData.training_enabled_units.append(int(string_line))
 			
-			if string_line.containsn("building"):
+			if string_line.to_lower().begins_with("building"):
 				string_line = string_line.replacen("building", "").replacen("=", "").strip_edges()
 				match owner_id:
 					1: CurrentMapData.resistance_enabled_buildings.append(int(string_line))
@@ -584,7 +587,7 @@ static func _handle_prototype_enabling(file: FileAccess) -> void:
 
 
 static func _handle_tech_upgrades(file: FileAccess) -> void:
-	if string_line.begins_with("begin_gem"):
+	if string_line.to_lower().begins_with("begin_gem"):
 		var sec_x: int
 		var sec_y: int
 		var building_id := 4
@@ -598,31 +601,31 @@ static func _handle_tech_upgrades(file: FileAccess) -> void:
 			string_line = file.get_line().get_slice(';', 0).strip_edges()
 			if string_line.is_empty(): continue
 			
-			if string_line.containsn("sec_x"):
+			if string_line.to_lower().begins_with("sec_x"):
 				string_line = string_line.replacen("sec_x", "").replacen("=", "").strip_edges()
 				sec_x = int(string_line)
 			
-			if string_line.containsn("sec_y"):
+			if string_line.to_lower().begins_with("sec_y"):
 				string_line = string_line.replacen("sec_y", "").replacen("=", "").strip_edges()
 				sec_y = int(string_line)
 			
-			if string_line.containsn("building"):
+			if string_line.to_lower().begins_with("building"):
 				string_line = string_line.replacen("building", "").replacen("=", "").strip_edges()
 				building_id = int(string_line)
 			
-			if string_line.containsn("type"):
+			if string_line.to_lower().begins_with("type"):
 				string_line = string_line.replacen("type", "").replacen("=", "").strip_edges()
 				type = int(string_line)
 			
-			if string_line.containsn("mb_status"):
+			if string_line.to_lower().begins_with("mb_status"):
 				mb_status = true
 			
-			if string_line.containsn("begin_action"):
+			if string_line.to_lower().begins_with("begin_action"):
 				while(string_line != "end_action" and file.get_position() < file.get_length()):
 					string_line = file.get_line().get_slice(';', 0).strip_edges()
 					if string_line.is_empty(): continue
 					
-					if string_line.containsn("modify_vehicle"):
+					if string_line.to_lower().begins_with("modify_vehicle"):
 						string_line = string_line.replacen("modify_vehicle", "").replacen("=", "").strip_edges()
 						var vehicle_id = int(string_line)
 						var add_energy := 0
@@ -641,7 +644,7 @@ static func _handle_tech_upgrades(file: FileAccess) -> void:
 							string_line = file.get_line().get_slice(';', 0).strip_edges()
 							if string_line.is_empty(): continue
 							
-							if string_line.containsn("enable"):
+							if string_line.to_lower().begins_with("enable"):
 								string_line = string_line.replacen("enable", "").replacen("=", "").strip_edges()
 								var owner_id := int(string_line)
 								match owner_id:
@@ -653,19 +656,19 @@ static func _handle_tech_upgrades(file: FileAccess) -> void:
 									6: ghor_enabled = true
 									7: training_enabled = true
 							
-							if string_line.containsn("add_energy"):
+							if string_line.to_lower().begins_with("add_energy"):
 								string_line = string_line.replacen("add_energy", "").replacen("=", "").strip_edges()
 								add_energy = int(string_line)
 							
-							if string_line.containsn("add_shield"):
+							if string_line.to_lower().begins_with("add_shield"):
 								string_line = string_line.replacen("add_shield", "").replacen("=", "").strip_edges()
 								add_shield = int(string_line)
 							
-							if string_line.containsn("add_radar"):
+							if string_line.to_lower().begins_with("add_radar"):
 								string_line = string_line.replacen("add_radar", "").replacen("=", "").strip_edges()
 								add_radar = int(string_line)
 							
-							if string_line.containsn("num_weapons"):
+							if string_line.to_lower().begins_with("num_weapons"):
 								string_line = string_line.replacen("num_weapons", "").replacen("=", "").strip_edges()
 								num_weapons = int(string_line)
 							
@@ -684,7 +687,7 @@ static func _handle_tech_upgrades(file: FileAccess) -> void:
 						modifier.num_weapons = num_weapons
 						vehicles.append(modifier)
 					
-					if string_line.containsn("modify_weapon"):
+					if string_line.to_lower().begins_with("modify_weapon"):
 						string_line = string_line.replacen("modify_weapon", "").replacen("=", "").strip_edges()
 						var weapon_id = int(string_line)
 						var energy := 0
@@ -695,15 +698,15 @@ static func _handle_tech_upgrades(file: FileAccess) -> void:
 							string_line = file.get_line().get_slice(';', 0).strip_edges()
 							if string_line.is_empty(): continue
 							
-							if string_line.containsn("add_energy"):
+							if string_line.to_lower().begins_with("add_energy"):
 								string_line = string_line.replacen("add_energy", "").replacen("=", "").strip_edges()
 								energy = int(string_line)
 							
-							if string_line.containsn("add_shot_time"):
+							if string_line.to_lower().begins_with("add_shot_time"):
 								string_line = string_line.replacen("add_shot_time", "").replacen("=", "").strip_edges()
 								shot_time = int(string_line)
 							
-							if string_line.containsn("add_shot_time_user"):
+							if string_line.to_lower().begins_with("add_shot_time_user"):
 								string_line = string_line.replacen("add_shot_time_user", "").replacen("=", "").strip_edges()
 								shot_time_user = int(string_line)
 						
@@ -714,7 +717,7 @@ static func _handle_tech_upgrades(file: FileAccess) -> void:
 						modifier.shot_time_user = shot_time_user
 						weapons.append(modifier)
 					
-					if string_line.containsn("modify_building"):
+					if string_line.to_lower().begins_with("modify_building"):
 						string_line = string_line.replacen("modify_building", "").replacen("=", "").strip_edges()
 						var _building_id = int(string_line)
 						var res_enabled := false
@@ -729,7 +732,7 @@ static func _handle_tech_upgrades(file: FileAccess) -> void:
 							string_line = file.get_line().get_slice(';', 0).strip_edges()
 							if string_line.is_empty(): continue
 							
-							if string_line.containsn("enable"):
+							if string_line.to_lower().begins_with("enable"):
 								string_line = string_line.replacen("enable", "").replacen("=", "").strip_edges()
 								var owner_id := int(string_line)
 								match owner_id:
