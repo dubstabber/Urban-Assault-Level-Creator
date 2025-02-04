@@ -102,17 +102,19 @@ func new_building_modifier(_building_id: int) -> ModifyBuilding:
 func duplicate_modifiers(modifiers) -> void:
 	for modifier in modifiers:
 		var duplicated_modifier
-		if modifier is ModifyVehicle: duplicated_modifier = ModifyVehicle.new()
-		elif modifier is ModifyWeapon: duplicated_modifier = ModifyWeapon.new()
-		elif modifier is ModifyBuilding: duplicated_modifier = ModifyBuilding.new()
+		if modifier is ModifyVehicle: 
+			duplicated_modifier = ModifyVehicle.new()
+			vehicles.append(duplicated_modifier)
+		elif modifier is ModifyWeapon: 
+			duplicated_modifier = ModifyWeapon.new()
+			weapons.append(duplicated_modifier)
+		elif modifier is ModifyBuilding: 
+			duplicated_modifier = ModifyBuilding.new()
+			buildings.append(duplicated_modifier)
 		var modifier_members = modifier.get_script().get_script_property_list()
 		for member in modifier_members:
 			if member.name in modifier:
 				duplicated_modifier[member.name] = modifier[member.name]
-		
-		if modifier is ModifyVehicle: vehicles.append(duplicated_modifier)
-		elif modifier is ModifyWeapon: weapons.append(duplicated_modifier)
-		elif modifier is ModifyBuilding: buildings.append(duplicated_modifier)
 
 
 class ModifyVehicle:
