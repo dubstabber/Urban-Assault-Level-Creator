@@ -714,13 +714,13 @@ static func _handle_tech_upgrades(file: FileAccess) -> void:
 								string_line = string_line.replacen("add_energy", "").replacen("=", "").strip_edges()
 								energy = int(string_line)
 							
-							if string_line.begins_with("add_shot_time"):
-								string_line = string_line.replacen("add_shot_time", "").replacen("=", "").strip_edges()
-								shot_time = int(string_line)
-							
 							if string_line.begins_with("add_shot_time_user"):
 								string_line = string_line.replacen("add_shot_time_user", "").replacen("=", "").strip_edges()
 								shot_time_user = int(string_line)
+							
+							if string_line.begins_with("add_shot_time"):
+								string_line = string_line.replacen("add_shot_time", "").replacen("=", "").strip_edges()
+								shot_time = int(string_line)
 						
 						var modifier = {}
 						modifier.weapon_id = weapon_id
