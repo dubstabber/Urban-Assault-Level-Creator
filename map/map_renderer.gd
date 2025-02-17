@@ -8,7 +8,7 @@ var map_visible_width: int
 var map_visible_height: int
 var sector_indent := 50.0
 var font: Font
-var sector_font_size := 170
+var sector_font_size := 260
 
 var right_clicked_x_global: int
 var right_clicked_y_global: int
@@ -270,14 +270,14 @@ func _draw():
 			if (x_sector > 0 and x_sector < CurrentMapData.horizontal_sectors+1 and 
 				y_sector > 0 and y_sector < CurrentMapData.vertical_sectors+1):
 				if EditorState.typ_map_values_visible:
-					draw_string(font, Vector2(h_grid+50, v_grid+sector_font_size), "typ_map: "+ str(CurrentMapData.typ_map[current_sector]), HORIZONTAL_ALIGNMENT_LEFT, -1, sector_font_size)
+					draw_string(font, Vector2(h_grid+50, v_grid+sector_font_size), "typ: "+ str(CurrentMapData.typ_map[current_sector]), HORIZONTAL_ALIGNMENT_LEFT, -1, sector_font_size)
 				if EditorState.own_map_values_visible:
-					draw_string(font, Vector2(h_grid+50, v_grid+sector_font_size*2), "own_map: "+ str(CurrentMapData.own_map[current_sector]), HORIZONTAL_ALIGNMENT_LEFT, -1, sector_font_size)
+					draw_string(font, Vector2(h_grid+50, v_grid+sector_font_size*2), "own: "+ str(CurrentMapData.own_map[current_sector]), HORIZONTAL_ALIGNMENT_LEFT, -1, sector_font_size)
 				if EditorState.blg_map_values_visible:
-					draw_string(font, Vector2(h_grid+50, v_grid+sector_font_size*4), "blg_map: "+ str(CurrentMapData.blg_map[current_sector]), HORIZONTAL_ALIGNMENT_LEFT, -1, sector_font_size)
+					draw_string(font, Vector2(h_grid+50, v_grid+sector_font_size*4), "blg: "+ str(CurrentMapData.blg_map[current_sector]), HORIZONTAL_ALIGNMENT_LEFT, -1, sector_font_size)
 				current_sector += 1
 			if EditorState.hgt_map_values_visible:
-				draw_string(font, Vector2(h_grid+50, v_grid+sector_font_size*3), "hgt_map: "+ str(CurrentMapData.hgt_map[current_border_sector]), HORIZONTAL_ALIGNMENT_LEFT, -1, sector_font_size)
+				draw_string(font, Vector2(h_grid+50, v_grid+sector_font_size*3), "hgt: "+ str(CurrentMapData.hgt_map[current_border_sector]), HORIZONTAL_ALIGNMENT_LEFT, -1, sector_font_size)
 			h_grid += 1200
 			current_border_sector += 1
 		v_grid += 1200
