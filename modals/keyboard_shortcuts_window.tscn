@@ -76,7 +76,7 @@ text = "'0' - set selected sector owner to neutral"
 [node name="Label22" type="Label" parent="MarginContainer/VBoxContainer/ScrollContainer/VBoxContainer"]
 layout_mode = 2
 theme_override_font_sizes/font_size = 14
-text = "'Hold 0 to 7' - quick sector owner painter"
+text = "'Hold 0 to 7 + left button' - quick sector owner painter"
 
 [node name="Label9" type="Label" parent="MarginContainer/VBoxContainer/ScrollContainer/VBoxContainer"]
 layout_mode = 2
