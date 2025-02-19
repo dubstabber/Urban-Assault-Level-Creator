@@ -1,12 +1,14 @@
-[gd_scene load_steps=2 format=3 uid="uid://bopbfkpvnejw3"]
+[gd_scene load_steps=4 format=3 uid="uid://bopbfkpvnejw3"]
 
 [ext_resource type="Script" path="res://modals/additional_information_window.gd" id="1_5xclc"]
+[ext_resource type="FontFile" uid="uid://b5bou0wtu243w" path="res://resources/Xolonium-Regular.ttf" id="2_q1gkp"]
+[ext_resource type="FontFile" uid="uid://cucaeigtmvh2m" path="res://resources/Xolonium-Bold.otf" id="3_p72un"]
 
 [node name="AdditionalInformationWindow" type="Window"]
 auto_translate_mode = 1
 title = "Additional information"
 initial_position = 1
-size = Vector2i(600, 500)
+size = Vector2i(750, 500)
 transient = true
 exclusive = true
 script = ExtResource("1_5xclc")
@@ -31,7 +33,7 @@ layout_mode = 2
 size_flags_vertical = 3
 
 [node name="PanelContainer" type="PanelContainer" parent="PanelContainer/VBoxContainer/HSplitContainer"]
-custom_minimum_size = Vector2(200, 0)
+custom_minimum_size = Vector2(230, 0)
 layout_mode = 2
 
 [node name="ScrollContainer" type="ScrollContainer" parent="PanelContainer/VBoxContainer/HSplitContainer/PanelContainer"]
@@ -42,10 +44,12 @@ unique_name_in_owner = true
 layout_mode = 2
 size_flags_horizontal = 3
 size_flags_vertical = 3
-item_count = 3
+item_count = 5
 item_0/text = "How to unlock levels?"
-item_1/text = "Include directives"
-item_2/text = "Energy system"
+item_1/text = "Upkeep energy mechanics"
+item_2/text = "Energy system differences"
+item_3/text = "Command & control"
+item_4/text = "Level builder document"
 
 [node name="PanelContainer2" type="PanelContainer" parent="PanelContainer/VBoxContainer/HSplitContainer"]
 custom_minimum_size = Vector2(200, 0)
@@ -64,6 +68,7 @@ theme_override_constants/margin_right = 10
 theme_override_constants/margin_bottom = 10
 
 [node name="UnlockLevelsLabel" type="Label" parent="PanelContainer/VBoxContainer/HSplitContainer/PanelContainer2/ScrollContainer/InformationContainer"]
+visible = false
 custom_minimum_size = Vector2(10, 10)
 layout_mode = 2
 theme_override_font_sizes/font_size = 14
@@ -84,20 +89,154 @@ text = "Follow these steps to unlock all levels in the Urban Assault Original Ca
 6. Repeat this procedure for levels numbered 1 to 99 to unlock all levels"
 autowrap_mode = 3
 
-[node name="IncludeDirectivesLabel" type="Label" parent="PanelContainer/VBoxContainer/HSplitContainer/PanelContainer2/ScrollContainer/InformationContainer"]
+[node name="UpkeepMechanicsLabel" type="RichTextLabel" parent="PanelContainer/VBoxContainer/HSplitContainer/PanelContainer2/ScrollContainer/InformationContainer"]
 visible = false
-custom_minimum_size = Vector2(10, 10)
 layout_mode = 2
-theme_override_font_sizes/font_size = 14
-text = "WIP"
-autowrap_mode = 3
+theme_override_fonts/normal_font = ExtResource("2_q1gkp")
+theme_override_fonts/bold_font = ExtResource("3_p72un")
+theme_override_font_sizes/normal_font_size = 14
+theme_override_font_sizes/bold_font_size = 14
+bbcode_enabled = true
+text = "The AI Host Stations in Urban Assault have a unique [b]unit upkeep/maintenance system[/b] that significantly impacts their energy management and gameplay behavior. This system is one of the main reasons why AI Host Stations often struggle with energy shortages, especially in later stages of the game. Here’s how it works:
 
-[node name="EnergySystemLabel" type="Label" parent="PanelContainer/VBoxContainer/HSplitContainer/PanelContainer2/ScrollContainer/InformationContainer"]
+[center][b]Key Differences Between User and AI Unit Costs[/b][/center]
+[b]User Host Stations[/b]: 
+[ul]Players can create units at a [b]fixed energy cost[/b], regardless of how many units they already control.
+Unit costs are [b]static[/b] and do not change, making energy management predictable and straightforward.[/ul]
+[b]AI Host Stations[/b]:
+[ul]The AI uses a [b]dynamic energy cost system[/b] for creating units. The cost of creating a new unit increases as the AI controls more units.
+This system is similar to the [b]soft limits[/b] in multiplayer mode but works differently in single-player.[/ul]
+
+[center][b]How the AI’s Dynamic Unit Cost System Works[/b][/center]
+- [b]Formula[/b]: The energy cost for creating a new unit is calculated using the following formula:
+  [code]K = k * (20 + n) / 40[/code]
+  - [b]K[/b]: The current dynamic cost of the new unit.
+  - [b]k[/b]: The standard (base) cost of the unit.
+  - [b]n[/b]: The total number of units the AI currently controls (including individual units, turrets, and radar stations).
+- [b]Behavior[/b]:
+  - The first [b]20 units[/b] are cheaper to create than the standard cost.
+  - The [b]20th unit[/b] costs the same as the standard unit cost.
+  - Beyond the 20th unit, the cost increases linearly. For example:
+    - The [b]100th unit[/b] costs [b]300%[/b] of the standard cost (200% higher).
+    - The [b]200th unit[/b] costs [b]550%[/b] of the standard cost (450% higher).
+  - The increased costs can only be reduced if existing units are destroyed.
+
+[center][b]Why This Matters[/b][/center]
+- [b]Energy Strain[/b]: As the AI creates more units, the energy cost for producing additional units becomes prohibitively high. This often leaves the AI energy-starved and unable to maintain a strong offensive presence.
+- [b]Defensive Focus[/b]: To cope with the rising unit costs, AI Host Stations often prioritize building [b]flak stations[/b] and [b]radar stations[/b] (defensive structures) in later missions. While these structures help defend their bases, they also contribute to the total unit count, further increasing the cost of creating new units.
+- [b]Construction Costs[/b]: Unlike units, the energy cost for constructing [b]buildings[/b] (e.g., flak stations, radar stations) remains [b]fixed[/b] for the AI, just like for the player. This is why the AI tends to rely more on defensive structures in the late game.
+
+[center][b]Example Scenario[/b][/center]
+- [b]Early Game[/b]:
+  - The AI can create its first 20 units cheaply, allowing it to build a small army quickly.
+- [b]Mid Game[/b]:
+  - By the time the AI controls 50 units, the cost of creating new units is [b]175%[/b] of the standard cost.
+- [b]Late Game[/b]:
+  - If the AI controls 100 units, the cost of creating new units rises to [b]300%[/b] of the standard cost, making it extremely difficult to maintain a large army.
+
+[center][b]Key Takeaways[/b][/center]
+- The AI’s dynamic unit cost system is a [b]major disadvantage[/b] compared to the player’s static unit costs.
+- The AI’s ability to create units becomes increasingly restricted as it controls more units, forcing it to rely more on defensive structures.
+- This system is why AI Host Stations often appear energy-starved and less aggressive in later missions."
+fit_content = true
+
+[node name="EnergySystemLabel" type="RichTextLabel" parent="PanelContainer/VBoxContainer/HSplitContainer/PanelContainer2/ScrollContainer/InformationContainer"]
 visible = false
 custom_minimum_size = Vector2(10, 10)
 layout_mode = 2
-theme_override_font_sizes/font_size = 14
-text = "WIP"
-autowrap_mode = 3
+size_flags_vertical = 4
+theme_override_fonts/normal_font = ExtResource("2_q1gkp")
+theme_override_fonts/bold_font = ExtResource("3_p72un")
+theme_override_font_sizes/normal_font_size = 14
+theme_override_font_sizes/bold_font_size = 14
+bbcode_enabled = true
+text = "In Urban Assault, the energy systems for user host stations and AI host stations work differently due to how the game engine handles energy allocation. These differences affect how energy is calculated, displayed, and used in the game. 
+
+[b]How energy is calculated[/b]
+[ul]Editor value: When you set an energy value in the editor (e.g., 1000), the editor converts it into a larger number for the game to use.
+Editor conversion formula: The formula used is [Energy * (100 * 4)]. For example, if you set energy to 1000, the editor converts it to 400000 before passing it to the internal structure.
+The calculated energy in the internal structure is directly used during saving the level file.[/ul]
+
+[b]User host station[/b]
+[ul]Four Energy Batteries: The game engine always splits the user host station’s energy into four batteries, as this is how the engine was designed. However, only three batteries are visible and usable in the game:
+[ol]Life Battery: Keeps the station alive.
+Creation Battery: Used for building units and structures.
+Movement/Teleportation Battery: Allows the player to teleport units (AI cannot teleport, only move).[/ol]
+Fourth battery: The fourth battery exists internally but is not accessible to the player. Its functionality was merged into the Creation Battery during development.
+Game conversion: The game takes the 400000 value and divides it by 4 to account for the four batteries. This means each battery gets 100000 energy internally.
+Displayed energy: Even though each battery has 100000 energy internally, the game UI displays it as 1000.
+Total Energy: Since the User Host Station has three usable batteries, the total usable energy is 4000, split by four batteries.[/ul]
+
+[b]AI host station:[/b]
+[ul]Single energy battery: AI host stations have only one energy battery that handles everything: life, creation, and movement.
+Total Energy: If energy in the input field is set to 1000, the AI’s total usable energy is 4000, stored in one battery.[/ul]
+
+
+[b]Key Differences from the above example[/b]
+Given that energy is set to 1000 in the input field for the host station:
+For user:
+[ul]The game engine splits energy into four batteries, but only three are usable in the game.
+Each usable battery has 100000 energy internally (displayed as 1000 in the game UI).[/ul]
+
+For AI:
+[ul]Has one battery with 4000 energy.
+Cannot split energy for different tasks, making it less flexible. For example, if the AI uses energy to create units, it might not have enough left for other tasks.[/ul]
+
+
+[b]Why This Matters[/b]
+[ul]Balance: Even though the AI’s single battery holds more energy (4000 vs. 1000 per battery for the user), the user host station’s energy is split across multiple batteries by the game engine, allowing for more versatile energy usage.
+Vulnerability: The AI’s lack of energy separation often leaves it energy-starved, especially when creating units or buildings, making it more vulnerable during these tasks.
+Level Design: When creating levels, keep these differences in mind. For example, giving the AI more energy might not make it overpowered because of its limitations.[/ul]"
+fit_content = true
+
+[node name="CommandAndControlLabel" type="RichTextLabel" parent="PanelContainer/VBoxContainer/HSplitContainer/PanelContainer2/ScrollContainer/InformationContainer"]
+visible = false
+layout_mode = 2
+theme_override_fonts/normal_font = ExtResource("2_q1gkp")
+theme_override_fonts/bold_font = ExtResource("3_p72un")
+theme_override_font_sizes/normal_font_size = 14
+theme_override_font_sizes/bold_font_size = 14
+bbcode_enabled = true
+text = "[center][b]Command & Control Systems for AI Host Stations[/b][/center]
+
+In [i]Urban Assault[/i], AI Host Stations have a unique [b]command and control system[/b] that determines how they manage units and structures. This system plays a crucial role in how AI factions operate, especially when multiple AI Host Stations are present in a level. Here’s how it works:
+
+[center][b]Key Concept: Master AI Host Station[/b][/center]
+[b]Master AI Host Station[/b]: 
+  - When multiple AI Host Stations are present for a faction in a level, only [b]one[/b] of them is designated as the \"master.\"
+  - The [b]master AI Host Station[/b] is responsible for controlling all [b]pre-deployed squadrons[/b] (units placed on the map at the start of the level) and [b]automated structure components[/b] (e.g., turrets, radar stations).
+  - The other AI Host Stations in the same faction only manage the units they create themselves.
+
+[b]Energy Penalty[/b]: 
+  - Because the master AI Host Station controls more units and structures, it incurs a [b]greater energy penalty[/b] due to the dynamic unit cost system (explained in the Upkeep energy machanics section).
+  - This means the master AI Host Station will often struggle more with energy shortages compared to the other AI Host Stations in the same faction.
+
+[center][b]Why This Matters[/b][/center]
+[b]Energy Management[/b]: 
+  - The master AI Host Station’s energy reserves are more likely to be drained quickly because it has to manage a larger number of units and structures.
+  - This can make the master AI Host Station more vulnerable, especially if it is also responsible for creating new units.
+[b]Faction Coordination[/b]: 
+  - The command and control system ensures that all pre-deployed assets are managed efficiently by a single AI Host Station.
+  - However, it also creates a [b]hierarchy[/b] within the faction, where the master AI Host Station bears the brunt of the energy penalties.
+
+[center][b]Example Scenario[/b][/center]
+[b]Level Start[/b]:
+  - A faction has two AI Host Stations: [b]AI Host Station A[/b] (master) and [b]AI Host Station B[/b].
+  - AI Host Station A controls all pre-deployed units and structures, while AI Host Station B only manages the units it creates.
+[b]Mid-Game[/b]:
+  - AI Host Station A’s energy reserves are depleted faster because it is managing a larger number of units and structures.
+  - AI Host Station B, which only manages its own units, has more energy available for creating new units or defending itself.
+[b]Late-Game[/b]:
+  - If the pre-deployed units and structures are destroyed, the energy penalty for AI Host Station A decreases, allowing it to recover some energy.
+
+[center][b]Key Takeaways[/b][/center]
+- The [b]master AI Host Station[/b] is responsible for controlling all pre-deployed units and structures in a faction, while other AI Host Stations only manage their own units.
+- The master AI Host Station incurs a [b]greater energy penalty[/b] due to the dynamic unit cost system, making it more vulnerable to energy shortages."
+fit_content = true
+
+[node name="LevelBuilderFileLabel" type="RichTextLabel" parent="PanelContainer/VBoxContainer/HSplitContainer/PanelContainer2/ScrollContainer/InformationContainer"]
+layout_mode = 2
+bbcode_enabled = true
+fit_content = true
 
 [connection signal="close_requested" from="." to="." method="close"]
