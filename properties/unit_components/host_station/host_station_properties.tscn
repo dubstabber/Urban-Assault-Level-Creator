@@ -44,7 +44,9 @@ The user and AI bots interpret and calculate this value differently.
 
 For both, the value is converted using the following formula: energy × 400.
 AI bot host stations have only one energy reservoir, whereas user host stations have four reservoirs (with the fourth being implicit). 
-To ensure balanced gameplay, the AI bot’s energy value is set four times higher to compensate for this difference."
+To ensure balanced gameplay, the AI bot’s energy value is set four times higher to compensate for this difference.
+
+More information in Help > Additional information > Energy system differences"
 theme_override_font_sizes/font_size = 12
 text = "0000"
 shortcut_keys_enabled = false
