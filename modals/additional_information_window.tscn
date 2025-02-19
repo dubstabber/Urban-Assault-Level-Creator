@@ -44,6 +44,8 @@ unique_name_in_owner = true
 layout_mode = 2
 size_flags_horizontal = 3
 size_flags_vertical = 3
+theme_override_fonts/font = ExtResource("2_q1gkp")
+theme_override_font_sizes/font_size = 14
 item_count = 5
 item_0/text = "How to unlock levels?"
 item_1/text = "Upkeep energy mechanics"
@@ -67,27 +69,24 @@ theme_override_constants/margin_top = 10
 theme_override_constants/margin_right = 10
 theme_override_constants/margin_bottom = 10
 
-[node name="UnlockLevelsLabel" type="Label" parent="PanelContainer/VBoxContainer/HSplitContainer/PanelContainer2/ScrollContainer/InformationContainer"]
-visible = false
-custom_minimum_size = Vector2(10, 10)
+[node name="UnlockLevelsLabel" type="RichTextLabel" parent="PanelContainer/VBoxContainer/HSplitContainer/PanelContainer2/ScrollContainer/InformationContainer"]
 layout_mode = 2
-theme_override_font_sizes/font_size = 14
+theme_override_fonts/normal_font = ExtResource("2_q1gkp")
+theme_override_fonts/bold_font = ExtResource("3_p72un")
+theme_override_font_sizes/normal_font_size = 14
+theme_override_font_sizes/bold_font_size = 14
+bbcode_enabled = true
 text = "Follow these steps to unlock all levels in the Urban Assault Original Campaign :
 
 1. Navigate to the Urban Assault main directory
-
 2. Open the SAVE folder
-
 3. Locate your profile name and open its corresponding folder
-
 4. Open the user.txt file using any text editor
-
 5. At the bottom of the file, you will see multiple \"begin_levelstatus\" sections, each closed by \"end\"
  - Each number after \"begin_levelstatus\" corresponds to a specific level in the game
  - To unlock a level, either change \"status = 1\" to \"status = 2\" or delete the entire section
-
 6. Repeat this procedure for levels numbered 1 to 99 to unlock all levels"
-autowrap_mode = 3
+fit_content = true
 
 [node name="UpkeepMechanicsLabel" type="RichTextLabel" parent="PanelContainer/VBoxContainer/HSplitContainer/PanelContainer2/ScrollContainer/InformationContainer"]
 visible = false
@@ -197,7 +196,7 @@ theme_override_fonts/bold_font = ExtResource("3_p72un")
 theme_override_font_sizes/normal_font_size = 14
 theme_override_font_sizes/bold_font_size = 14
 bbcode_enabled = true
-text = "[center][b]Command & Control Systems for AI Host Stations[/b][/center]
+text = "[center][b]Command & Control System for AI Host Stations[/b][/center]
 
 In [i]Urban Assault[/i], AI Host Stations have a unique [b]command and control system[/b] that determines how they manage units and structures. This system plays a crucial role in how AI factions operate, especially when multiple AI Host Stations are present in a level. Here’s how it works:
 
@@ -235,8 +234,15 @@ In [i]Urban Assault[/i], AI Host Stations have a unique [b]command and control s
 fit_content = true
 
 [node name="LevelBuilderFileLabel" type="RichTextLabel" parent="PanelContainer/VBoxContainer/HSplitContainer/PanelContainer2/ScrollContainer/InformationContainer"]
+visible = false
 layout_mode = 2
+theme_override_fonts/normal_font = ExtResource("2_q1gkp")
+theme_override_font_sizes/normal_font_size = 14
 bbcode_enabled = true
+text = "This document explains how to build a level using a text file.
+[url=level_builder_doc]Click here to open it. [/url]
+You will need a program capable of opening .doc files, such as LibreOffice Writer or Microsoft Word."
 fit_content = true
 
 [connection signal="close_requested" from="." to="." method="close"]
+[connection signal="meta_clicked" from="PanelContainer/VBoxContainer/HSplitContainer/PanelContainer2/ScrollContainer/InformationContainer/LevelBuilderFileLabel" to="." method="_on_level_builder_file_label_meta_clicked"]
