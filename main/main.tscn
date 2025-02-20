@@ -1,4 +1,4 @@
-[gd_scene load_steps=40 format=3 uid="uid://ctgiwn3scteuk"]
+[gd_scene load_steps=43 format=3 uid="uid://ctgiwn3scteuk"]
 
 [ext_resource type="Script" path="res://main/main.gd" id="1_7pb5r"]
 [ext_resource type="Script" path="res://modals/modals.gd" id="2_glk8b"]
@@ -33,6 +33,9 @@
 [ext_resource type="Script" path="res://main/nav_bar/menu_bar_tools.gd" id="24_h3xa5"]
 [ext_resource type="PackedScene" uid="uid://3c4x0gmdhcwn" path="res://typ_map_designer/typ_map_designer_container.tscn" id="27_45wxb"]
 [ext_resource type="Script" path="res://main/status_bar_container.gd" id="27_esd3e"]
+[ext_resource type="Script" path="res://main/status_bar_container_right.gd" id="34_21ltw"]
+[ext_resource type="Texture2D" uid="uid://dpr45g77fuh7m" path="res://resources/img/ui_icons/warning-icon.png" id="34_wx03i"]
+[ext_resource type="Texture2D" uid="uid://cqtiag6sfysm4" path="res://resources/img/ui_icons/no-warning-icon.png" id="36_qjqir"]
 
 [sub_resource type="GDScript" id="GDScript_a23yx"]
 script/source = "extends ConfirmationDialog
@@ -317,15 +320,36 @@ layout_mode = 2
 layout_mode = 2
 theme_override_constants/margin_left = 8
 
-[node name="StatusBarContainer" type="HBoxContainer" parent="PanelContainer/MarginContainer/VBoxContainer/MarginContainer"]
+[node name="StatusBarContainerLeft" type="HBoxContainer" parent="PanelContainer/MarginContainer/VBoxContainer/MarginContainer"]
 custom_minimum_size = Vector2(0, 20)
 layout_mode = 2
+size_flags_horizontal = 0
 theme_override_constants/separation = 5
 script = ExtResource("27_esd3e")
 
-[node name="EditorModeLabel" type="Label" parent="PanelContainer/MarginContainer/VBoxContainer/MarginContainer/StatusBarContainer"]
+[node name="EditorModeLabel" type="Label" parent="PanelContainer/MarginContainer/VBoxContainer/MarginContainer/StatusBarContainerLeft"]
 unique_name_in_owner = true
 layout_mode = 2
 theme_override_font_sizes/font_size = 12
 text = "Mode: Select"
 horizontal_alignment = 1
+
+[node name="StatusBarContainerRight" type="HBoxContainer" parent="PanelContainer/MarginContainer/VBoxContainer/MarginContainer"]
+visible = false
+layout_mode = 2
+size_flags_horizontal = 8
+alignment = 2
+script = ExtResource("34_21ltw")
+warning_icon = ExtResource("34_wx03i")
+no_warning_icon = ExtResource("36_qjqir")
+
+[node name="LogsButton" type="Button" parent="PanelContainer/MarginContainer/VBoxContainer/MarginContainer/StatusBarContainerRight"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(80, 0)
+layout_mode = 2
+theme_override_font_sizes/font_size = 14
+text = "0"
+icon = ExtResource("34_wx03i")
+alignment = 2
+icon_alignment = 2
+expand_icon = true

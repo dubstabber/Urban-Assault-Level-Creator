@@ -1,0 +1,8 @@
+[gd_scene format=3 uid="uid://b5182028txmab"]
+
+[node name="LogWindow" type="Window"]
+title = "Log window"
+initial_position = 2
+size = Vector2i(500, 500)
+transient = true
+exclusive = true
