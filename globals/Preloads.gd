@@ -301,6 +301,9 @@ func reload_units_and_buildings() -> void:
 	squad_images.clear()
 	special_building_images.clear()
 	
+	if not ua_data.data[EditorState.game_data_type].has("hoststations"):
+		EventSystem.editor_fatal_error_occured.emit.call_deferred("no_hoststations")
+		return
 	for hs in ua_data.data[EditorState.game_data_type].hoststations:
 		hs_images[str(ua_data.data[EditorState.game_data_type].hoststations[hs].owner)] = load("res://resources/img/hostStationImages/"+ ua_data.data[EditorState.game_data_type].hoststations[hs].image_file)
 		for robo in ua_data.data[EditorState.game_data_type].hoststations[hs].robos:

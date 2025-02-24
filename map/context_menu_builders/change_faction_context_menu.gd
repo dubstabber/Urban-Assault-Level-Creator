@@ -3,7 +3,7 @@ extends Node
 
 func _ready() -> void:
 	await get_parent().ready
-	if not Preloads.ua_data.data.has("original"): return
+	if not Preloads.ua_data.data.has("original") or not Preloads.ua_data.data["original"].has("hoststations"): return
 	var sector_faction_submenu: PopupMenu = PopupMenu.new()
 	sector_faction_submenu.name = "sector_faction"
 	sector_faction_submenu["theme_override_fonts/font"] = Preloads.font

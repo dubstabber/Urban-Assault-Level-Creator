@@ -94,19 +94,20 @@ func reload() -> void:
 	blg_names.clear()
 	weapons_db.clear()
 	
-	for hs in Preloads.ua_data.data[game_data_type].hoststations:
-		for robo: Dictionary in Preloads.ua_data.data[game_data_type].hoststations[hs].robos:
-			if CurrentMapData.host_stations:
-				for hss: HostStation in CurrentMapData.host_stations.get_children():
-					if hss.vehicle == robo.id:
-						if "player_id" in robo:
-							hss.player_vehicle = robo.player_id
-						else:
-							hss.player_vehicle = -1
-		for unit: Dictionary in Preloads.ua_data.data[game_data_type].hoststations[hs].units:
-			units_db[unit.name] = unit.id
-		for building: Dictionary in Preloads.ua_data.data[game_data_type].hoststations[hs].buildings:
-			blg_names[str(building.id)] = building.name
+	if Preloads.ua_data.data[game_data_type].has("hoststations"):
+		for hs in Preloads.ua_data.data[game_data_type].hoststations:
+			for robo: Dictionary in Preloads.ua_data.data[game_data_type].hoststations[hs].robos:
+				if CurrentMapData.host_stations:
+					for hss: HostStation in CurrentMapData.host_stations.get_children():
+						if hss.vehicle == robo.id:
+							if "player_id" in robo:
+								hss.player_vehicle = robo.player_id
+							else:
+								hss.player_vehicle = -1
+			for unit: Dictionary in Preloads.ua_data.data[game_data_type].hoststations[hs].units:
+				units_db[unit.name] = unit.id
+			for building: Dictionary in Preloads.ua_data.data[game_data_type].hoststations[hs].buildings:
+				blg_names[str(building.id)] = building.name
 	for building: Dictionary in Preloads.ua_data.data[game_data_type].other.buildings:
 		blg_names[str(building.id)] = building.name
 	for unit: Dictionary in Preloads.ua_data.data[game_data_type].other.units:

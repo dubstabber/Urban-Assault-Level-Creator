@@ -3,7 +3,7 @@ extends Node
 
 func _ready() -> void:
 	await get_parent().ready
-	if not Preloads.ua_data.data.has("original"): return
+	if not Preloads.ua_data.data.has("original") or not Preloads.ua_data.data["original"].has("hoststations"): return
 	var hs_submenu: PopupMenu = PopupMenu.new()
 	hs_submenu.name = "hoststation"
 	hs_submenu["theme_override_fonts/font"] = Preloads.font
@@ -13,6 +13,7 @@ func _ready() -> void:
 		var hs_owner_id = str(Preloads.ua_data.data[EditorState.game_data_type].hoststations[hs].owner)
 		var hs_image = Preloads.hs_images[hs_owner_id]
 		hs_submenu.add_icon_item(hs_image, hs, int(hs_owner_id))
+	
 	hs_submenu.connect("index_pressed", add_hoststation.bind(hs_submenu))
 	get_parent().add_submenu_item("Add host station", "hoststation")
 
