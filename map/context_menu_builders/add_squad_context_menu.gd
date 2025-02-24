@@ -5,6 +5,7 @@ var squad_submenu: PopupMenu = PopupMenu.new()
 
 func _ready() -> void:
 	await get_parent().ready
+	if not Preloads.ua_data.data.has("original"): return
 	squad_submenu.name = "squad"
 	squad_submenu["theme_override_fonts/font"] = Preloads.font
 	get_parent().add_child(squad_submenu)

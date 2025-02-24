@@ -37,6 +37,7 @@ signal building_added(typ_map: int)
 
 signal open_map_failed
 signal invalid_set_detected(level_set: int)
+signal editor_fatal_error_occured(error_type: String)
 
 signal editor_mode_changed
 signal too_many_sectors_provided

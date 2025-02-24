@@ -2,6 +2,7 @@ extends VBoxContainer
 
 
 func _ready() -> void:
+	if not Preloads.ua_data.data.has("original"): return
 	EventSystem.unit_selected.connect(_update_properties)
 	
 	%QuantitySpinBox.value_changed.connect(func(value: float):

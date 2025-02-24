@@ -3,10 +3,12 @@ extends Node
 
 func _ready() -> void:
 	await get_parent().ready
+	if not Preloads.ua_data.data.has("original"): return
 	var hs_submenu: PopupMenu = PopupMenu.new()
 	hs_submenu.name = "hoststation"
 	hs_submenu["theme_override_fonts/font"] = Preloads.font
 	get_parent().add_child(hs_submenu)
+	
 	for hs in Preloads.ua_data.data[EditorState.game_data_type].hoststations:
 		var hs_owner_id = str(Preloads.ua_data.data[EditorState.game_data_type].hoststations[hs].owner)
 		var hs_image = Preloads.hs_images[hs_owner_id]

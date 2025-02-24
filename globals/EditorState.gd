@@ -75,6 +75,7 @@ var warning_messages := []
 
 
 func _ready():
+	if not Preloads.ua_data.data.has("original"): return
 	game_data_type = Preloads.ua_data.data.keys()[0]
 	reload()
 	EventSystem.game_type_changed.connect(reload)

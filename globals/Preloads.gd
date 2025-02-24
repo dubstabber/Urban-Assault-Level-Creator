@@ -23,6 +23,9 @@ var font = preload("res://resources/Xolonium-Regular.ttf")
 
 
 func _ready():
+	if not ua_data.data or typeof(ua_data.data) != TYPE_DICTIONARY or not ua_data.data.has("original"):
+		EventSystem.editor_fatal_error_occured.emit.call_deferred("invalid_json")
+		return
 	reload_units_and_buildings()
 	
 	squad_icons.square = {

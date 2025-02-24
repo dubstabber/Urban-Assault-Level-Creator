@@ -3,10 +3,12 @@ extends Node
 
 func _ready() -> void:
 	await get_parent().ready
+	if not Preloads.ua_data.data.has("original"): return
 	var sector_faction_submenu: PopupMenu = PopupMenu.new()
 	sector_faction_submenu.name = "sector_faction"
 	sector_faction_submenu["theme_override_fonts/font"] = Preloads.font
 	get_parent().add_child(sector_faction_submenu)
+	
 	for hs in Preloads.ua_data.data[EditorState.game_data_type].hoststations:
 		sector_faction_submenu.add_item(hs, Preloads.ua_data.data[EditorState.game_data_type].hoststations[hs].owner)
 	sector_faction_submenu.add_item("Neutral", 0)

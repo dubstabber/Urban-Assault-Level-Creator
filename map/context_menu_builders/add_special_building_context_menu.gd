@@ -5,6 +5,7 @@ var special_buildings_submenu: PopupMenu = PopupMenu.new()
 
 func _ready() -> void:
 	await get_parent().ready
+	if not Preloads.ua_data.data.has("original"): return
 	special_buildings_submenu.name = "special_buildings"
 	special_buildings_submenu["theme_override_fonts/font"] = Preloads.font
 	get_parent().add_child(special_buildings_submenu)
