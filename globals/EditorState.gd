@@ -71,10 +71,14 @@ var units_db := {}
 var blg_names := {}
 var weapons_db := {}
 
+var warning_messages := []
+
+
 func _ready():
 	game_data_type = Preloads.ua_data.data.keys()[0]
 	reload()
 	EventSystem.game_type_changed.connect(reload)
+	EventSystem.map_created.connect(refresh_warnings)
 
 
 func reload() -> void:
@@ -122,3 +126,14 @@ func unselect_all() -> void:
 	selected_tech_upgrade = null
 	selected_bg_key_sector = Vector2i(-1, -1)
 	selected_bomb_key_sector = Vector2i(-1, -1)
+
+
+func refresh_warnings() -> void:
+	warning_messages.clear()
+	var idx := 0
+	for y in CurrentMapData.vertical_sectors:
+		for x in CurrentMapData.horizontal_sectors:
+			if str(CurrentMapData.blg_map[idx]) not in blg_names and CurrentMapData.blg_map[idx] not in [0, 5, 6, 25, 26, 60, 61, 4, 7, 15, 51, 50, 16, 65, 35, 36, 37, 68, 69, 70]:
+				warning_messages.append("Detected unknown blg_map value %s at X:%s Y:%s" % [CurrentMapData.blg_map[idx], x+1, y+1])
+			idx += 1
+	EventSystem.warning_logs_updated.emit()

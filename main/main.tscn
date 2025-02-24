@@ -1,4 +1,4 @@
-[gd_scene load_steps=43 format=3 uid="uid://ctgiwn3scteuk"]
+[gd_scene load_steps=44 format=3 uid="uid://ctgiwn3scteuk"]
 
 [ext_resource type="Script" path="res://main/main.gd" id="1_7pb5r"]
 [ext_resource type="Script" path="res://modals/modals.gd" id="2_glk8b"]
@@ -30,6 +30,7 @@
 [ext_resource type="Script" path="res://modals/unsaved_map_confirmation_dialog.gd" id="21_phvo0"]
 [ext_resource type="PackedScene" uid="uid://bopbfkpvnejw3" path="res://modals/additional_information_window.tscn" id="22_230yp"]
 [ext_resource type="FontFile" uid="uid://b5bou0wtu243w" path="res://resources/Xolonium-Regular.ttf" id="22_hbtdp"]
+[ext_resource type="PackedScene" uid="uid://b5182028txmab" path="res://modals/log_window.tscn" id="24_g6oem"]
 [ext_resource type="Script" path="res://main/nav_bar/menu_bar_tools.gd" id="24_h3xa5"]
 [ext_resource type="PackedScene" uid="uid://3c4x0gmdhcwn" path="res://typ_map_designer/typ_map_designer_container.tscn" id="27_45wxb"]
 [ext_resource type="Script" path="res://main/status_bar_container.gd" id="27_esd3e"]
@@ -254,6 +255,9 @@ script = SubResource("GDScript_r27t3")
 unique_name_in_owner = true
 visible = false
 
+[node name="LogWindow" parent="Modals" instance=ExtResource("24_g6oem")]
+visible = false
+
 [node name="PanelContainer" type="PanelContainer" parent="."]
 layout_mode = 1
 anchors_preset = 15
@@ -335,7 +339,6 @@ text = "Mode: Select"
 horizontal_alignment = 1
 
 [node name="StatusBarContainerRight" type="HBoxContainer" parent="PanelContainer/MarginContainer/VBoxContainer/MarginContainer"]
-visible = false
 layout_mode = 2
 size_flags_horizontal = 8
 alignment = 2
@@ -349,7 +352,7 @@ custom_minimum_size = Vector2(80, 0)
 layout_mode = 2
 theme_override_font_sizes/font_size = 14
 text = "0"
-icon = ExtResource("34_wx03i")
+icon = ExtResource("36_qjqir")
 alignment = 2
 icon_alignment = 2
 expand_icon = true

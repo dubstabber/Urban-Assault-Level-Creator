@@ -12,6 +12,7 @@ signal save_hs_behavior_dialog_requested
 signal behavior_loaded(behavior_data: Dictionary)
 signal sector_height_window_requested
 signal sector_building_windows_requested
+signal warning_logs_window_requested
 
 signal map_created
 signal unit_selected
@@ -27,6 +28,7 @@ signal map_updated
 signal map_view_updated
 signal item_added
 signal item_updated
+signal warning_logs_updated
 
 signal sector_faction_changed(faction_id: int)
 signal sector_height_changed(height_value: int)

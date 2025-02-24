@@ -1,4 +1,6 @@
-[gd_scene format=3 uid="uid://b5182028txmab"]
+[gd_scene load_steps=2 format=3 uid="uid://b5182028txmab"]
+
+[ext_resource type="Script" path="res://modals/log_window.gd" id="1_06g7m"]
 
 [node name="LogWindow" type="Window"]
 title = "Log window"
@@ -6,3 +8,6 @@ initial_position = 2
 size = Vector2i(500, 500)
 transient = true
 exclusive = true
+script = ExtResource("1_06g7m")
+
+[connection signal="close_requested" from="." to="." method="close"]

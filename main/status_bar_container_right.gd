@@ -7,3 +7,10 @@ extends HBoxContainer
 
 func _ready() -> void:
 	logs_button.icon = no_warning_icon
+	EventSystem.warning_logs_updated.connect(func():
+		logs_button.text = "0" if EditorState.warning_messages.is_empty() else str(EditorState.warning_messages.size())
+		logs_button.icon = no_warning_icon if EditorState.warning_messages.is_empty() else warning_icon
+		)
+	logs_button.pressed.connect(func(): 
+		EventSystem.warning_logs_window_requested.emit()
+		)
