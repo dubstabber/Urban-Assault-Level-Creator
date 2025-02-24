@@ -90,7 +90,7 @@ func _update_properties() -> void:
 			for i in EditorState.selected_bomb.key_sectors.size():
 				var ks_label = Label.new()
 				%BombKeySectorsListContainer.add_child(ks_label)
-				ks_label.text = 'Key sector %s at X: %s Y: %s' % [i+1, EditorState.selected_bomb.key_sectors[i].x, EditorState.selected_bomb.key_sectors[i].y]
+				ks_label.text = 'Key sector %s at X:%s Y:%s' % [i+1, EditorState.selected_bomb.key_sectors[i].x, EditorState.selected_bomb.key_sectors[i].y]
 				ks_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 				ks_label.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
 				ks_label["theme_override_font_sizes/font_size"] = 12

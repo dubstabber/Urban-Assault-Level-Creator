@@ -14,7 +14,7 @@ func _update_properties() -> void:
 		if EditorState.selected_sectors.size() > 1: return
 		
 		%SectorPropertiesContainer.show()
-		%SectorPositionLabel.text = "Selected sector X: %s Y: %s" % [EditorState.selected_sector.x, EditorState.selected_sector.y]
+		%SectorPositionLabel.text = "Selected sector X:%s Y:%s" % [EditorState.selected_sector.x, EditorState.selected_sector.y]
 		
 		if (EditorState.selected_sector.x == 0 or EditorState.selected_sector.y == 0 or
 			EditorState.selected_sector.x == (CurrentMapData.horizontal_sectors+1) or

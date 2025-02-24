@@ -175,38 +175,54 @@ func _ready() -> void:
 	)
 	
 	EventSystem.behavior_loaded.connect(func(behavior_data: Dictionary):
-		EditorState.selected_unit.con_budget = behavior_data.con_budget
-		%ConqueringHSlider.value = int(behavior_data.con_budget)
-		EditorState.selected_unit.con_delay = behavior_data.con_delay
-		%ConqueringDelayLineEdit.text = str(behavior_data.con_delay)
-		EditorState.selected_unit.def_budget = behavior_data.def_budget
-		%DefenseHSlider.value = int(behavior_data.def_budget)
-		EditorState.selected_unit.def_delay = behavior_data.def_delay
-		%DefenseDelayLineEdit.text = str(behavior_data.def_delay)
-		EditorState.selected_unit.rec_budget = behavior_data.rec_budget
-		%ReconnaissanceHSlider.value = int(behavior_data.rec_budget)
-		EditorState.selected_unit.rec_delay = behavior_data.rec_delay
-		%ReconnaissanceDelayLineEdit.text = str(behavior_data.rec_delay)
-		EditorState.selected_unit.rob_budget = behavior_data.rob_budget
-		%AttackingHSlider.value = int(behavior_data.rob_budget)
-		EditorState.selected_unit.rob_delay = behavior_data.rob_delay
-		%AttackingDelayLineEdit.text = str(behavior_data.rob_delay)
-		EditorState.selected_unit.pow_budget = behavior_data.pow_budget
-		%PowerBuildingHSlider.value = int(behavior_data.pow_budget)
-		EditorState.selected_unit.pow_delay = behavior_data.pow_delay
-		%PowerBuildingDelayLineEdit.text = str(behavior_data.pow_delay)
-		EditorState.selected_unit.rad_budget = behavior_data.rad_budget
-		%RadarBuildingHSlider.value = int(behavior_data.rad_budget)
-		EditorState.selected_unit.rad_delay = behavior_data.rad_delay
-		%RadarBuildingDelayLineEdit.text = str(behavior_data.rad_delay)
-		EditorState.selected_unit.saf_budget = behavior_data.saf_budget
-		%FlakBuildingHSlider.value = int(behavior_data.saf_budget)
-		EditorState.selected_unit.saf_delay = behavior_data.saf_delay
-		%FlakBuildingDelayLineEdit.text = str(behavior_data.saf_delay)
-		EditorState.selected_unit.cpl_budget = behavior_data.cpl_budget
-		%MovingStationHSlider.value = int(behavior_data.cpl_budget)
-		EditorState.selected_unit.cpl_delay = behavior_data.cpl_delay
-		%MovingStationDelayLineEdit.text = str(behavior_data.cpl_delay)
+		if behavior_data.has("con_budget"):
+			EditorState.selected_unit.con_budget = behavior_data.con_budget
+			%ConqueringHSlider.value = int(behavior_data.con_budget)
+		if behavior_data.has("con_delay"):
+			EditorState.selected_unit.con_delay = behavior_data.con_delay
+			%ConqueringDelayLineEdit.text = str(behavior_data.con_delay)
+		if behavior_data.has("def_budget"):
+			EditorState.selected_unit.def_budget = behavior_data.def_budget
+			%DefenseHSlider.value = int(behavior_data.def_budget)
+		if behavior_data.has("def_delay"):
+			EditorState.selected_unit.def_delay = behavior_data.def_delay
+			%DefenseDelayLineEdit.text = str(behavior_data.def_delay)
+		if behavior_data.has("rec_budget"):
+			EditorState.selected_unit.rec_budget = behavior_data.rec_budget
+			%ReconnaissanceHSlider.value = int(behavior_data.rec_budget)
+		if behavior_data.has("rec_delay"):
+			EditorState.selected_unit.rec_delay = behavior_data.rec_delay
+			%ReconnaissanceDelayLineEdit.text = str(behavior_data.rec_delay)
+		if behavior_data.has("rob_budget"):
+			EditorState.selected_unit.rob_budget = behavior_data.rob_budget
+			%AttackingHSlider.value = int(behavior_data.rob_budget)
+		if behavior_data.has("rob_delay"):
+			EditorState.selected_unit.rob_delay = behavior_data.rob_delay
+			%AttackingDelayLineEdit.text = str(behavior_data.rob_delay)
+		if behavior_data.has("pow_budget"):
+			EditorState.selected_unit.pow_budget = behavior_data.pow_budget
+			%PowerBuildingHSlider.value = int(behavior_data.pow_budget)
+		if behavior_data.has("pow_delay"):
+			EditorState.selected_unit.pow_delay = behavior_data.pow_delay
+			%PowerBuildingDelayLineEdit.text = str(behavior_data.pow_delay)
+		if behavior_data.has("rad_budget"):
+			EditorState.selected_unit.rad_budget = behavior_data.rad_budget
+			%RadarBuildingHSlider.value = int(behavior_data.rad_budget)
+		if behavior_data.has("rad_delay"):
+			EditorState.selected_unit.rad_delay = behavior_data.rad_delay
+			%RadarBuildingDelayLineEdit.text = str(behavior_data.rad_delay)
+		if behavior_data.has("saf_budget"):
+			EditorState.selected_unit.saf_budget = behavior_data.saf_budget
+			%FlakBuildingHSlider.value = int(behavior_data.saf_budget)
+		if behavior_data.has("saf_delay"):
+			EditorState.selected_unit.saf_delay = behavior_data.saf_delay
+			%FlakBuildingDelayLineEdit.text = str(behavior_data.saf_delay)
+		if behavior_data.has("cpl_budget"):
+			EditorState.selected_unit.cpl_budget = behavior_data.cpl_budget
+			%MovingStationHSlider.value = int(behavior_data.cpl_budget)
+		if behavior_data.has("cpl_delay"):
+			EditorState.selected_unit.cpl_delay = behavior_data.cpl_delay
+			%MovingStationDelayLineEdit.text = str(behavior_data.cpl_delay)
 		CurrentMapData.is_saved = false
 	)
 
