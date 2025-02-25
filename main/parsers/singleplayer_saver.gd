@@ -5,6 +5,8 @@ static func save() -> void:
 	var file = FileAccess.open(CurrentMapData.map_path, FileAccess.WRITE)
 	if not file: 
 		printerr("Error: File '%s' cannot be saved" % CurrentMapData.map_path)
+		printerr("The path is not accessible and cannot be saved.")
+		EventSystem.save_map_failed.emit("path_inaccessible")
 		return
 	_handle_header(file)
 	_handle_description(file)

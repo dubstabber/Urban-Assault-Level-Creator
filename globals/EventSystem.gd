@@ -35,7 +35,10 @@ signal sector_height_changed(height_value: int)
 signal special_building_added(blg_map: int, typ_map: int, own_map: int)
 signal building_added(typ_map: int)
 
-signal open_map_failed
+signal open_map_failed(error_type: String)
+signal save_map_failed(error_type: String)
+signal load_enemy_settings_failed(path: String)
+signal save_enemy_settings_failed(path: String)
 signal invalid_set_detected(level_set: int)
 signal editor_fatal_error_occured(error_type: String)
 

@@ -7,6 +7,7 @@ static func load_level() -> void:
 	var file = FileAccess.open(CurrentMapData.map_path, FileAccess.READ)
 	if not file: 
 		printerr("Error: File '%s' cannot be opened" % CurrentMapData.map_path)
+		EventSystem.open_map_failed.emit("path_inaccessible")
 		return
 	string_line = ""
 	
@@ -32,7 +33,7 @@ static func load_level() -> void:
 		printerr("Vertical sectors: %s" % CurrentMapData.vertical_sectors)
 		printerr("Total sectors: %s" % total_sectors)
 		printerr("Total sectors with borders: %s" % total_border_sectors)
-		EventSystem.open_map_failed.emit()
+		EventSystem.open_map_failed.emit("inconsistent_data")
 		return
 	
 	file.seek(0)

@@ -1,4 +1,4 @@
-[gd_scene load_steps=45 format=3 uid="uid://ctgiwn3scteuk"]
+[gd_scene load_steps=46 format=3 uid="uid://ctgiwn3scteuk"]
 
 [ext_resource type="Script" path="res://main/main.gd" id="1_7pb5r"]
 [ext_resource type="Script" path="res://modals/modals.gd" id="2_glk8b"]
@@ -33,6 +33,7 @@
 [ext_resource type="PackedScene" uid="uid://b5182028txmab" path="res://modals/log_window.tscn" id="24_g6oem"]
 [ext_resource type="Script" path="res://main/nav_bar/menu_bar_tools.gd" id="24_h3xa5"]
 [ext_resource type="Script" path="res://modals/editor_error_accept_dialog.gd" id="25_whwg4"]
+[ext_resource type="Script" path="res://modals/error_accept_dialog.gd" id="26_ha6he"]
 [ext_resource type="PackedScene" uid="uid://3c4x0gmdhcwn" path="res://typ_map_designer/typ_map_designer_container.tscn" id="27_45wxb"]
 [ext_resource type="Script" path="res://main/status_bar_container.gd" id="27_esd3e"]
 [ext_resource type="Script" path="res://main/status_bar_container_right.gd" id="34_21ltw"]
@@ -196,6 +197,7 @@ size = Vector2i(810, 450)
 ok_button_text = "Open"
 file_mode = 0
 access = 2
+filters = PackedStringArray("*.json;JavaScript object notation")
 script = ExtResource("15_oqmvu")
 
 [node name="SaveBehaviorFileDialog" type="FileDialog" parent="Modals"]
@@ -204,6 +206,7 @@ initial_position = 2
 size = Vector2i(810, 450)
 ok_button_text = "Save"
 access = 2
+filters = PackedStringArray("*.json;JavaScript object notation")
 script = ExtResource("16_defsv")
 
 [node name="SaveLevelFileDialog" type="FileDialog" parent="Modals"]
@@ -211,7 +214,7 @@ unique_name_in_owner = true
 initial_position = 1
 size = Vector2i(900, 600)
 access = 2
-filters = PackedStringArray("*.ldf;Urban Assault Level File")
+filters = PackedStringArray("*.ldf;Level definition file")
 script = ExtResource("17_tgjwx")
 
 [node name="OpenLevelFileDialog" type="FileDialog" parent="Modals"]
@@ -222,7 +225,7 @@ size = Vector2i(900, 600)
 ok_button_text = "Open"
 file_mode = 0
 access = 2
-filters = PackedStringArray("*.ldf;Urban Assault Level File")
+filters = PackedStringArray("*.ldf;Level definition file")
 script = ExtResource("17_g67l2")
 
 [node name="UnsavedMapConfirmationDialog" type="ConfirmationDialog" parent="Modals"]
@@ -266,6 +269,11 @@ size = Vector2i(340, 100)
 dialog_text = "There was an error opening the editor:
 data.json is not a valid file"
 script = ExtResource("25_whwg4")
+
+[node name="ErrorAcceptDialog" type="AcceptDialog" parent="Modals"]
+title = "Error occured"
+initial_position = 2
+script = ExtResource("26_ha6he")
 
 [node name="PanelContainer" type="PanelContainer" parent="."]
 layout_mode = 1

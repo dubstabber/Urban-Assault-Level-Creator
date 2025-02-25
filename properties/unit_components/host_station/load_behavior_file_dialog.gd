@@ -7,6 +7,7 @@ func _ready() -> void:
 		var file = FileAccess.open(path, FileAccess.READ)
 		if not file:
 			printerr("File '%s' could not be loaded" % path)
+			EventSystem.load_enemy_settings_failed.emit(path)
 			return
 		var behavior_json = file.get_line()
 		var behavior_data = JSON.parse_string(behavior_json)
