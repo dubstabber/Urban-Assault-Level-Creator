@@ -6,7 +6,7 @@
 [node name="LogWindow" type="Window"]
 title = "Log window"
 initial_position = 2
-size = Vector2i(600, 500)
+size = Vector2i(730, 500)
 transient = true
 exclusive = true
 script = ExtResource("1_06g7m")
@@ -41,6 +41,7 @@ unique_name_in_owner = true
 layout_mode = 2
 size_flags_horizontal = 3
 size_flags_vertical = 3
+focus_mode = 0
 item_count = 4
 fixed_icon_size = Vector2i(20, 20)
 item_0/text = "test"
