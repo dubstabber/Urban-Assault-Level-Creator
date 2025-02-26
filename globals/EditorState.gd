@@ -71,7 +71,7 @@ var units_db := {}
 var blg_names := {}
 var weapons_db := {}
 
-var warning_messages := []
+var warning_messages: Array[String] = []
 
 
 func _ready():

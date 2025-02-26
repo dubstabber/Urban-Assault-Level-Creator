@@ -72,6 +72,10 @@ text = "Refresh"
 layout_mode = 2
 text = "Clear"
 
+[node name="CopyTextButton" type="Button" parent="PanelContainer/VBoxContainer/MarginContainer/HBoxContainer"]
+layout_mode = 2
+text = "Copy text"
+
 [node name="HBoxContainer2" type="HBoxContainer" parent="PanelContainer/VBoxContainer/MarginContainer"]
 layout_mode = 2
 size_flags_horizontal = 8
@@ -83,4 +87,5 @@ text = "Close"
 [connection signal="close_requested" from="." to="." method="close"]
 [connection signal="pressed" from="PanelContainer/VBoxContainer/MarginContainer/HBoxContainer/RefreshButton" to="." method="_on_refresh_button_pressed"]
 [connection signal="pressed" from="PanelContainer/VBoxContainer/MarginContainer/HBoxContainer/ClearButton" to="." method="_on_clear_button_pressed"]
+[connection signal="pressed" from="PanelContainer/VBoxContainer/MarginContainer/HBoxContainer/CopyTextButton" to="." method="_on_copy_text_button_pressed"]
 [connection signal="pressed" from="PanelContainer/VBoxContainer/MarginContainer/HBoxContainer2/CloseButton" to="." method="close"]

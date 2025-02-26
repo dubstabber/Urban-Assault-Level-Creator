@@ -30,3 +30,10 @@ func _on_clear_button_pressed() -> void:
 	EditorState.warning_messages.clear()
 	logs_list.clear()
 	EventSystem.warning_logs_updated.emit()
+
+
+func _on_copy_text_button_pressed() -> void:
+	var item = %LogsList.get_selected_items()
+	if item:
+		var item_text = %LogsList.get_item_text(item[0])
+		DisplayServer.clipboard_set(item_text)
