@@ -367,6 +367,7 @@ no_warning_icon = ExtResource("36_qjqir")
 unique_name_in_owner = true
 custom_minimum_size = Vector2(80, 0)
 layout_mode = 2
+focus_mode = 0
 theme_override_font_sizes/font_size = 14
 text = "0"
 icon = ExtResource("36_qjqir")

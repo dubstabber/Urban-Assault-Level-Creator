@@ -1,14 +1,16 @@
-[gd_scene load_steps=2 format=3 uid="uid://b5182028txmab"]
+[gd_scene load_steps=3 format=3 uid="uid://b5182028txmab"]
 
 [ext_resource type="Script" path="res://modals/log_window.gd" id="1_06g7m"]
+[ext_resource type="Texture2D" uid="uid://dpr45g77fuh7m" path="res://resources/img/ui_icons/warning-icon.png" id="2_yfb08"]
 
 [node name="LogWindow" type="Window"]
 title = "Log window"
 initial_position = 2
-size = Vector2i(500, 500)
+size = Vector2i(600, 500)
 transient = true
 exclusive = true
 script = ExtResource("1_06g7m")
+warning_icon = ExtResource("2_yfb08")
 
 [node name="PanelContainer" type="PanelContainer" parent="."]
 anchors_preset = 15
@@ -17,15 +19,67 @@ anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
 
-[node name="MarginContainer" type="MarginContainer" parent="PanelContainer"]
+[node name="VBoxContainer" type="VBoxContainer" parent="PanelContainer"]
 layout_mode = 2
+theme_override_constants/separation = 1
+
+[node name="ScrollContainer" type="ScrollContainer" parent="PanelContainer/VBoxContainer"]
+layout_mode = 2
+size_flags_vertical = 3
+
+[node name="MarginContainer" type="MarginContainer" parent="PanelContainer/VBoxContainer/ScrollContainer"]
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_vertical = 3
 theme_override_constants/margin_left = 10
 theme_override_constants/margin_top = 10
 theme_override_constants/margin_right = 10
-theme_override_constants/margin_bottom = 10
+theme_override_constants/margin_bottom = 6
 
-[node name="LogsContainer" type="VBoxContainer" parent="PanelContainer/MarginContainer"]
+[node name="LogsList" type="ItemList" parent="PanelContainer/VBoxContainer/ScrollContainer/MarginContainer"]
 unique_name_in_owner = true
 layout_mode = 2
+size_flags_horizontal = 3
+size_flags_vertical = 3
+item_count = 4
+fixed_icon_size = Vector2i(20, 20)
+item_0/text = "test"
+item_0/icon = ExtResource("2_yfb08")
+item_1/text = "test2"
+item_1/icon = ExtResource("2_yfb08")
+item_2/text = "test3"
+item_2/icon = ExtResource("2_yfb08")
+item_3/text = "test4"
+item_3/icon = ExtResource("2_yfb08")
+
+[node name="MarginContainer" type="MarginContainer" parent="PanelContainer/VBoxContainer"]
+layout_mode = 2
+theme_override_constants/margin_left = 10
+theme_override_constants/margin_right = 10
+theme_override_constants/margin_bottom = 8
+
+[node name="HBoxContainer" type="HBoxContainer" parent="PanelContainer/VBoxContainer/MarginContainer"]
+layout_mode = 2
+size_flags_horizontal = 0
+theme_override_constants/separation = 8
+
+[node name="RefreshButton" type="Button" parent="PanelContainer/VBoxContainer/MarginContainer/HBoxContainer"]
+layout_mode = 2
+text = "Refresh"
+
+[node name="ClearButton" type="Button" parent="PanelContainer/VBoxContainer/MarginContainer/HBoxContainer"]
+layout_mode = 2
+text = "Clear"
+
+[node name="HBoxContainer2" type="HBoxContainer" parent="PanelContainer/VBoxContainer/MarginContainer"]
+layout_mode = 2
+size_flags_horizontal = 8
+
+[node name="CloseButton" type="Button" parent="PanelContainer/VBoxContainer/MarginContainer/HBoxContainer2"]
+layout_mode = 2
+text = "Close"
 
 [connection signal="close_requested" from="." to="." method="close"]
+[connection signal="pressed" from="PanelContainer/VBoxContainer/MarginContainer/HBoxContainer/RefreshButton" to="." method="_on_refresh_button_pressed"]
+[connection signal="pressed" from="PanelContainer/VBoxContainer/MarginContainer/HBoxContainer/ClearButton" to="." method="_on_clear_button_pressed"]
+[connection signal="pressed" from="PanelContainer/VBoxContainer/MarginContainer/HBoxContainer2/CloseButton" to="." method="close"]
