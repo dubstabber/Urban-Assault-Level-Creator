@@ -406,6 +406,7 @@ static func _handle_host_stations(file: FileAccess) -> void:
 				cpl_delay = int(string_line)
 		
 		var host_station = Preloads.HOSTSTATION.instantiate()
+		CurrentMapData.host_stations.add_child(host_station)
 		host_station.create(owner_id, vehicle_id)
 		host_station.position.x = pos_x
 		host_station.pos_y = pos_y
@@ -432,7 +433,6 @@ static func _handle_host_stations(file: FileAccess) -> void:
 		host_station.saf_delay = saf_delay
 		host_station.cpl_budget = cpl_budget
 		host_station.cpl_delay = cpl_delay
-		CurrentMapData.host_stations.add_child(host_station)
 		if CurrentMapData.player_host_station == null:
 			CurrentMapData.player_host_station = host_station
 
@@ -543,13 +543,13 @@ static func _handle_predefined_squads(file: FileAccess) -> void:
 				mb_status = true
 		
 		var squad = Preloads.SQUAD.instantiate()
+		CurrentMapData.squads.add_child(squad)
 		squad.create(owner_id, vehicle_id)
 		squad.position.x = pos_x
 		squad.position.y = abs(pos_z)
 		squad.quantity = quantity
 		squad.useable = useable
 		squad.mb_status = mb_status
-		CurrentMapData.squads.add_child(squad)
 
 
 static func _handle_modifications(file: FileAccess) -> void:

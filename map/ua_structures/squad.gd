@@ -48,6 +48,6 @@ func change_faction(_owner_id: int) -> void:
 		5: texture = Preloads.squad_icons[map_icon].gray
 		6: texture = Preloads.squad_icons[map_icon].red
 		7: texture = Preloads.squad_icons["square"].red2
+	
+	$Button.position = -Vector2(texture.get_width()/2.0, texture.get_height()/2.0)
 	$Button.tooltip_text = "%sx %s" % [quantity, unit_name]
-	size = Vector2.ZERO
-	pivot_offset = Vector2(texture.get_width()/2.0, texture.get_height()/2.0)

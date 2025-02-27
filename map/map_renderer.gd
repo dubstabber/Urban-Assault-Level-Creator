@@ -1,4 +1,4 @@
-extends Control
+extends Node2D
 
 
 var zoom_minimum := Vector2(.03,.03)

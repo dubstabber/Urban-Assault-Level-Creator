@@ -24,8 +24,8 @@ var player_host_station: HostStation = null
 var level_description := ""
 var prototype_modifications := ""
 
-var host_stations: Control
-var squads: Control
+var host_stations: Node2D
+var squads: Node2D
 var horizontal_sectors := 0
 var vertical_sectors := 0
 var typ_map: Array[int] = []
