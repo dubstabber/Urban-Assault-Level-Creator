@@ -15,6 +15,7 @@ var building_top_images := {}
 var special_building_images := {}
 var sector_item_images := {}
 var error_sign: CompressedTexture2D
+var error_icon: CompressedTexture2D
 var movies_db := {}
 var skies := {}
 var musics := {}
@@ -197,6 +198,7 @@ func _ready():
 		idx += 1
 		
 	error_sign = load("res://resources/img/blgMapImages/error.png")
+	error_icon = load("res://resources/img/ui_icons/error-icon.png")
 	
 	movies_db["none"] = ""
 	movies_db["Intro"] = "intro.mpg"

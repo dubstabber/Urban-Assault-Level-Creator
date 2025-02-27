@@ -236,6 +236,10 @@ func _update_properties() -> void:
 		
 		%HSnumberLabel.text = "Host station " + str(i) + ": "
 		%HSnameLabel.text = EditorState.selected_unit.unit_name
+		if EditorState.selected_unit.owner_id < 1 or EditorState.selected_unit.owner_id > 7:
+			%OwnerErrorLabel.show()
+		else: %OwnerErrorLabel.hide()
+		
 		%EnergyLineEdit.text = str(EditorState.selected_unit.energy/400)
 		
 		%ViewAngleLineEdit.text = str(EditorState.selected_unit.view_angle)

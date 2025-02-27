@@ -23,6 +23,17 @@ text = "HostStationName"
 [node name="HSeparator3" type="HSeparator" parent="."]
 layout_mode = 2
 
+[node name="OwnerErrorLabel" type="Label" parent="."]
+unique_name_in_owner = true
+visible = false
+custom_minimum_size = Vector2(20, 20)
+layout_mode = 2
+theme_override_colors/font_color = Color(1, 0, 0, 1)
+theme_override_font_sizes/font_size = 14
+text = "This host station has an invalid owner ID, which will cause bugs in the game"
+horizontal_alignment = 1
+autowrap_mode = 3
+
 [node name="HBoxContainer5" type="HBoxContainer" parent="."]
 layout_mode = 2
 alignment = 1

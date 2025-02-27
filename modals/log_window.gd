@@ -10,6 +10,9 @@ func _ready() -> void:
 
 
 func display_messages() -> void:
+	for message in EditorState.error_messages:
+		logs_list.add_item(message, Preloads.error_icon)
+	
 	for message in EditorState.warning_messages:
 		logs_list.add_item(message, warning_icon)
 	popup()

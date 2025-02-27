@@ -71,6 +71,7 @@ var units_db := {}
 var blg_names := {}
 var weapons_db := {}
 
+var error_messages: Array[String] = []
 var warning_messages: Array[String] = []
 
 
@@ -132,12 +133,17 @@ func unselect_all() -> void:
 
 func refresh_warnings() -> void:
 	warning_messages.clear()
+	error_messages.clear()
 	var idx := 0
 	for y in CurrentMapData.vertical_sectors:
 		for x in CurrentMapData.horizontal_sectors:
 			if str(CurrentMapData.blg_map[idx]) not in blg_names and CurrentMapData.blg_map[idx] not in [0, 5, 6, 25, 26, 60, 61, 4, 7, 15, 51, 50, 16, 65, 35, 36, 37, 68, 69, 70]:
 				warning_messages.append('Detected an unknown blg_map value "%s (0x%x)" at X:%s, Y:%s' % [CurrentMapData.blg_map[idx], CurrentMapData.blg_map[idx], x+1, y+1])
 			idx += 1
+	
+	for hoststation: HostStation in CurrentMapData.host_stations.get_children():
+		if hoststation.owner_id < 1 or hoststation.owner_id > 7:
+			error_messages.append('Invalid host station detected with owner ID "%s" at x:%s, z:-%s' % [hoststation.owner_id, hoststation.position.x, hoststation.position.y])
 	
 	for squad: Squad in CurrentMapData.squads.get_children():
 		if squad.vehicle not in units_db.values():
