@@ -37,6 +37,7 @@ func _ready():
 		"green": load("res://resources/img/squadIcons/GreenUnit1.png"),
 		"gray": load("res://resources/img/squadIcons/GrayUnit1.png"),
 		"red2": load("res://resources/img/squadIcons/TrainingUnit.png"),
+		"unknown": load("res://resources/img/squadIcons/UnknownUnit.png")
 	}
 	squad_icons.circle = {
 		"blue": load("res://resources/img/squadIcons/BlueUnit2.png"),

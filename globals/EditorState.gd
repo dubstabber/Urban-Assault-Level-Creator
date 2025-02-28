@@ -146,8 +146,10 @@ func refresh_warnings() -> void:
 			error_messages.append('Invalid host station detected with owner ID "%s" at x:%s, z:-%s' % [hoststation.owner_id, hoststation.position.x, hoststation.position.y])
 	
 	for squad: Squad in CurrentMapData.squads.get_children():
+		if squad.owner_id < 1 or squad.owner_id > 7:
+			warning_messages.append('Invalid squad detected with owner ID "%s" at x:%s, z:-%s' % [squad.owner_id, squad.position.x, squad.position.y])
 		if squad.vehicle not in units_db.values():
-			warning_messages.append('Detected an unknown unit with vehicle ID "%s" at x:%s, y:-%s' % [squad.vehicle, squad.position.x, squad.position.y])
+			warning_messages.append('Detected an unknown squad with vehicle ID "%s" at x:%s, y:-%s' % [squad.vehicle, squad.position.x, squad.position.y])
 	
 	for tech_upgrade: TechUpgrade in CurrentMapData.tech_upgrades:
 		for vehicle_modifier in tech_upgrade.vehicles:
