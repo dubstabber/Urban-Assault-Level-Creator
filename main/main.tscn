@@ -358,7 +358,6 @@ horizontal_alignment = 1
 [node name="StatusBarContainerRight" type="HBoxContainer" parent="PanelContainer/MarginContainer/VBoxContainer/MarginContainer"]
 layout_mode = 2
 size_flags_horizontal = 8
-alignment = 2
 script = ExtResource("34_21ltw")
 warning_icon = ExtResource("34_wx03i")
 no_warning_icon = ExtResource("36_qjqir")

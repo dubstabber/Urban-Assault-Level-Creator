@@ -80,6 +80,7 @@ func _draw():
 					5: sector_color = Color.DIM_GRAY
 					6: sector_color = Color.RED
 					7: sector_color = Color(0.070588, 0.0, 0.168627, 1)
+					_: sector_color = Color.BLACK
 				draw_rect(Rect2(h_grid+sector_indent,v_grid+sector_indent, 1200-(sector_indent*2),1200-(sector_indent*2)), sector_color, false, 30.0)
 				
 				if (y_sector > 1 and

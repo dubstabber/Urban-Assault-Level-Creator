@@ -137,6 +137,8 @@ func refresh_warnings() -> void:
 	var idx := 0
 	for y in CurrentMapData.vertical_sectors:
 		for x in CurrentMapData.horizontal_sectors:
+			if CurrentMapData.own_map[idx] > 7:
+				warning_messages.append('Detected an invalid own_map value "%s (0x%x)" at X:%s, Y:%s' % [CurrentMapData.own_map[idx], CurrentMapData.own_map[idx], x+1, y+1])
 			if str(CurrentMapData.blg_map[idx]) not in blg_names and CurrentMapData.blg_map[idx] not in [0, 5, 6, 25, 26, 60, 61, 4, 7, 15, 51, 50, 16, 65, 35, 36, 37, 68, 69, 70]:
 				warning_messages.append('Detected an unknown blg_map value "%s (0x%x)" at X:%s, Y:%s' % [CurrentMapData.blg_map[idx], CurrentMapData.blg_map[idx], x+1, y+1])
 			idx += 1
