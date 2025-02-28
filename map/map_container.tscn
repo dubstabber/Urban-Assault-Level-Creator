@@ -1,9 +1,10 @@
-[gd_scene load_steps=16 format=3 uid="uid://dy8lh8y52680p"]
+[gd_scene load_steps=17 format=3 uid="uid://dy8lh8y52680p"]
 
 [ext_resource type="Script" path="res://map/map_container.gd" id="1_5foj2"]
 [ext_resource type="Script" path="res://map/map_renderer.gd" id="2_v1tro"]
 [ext_resource type="Script" path="res://map/context_menu_builders/add_host_station_context_menu.gd" id="3_5rxkp"]
 [ext_resource type="FontFile" uid="uid://b5bou0wtu243w" path="res://resources/Xolonium-Regular.ttf" id="3_6n7wx"]
+[ext_resource type="Script" path="res://map/input_handler.gd" id="3_ayu2m"]
 [ext_resource type="Script" path="res://map/context_menu_builders/add_squad_context_menu.gd" id="4_k643x"]
 [ext_resource type="Script" path="res://map/context_menu_builders/change_faction_context_menu.gd" id="5_r6vs5"]
 [ext_resource type="Script" path="res://map/context_menu_builders/change_height_context_menu.gd" id="6_ixe4a"]
@@ -33,6 +34,9 @@ render_target_update_mode = 4
 [node name="Map" type="Node2D" parent="SubViewportMapContainer/SubViewport"]
 unique_name_in_owner = true
 script = ExtResource("2_v1tro")
+
+[node name="InputHandler" type="Node" parent="SubViewportMapContainer/SubViewport/Map"]
+script = ExtResource("3_ayu2m")
 
 [node name="Camera2D" type="Camera2D" parent="SubViewportMapContainer/SubViewport/Map"]
 anchor_mode = 0

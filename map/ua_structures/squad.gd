@@ -11,7 +11,7 @@ var useable := false
 
 func _ready() -> void:
 	EventSystem.game_type_changed.connect(setup_properties)
-	EventSystem.game_type_changed.connect(change_faction.bind(owner_id))
+	EventSystem.game_type_changed.connect(change_faction)
 
 
 func create(_owner_id: int, _vehicle_id: int):
@@ -38,7 +38,7 @@ func setup_properties() -> void:
 		map_icon = "square"
 
 
-func change_faction(_owner_id: int) -> void:
+func change_faction(_owner_id: int = owner_id) -> void:
 	owner_id = _owner_id
 	match owner_id:
 		1: texture = Preloads.squad_icons[map_icon].blue
