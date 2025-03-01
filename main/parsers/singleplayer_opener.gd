@@ -582,6 +582,7 @@ static func _handle_prototype_enabling(file: FileAccess) -> void:
 					5: CurrentMapData.blacksect_enabled_units.append(int(string_line))
 					6: CurrentMapData.ghorkov_enabled_units.append(int(string_line))
 					7: CurrentMapData.training_enabled_units.append(int(string_line))
+					_: CurrentMapData.unknown_enabled_units.append({owner_id = owner_id, vehicle_id = int(string_line)})
 			
 			if string_line.begins_with("building"):
 				string_line = string_line.replacen("building", "").replacen("=", "").strip_edges()
@@ -593,6 +594,7 @@ static func _handle_prototype_enabling(file: FileAccess) -> void:
 					5: CurrentMapData.blacksect_enabled_buildings.append(int(string_line))
 					6: CurrentMapData.ghorkov_enabled_buildings.append(int(string_line))
 					7: CurrentMapData.training_enabled_buildings.append(int(string_line))
+					_: CurrentMapData.unknown_enabled_buildings.append({owner_id = owner_id, building_id = int(string_line)})
 
 
 static func _handle_tech_upgrades(file: FileAccess) -> void:

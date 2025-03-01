@@ -43,6 +43,7 @@ var mykonian_enabled_units: Array[int] = []
 var sulgogar_enabled_units: Array[int] = []
 var blacksect_enabled_units: Array[int] = []
 var training_enabled_units: Array[int] = []
+var unknown_enabled_units: Array[Dictionary] = []
 
 var resistance_enabled_buildings: Array[int] = []
 var ghorkov_enabled_buildings: Array[int] = []
@@ -51,6 +52,7 @@ var mykonian_enabled_buildings: Array[int] = []
 var sulgogar_enabled_buildings: Array[int] = []
 var blacksect_enabled_buildings: Array[int] = []
 var training_enabled_buildings: Array[int] = []
+var unknown_enabled_buildings: Array[Dictionary] = []
 
 var map_path := ""
 var is_saved := true:
@@ -118,6 +120,7 @@ func close_map() -> void:
 	sulgogar_enabled_units.clear()
 	blacksect_enabled_units.clear()
 	training_enabled_units.clear()
+	unknown_enabled_units.clear()
 	
 	resistance_enabled_buildings.clear()
 	ghorkov_enabled_buildings.clear()
@@ -126,6 +129,11 @@ func close_map() -> void:
 	sulgogar_enabled_buildings.clear()
 	blacksect_enabled_buildings.clear()
 	training_enabled_buildings.clear()
+	unknown_enabled_buildings.clear()
+	
+	EditorState.error_messages.clear()
+	EditorState.warning_messages.clear()
+	EventSystem.warning_logs_updated.emit()
 	
 	DisplayServer.window_set_title("Urban Assault Level Creator")
 

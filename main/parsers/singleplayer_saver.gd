@@ -37,7 +37,7 @@ static func _handle_header(file: FileAccess) -> void:
 
 
 static func _handle_description(file: FileAccess) -> void:
-	file.store_line(";"+CurrentMapData.level_description.replace('\n', '\n;'))
+	file.store_line(";"+CurrentMapData.level_description.strip_edges(false, true).replace('\n', '\n;'))
 	file.store_line("")
 
 
@@ -204,7 +204,7 @@ static func _handle_modifications(file: FileAccess) -> void:
 	file.store_line(";------------------------------------------------------------")
 	file.store_line(";--- Prototype Modifications                              ---")
 	file.store_line(";------------------------------------------------------------")
-	file.store_line(CurrentMapData.prototype_modifications)
+	file.store_line(CurrentMapData.prototype_modifications.strip_edges())
 
 
 static func _handle_prototype_enabling(file: FileAccess) -> void:

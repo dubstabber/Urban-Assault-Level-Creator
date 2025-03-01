@@ -185,6 +185,8 @@ func refresh_warnings() -> void:
 	for unit_id in CurrentMapData.training_enabled_units:
 		if unit_id not in units_db.values():
 			warning_messages.append('Detected an unknown enabled unit for training with vehicle ID "%s"' % unit_id)
+	for unit_data in CurrentMapData.unknown_enabled_units:
+		warning_messages.append('Detected an unknown owner ID "%s" in enabler for unit ID "%s"' % [unit_data.owner_id, unit_data.vehicle_id])
 	
 	for building_id in CurrentMapData.resistance_enabled_buildings:
 		if str(building_id) not in blg_names:
@@ -207,5 +209,7 @@ func refresh_warnings() -> void:
 	for building_id in CurrentMapData.training_enabled_buildings:
 		if str(building_id) not in blg_names:
 			warning_messages.append('Detected an unknown enabled building for training with building ID "%s"' % building_id)
+	for building_data in CurrentMapData.unknown_enabled_buildings:
+		warning_messages.append('Detected an unknown owner ID "%s" in enabler for building ID "%s"' % [building_data.owner_id, building_data.building_id])
 	
 	EventSystem.warning_logs_updated.emit()
