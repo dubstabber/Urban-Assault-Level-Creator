@@ -13,7 +13,8 @@ func _on_ok_button_pressed() -> void:
 	if typ_map_spin_box.value >= 0 and typ_map_spin_box.value < 256:
 		if EditorState.selected_sectors.size() > 1 and CurrentMapData.hgt_map.size() > 0:
 			for sector_dict in EditorState.selected_sectors:
-				CurrentMapData.typ_map[sector_dict.idx] = int(typ_map_spin_box.value)
+				if sector_dict.has("idx"):
+					CurrentMapData.typ_map[sector_dict.idx] = int(typ_map_spin_box.value)
 			EventSystem.map_updated.emit()
 		elif EditorState.selected_sector_idx >= 0 and CurrentMapData.typ_map.size() > 0:
 			CurrentMapData.typ_map[EditorState.selected_sector_idx] = int(typ_map_spin_box.value)

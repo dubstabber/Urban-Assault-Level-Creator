@@ -13,6 +13,7 @@ func _on_index_pressed(index: int) -> void:
 		if CurrentMapData.horizontal_sectors > 0:
 			if EditorState.selected_sectors.size() > 1:
 				for sector_dict in EditorState.selected_sectors:
-					CurrentMapData.clear_sector(sector_dict.idx)
+					if sector_dict.has("idx"):
+						CurrentMapData.clear_sector(sector_dict.idx)
 			else:
 				CurrentMapData.clear_sector(EditorState.selected_sector_idx)

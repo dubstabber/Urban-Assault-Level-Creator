@@ -95,7 +95,8 @@ func _input(event):
 		if CurrentMapData.horizontal_sectors <= 0: return
 		if EditorState.selected_sectors.size() > 1:
 			for sector_dict in EditorState.selected_sectors:
-				Utils.decrement_typ_map(sector_dict.idx)
+				if sector_dict.has("idx"):
+					Utils.decrement_typ_map(sector_dict.idx)
 		else:
 			Utils.decrement_typ_map(EditorState.selected_sector_idx)
 		CurrentMapData.is_saved = false
@@ -104,7 +105,8 @@ func _input(event):
 		if CurrentMapData.horizontal_sectors <= 0: return
 		if EditorState.selected_sectors.size() > 1:
 			for sector_dict in EditorState.selected_sectors:
-				Utils.increment_typ_map(sector_dict.idx)
+				if sector_dict.has("idx"):
+					Utils.increment_typ_map(sector_dict.idx)
 		else:
 			Utils.increment_typ_map(EditorState.selected_sector_idx)
 		CurrentMapData.is_saved = false

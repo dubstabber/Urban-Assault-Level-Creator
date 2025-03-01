@@ -346,3 +346,42 @@ func paste_sector() -> void:
 		if EditorState.sector_clipboard.bomb_key_sector_parent and EditorState.selected_bomb_key_sector == Vector2i(-1, -1):
 			EditorState.sector_clipboard.bomb_key_sector_parent.key_sectors.append(Vector2i(EditorState.selected_sector.x, EditorState.selected_sector.y))
 		EventSystem.map_updated.emit()
+
+
+func select_all_sectors(no_borders := false) -> void:
+	if CurrentMapData.horizontal_sectors == 0: return
+	EditorState.unselect_all()
+	var sector_counter := 0
+	var border_sector_counter := 0
+	EditorState.border_selected_sector_idx = 0
+	EditorState.selected_sector_idx = 0
+	for y_sector in CurrentMapData.vertical_sectors+2:
+		for x_sector in CurrentMapData.horizontal_sectors+2:
+			if not no_borders:
+				
+				EditorState.selected_sectors.append(
+					{
+						"border_idx": border_sector_counter, 
+						"x": x_sector, 
+						"y":y_sector
+					})
+			
+			if (y_sector > 0 and y_sector < CurrentMapData.vertical_sectors+1 and
+				x_sector > 0 and x_sector < CurrentMapData.horizontal_sectors+1 and
+				sector_counter < (CurrentMapData.vertical_sectors*CurrentMapData.horizontal_sectors)
+				):
+					if no_borders:
+						EditorState.selected_sectors.append(
+							{
+								"border_idx": border_sector_counter,
+								"idx": sector_counter,
+								"x": x_sector,
+								"y":y_sector
+							})
+					else:
+						EditorState.selected_sectors[-1].idx = sector_counter
+					#if sector_counter+1 != CurrentMapData.vertical_sectors*CurrentMapData.horizontal_sectors:
+					sector_counter += 1
+			border_sector_counter += 1
+		
+	EventSystem.map_updated.emit()

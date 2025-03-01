@@ -18,10 +18,11 @@ func _ready() -> void:
 			if EditorState.selected_sector_idx >= 0 and CurrentMapData.own_map.size() > 0:
 				if EditorState.selected_sectors.size() > 1:
 					for sector_dict in EditorState.selected_sectors:
-						if id == 0 and CurrentMapData.blg_map[sector_dict.idx] not in [0, 35, 68]:
+						if id == 0 and sector_dict.has("idx") and CurrentMapData.blg_map[sector_dict.idx] not in [0, 35, 68]:
 							CurrentMapData.own_map[sector_dict.idx] = 7
 						else:
-							CurrentMapData.own_map[sector_dict.idx] = id
+							if sector_dict.has("idx"):
+								CurrentMapData.own_map[sector_dict.idx] = id
 				else:
 					if id == 0 and CurrentMapData.blg_map[EditorState.selected_sector_idx] not in [0, 35, 68]:
 						CurrentMapData.own_map[EditorState.selected_sector_idx] = 7
