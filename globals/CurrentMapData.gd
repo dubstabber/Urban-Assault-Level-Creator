@@ -130,7 +130,7 @@ func close_map() -> void:
 	DisplayServer.window_set_title("Urban Assault Level Creator")
 
 
-func clear_sector(index: int) -> void:
+func clear_sector(index: int, refresh_map := true) -> void:
 	typ_map[index] = 0
 	blg_map[index] = 0
 	own_map[index] = 0
@@ -147,5 +147,6 @@ func clear_sector(index: int) -> void:
 	for bomb in stoudson_bombs:
 		bomb.key_sectors.erase(EditorState.selected_bomb_key_sector)
 	EditorState.selected_bomb_key_sector = Vector2i(-1,-1)
-	EventSystem.map_updated.emit()
-	EventSystem.item_updated.emit()
+	if refresh_map:
+		EventSystem.map_updated.emit()
+		EventSystem.item_updated.emit()

@@ -14,6 +14,8 @@ func _on_index_pressed(index: int) -> void:
 			if EditorState.selected_sectors.size() > 1:
 				for sector_dict in EditorState.selected_sectors:
 					if sector_dict.has("idx"):
-						CurrentMapData.clear_sector(sector_dict.idx)
+						CurrentMapData.clear_sector(sector_dict.idx, false)
 			else:
 				CurrentMapData.clear_sector(EditorState.selected_sector_idx)
+			EventSystem.map_updated.emit()
+			EventSystem.item_updated.emit()

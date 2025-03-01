@@ -26,6 +26,8 @@ func _input(event):
 			EventSystem.left_double_clicked.emit()
 	elif event.is_action_released("select"):
 		is_left_pressed = false
+	if event.is_action_pressed("select_all"):
+		Utils.select_all_sectors()
 	if event.is_action_pressed("context_menu"):
 		if CurrentMapData.horizontal_sectors <= 0: return
 		map.right_clicked_x = round(map.get_local_mouse_position().x)
@@ -118,10 +120,12 @@ func _input(event):
 	if event.is_action_pressed("clear_sector") and not CurrentMapData.typ_map.is_empty():
 		if EditorState.selected_sectors.size() > 1:
 			for sector_dict in EditorState.selected_sectors:
-				CurrentMapData.clear_sector(sector_dict.idx)
+				if sector_dict.has("idx"):
+					CurrentMapData.clear_sector(sector_dict.idx, false)
 		else:
 			CurrentMapData.clear_sector(EditorState.selected_sector_idx)
-		CurrentMapData.is_saved = false
+		EventSystem.map_updated.emit()
+		EventSystem.item_updated.emit()
 	if event is InputEventMouseButton and event.button_index == MOUSE_BUTTON_LEFT and event.double_click:
 		if not EditorState.selected_unit:
 			EventSystem.left_double_clicked.emit()

@@ -143,6 +143,11 @@ layout_mode = 2
 theme_override_font_sizes/font_size = 14
 text = "'Ctrl + V' - paste selected sector"
 
+[node name="Label23" type="Label" parent="MarginContainer/VBoxContainer/ScrollContainer/VBoxContainer"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 14
+text = "'Ctrl + A' - select all sectors"
+
 [node name="CloseButton" type="Button" parent="MarginContainer/VBoxContainer"]
 layout_mode = 2
 size_flags_horizontal = 4

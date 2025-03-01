@@ -380,8 +380,8 @@ func select_all_sectors(no_borders := false) -> void:
 							})
 					else:
 						EditorState.selected_sectors[-1].idx = sector_counter
-					#if sector_counter+1 != CurrentMapData.vertical_sectors*CurrentMapData.horizontal_sectors:
+					
 					sector_counter += 1
 			border_sector_counter += 1
 		
-	EventSystem.map_updated.emit()
+	EventSystem.map_view_updated.emit()
