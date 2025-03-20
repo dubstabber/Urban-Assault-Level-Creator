@@ -1,8 +1,11 @@
-[gd_scene load_steps=6 format=3 uid="uid://cwls8s52kffff"]
+[gd_scene load_steps=9 format=3 uid="uid://cwls8s52kffff"]
 
 [ext_resource type="Script" path="res://modals/mission_briefing_maps_window.gd" id="1_3ep5j"]
 [ext_resource type="Script" path="res://modals/components/briefing_maps_option_button.gd" id="2_1cafo"]
+[ext_resource type="Texture2D" uid="uid://cp1dapyg1847h" path="res://resources/img/ui_icons/eyedropper.png" id="3_8gcvh"]
 [ext_resource type="Script" path="res://modals/components/debriefing_maps_option_button.gd" id="3_nbxoc"]
+[ext_resource type="PackedScene" uid="uid://bmiwat7c1bw0s" path="res://modals/briefing_map_picker_window.tscn" id="5_d4al1"]
+[ext_resource type="PackedScene" uid="uid://de5odimivku1i" path="res://modals/debriefing_map_picker_window.tscn" id="6_ylvud"]
 
 [sub_resource type="PlaceholderTexture2D" id="PlaceholderTexture2D_2ur5c"]
 size = Vector2(350, 350)
@@ -14,7 +17,7 @@ size = Vector2(350, 350)
 auto_translate_mode = 1
 title = "Mission briefing and debriefing maps"
 initial_position = 1
-size = Vector2i(690, 800)
+size = Vector2i(710, 800)
 transient = true
 exclusive = true
 min_size = Vector2i(350, 350)
@@ -66,6 +69,14 @@ size_flags_vertical = 0
 focus_neighbor_bottom = NodePath(".")
 focus_mode = 1
 script = ExtResource("2_1cafo")
+
+[node name="BriefingMapPickerButton" type="Button" parent="PanelContainer/ScrollContainer/MarginContainer/VBoxContainer/HBoxContainer/VBoxContainer/HBoxContainer"]
+custom_minimum_size = Vector2(20, 20)
+layout_mode = 2
+tooltip_text = "Pick a briefing map from the list"
+icon = ExtResource("3_8gcvh")
+icon_alignment = 1
+expand_icon = true
 
 [node name="HBoxContainer2" type="HBoxContainer" parent="PanelContainer/ScrollContainer/MarginContainer/VBoxContainer/HBoxContainer/VBoxContainer"]
 layout_mode = 2
@@ -130,6 +141,14 @@ focus_neighbor_bottom = NodePath(".")
 focus_mode = 1
 script = ExtResource("3_nbxoc")
 
+[node name="DebriefingMapPickerButton" type="Button" parent="PanelContainer/ScrollContainer/MarginContainer/VBoxContainer/HBoxContainer2/VBoxContainer/HBoxContainer"]
+custom_minimum_size = Vector2(20, 20)
+layout_mode = 2
+tooltip_text = "Pick a debriefing map from the list"
+icon = ExtResource("3_8gcvh")
+icon_alignment = 1
+expand_icon = true
+
 [node name="HBoxContainer2" type="HBoxContainer" parent="PanelContainer/ScrollContainer/MarginContainer/VBoxContainer/HBoxContainer2/VBoxContainer"]
 layout_mode = 2
 alignment = 1
@@ -176,12 +195,24 @@ size_flags_vertical = 4
 focus_mode = 0
 text = "Close"
 
+[node name="BriefingMapPickerWindow" parent="." instance=ExtResource("5_d4al1")]
+unique_name_in_owner = true
+visible = false
+
+[node name="DebriefingMapPickerWindow" parent="." instance=ExtResource("6_ylvud")]
+unique_name_in_owner = true
+visible = false
+
 [connection signal="about_to_popup" from="." to="." method="_on_about_to_popup"]
 [connection signal="close_requested" from="." to="." method="close"]
 [connection signal="item_selected" from="PanelContainer/ScrollContainer/MarginContainer/VBoxContainer/HBoxContainer/VBoxContainer/HBoxContainer/BriefingMapsOptionButton" to="." method="_on_briefing_maps_option_button_item_selected"]
+[connection signal="pressed" from="PanelContainer/ScrollContainer/MarginContainer/VBoxContainer/HBoxContainer/VBoxContainer/HBoxContainer/BriefingMapPickerButton" to="." method="_on_briefing_map_picker_button_pressed"]
 [connection signal="value_changed" from="PanelContainer/ScrollContainer/MarginContainer/VBoxContainer/HBoxContainer/VBoxContainer/HBoxContainer2/MBsizeXSpinBox" to="." method="_on_m_bsize_x_spin_box_value_changed"]
 [connection signal="value_changed" from="PanelContainer/ScrollContainer/MarginContainer/VBoxContainer/HBoxContainer/VBoxContainer/HBoxContainer3/MBsizeYSpinBox" to="." method="_on_m_bsize_y_spin_box_value_changed"]
 [connection signal="item_selected" from="PanelContainer/ScrollContainer/MarginContainer/VBoxContainer/HBoxContainer2/VBoxContainer/HBoxContainer/DebriefingMapsOptionButton" to="." method="_on_debriefing_maps_option_button_item_selected"]
+[connection signal="pressed" from="PanelContainer/ScrollContainer/MarginContainer/VBoxContainer/HBoxContainer2/VBoxContainer/HBoxContainer/DebriefingMapPickerButton" to="." method="_on_debriefing_map_picker_button_pressed"]
 [connection signal="value_changed" from="PanelContainer/ScrollContainer/MarginContainer/VBoxContainer/HBoxContainer2/VBoxContainer/HBoxContainer2/DBsizeXSpinBox" to="." method="_on_d_bsize_x_spin_box_value_changed"]
 [connection signal="value_changed" from="PanelContainer/ScrollContainer/MarginContainer/VBoxContainer/HBoxContainer2/VBoxContainer/HBoxContainer3/DBsizeYSpinBox" to="." method="_on_d_bsize_y_spin_box_value_changed"]
 [connection signal="pressed" from="PanelContainer/ScrollContainer/MarginContainer/VBoxContainer/Button" to="." method="close"]
+[connection signal="briefing_map_selected" from="BriefingMapPickerWindow" to="." method="_on_briefing_map_picker_window_briefing_map_selected"]
+[connection signal="debriefing_map_selected" from="DebriefingMapPickerWindow" to="." method="_on_debriefing_map_picker_window_debriefing_map_selected"]

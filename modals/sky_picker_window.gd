@@ -16,6 +16,7 @@ func _on_about_to_popup() -> void:
 		sky_button.custom_minimum_size = Vector2(400, 200)
 		sky_button.icon_alignment = HORIZONTAL_ALIGNMENT_CENTER
 		sky_button.expand_icon = true
+		sky_button.tooltip_text = sky
 		sky_button.set_meta("sky_name", sky)
 		sky_button.pressed.connect(func():
 			sky_selected.emit(sky_button.get_meta("sky_name"))

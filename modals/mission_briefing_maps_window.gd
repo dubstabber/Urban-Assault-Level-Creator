@@ -1,5 +1,8 @@
 extends Window
 
+@onready var briefing_map_picker_window: Window = %BriefingMapPickerWindow
+@onready var debriefing_map_picker_window: Window = %DebriefingMapPickerWindow
+
 
 func _on_about_to_popup() -> void:
 	refresh()
@@ -81,4 +84,23 @@ func _on_d_bsize_y_spin_box_value_changed(value: float) -> void:
 	if CurrentMapData.debriefing_size_y != int(value):
 		CurrentMapData.is_saved = false
 	CurrentMapData.debriefing_size_y = int(value)
-	
+
+
+func _on_briefing_map_picker_button_pressed() -> void:
+	briefing_map_picker_window.popup()
+
+
+func _on_debriefing_map_picker_button_pressed() -> void:
+	debriefing_map_picker_window.popup()
+
+
+func _on_briefing_map_picker_window_briefing_map_selected(full_map_name: String) -> void:
+	var index = get_option_index_by_text(%BriefingMapsOptionButton, full_map_name)
+	%BriefingMapsOptionButton.select(index)
+	_on_briefing_maps_option_button_item_selected(index)
+
+
+func _on_debriefing_map_picker_window_debriefing_map_selected(full_map_name: String) -> void:
+	var index = get_option_index_by_text(%DebriefingMapsOptionButton, full_map_name)
+	%DebriefingMapsOptionButton.select(index)
+	_on_debriefing_maps_option_button_item_selected(index)

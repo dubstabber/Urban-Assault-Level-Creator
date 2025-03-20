@@ -7,7 +7,7 @@ size = Vector2(200, 100)
 
 [node name="SkyPickerWindow" type="Window"]
 mode = 2
-title = "Select sky from list"
+title = "Select a sky from the list"
 initial_position = 2
 size = Vector2i(620, 500)
 transient = true
