@@ -1,4 +1,4 @@
-[gd_scene load_steps=46 format=3 uid="uid://ctgiwn3scteuk"]
+[gd_scene load_steps=47 format=3 uid="uid://ctgiwn3scteuk"]
 
 [ext_resource type="Script" path="res://main/main.gd" id="1_7pb5r"]
 [ext_resource type="Script" path="res://modals/modals.gd" id="2_glk8b"]
@@ -36,6 +36,7 @@
 [ext_resource type="Script" path="res://modals/error_accept_dialog.gd" id="26_ha6he"]
 [ext_resource type="PackedScene" uid="uid://3c4x0gmdhcwn" path="res://typ_map_designer/typ_map_designer_container.tscn" id="27_45wxb"]
 [ext_resource type="Script" path="res://main/status_bar_container.gd" id="27_esd3e"]
+[ext_resource type="Script" path="res://main/nav_bar/menu_bar_edit.gd" id="29_rprwg"]
 [ext_resource type="Script" path="res://main/status_bar_container_right.gd" id="34_21ltw"]
 [ext_resource type="Texture2D" uid="uid://dpr45g77fuh7m" path="res://resources/img/ui_icons/warning-icon.png" id="34_wx03i"]
 [ext_resource type="Texture2D" uid="uid://cqtiag6sfysm4" path="res://resources/img/ui_icons/no-warning-icon.png" id="36_qjqir"]
@@ -299,6 +300,9 @@ theme_override_fonts/font = ExtResource("22_hbtdp")
 auto_translate_mode = 1
 theme_override_fonts/font = ExtResource("22_hbtdp")
 script = ExtResource("6_i86yq")
+
+[node name="Edit" type="PopupMenu" parent="PanelContainer/MarginContainer/VBoxContainer/MenuBar"]
+script = ExtResource("29_rprwg")
 
 [node name="View" type="PopupMenu" parent="PanelContainer/MarginContainer/VBoxContainer/MenuBar"]
 auto_translate_mode = 1

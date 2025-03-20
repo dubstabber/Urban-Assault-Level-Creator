@@ -50,6 +50,7 @@ zoom = Vector2(0.056, 0.056)
 unique_name_in_owner = true
 auto_translate_mode = 1
 theme_override_fonts/font = ExtResource("3_6n7wx")
+submenu_popup_delay = 0.01
 
 [node name="AddHostStation" type="Node" parent="SubViewportMapContainer/SubViewport/MapContextMenu"]
 script = ExtResource("3_5rxkp")
@@ -86,6 +87,7 @@ unique_name_in_owner = true
 auto_translate_mode = 1
 size = Vector2i(100, 20)
 theme_override_fonts/font = ExtResource("3_6n7wx")
+submenu_popup_delay = 0.01
 
 [node name="DuplicateUnit" type="Node" parent="SubViewportMapContainer/SubViewport/UnitContextMenu"]
 script = ExtResource("14_xa2rc")
@@ -97,6 +99,7 @@ script = ExtResource("11_3ytp4")
 unique_name_in_owner = true
 auto_translate_mode = 1
 theme_override_fonts/font = ExtResource("3_6n7wx")
+submenu_popup_delay = 0.01
 
 [node name="ChangeFaction" type="Node" parent="SubViewportMapContainer/SubViewport/MultiSectorMapContextMenu"]
 script = ExtResource("5_r6vs5")

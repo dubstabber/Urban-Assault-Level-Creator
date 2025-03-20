@@ -5,8 +5,6 @@ func _ready() -> void:
 	add_check_item("Switch to building design mode")
 	add_separator()
 	add_item("Resize the map")
-	add_item("Select all sectors")
-	add_item("Select all sectors except the borders")
 	add_item("Generate buildings randomly")
 	set_default_values()
 	index_pressed.connect(_on_index_pressed)
@@ -25,10 +23,6 @@ func _on_index_pressed(index: int) -> void:
 			%TypMapDesignerContainer.visible = not %TypMapDesignerContainer.visible
 		"Resize the map":
 			%ResizeMapWindow.popup()
-		"Select all sectors":
-			Utils.select_all_sectors()
-		"Select all sectors except the borders":
-			Utils.select_all_sectors(true)
 		"Generate buildings randomly":
 			%RandomizeTypMapConfirmationDialog.popup()
 
