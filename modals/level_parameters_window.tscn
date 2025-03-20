@@ -1,7 +1,9 @@
-[gd_scene load_steps=4 format=3 uid="uid://dww5muvu8c87j"]
+[gd_scene load_steps=6 format=3 uid="uid://dww5muvu8c87j"]
 
 [ext_resource type="Script" path="res://modals/level_parameters_window.gd" id="1_st6e7"]
 [ext_resource type="Script" path="res://modals/components/sky_option_button.gd" id="2_mmmkj"]
+[ext_resource type="Texture2D" uid="uid://cp1dapyg1847h" path="res://resources/img/ui_icons/eyedropper.png" id="3_1o3gn"]
+[ext_resource type="PackedScene" uid="uid://bsr84sb4x5nrk" path="res://modals/sky_picker_window.tscn" id="4_yqhch"]
 
 [sub_resource type="PlaceholderTexture2D" id="PlaceholderTexture2D_0ppun"]
 
@@ -42,7 +44,7 @@ layout_mode = 2
 
 [node name="Label" type="Label" parent="PanelContainer/MarginContainer/VBoxContainer/HBoxContainer/VBoxContainer"]
 layout_mode = 2
-text = "Select sector environment"
+text = "Select level environment"
 
 [node name="LevelSetOptionButton" type="OptionButton" parent="PanelContainer/MarginContainer/VBoxContainer/HBoxContainer/VBoxContainer"]
 unique_name_in_owner = true
@@ -287,6 +289,14 @@ popup/item_71/text = "xc"
 popup/item_71/id = 71
 script = ExtResource("2_mmmkj")
 
+[node name="PickSkyButton" type="Button" parent="PanelContainer/MarginContainer/VBoxContainer/HBoxContainer2"]
+custom_minimum_size = Vector2(30, 0)
+layout_mode = 2
+tooltip_text = "Pick the sky from the list"
+icon = ExtResource("3_1o3gn")
+icon_alignment = 1
+expand_icon = true
+
 [node name="SkyTexture" type="TextureRect" parent="PanelContainer/MarginContainer/VBoxContainer"]
 unique_name_in_owner = true
 custom_minimum_size = Vector2(450, 250)
@@ -386,9 +396,15 @@ size_flags_horizontal = 4
 focus_mode = 0
 text = "Save"
 
+[node name="SkyPickerWindow" parent="." instance=ExtResource("4_yqhch")]
+unique_name_in_owner = true
+visible = false
+
 [connection signal="about_to_popup" from="." to="." method="_on_about_to_popup"]
 [connection signal="close_requested" from="." to="." method="_on_cancel_button_pressed"]
 [connection signal="item_selected" from="PanelContainer/MarginContainer/VBoxContainer/HBoxContainer2/SkyOptionButton" to="." method="_on_sky_option_button_item_selected"]
+[connection signal="pressed" from="PanelContainer/MarginContainer/VBoxContainer/HBoxContainer2/PickSkyButton" to="." method="_on_pick_sky_button_pressed"]
 [connection signal="toggled" from="PanelContainer/MarginContainer/VBoxContainer/VBoxContainer/HBoxContainer/MusicButton" to="." method="_on_music_button_toggled"]
 [connection signal="pressed" from="PanelContainer/MarginContainer/VBoxContainer/HBoxContainer3/CancelButton" to="." method="_on_cancel_button_pressed"]
 [connection signal="pressed" from="PanelContainer/MarginContainer/VBoxContainer/HBoxContainer3/SaveButton" to="." method="_on_save_button_pressed"]
+[connection signal="sky_selected" from="SkyPickerWindow" to="." method="_on_sky_picker_window_sky_selected"]

@@ -1,5 +1,7 @@
 extends Window
 
+@onready var sky_picker_window: Window = %SkyPickerWindow
+
 
 func _on_about_to_popup() -> void:
 	%LevelSetOptionButton.select(%LevelSetOptionButton.get_item_index(CurrentMapData.level_set))
@@ -63,3 +65,13 @@ func _on_music_button_toggled(toggled_on: bool) -> void:
 	else:
 		%MusicButton.text = "Play"
 		%MusicPlayer.stop()
+
+
+func _on_pick_sky_button_pressed() -> void:
+	%SkyPickerWindow.popup()
+
+
+func _on_sky_picker_window_sky_selected(sky_name: String) -> void:
+	var index = get_option_index_by_text(%SkyOptionButton, sky_name)
+	%SkyOptionButton.select(index)
+	%SkyTexture.texture = Preloads.skies[sky_name]

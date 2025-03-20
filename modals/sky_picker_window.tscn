@@ -1,0 +1,114 @@
+[gd_scene load_steps=3 format=3 uid="uid://bsr84sb4x5nrk"]
+
+[ext_resource type="Script" path="res://modals/sky_picker_window.gd" id="1_g2wux"]
+
+[sub_resource type="PlaceholderTexture2D" id="PlaceholderTexture2D_5dm3j"]
+size = Vector2(200, 100)
+
+[node name="SkyPickerWindow" type="Window"]
+mode = 2
+title = "Select sky from list"
+initial_position = 2
+size = Vector2i(620, 500)
+transient = true
+exclusive = true
+min_size = Vector2i(620, 500)
+script = ExtResource("1_g2wux")
+
+[node name="PanelContainer" type="PanelContainer" parent="."]
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="MarginContainer" type="MarginContainer" parent="PanelContainer"]
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_vertical = 3
+theme_override_constants/margin_left = 5
+theme_override_constants/margin_top = 5
+theme_override_constants/margin_right = 5
+theme_override_constants/margin_bottom = 5
+
+[node name="VBoxContainer" type="VBoxContainer" parent="PanelContainer/MarginContainer"]
+layout_mode = 2
+
+[node name="ScrollContainer" type="ScrollContainer" parent="PanelContainer/MarginContainer/VBoxContainer"]
+layout_mode = 2
+size_flags_vertical = 3
+
+[node name="CenterContainer" type="CenterContainer" parent="PanelContainer/MarginContainer/VBoxContainer/ScrollContainer"]
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_vertical = 3
+
+[node name="SkyGrid" type="GridContainer" parent="PanelContainer/MarginContainer/VBoxContainer/ScrollContainer/CenterContainer"]
+unique_name_in_owner = true
+layout_mode = 2
+columns = 4
+
+[node name="Button" type="Button" parent="PanelContainer/MarginContainer/VBoxContainer/ScrollContainer/CenterContainer/SkyGrid"]
+custom_minimum_size = Vector2(200, 100)
+layout_mode = 2
+icon = SubResource("PlaceholderTexture2D_5dm3j")
+icon_alignment = 1
+expand_icon = true
+
+[node name="Button2" type="Button" parent="PanelContainer/MarginContainer/VBoxContainer/ScrollContainer/CenterContainer/SkyGrid"]
+custom_minimum_size = Vector2(200, 100)
+layout_mode = 2
+icon = SubResource("PlaceholderTexture2D_5dm3j")
+icon_alignment = 1
+expand_icon = true
+
+[node name="Button3" type="Button" parent="PanelContainer/MarginContainer/VBoxContainer/ScrollContainer/CenterContainer/SkyGrid"]
+custom_minimum_size = Vector2(200, 100)
+layout_mode = 2
+icon = SubResource("PlaceholderTexture2D_5dm3j")
+icon_alignment = 1
+expand_icon = true
+
+[node name="Button4" type="Button" parent="PanelContainer/MarginContainer/VBoxContainer/ScrollContainer/CenterContainer/SkyGrid"]
+custom_minimum_size = Vector2(200, 100)
+layout_mode = 2
+icon = SubResource("PlaceholderTexture2D_5dm3j")
+icon_alignment = 1
+expand_icon = true
+
+[node name="Button5" type="Button" parent="PanelContainer/MarginContainer/VBoxContainer/ScrollContainer/CenterContainer/SkyGrid"]
+custom_minimum_size = Vector2(200, 100)
+layout_mode = 2
+icon = SubResource("PlaceholderTexture2D_5dm3j")
+icon_alignment = 1
+expand_icon = true
+
+[node name="Button6" type="Button" parent="PanelContainer/MarginContainer/VBoxContainer/ScrollContainer/CenterContainer/SkyGrid"]
+custom_minimum_size = Vector2(200, 100)
+layout_mode = 2
+icon = SubResource("PlaceholderTexture2D_5dm3j")
+icon_alignment = 1
+expand_icon = true
+
+[node name="Button7" type="Button" parent="PanelContainer/MarginContainer/VBoxContainer/ScrollContainer/CenterContainer/SkyGrid"]
+custom_minimum_size = Vector2(200, 100)
+layout_mode = 2
+icon = SubResource("PlaceholderTexture2D_5dm3j")
+icon_alignment = 1
+expand_icon = true
+
+[node name="Button8" type="Button" parent="PanelContainer/MarginContainer/VBoxContainer/ScrollContainer/CenterContainer/SkyGrid"]
+custom_minimum_size = Vector2(200, 100)
+layout_mode = 2
+icon = SubResource("PlaceholderTexture2D_5dm3j")
+icon_alignment = 1
+expand_icon = true
+
+[node name="CloseButton" type="Button" parent="PanelContainer/MarginContainer/VBoxContainer"]
+layout_mode = 2
+size_flags_horizontal = 4
+text = "Close"
+
+[connection signal="about_to_popup" from="." to="." method="_on_about_to_popup"]
+[connection signal="close_requested" from="." to="." method="close"]
+[connection signal="pressed" from="PanelContainer/MarginContainer/VBoxContainer/CloseButton" to="." method="close"]
