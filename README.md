@@ -28,7 +28,7 @@ Check out the [releases page.](https://github.com/dubstabber/Urban-Assault-Level
 ## Building
 1. Download Godot 4.3 from https://godotengine.org
 2. Clone this repository or download the zip file then extract it
-3. Open the Godot and import the project
+3. Open the Godot and import the project then click on "Edit"
 4. Go to Project > Export...
 5. If you do not have any building templates then follow along. Otherwise skip to step 10
 6. Click on Add... then select the target platform
