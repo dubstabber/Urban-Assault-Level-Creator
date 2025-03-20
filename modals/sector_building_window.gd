@@ -1,6 +1,6 @@
 extends Window
 
-@onready var typ_map_spin_box: SpinBox = $PanelContainer/VBoxContainer/MarginContainer2/SpinBox
+@onready var typ_map_spin_box: SpinBox = %TypMapSpinBox
 
 
 func _ready() -> void:
@@ -29,3 +29,11 @@ func close() -> void:
 
 func _on_about_to_popup() -> void:
 	typ_map_spin_box.value = CurrentMapData.typ_map[EditorState.selected_sector_idx]
+
+
+func _on_typ_map_picker_button_pressed() -> void:
+	%TypMapPickerWindow.popup()
+
+
+func _on_typ_map_picker_window_building_selected(index: int) -> void:
+	typ_map_spin_box.value = index

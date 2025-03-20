@@ -1,6 +1,8 @@
-[gd_scene load_steps=2 format=3 uid="uid://x4kwkajlf23r"]
+[gd_scene load_steps=4 format=3 uid="uid://x4kwkajlf23r"]
 
 [ext_resource type="Script" path="res://modals/sector_building_window.gd" id="1_tvkoi"]
+[ext_resource type="Texture2D" uid="uid://cp1dapyg1847h" path="res://resources/img/ui_icons/eyedropper.png" id="2_yxpqq"]
+[ext_resource type="PackedScene" uid="uid://b0nqqrwki1xkj" path="res://modals/typ_map_picker_window.tscn" id="3_fp40g"]
 
 [node name="SectorBuildingWindow" type="Window"]
 auto_translate_mode = 1
@@ -37,11 +39,24 @@ layout_mode = 2
 theme_override_constants/margin_left = 100
 theme_override_constants/margin_right = 100
 
-[node name="SpinBox" type="SpinBox" parent="PanelContainer/VBoxContainer/MarginContainer2"]
+[node name="HBoxContainer" type="HBoxContainer" parent="PanelContainer/VBoxContainer/MarginContainer2"]
 layout_mode = 2
+
+[node name="TypMapSpinBox" type="SpinBox" parent="PanelContainer/VBoxContainer/MarginContainer2/HBoxContainer"]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_horizontal = 3
 size_flags_vertical = 4
 max_value = 255.0
 alignment = 1
+
+[node name="TypMapPickerButton" type="Button" parent="PanelContainer/VBoxContainer/MarginContainer2/HBoxContainer"]
+custom_minimum_size = Vector2(30, 30)
+layout_mode = 2
+tooltip_text = "Pick a building from the list"
+icon = ExtResource("2_yxpqq")
+icon_alignment = 1
+expand_icon = true
 
 [node name="MarginContainer3" type="MarginContainer" parent="PanelContainer/VBoxContainer"]
 layout_mode = 2
@@ -59,7 +74,13 @@ text = "Cancel"
 layout_mode = 2
 text = "OK"
 
+[node name="TypMapPickerWindow" parent="." instance=ExtResource("3_fp40g")]
+unique_name_in_owner = true
+visible = false
+
 [connection signal="about_to_popup" from="." to="." method="_on_about_to_popup"]
 [connection signal="close_requested" from="." to="." method="close"]
+[connection signal="pressed" from="PanelContainer/VBoxContainer/MarginContainer2/HBoxContainer/TypMapPickerButton" to="." method="_on_typ_map_picker_button_pressed"]
 [connection signal="pressed" from="PanelContainer/VBoxContainer/MarginContainer3/HBoxContainer/CancelButton" to="." method="close"]
 [connection signal="pressed" from="PanelContainer/VBoxContainer/MarginContainer3/HBoxContainer/OKButton" to="." method="_on_ok_button_pressed"]
+[connection signal="building_selected" from="TypMapPickerWindow" to="." method="_on_typ_map_picker_window_building_selected"]

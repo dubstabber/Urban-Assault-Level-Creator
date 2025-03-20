@@ -292,7 +292,7 @@ script = ExtResource("2_mmmkj")
 [node name="PickSkyButton" type="Button" parent="PanelContainer/MarginContainer/VBoxContainer/HBoxContainer2"]
 custom_minimum_size = Vector2(30, 0)
 layout_mode = 2
-tooltip_text = "Pick the sky from the list"
+tooltip_text = "Pick a sky from the list"
 icon = ExtResource("3_1o3gn")
 icon_alignment = 1
 expand_icon = true
