@@ -302,6 +302,7 @@ theme_override_fonts/font = ExtResource("22_hbtdp")
 script = ExtResource("6_i86yq")
 
 [node name="Edit" type="PopupMenu" parent="PanelContainer/MarginContainer/VBoxContainer/MenuBar"]
+submenu_popup_delay = 0.01
 script = ExtResource("29_rprwg")
 
 [node name="View" type="PopupMenu" parent="PanelContainer/MarginContainer/VBoxContainer/MenuBar"]
