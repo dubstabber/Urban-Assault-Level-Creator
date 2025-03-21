@@ -15,6 +15,9 @@ var right_clicked_y_global: int
 var right_clicked_x: int
 var right_clicked_y: int
 var is_selection_kept := false
+var is_multi_selection := false
+var selection_start_point := Vector2.ZERO
+var current_mouse_pos := Vector2.ZERO
 
 @onready var map_camera = $Camera2D
 
@@ -158,6 +161,15 @@ func _draw():
 			h_grid += 1200
 			current_border_sector += 1
 		v_grid += 1200
+	
+	if is_multi_selection and selection_start_point != Vector2.ZERO:
+		current_mouse_pos = get_local_mouse_position()
+		current_mouse_pos.x = clampf(current_mouse_pos.x, 0, (CurrentMapData.horizontal_sectors+2) * 1200)
+		current_mouse_pos.y = clampf(current_mouse_pos.y, 0, (CurrentMapData.vertical_sectors+2) * 1200)
+		var rect_width: float = current_mouse_pos.x - selection_start_point.x
+		var rect_height: float = current_mouse_pos.y - selection_start_point.y
+		draw_rect(Rect2(selection_start_point.x, selection_start_point.y, rect_width, rect_height), Color.CHARTREUSE, false, 30.0)
+	
 	# _draw() ends here
 
 
@@ -194,64 +206,3 @@ func add_squad(owner_id: int, vehicle_id: int):
 	
 	CurrentMapData.is_saved = false
 	EditorState.selected_unit = squad
-
-
-func handle_selection(clicked_x: int, clicked_y: int):
-	var sector_counter := 0
-	var border_sector_counter := 0
-	var h_size := 0
-	var v_size := 0
-	if not is_selection_kept: EditorState.selected_sectors.clear()
-	
-	for y_sector in CurrentMapData.vertical_sectors+2:
-		for x_sector in CurrentMapData.horizontal_sectors+2:
-			if clicked_x > h_size and clicked_x < h_size + 1200 and clicked_y > v_size and clicked_y < v_size + 1200:
-				EditorState.selected_sector_idx = sector_counter
-				EditorState.border_selected_sector_idx = border_sector_counter
-				EditorState.selected_sector.x = x_sector
-				EditorState.selected_sector.y = y_sector
-				if not EditorState.selected_sectors.any(func(dict): return dict.border_idx == border_sector_counter):
-					EditorState.selected_sectors.append(
-						{
-							"border_idx": border_sector_counter, 
-							"idx": sector_counter,
-							"x": x_sector, 
-							"y":y_sector
-						})
-				break
-			h_size += 1200
-			border_sector_counter += 1
-			if (y_sector > 0 and y_sector < CurrentMapData.vertical_sectors+1 and
-				x_sector > 0 and x_sector < CurrentMapData.horizontal_sectors+1 and
-				sector_counter < (CurrentMapData.vertical_sectors*CurrentMapData.horizontal_sectors-1)
-				):
-				sector_counter += 1
-		v_size += 1200
-		h_size = 0
-	
-	EditorState.selected_beam_gate = null
-	EditorState.selected_bomb = null
-	EditorState.selected_bg_key_sector = Vector2i(-1, -1)
-	EditorState.selected_bomb_key_sector = Vector2i(-1, -1)
-	EditorState.selected_tech_upgrade = null
-	
-	for bg in CurrentMapData.beam_gates:
-		if bg.sec_x == EditorState.selected_sector.x and bg.sec_y == EditorState.selected_sector.y:
-			EditorState.selected_beam_gate = bg
-		for ks in bg.key_sectors:
-			if ks.x == EditorState.selected_sector.x and ks.y == EditorState.selected_sector.y:
-				EditorState.selected_bg_key_sector = ks
-				break
-	for bomb in CurrentMapData.stoudson_bombs:
-		if bomb.sec_x == EditorState.selected_sector.x and bomb.sec_y == EditorState.selected_sector.y:
-			EditorState.selected_bomb = bomb
-		for ks in bomb.key_sectors:
-			if ks.x == EditorState.selected_sector.x and ks.y == EditorState.selected_sector.y:
-				EditorState.selected_bomb_key_sector = ks
-				break
-	for tu in CurrentMapData.tech_upgrades:
-		if tu.sec_x == EditorState.selected_sector.x and tu.sec_y == EditorState.selected_sector.y:
-			EditorState.selected_tech_upgrade = tu
-			break
-	EventSystem.sector_selected.emit()
-	queue_redraw()
