@@ -176,17 +176,17 @@ func handle_selection(clicked_x: int, clicked_y: int):
 	var border_sector_counter := 0
 	var h_size := 0
 	var v_size := 0
-	if not map.is_selection_kept: EditorState.selected_sectors.clear()
+	
+	if not map.is_selection_kept and not is_deselect_pressed: EditorState.selected_sectors.clear()
 	
 	for y_sector in CurrentMapData.vertical_sectors+2:
 		for x_sector in CurrentMapData.horizontal_sectors+2:
 			if clicked_x > h_size and clicked_x < h_size + 1200 and clicked_y > v_size and clicked_y < v_size + 1200:
-				
-				EditorState.selected_sector_idx = sector_counter
-				EditorState.border_selected_sector_idx = border_sector_counter
-				EditorState.selected_sector.x = x_sector
-				EditorState.selected_sector.y = y_sector
-				if not EditorState.selected_sectors.any(func(dict): return dict.border_idx == border_sector_counter):
+				EditorState.selected_sector_idx = sector_counter if not is_deselect_pressed else -1
+				EditorState.border_selected_sector_idx = border_sector_counter if not is_deselect_pressed else -1
+				EditorState.selected_sector.x = x_sector if not is_deselect_pressed else -1
+				EditorState.selected_sector.y = y_sector if not is_deselect_pressed else -1
+				if not is_deselect_pressed and not EditorState.selected_sectors.any(func(dict): return dict.border_idx == border_sector_counter):
 					EditorState.selected_sectors.append(
 						{
 							"border_idx": border_sector_counter, 
@@ -194,6 +194,8 @@ func handle_selection(clicked_x: int, clicked_y: int):
 							"x": x_sector, 
 							"y":y_sector
 						})
+				else:
+					EditorState.selected_sectors = EditorState.selected_sectors.filter(func(dict): return dict.border_idx != border_sector_counter)
 				break
 			h_size += 1200
 			border_sector_counter += 1
@@ -211,24 +213,25 @@ func handle_selection(clicked_x: int, clicked_y: int):
 	EditorState.selected_bomb_key_sector = Vector2i(-1, -1)
 	EditorState.selected_tech_upgrade = null
 	
-	for bg in CurrentMapData.beam_gates:
-		if bg.sec_x == EditorState.selected_sector.x and bg.sec_y == EditorState.selected_sector.y:
-			EditorState.selected_beam_gate = bg
-		for ks in bg.key_sectors:
-			if ks.x == EditorState.selected_sector.x and ks.y == EditorState.selected_sector.y:
-				EditorState.selected_bg_key_sector = ks
+	if not is_deselect_pressed:
+		for bg in CurrentMapData.beam_gates:
+			if bg.sec_x == EditorState.selected_sector.x and bg.sec_y == EditorState.selected_sector.y:
+				EditorState.selected_beam_gate = bg
+			for ks in bg.key_sectors:
+				if ks.x == EditorState.selected_sector.x and ks.y == EditorState.selected_sector.y:
+					EditorState.selected_bg_key_sector = ks
+					break
+		for bomb in CurrentMapData.stoudson_bombs:
+			if bomb.sec_x == EditorState.selected_sector.x and bomb.sec_y == EditorState.selected_sector.y:
+				EditorState.selected_bomb = bomb
+			for ks in bomb.key_sectors:
+				if ks.x == EditorState.selected_sector.x and ks.y == EditorState.selected_sector.y:
+					EditorState.selected_bomb_key_sector = ks
+					break
+		for tu in CurrentMapData.tech_upgrades:
+			if tu.sec_x == EditorState.selected_sector.x and tu.sec_y == EditorState.selected_sector.y:
+				EditorState.selected_tech_upgrade = tu
 				break
-	for bomb in CurrentMapData.stoudson_bombs:
-		if bomb.sec_x == EditorState.selected_sector.x and bomb.sec_y == EditorState.selected_sector.y:
-			EditorState.selected_bomb = bomb
-		for ks in bomb.key_sectors:
-			if ks.x == EditorState.selected_sector.x and ks.y == EditorState.selected_sector.y:
-				EditorState.selected_bomb_key_sector = ks
-				break
-	for tu in CurrentMapData.tech_upgrades:
-		if tu.sec_x == EditorState.selected_sector.x and tu.sec_y == EditorState.selected_sector.y:
-			EditorState.selected_tech_upgrade = tu
-			break
 	EventSystem.sector_selected.emit()
 	map.queue_redraw()
 

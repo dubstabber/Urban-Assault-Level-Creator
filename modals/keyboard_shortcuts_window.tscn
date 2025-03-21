@@ -1,12 +1,13 @@
-[gd_scene load_steps=2 format=3 uid="uid://d1s7m85hngi8m"]
+[gd_scene load_steps=3 format=3 uid="uid://d1s7m85hngi8m"]
 
 [ext_resource type="Script" path="res://modals/keyboard_shortcuts_window.gd" id="1_3psab"]
+[ext_resource type="PackedScene" uid="uid://xaio0vf2qeug" path="res://modals/components/key_value_container.tscn" id="2_pguif"]
 
 [node name="KeyboardShortcutsWindow" type="Window"]
 auto_translate_mode = 1
 title = "Available keyboard shortcuts"
 initial_position = 1
-size = Vector2i(430, 520)
+size = Vector2i(500, 520)
 transient = true
 exclusive = true
 min_size = Vector2i(400, 400)
@@ -36,120 +37,135 @@ size_flags_vertical = 3
 layout_mode = 2
 theme_override_constants/separation = 8
 
-[node name="Label" type="Label" parent="PanelContainer/MarginContainer/VBoxContainer/ScrollContainer/VBoxContainer"]
+[node name="KeyValueContainer" parent="PanelContainer/MarginContainer/VBoxContainer/ScrollContainer/VBoxContainer" instance=ExtResource("2_pguif")]
 layout_mode = 2
-theme_override_font_sizes/font_size = 14
-text = "'1' - set selected sector owner to resistance"
+key_text = "1"
+value_text = "- set selected sector owner to resistance"
 
-[node name="Label2" type="Label" parent="PanelContainer/MarginContainer/VBoxContainer/ScrollContainer/VBoxContainer"]
+[node name="KeyValueContainer2" parent="PanelContainer/MarginContainer/VBoxContainer/ScrollContainer/VBoxContainer" instance=ExtResource("2_pguif")]
 layout_mode = 2
-theme_override_font_sizes/font_size = 14
-text = "'2' - set selected sector owner to sulgogar"
+key_text = "2"
+value_text = "- set selected sector owner to sulgogar"
 
-[node name="Label3" type="Label" parent="PanelContainer/MarginContainer/VBoxContainer/ScrollContainer/VBoxContainer"]
+[node name="KeyValueContainer3" parent="PanelContainer/MarginContainer/VBoxContainer/ScrollContainer/VBoxContainer" instance=ExtResource("2_pguif")]
 layout_mode = 2
-theme_override_font_sizes/font_size = 14
-text = "'3' - set selected sector owner to mykonian"
+key_text = "3"
+value_text = "- set selected sector owner to mykonian"
 
-[node name="Label4" type="Label" parent="PanelContainer/MarginContainer/VBoxContainer/ScrollContainer/VBoxContainer"]
+[node name="KeyValueContainer4" parent="PanelContainer/MarginContainer/VBoxContainer/ScrollContainer/VBoxContainer" instance=ExtResource("2_pguif")]
 layout_mode = 2
-theme_override_font_sizes/font_size = 14
-text = "'4' - set selected sector owner to taerkasten"
+key_text = "4"
+value_text = "- set selected sector owner to taerkasten"
 
-[node name="Label5" type="Label" parent="PanelContainer/MarginContainer/VBoxContainer/ScrollContainer/VBoxContainer"]
+[node name="KeyValueContainer5" parent="PanelContainer/MarginContainer/VBoxContainer/ScrollContainer/VBoxContainer" instance=ExtResource("2_pguif")]
 layout_mode = 2
-theme_override_font_sizes/font_size = 14
-text = "'5' - set selected sector owner to black sect"
+key_text = "5"
+value_text = "- set selected sector owner to black sect"
 
-[node name="Label6" type="Label" parent="PanelContainer/MarginContainer/VBoxContainer/ScrollContainer/VBoxContainer"]
+[node name="KeyValueContainer6" parent="PanelContainer/MarginContainer/VBoxContainer/ScrollContainer/VBoxContainer" instance=ExtResource("2_pguif")]
 layout_mode = 2
-theme_override_font_sizes/font_size = 14
-text = "'6' - set selected sector owner to ghorkov"
+key_text = "6"
+value_text = "- set selected sector owner to ghorkov"
 
-[node name="Label7" type="Label" parent="PanelContainer/MarginContainer/VBoxContainer/ScrollContainer/VBoxContainer"]
+[node name="KeyValueContainer7" parent="PanelContainer/MarginContainer/VBoxContainer/ScrollContainer/VBoxContainer" instance=ExtResource("2_pguif")]
 layout_mode = 2
-theme_override_font_sizes/font_size = 14
-text = "'7' - set selected sector owner to neutral(for buildings)"
+key_text = "7"
+value_text = "- set selected sector owner to neutral(for buildings)"
 
-[node name="Label8" type="Label" parent="PanelContainer/MarginContainer/VBoxContainer/ScrollContainer/VBoxContainer"]
+[node name="KeyValueContainer8" parent="PanelContainer/MarginContainer/VBoxContainer/ScrollContainer/VBoxContainer" instance=ExtResource("2_pguif")]
 layout_mode = 2
-theme_override_font_sizes/font_size = 14
-text = "'0' - set selected sector owner to neutral"
+key_text = "0"
+value_text = "- set selected sector owner to neutral"
 
-[node name="Label22" type="Label" parent="PanelContainer/MarginContainer/VBoxContainer/ScrollContainer/VBoxContainer"]
+[node name="KeyValueContainer9" parent="PanelContainer/MarginContainer/VBoxContainer/ScrollContainer/VBoxContainer" instance=ExtResource("2_pguif")]
 layout_mode = 2
-theme_override_font_sizes/font_size = 14
-text = "'Hold 0 to 7 + left button' - quick sector owner painter"
+key_text = "Hold 0 to 7 + left button"
+value_text = "- quick sector owner painter"
 
-[node name="Label9" type="Label" parent="PanelContainer/MarginContainer/VBoxContainer/ScrollContainer/VBoxContainer"]
+[node name="KeyValueContainer10" parent="PanelContainer/MarginContainer/VBoxContainer/ScrollContainer/VBoxContainer" instance=ExtResource("2_pguif")]
 layout_mode = 2
-theme_override_font_sizes/font_size = 14
-text = "'Up' - increase selected sector height by 1"
+key_text = "Up"
+value_text = "- increase selected sector height by 1"
 
-[node name="Label10" type="Label" parent="PanelContainer/MarginContainer/VBoxContainer/ScrollContainer/VBoxContainer"]
+[node name="KeyValueContainer11" parent="PanelContainer/MarginContainer/VBoxContainer/ScrollContainer/VBoxContainer" instance=ExtResource("2_pguif")]
 layout_mode = 2
-theme_override_font_sizes/font_size = 14
-text = "'Down' - decrease selected sector height by 1"
+key_text = "Down"
+value_text = "- decrease selected sector height by 1"
 
-[node name="Label11" type="Label" parent="PanelContainer/MarginContainer/VBoxContainer/ScrollContainer/VBoxContainer"]
+[node name="KeyValueContainer12" parent="PanelContainer/MarginContainer/VBoxContainer/ScrollContainer/VBoxContainer" instance=ExtResource("2_pguif")]
 layout_mode = 2
-theme_override_font_sizes/font_size = 14
-text = "'Right' - change selected sector building to next one"
+key_text = "Right"
+value_text = "- change selected sector building to next one"
 
-[node name="Label12" type="Label" parent="PanelContainer/MarginContainer/VBoxContainer/ScrollContainer/VBoxContainer"]
+[node name="KeyValueContainer13" parent="PanelContainer/MarginContainer/VBoxContainer/ScrollContainer/VBoxContainer" instance=ExtResource("2_pguif")]
 layout_mode = 2
-theme_override_font_sizes/font_size = 14
-text = "'Left' - change selected sector building to previous one"
+key_text = "Left"
+value_text = "- change selected sector building to previous one"
 
-[node name="Label13" type="Label" parent="PanelContainer/MarginContainer/VBoxContainer/ScrollContainer/VBoxContainer"]
+[node name="KeyValueContainer14" parent="PanelContainer/MarginContainer/VBoxContainer/ScrollContainer/VBoxContainer" instance=ExtResource("2_pguif")]
 layout_mode = 2
-theme_override_font_sizes/font_size = 14
-text = "'H' - change selected sector height"
+key_text = "H"
+value_text = "- change selected sector height"
 
-[node name="Label17" type="Label" parent="PanelContainer/MarginContainer/VBoxContainer/ScrollContainer/VBoxContainer"]
+[node name="KeyValueContainer15" parent="PanelContainer/MarginContainer/VBoxContainer/ScrollContainer/VBoxContainer" instance=ExtResource("2_pguif")]
 layout_mode = 2
-theme_override_font_sizes/font_size = 14
-text = "'+' - zoom in map"
+key_text = "+"
+value_text = "- zoom in map"
 
-[node name="Label18" type="Label" parent="PanelContainer/MarginContainer/VBoxContainer/ScrollContainer/VBoxContainer"]
+[node name="KeyValueContainer16" parent="PanelContainer/MarginContainer/VBoxContainer/ScrollContainer/VBoxContainer" instance=ExtResource("2_pguif")]
 layout_mode = 2
-theme_override_font_sizes/font_size = 14
-text = "'-' - zoom out map"
+key_text = "-"
+value_text = "- zoom out map"
 
-[node name="Label14" type="Label" parent="PanelContainer/MarginContainer/VBoxContainer/ScrollContainer/VBoxContainer"]
+[node name="KeyValueContainer17" parent="PanelContainer/MarginContainer/VBoxContainer/ScrollContainer/VBoxContainer" instance=ExtResource("2_pguif")]
 layout_mode = 2
-theme_override_font_sizes/font_size = 14
-text = "'T' - change selected sector building"
+key_text = "T"
+value_text = "- change selected sector building"
 
-[node name="Label21" type="Label" parent="PanelContainer/MarginContainer/VBoxContainer/ScrollContainer/VBoxContainer"]
+[node name="KeyValueContainer18" parent="PanelContainer/MarginContainer/VBoxContainer/ScrollContainer/VBoxContainer" instance=ExtResource("2_pguif")]
 layout_mode = 2
-theme_override_font_sizes/font_size = 14
-text = "'Hold Ctrl' - select multiple sectors"
+key_text = "Hold Ctrl"
+value_text = "- select multiple sectors"
 
-[node name="Label15" type="Label" parent="PanelContainer/MarginContainer/VBoxContainer/ScrollContainer/VBoxContainer"]
+[node name="KeyValueContainer24" parent="PanelContainer/MarginContainer/VBoxContainer/ScrollContainer/VBoxContainer" instance=ExtResource("2_pguif")]
 layout_mode = 2
-theme_override_font_sizes/font_size = 14
-text = "'Del' - clear selected sector"
+key_text = "Hold Alt"
+value_text = "- deselect multiple sectors"
 
-[node name="Label16" type="Label" parent="PanelContainer/MarginContainer/VBoxContainer/ScrollContainer/VBoxContainer"]
+[node name="KeyValueContainer25" parent="PanelContainer/MarginContainer/VBoxContainer/ScrollContainer/VBoxContainer" instance=ExtResource("2_pguif")]
 layout_mode = 2
-theme_override_font_sizes/font_size = 14
-text = "'Ctrl + S' - save current map"
+key_text = "Hold Shift + Left Button"
+value_text = "- select sectors with rectangle"
 
-[node name="Label19" type="Label" parent="PanelContainer/MarginContainer/VBoxContainer/ScrollContainer/VBoxContainer"]
+[node name="KeyValueContainer19" parent="PanelContainer/MarginContainer/VBoxContainer/ScrollContainer/VBoxContainer" instance=ExtResource("2_pguif")]
 layout_mode = 2
-theme_override_font_sizes/font_size = 14
-text = "'Ctrl + C' - copy selected sector"
+key_text = "Del"
+value_text = "- clean selected sector"
 
-[node name="Label20" type="Label" parent="PanelContainer/MarginContainer/VBoxContainer/ScrollContainer/VBoxContainer"]
+[node name="KeyValueContainer26" parent="PanelContainer/MarginContainer/VBoxContainer/ScrollContainer/VBoxContainer" instance=ExtResource("2_pguif")]
 layout_mode = 2
-theme_override_font_sizes/font_size = 14
-text = "'Ctrl + V' - paste sector from clipboard"
+key_text = "Esc"
+value_text = "- deselect all sectors/close properties panel"
 
-[node name="Label23" type="Label" parent="PanelContainer/MarginContainer/VBoxContainer/ScrollContainer/VBoxContainer"]
+[node name="KeyValueContainer20" parent="PanelContainer/MarginContainer/VBoxContainer/ScrollContainer/VBoxContainer" instance=ExtResource("2_pguif")]
 layout_mode = 2
-theme_override_font_sizes/font_size = 14
-text = "'Ctrl + A' - select all sectors"
+key_text = "Ctrl + S"
+value_text = "- save current map"
+
+[node name="KeyValueContainer21" parent="PanelContainer/MarginContainer/VBoxContainer/ScrollContainer/VBoxContainer" instance=ExtResource("2_pguif")]
+layout_mode = 2
+key_text = "Ctrl + C"
+value_text = "- copy selected sector"
+
+[node name="KeyValueContainer22" parent="PanelContainer/MarginContainer/VBoxContainer/ScrollContainer/VBoxContainer" instance=ExtResource("2_pguif")]
+layout_mode = 2
+key_text = "Ctrl + V"
+value_text = "- paste sector from clipboard"
+
+[node name="KeyValueContainer23" parent="PanelContainer/MarginContainer/VBoxContainer/ScrollContainer/VBoxContainer" instance=ExtResource("2_pguif")]
+layout_mode = 2
+key_text = "Ctrl + A"
+value_text = "- select all sectors"
 
 [node name="CloseButton" type="Button" parent="PanelContainer/MarginContainer/VBoxContainer"]
 layout_mode = 2
