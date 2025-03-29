@@ -13,9 +13,10 @@ func _ready() -> void:
 		sector_faction_submenu.add_item(hs, Preloads.ua_data.data[EditorState.game_data_type].hoststations[hs].owner)
 	sector_faction_submenu.add_item("Neutral", 0)
 	
+	
 	sector_faction_submenu.id_pressed.connect(
 		func(id): 
-			if EditorState.selected_sector_idx >= 0 and CurrentMapData.own_map.size() > 0:
+			if CurrentMapData.own_map.size() > 0:
 				if EditorState.selected_sectors.size() > 1:
 					for sector_dict in EditorState.selected_sectors:
 						if id == 0 and sector_dict.has("idx") and CurrentMapData.blg_map[sector_dict.idx] not in [0, 35, 68]:
@@ -23,7 +24,7 @@ func _ready() -> void:
 						else:
 							if sector_dict.has("idx"):
 								CurrentMapData.own_map[sector_dict.idx] = id
-				else:
+				elif EditorState.selected_sector_idx >= 0:
 					if id == 0 and CurrentMapData.blg_map[EditorState.selected_sector_idx] not in [0, 35, 68]:
 						CurrentMapData.own_map[EditorState.selected_sector_idx] = 7
 					else:

@@ -4,11 +4,12 @@ extends TabBar
 func _ready() -> void:
 	EventSystem.sector_selected.connect(_update_properties)
 	EventSystem.map_updated.connect(_update_properties)
+	EventSystem.map_view_updated.connect(_update_properties)
 
 
 func _update_properties() -> void:
-	if (CurrentMapData.horizontal_sectors > 0 and CurrentMapData.vertical_sectors > 0 and 
-		EditorState.selected_sector_idx >= 0 and EditorState.border_selected_sector_idx >= 0):
+	if (CurrentMapData.horizontal_sectors > 0 and CurrentMapData.vertical_sectors > 0 
+		and EditorState.border_selected_sector_idx >= 0):
 		%NoSectorLabel.hide()
 		
 		if EditorState.selected_sectors.size() > 1: return

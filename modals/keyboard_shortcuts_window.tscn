@@ -127,11 +127,6 @@ layout_mode = 2
 key_text = "Hold Ctrl"
 value_text = "- select multiple sectors"
 
-[node name="KeyValueContainer24" parent="PanelContainer/MarginContainer/VBoxContainer/ScrollContainer/VBoxContainer" instance=ExtResource("2_pguif")]
-layout_mode = 2
-key_text = "Hold Alt"
-value_text = "- deselect multiple sectors"
-
 [node name="KeyValueContainer25" parent="PanelContainer/MarginContainer/VBoxContainer/ScrollContainer/VBoxContainer" instance=ExtResource("2_pguif")]
 layout_mode = 2
 key_text = "Hold Shift + Left Button"

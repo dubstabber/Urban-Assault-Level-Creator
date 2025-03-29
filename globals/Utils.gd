@@ -353,8 +353,8 @@ func select_all_sectors(no_borders := false) -> void:
 	EditorState.unselect_all()
 	var sector_counter := 0
 	var border_sector_counter := 0
-	EditorState.border_selected_sector_idx = 0
-	EditorState.selected_sector_idx = 0
+	EditorState.border_selected_sector_idx = -1
+	EditorState.selected_sector_idx = -1
 	for y_sector in CurrentMapData.vertical_sectors+2:
 		for x_sector in CurrentMapData.horizontal_sectors+2:
 			if not no_borders:

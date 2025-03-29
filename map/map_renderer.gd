@@ -73,7 +73,7 @@ func _draw():
 					draw_texture_rect(Preloads.error_sign, Rect2(h_grid+sector_indent,v_grid+sector_indent, 1200-(sector_indent*2),1200-(sector_indent*2)), false)
 				if Preloads.special_building_images.has(str(CurrentMapData.blg_map[current_sector])):
 					draw_texture_rect(Preloads.special_building_images[str(CurrentMapData.blg_map[current_sector])], Rect2(h_grid+sector_indent,v_grid+sector_indent, 1200-(sector_indent*2),1200-(sector_indent*2)),false)
-				var sector_color
+				var sector_color: Color
 				match CurrentMapData.own_map[current_sector]:
 					0: sector_color = Color.BLACK
 					1: sector_color = Color.BLUE

@@ -20,11 +20,11 @@ func _input(event):
 	if event.is_action_pressed("save_map"):
 		EventSystem.save_map_requested.emit()
 	if event.is_action_pressed("unselect"):
-		if %PropertiesContainer.visible:
-			%PropertiesContainer.hide()
-		else:
+		if EditorState.selected_sector.x >= 0 or EditorState.selected_sectors.size() > 0:
 			EditorState.unselect_all()
 			EventSystem.map_updated.emit()
+		else:
+			%PropertiesContainer.hide()
 
 
 func _notification(what):

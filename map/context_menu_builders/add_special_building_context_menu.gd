@@ -41,14 +41,14 @@ func _id_pressed(id: int) -> void:
 
 
 func add_special_building(building_id: int, typ_map: int, own_map: int) -> void:
-	if EditorState.selected_sector_idx >= 0 and CurrentMapData.blg_map.size() > 0:
+	if CurrentMapData.blg_map.size() > 0:
 		if EditorState.selected_sectors.size() > 1:
 			for sector_dict in EditorState.selected_sectors:
 				if sector_dict.has("idx"):
 					CurrentMapData.blg_map[sector_dict.idx] = building_id
 					CurrentMapData.typ_map[sector_dict.idx] = typ_map
 					CurrentMapData.own_map[sector_dict.idx] = own_map
-		else:
+		elif EditorState.selected_sector_idx >= 0:
 			CurrentMapData.blg_map[EditorState.selected_sector_idx] = building_id
 			CurrentMapData.typ_map[EditorState.selected_sector_idx] = typ_map
 			CurrentMapData.own_map[EditorState.selected_sector_idx] = own_map

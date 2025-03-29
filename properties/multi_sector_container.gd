@@ -4,6 +4,7 @@ extends VBoxContainer
 func _ready() -> void:
 	EventSystem.sector_selected.connect(_update_properties)
 	EventSystem.map_updated.connect(_update_properties)
+	EventSystem.map_view_updated.connect(_update_properties)
 
 
 func _update_properties() -> void:

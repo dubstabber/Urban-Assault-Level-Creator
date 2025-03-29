@@ -3,7 +3,6 @@ extends Node
 var number_key: int
 var is_number_pressed := false
 var is_left_pressed := false
-var is_deselect_pressed := false
 
 @onready var map: Node2D = %Map
 
@@ -20,11 +19,6 @@ func _input(event):
 		map.is_multi_selection = false
 		map.selection_start_point = Vector2.ZERO
 		map.queue_redraw()
-	
-	if event.is_action_pressed("deselect_sector"):
-		is_deselect_pressed = true
-	elif event.is_action_released("deselect_sector"):
-		is_deselect_pressed = false
 	
 	if event.is_action_pressed("select"):
 		is_left_pressed = true
@@ -97,27 +91,23 @@ func _input(event):
 			map.queue_redraw()
 	
 	if (event.is_action_pressed("increment_height") and 
-		CurrentMapData.hgt_map.size() > 0 and
-		EditorState.border_selected_sector_idx >= 0 and
-		CurrentMapData.hgt_map[EditorState.border_selected_sector_idx] < 255):
+		CurrentMapData.hgt_map.size() > 0):
 		if EditorState.selected_sectors.size() > 1:
 			for sector_dict in EditorState.selected_sectors:
 				if CurrentMapData.hgt_map[sector_dict.border_idx] < 255:
 					CurrentMapData.hgt_map[sector_dict.border_idx] += 1
-		else:
+		elif EditorState.border_selected_sector_idx >= 0 and CurrentMapData.hgt_map[EditorState.border_selected_sector_idx] < 255:
 			CurrentMapData.hgt_map[EditorState.border_selected_sector_idx] += 1
 		CurrentMapData.is_saved = false
 		map.queue_redraw()
 	
 	if (event.is_action_pressed("decrement_height") and 
-		CurrentMapData.hgt_map.size() > 0 and
-		EditorState.border_selected_sector_idx >= 0 and
-		CurrentMapData.hgt_map[EditorState.border_selected_sector_idx] > 0):
+		CurrentMapData.hgt_map.size() > 0):
 		if EditorState.selected_sectors.size() > 1:
 			for sector_dict in EditorState.selected_sectors:
 				if CurrentMapData.hgt_map[sector_dict.border_idx] > 0:
 					CurrentMapData.hgt_map[sector_dict.border_idx] -= 1
-		else:
+		elif EditorState.border_selected_sector_idx >= 0 and CurrentMapData.hgt_map[EditorState.border_selected_sector_idx] > 0:
 			CurrentMapData.hgt_map[EditorState.border_selected_sector_idx] -= 1
 		CurrentMapData.is_saved = false
 		map.queue_redraw()
@@ -177,33 +167,35 @@ func handle_selection(clicked_x: int, clicked_y: int):
 	var h_size := 0
 	var v_size := 0
 	
-	if not map.is_selection_kept and not is_deselect_pressed: EditorState.selected_sectors.clear()
+	if not map.is_selection_kept: EditorState.selected_sectors.clear()
 	
 	for y_sector in CurrentMapData.vertical_sectors+2:
 		for x_sector in CurrentMapData.horizontal_sectors+2:
+			var is_within_bounds = (y_sector > 0 and y_sector < CurrentMapData.vertical_sectors+1 and
+				x_sector > 0 and x_sector < CurrentMapData.horizontal_sectors+1 and
+				sector_counter < (CurrentMapData.vertical_sectors*CurrentMapData.horizontal_sectors)
+				)
 			if clicked_x > h_size and clicked_x < h_size + 1200 and clicked_y > v_size and clicked_y < v_size + 1200:
-				EditorState.selected_sector_idx = sector_counter if not is_deselect_pressed else -1
-				EditorState.border_selected_sector_idx = border_sector_counter if not is_deselect_pressed else -1
-				EditorState.selected_sector.x = x_sector if not is_deselect_pressed else -1
-				EditorState.selected_sector.y = y_sector if not is_deselect_pressed else -1
-				if not is_deselect_pressed and not EditorState.selected_sectors.any(func(dict): return dict.border_idx == border_sector_counter):
+				EditorState.selected_sector_idx = sector_counter if is_within_bounds else -1
+				EditorState.border_selected_sector_idx = border_sector_counter
+				EditorState.selected_sector.x = x_sector
+				EditorState.selected_sector.y = y_sector
+				var is_already_selected = EditorState.selected_sectors.any(func(dict): return dict.border_idx == border_sector_counter)
+				if not is_already_selected:
 					EditorState.selected_sectors.append(
 						{
-							"border_idx": border_sector_counter, 
-							"idx": sector_counter,
-							"x": x_sector, 
-							"y":y_sector
+							"border_idx": border_sector_counter,
+							"x": x_sector,
+							"y": y_sector
 						})
+					if is_within_bounds: EditorState.selected_sectors[-1].idx = sector_counter
 				else:
 					EditorState.selected_sectors = EditorState.selected_sectors.filter(func(dict): return dict.border_idx != border_sector_counter)
 				break
 			h_size += 1200
+			if is_within_bounds: sector_counter += 1
 			border_sector_counter += 1
-			if (y_sector > 0 and y_sector < CurrentMapData.vertical_sectors+1 and
-				x_sector > 0 and x_sector < CurrentMapData.horizontal_sectors+1 and
-				sector_counter < (CurrentMapData.vertical_sectors*CurrentMapData.horizontal_sectors-1)
-				):
-				sector_counter += 1
+		
 		v_size += 1200
 		h_size = 0
 	
@@ -213,7 +205,7 @@ func handle_selection(clicked_x: int, clicked_y: int):
 	EditorState.selected_bomb_key_sector = Vector2i(-1, -1)
 	EditorState.selected_tech_upgrade = null
 	
-	if not is_deselect_pressed:
+	if EditorState.selected_sectors.size() == 1:
 		for bg in CurrentMapData.beam_gates:
 			if bg.sec_x == EditorState.selected_sector.x and bg.sec_y == EditorState.selected_sector.y:
 				EditorState.selected_beam_gate = bg
@@ -244,21 +236,22 @@ func handle_batch_multi_selection(start_pos: Vector2, end_pos: Vector2) -> void:
 	
 	for y_sector in CurrentMapData.vertical_sectors+2:
 		for x_sector in CurrentMapData.horizontal_sectors+2:
+			var is_within_bounds = (y_sector > 0 and y_sector < CurrentMapData.vertical_sectors+1 and
+				x_sector > 0 and x_sector < CurrentMapData.horizontal_sectors+1 and
+				sector_counter < (CurrentMapData.vertical_sectors*CurrentMapData.horizontal_sectors)
+				)
 			if (start_pos.x > h_size or end_pos.x > h_size) and (start_pos.x < h_size + 1200 or end_pos.x < h_size + 1200) and (start_pos.y > v_size or end_pos.y > v_size) and (start_pos.y < v_size + 1200 or end_pos.y < v_size + 1200):
 				EditorState.selected_sectors.append(
 					{
-						"border_idx": border_sector_counter, 
-						"idx": sector_counter,
+						"border_idx": border_sector_counter,
 						"x": x_sector, 
 						"y":y_sector
 					})
+				if is_within_bounds: EditorState.selected_sectors[-1].idx = sector_counter
 			h_size += 1200
+			if is_within_bounds: sector_counter += 1
 			border_sector_counter += 1
-			if (y_sector > 0 and y_sector < CurrentMapData.vertical_sectors+1 and
-				x_sector > 0 and x_sector < CurrentMapData.horizontal_sectors+1 and
-				sector_counter < (CurrentMapData.vertical_sectors*CurrentMapData.horizontal_sectors-1)
-				):
-				sector_counter += 1
+		
 		v_size += 1200
 		h_size = 0
 	
