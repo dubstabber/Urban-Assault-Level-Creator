@@ -125,7 +125,7 @@ value_text = "- change selected sector building"
 [node name="KeyValueContainer18" parent="PanelContainer/MarginContainer/VBoxContainer/ScrollContainer/VBoxContainer" instance=ExtResource("2_pguif")]
 layout_mode = 2
 key_text = "Hold Ctrl"
-value_text = "- select multiple sectors"
+value_text = "- select/deselect multiple sectors"
 
 [node name="KeyValueContainer25" parent="PanelContainer/MarginContainer/VBoxContainer/ScrollContainer/VBoxContainer" instance=ExtResource("2_pguif")]
 layout_mode = 2
