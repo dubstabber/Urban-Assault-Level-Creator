@@ -8,11 +8,13 @@ func _ready() -> void:
 
 
 func _update_properties() -> void:
+	if EditorState.selected_sectors.size() > 1: 
+		%NoSectorLabel.hide()
+		return
 	if (CurrentMapData.horizontal_sectors > 0 and CurrentMapData.vertical_sectors > 0 
 		and EditorState.border_selected_sector_idx >= 0):
 		%NoSectorLabel.hide()
-		
-		if EditorState.selected_sectors.size() > 1: return
+
 		
 		%SectorPropertiesContainer.show()
 		%SectorPositionLabel.text = "Selected sector X:%s Y:%s" % [EditorState.selected_sector.x, EditorState.selected_sector.y]
