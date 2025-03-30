@@ -14,7 +14,6 @@ func _update_properties() -> void:
 	if (CurrentMapData.horizontal_sectors > 0 and CurrentMapData.vertical_sectors > 0 
 		and EditorState.border_selected_sector_idx >= 0):
 		%NoSectorLabel.hide()
-
 		
 		%SectorPropertiesContainer.show()
 		%SectorPositionLabel.text = "Selected sector X:%s Y:%s" % [EditorState.selected_sector.x, EditorState.selected_sector.y]

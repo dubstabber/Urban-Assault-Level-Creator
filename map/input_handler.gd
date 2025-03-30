@@ -8,6 +8,7 @@ var is_left_pressed := false
 
 
 func _input(event):
+	if not map: return
 	if event.is_action_pressed("hold"):
 		map.is_selection_kept = true
 	elif event.is_action_released("hold"):
@@ -171,7 +172,7 @@ func handle_selection(clicked_x: int, clicked_y: int):
 	
 	for y_sector in CurrentMapData.vertical_sectors+2:
 		for x_sector in CurrentMapData.horizontal_sectors+2:
-			var is_within_bounds = (y_sector > 0 and y_sector < CurrentMapData.vertical_sectors+1 and
+			var is_within_bounds := (y_sector > 0 and y_sector < CurrentMapData.vertical_sectors+1 and
 				x_sector > 0 and x_sector < CurrentMapData.horizontal_sectors+1 and
 				sector_counter < (CurrentMapData.vertical_sectors*CurrentMapData.horizontal_sectors)
 				)
@@ -236,7 +237,7 @@ func handle_batch_multi_selection(start_pos: Vector2, end_pos: Vector2) -> void:
 	
 	for y_sector in CurrentMapData.vertical_sectors+2:
 		for x_sector in CurrentMapData.horizontal_sectors+2:
-			var is_within_bounds = (y_sector > 0 and y_sector < CurrentMapData.vertical_sectors+1 and
+			var is_within_bounds := (y_sector > 0 and y_sector < CurrentMapData.vertical_sectors+1 and
 				x_sector > 0 and x_sector < CurrentMapData.horizontal_sectors+1 and
 				sector_counter < (CurrentMapData.vertical_sectors*CurrentMapData.horizontal_sectors)
 				)
