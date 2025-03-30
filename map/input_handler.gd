@@ -192,6 +192,11 @@ func handle_selection(clicked_x: int, clicked_y: int):
 					if is_within_bounds: EditorState.selected_sectors[-1].idx = sector_counter
 				else:
 					EditorState.selected_sectors = EditorState.selected_sectors.filter(func(dict): return dict.border_idx != border_sector_counter)
+					if EditorState.selected_sectors.size() == 1:
+						EditorState.selected_sector_idx = EditorState.selected_sectors[0].idx if EditorState.selected_sectors[0].has("idx") else -1
+						EditorState.border_selected_sector_idx = EditorState.selected_sectors[0].border_idx
+						EditorState.selected_sector.x = EditorState.selected_sectors[0].x
+						EditorState.selected_sector.y = EditorState.selected_sectors[0].y
 				break
 			h_size += 1200
 			if is_within_bounds: sector_counter += 1
