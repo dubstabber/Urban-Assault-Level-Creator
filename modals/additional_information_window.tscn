@@ -85,7 +85,7 @@ text = "Follow these steps to unlock all levels in the Urban Assault Original Ca
 5. At the bottom of the file, you will see multiple \"begin_levelstatus\" sections, each closed by \"end\"
  - Each number after \"begin_levelstatus\" corresponds to a specific level in the game
  - To unlock a level, either change \"status = 1\" to \"status = 2\" or delete the entire section
-6. Repeat this procedure for levels numbered 1 to 99 to unlock all levels"
+6. Repeat Step 5 for levels 1 through 99 to unlock all levels"
 fit_content = true
 
 [node name="UpkeepMechanicsLabel" type="RichTextLabel" parent="PanelContainer/VBoxContainer/HSplitContainer/PanelContainer2/ScrollContainer/InformationContainer"]
