@@ -247,13 +247,15 @@ func handle_batch_multi_selection(start_pos: Vector2, end_pos: Vector2) -> void:
 				sector_counter < (CurrentMapData.vertical_sectors*CurrentMapData.horizontal_sectors)
 				)
 			if (start_pos.x > h_size or end_pos.x > h_size) and (start_pos.x < h_size + 1200 or end_pos.x < h_size + 1200) and (start_pos.y > v_size or end_pos.y > v_size) and (start_pos.y < v_size + 1200 or end_pos.y < v_size + 1200):
-				EditorState.selected_sectors.append(
-					{
-						"border_idx": border_sector_counter,
-						"x": x_sector, 
-						"y":y_sector
-					})
-				if is_within_bounds: EditorState.selected_sectors[-1].idx = sector_counter
+				var is_already_selected = EditorState.selected_sectors.any(func(dict): return dict.border_idx == border_sector_counter)
+				if not is_already_selected:
+					EditorState.selected_sectors.append(
+						{
+							"border_idx": border_sector_counter,
+							"x": x_sector, 
+							"y":y_sector
+						})
+					if is_within_bounds: EditorState.selected_sectors[-1].idx = sector_counter
 			h_size += 1200
 			if is_within_bounds: sector_counter += 1
 			border_sector_counter += 1
