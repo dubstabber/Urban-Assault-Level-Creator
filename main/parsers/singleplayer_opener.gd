@@ -126,11 +126,11 @@ static func _handle_blg_map(file: FileAccess) -> void:
 
 static func _handle_description(file: FileAccess) -> void:
 	file.get_line()
-	file.get_line()
-	file.get_line()
-	file.get_line()
-	file.get_line()
-	file.get_line()
+	#file.get_line()
+	#file.get_line()
+	#file.get_line()
+	#file.get_line()
+	#file.get_line()
 	string_line = file.get_line().strip_edges(true, false)
 	
 	while(not string_line.is_empty() and string_line[0] == ';' and file.get_position() < file.get_length()):
@@ -150,7 +150,7 @@ static func _handle_level_parameters(file: FileAccess) -> void:
 				CurrentMapData.level_set = int(string_line)
 				
 			if string_line.begins_with("sky"):
-				var pos = string_line.to_lower().find("sky")
+				var pos = string_line.find("sky")
 				if pos != -1:
 					string_line = string_line.substr(0, pos) + string_line.substr(pos + 3)
 					string_line = string_line.replacen("=", "").strip_edges()
