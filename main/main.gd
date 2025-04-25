@@ -22,7 +22,7 @@ func _input(event):
 	if event.is_action_pressed("unselect"):
 		if EditorState.selected_sector.x >= 0 or EditorState.selected_sectors.size() > 0:
 			EditorState.unselect_all()
-			EventSystem.map_updated.emit()
+			EventSystem.map_view_updated.emit()
 		else:
 			%PropertiesContainer.hide()
 
