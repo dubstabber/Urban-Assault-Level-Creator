@@ -1,4 +1,4 @@
-# Urban Assault Level Creator: Professional Editor for a Classic Game
+# Urban Assault Level Creator
 
 <div align="center">
   <img src="screenshots/ualc1.png" width="350"/>
