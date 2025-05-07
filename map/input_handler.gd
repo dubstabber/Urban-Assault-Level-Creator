@@ -185,12 +185,19 @@ func _handle_context_menu():
 		%MapContextMenu.popup()
 
 func handle_selection(clicked_x: int, clicked_y: int):
+	if not map.is_selection_kept: 
+		EditorState.selected_sectors.clear()
+	
+	_find_clicked_sector(clicked_x, clicked_y)
+	_update_special_selections()
+	EventSystem.sector_selected.emit()
+	map.queue_redraw()
+
+func _find_clicked_sector(clicked_x: int, clicked_y: int):
 	var sector_counter := 0
 	var border_sector_counter := 0
 	var h_size := 0
 	var v_size := 0
-	
-	if not map.is_selection_kept: EditorState.selected_sectors.clear()
 	
 	for y_sector in CurrentMapData.vertical_sectors+2:
 		for x_sector in CurrentMapData.horizontal_sectors+2:
@@ -199,26 +206,7 @@ func handle_selection(clicked_x: int, clicked_y: int):
 				sector_counter < (CurrentMapData.vertical_sectors*CurrentMapData.horizontal_sectors)
 				)
 			if clicked_x > h_size and clicked_x < h_size + 1200 and clicked_y > v_size and clicked_y < v_size + 1200:
-				EditorState.selected_sector_idx = sector_counter if is_within_bounds else -1
-				EditorState.border_selected_sector_idx = border_sector_counter
-				EditorState.selected_sector.x = x_sector
-				EditorState.selected_sector.y = y_sector
-				var is_already_selected = EditorState.selected_sectors.any(func(dict): return dict.border_idx == border_sector_counter)
-				if not is_already_selected:
-					EditorState.selected_sectors.append(
-						{
-							"border_idx": border_sector_counter,
-							"x": x_sector,
-							"y": y_sector
-						})
-					if is_within_bounds: EditorState.selected_sectors[-1].idx = sector_counter
-				else:
-					EditorState.selected_sectors = EditorState.selected_sectors.filter(func(dict): return dict.border_idx != border_sector_counter)
-					if EditorState.selected_sectors.size() == 1:
-						EditorState.selected_sector_idx = EditorState.selected_sectors[0].idx if EditorState.selected_sectors[0].has("idx") else -1
-						EditorState.border_selected_sector_idx = EditorState.selected_sectors[0].border_idx
-						EditorState.selected_sector.x = EditorState.selected_sectors[0].x
-						EditorState.selected_sector.y = EditorState.selected_sectors[0].y
+				_update_sector_selection(sector_counter, border_sector_counter, x_sector, y_sector, is_within_bounds)
 				break
 			h_size += 1200
 			if is_within_bounds: sector_counter += 1
@@ -226,7 +214,32 @@ func handle_selection(clicked_x: int, clicked_y: int):
 		
 		v_size += 1200
 		h_size = 0
+
+func _update_sector_selection(sector_idx: int, border_sector_idx: int, x: int, y: int, is_within_bounds: bool):
+	EditorState.selected_sector_idx = sector_idx if is_within_bounds else -1
+	EditorState.border_selected_sector_idx = border_sector_idx
+	EditorState.selected_sector.x = x
+	EditorState.selected_sector.y = y
 	
+	var is_already_selected = EditorState.selected_sectors.any(func(dict): return dict.border_idx == border_sector_idx)
+	if not is_already_selected:
+		var new_selection = {
+			"border_idx": border_sector_idx,
+			"x": x,
+			"y": y
+		}
+		if is_within_bounds: 
+			new_selection.idx = sector_idx
+		EditorState.selected_sectors.append(new_selection)
+	else:
+		EditorState.selected_sectors = EditorState.selected_sectors.filter(func(dict): return dict.border_idx != border_sector_idx)
+		if EditorState.selected_sectors.size() == 1:
+			EditorState.selected_sector_idx = EditorState.selected_sectors[0].idx if EditorState.selected_sectors[0].has("idx") else -1
+			EditorState.border_selected_sector_idx = EditorState.selected_sectors[0].border_idx
+			EditorState.selected_sector.x = EditorState.selected_sectors[0].x
+			EditorState.selected_sector.y = EditorState.selected_sectors[0].y
+
+func _update_special_selections():
 	EditorState.selected_beam_gate = null
 	EditorState.selected_bomb = null
 	EditorState.selected_bg_key_sector = Vector2i(-1, -1)
@@ -234,26 +247,33 @@ func handle_selection(clicked_x: int, clicked_y: int):
 	EditorState.selected_tech_upgrade = null
 	
 	if EditorState.selected_sectors.size() == 1:
-		for bg in CurrentMapData.beam_gates:
-			if bg.sec_x == EditorState.selected_sector.x and bg.sec_y == EditorState.selected_sector.y:
-				EditorState.selected_beam_gate = bg
-			for ks in bg.key_sectors:
-				if ks.x == EditorState.selected_sector.x and ks.y == EditorState.selected_sector.y:
-					EditorState.selected_bg_key_sector = ks
-					break
-		for bomb in CurrentMapData.stoudson_bombs:
-			if bomb.sec_x == EditorState.selected_sector.x and bomb.sec_y == EditorState.selected_sector.y:
-				EditorState.selected_bomb = bomb
-			for ks in bomb.key_sectors:
-				if ks.x == EditorState.selected_sector.x and ks.y == EditorState.selected_sector.y:
-					EditorState.selected_bomb_key_sector = ks
-					break
-		for tu in CurrentMapData.tech_upgrades:
-			if tu.sec_x == EditorState.selected_sector.x and tu.sec_y == EditorState.selected_sector.y:
-				EditorState.selected_tech_upgrade = tu
+		_update_beam_gate_selection()
+		_update_bomb_selection()
+		_update_tech_upgrade_selection()
+
+func _update_beam_gate_selection():
+	for bg in CurrentMapData.beam_gates:
+		if bg.sec_x == EditorState.selected_sector.x and bg.sec_y == EditorState.selected_sector.y:
+			EditorState.selected_beam_gate = bg
+		for ks in bg.key_sectors:
+			if ks.x == EditorState.selected_sector.x and ks.y == EditorState.selected_sector.y:
+				EditorState.selected_bg_key_sector = ks
 				break
-	EventSystem.sector_selected.emit()
-	map.queue_redraw()
+
+func _update_bomb_selection():
+	for bomb in CurrentMapData.stoudson_bombs:
+		if bomb.sec_x == EditorState.selected_sector.x and bomb.sec_y == EditorState.selected_sector.y:
+			EditorState.selected_bomb = bomb
+		for ks in bomb.key_sectors:
+			if ks.x == EditorState.selected_sector.x and ks.y == EditorState.selected_sector.y:
+				EditorState.selected_bomb_key_sector = ks
+				break
+
+func _update_tech_upgrade_selection():
+	for tu in CurrentMapData.tech_upgrades:
+		if tu.sec_x == EditorState.selected_sector.x and tu.sec_y == EditorState.selected_sector.y:
+			EditorState.selected_tech_upgrade = tu
+			break
 
 func handle_batch_multi_selection(start_pos: Vector2, end_pos: Vector2) -> void:
 	var sector_counter := 0
