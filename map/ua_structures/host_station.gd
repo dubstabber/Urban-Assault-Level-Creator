@@ -39,7 +39,7 @@ func create(_owner_id, _vehicle):
 	
 	scale = Vector2(16, 16)
 	$Button.position = - Vector2(texture.get_width() / 2.0, texture.get_height() / 2.0)
-	$Button.tooltip_text = "%s\nEnergy: %s" % [unit_name, energy / 400.0]
+	$Button.tooltip_text = "%s\nEnergy: %s" % [unit_name, int(energy / 400.0)]
 
 
 func setup_properties() -> void:

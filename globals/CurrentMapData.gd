@@ -60,16 +60,17 @@ var is_saved := true:
 		if horizontal_sectors and vertical_sectors:
 			is_saved = value
 			if map_path.is_empty():
-				DisplayServer.window_set_title("[not saved] (%sx%s) - %s" % [horizontal_sectors, vertical_sectors, "Urban Assault Level Creator"])
+				get_viewport().title = "[not saved] (%sx%s) - %s" % [horizontal_sectors, vertical_sectors, "Urban Assault Level Creator"]
 			else:
 				if is_saved:
-					DisplayServer.window_set_title("%s (%sx%s) - %s" % [map_path, horizontal_sectors, vertical_sectors, "Urban Assault Level Creator"])
+					get_viewport().title = "%s (%sx%s) - %s" % [map_path, horizontal_sectors, vertical_sectors, "Urban Assault Level Creator"]
 					if host_stations.get_child_count() == 0:
 						EventSystem.saved_with_no_hoststation.emit()
 				else:
-					DisplayServer.window_set_title("*%s (%sx%s) - %s" % [map_path, horizontal_sectors, vertical_sectors, "Urban Assault Level Creator"])
+					get_viewport().title = "*%s (%sx%s) - %s" % [map_path, horizontal_sectors, vertical_sectors, "Urban Assault Level Creator"]
 		else:
 			is_saved = true
+			get_viewport().title = "Urban Assault Level Creator"
 
 
 func _ready() -> void:
@@ -151,10 +152,10 @@ func clear_sector(index: int, refresh_map := true) -> void:
 	EditorState.selected_tech_upgrade = null
 	for bg in beam_gates:
 		bg.key_sectors.erase(EditorState.selected_bg_key_sector)
-	EditorState.selected_bg_key_sector = Vector2i(-1,-1)
+	EditorState.selected_bg_key_sector = Vector2i(-1, -1)
 	for bomb in stoudson_bombs:
 		bomb.key_sectors.erase(EditorState.selected_bomb_key_sector)
-	EditorState.selected_bomb_key_sector = Vector2i(-1,-1)
+	EditorState.selected_bomb_key_sector = Vector2i(-1, -1)
 	if refresh_map:
 		EventSystem.map_updated.emit()
 		EventSystem.item_updated.emit()
