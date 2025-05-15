@@ -7,7 +7,7 @@
 auto_translate_mode = 1
 title = "Squad enabler"
 initial_position = 1
-size = Vector2i(1115, 770)
+size = Vector2i(1125, 790)
 transient = true
 exclusive = true
 min_size = Vector2i(800, 450)

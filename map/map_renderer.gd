@@ -39,7 +39,6 @@ var _owner_colors := {
 	-1: Color.TRANSPARENT
 }
 
-var _half_indent: float
 var _sector_rect_size: float
 var _total_horizontal_sectors: int
 var _total_vertical_sectors: int
@@ -66,7 +65,6 @@ func _ready() -> void:
 	EventSystem.map_created.connect(func():
 		map_camera.zoom = Vector2(0.056, 0.056)
 		)
-	_half_indent = sector_indent / 2.0
 	_sector_rect_size = SECTOR_SIZE - (sector_indent * 2)
 	_third_indent = sector_indent / 3.0
 	_two_thirds_indent = SECTOR_SIZE - _third_indent
@@ -349,4 +347,4 @@ func _draw_selection_rect() -> void:
 	current_mouse_pos.y = clampf(current_mouse_pos.y, 0, _total_vertical_sectors * SECTOR_SIZE)
 	
 	var rect_size := current_mouse_pos - selection_start_point
-	draw_rect(Rect2(selection_start_point, rect_size), Color.CHARTREUSE, false, 30.0)
+	draw_rect(Rect2(selection_start_point, rect_size), Color.CHARTREUSE, false, -1.0)

@@ -1,11 +1,11 @@
 class_name SingleplayerOpener
 
 static var string_line: String
-
+static var description_mode: bool
 
 static func load_level() -> void:
 	var file = FileAccess.open(CurrentMapData.map_path, FileAccess.READ)
-	if not file: 
+	if not file:
 		printerr("Error: File '%s' cannot be opened" % CurrentMapData.map_path)
 		EventSystem.open_map_failed.emit("path_inaccessible")
 		return
@@ -19,10 +19,10 @@ static func load_level() -> void:
 		_handle_blg_map(file)
 	
 	var total_sectors = CurrentMapData.horizontal_sectors * CurrentMapData.vertical_sectors
-	var total_border_sectors = (CurrentMapData.horizontal_sectors+2) * (CurrentMapData.vertical_sectors+2)
-	if (CurrentMapData.typ_map.size() != total_sectors or CurrentMapData.own_map.size() != total_sectors or 
-		CurrentMapData.blg_map.size() != total_sectors or CurrentMapData.horizontal_sectors == 0 or CurrentMapData.vertical_sectors == 0 or 
-		CurrentMapData.hgt_map.size() != total_border_sectors or CurrentMapData.typ_map.is_empty() or CurrentMapData.own_map.is_empty() or 
+	var total_border_sectors = (CurrentMapData.horizontal_sectors + 2) * (CurrentMapData.vertical_sectors + 2)
+	if (CurrentMapData.typ_map.size() != total_sectors or CurrentMapData.own_map.size() != total_sectors or
+		CurrentMapData.blg_map.size() != total_sectors or CurrentMapData.horizontal_sectors == 0 or CurrentMapData.vertical_sectors == 0 or
+		CurrentMapData.hgt_map.size() != total_border_sectors or CurrentMapData.typ_map.is_empty() or CurrentMapData.own_map.is_empty() or
 		CurrentMapData.blg_map.is_empty() or CurrentMapData.hgt_map.is_empty()):
 		printerr("Something went wrong while opening the file")
 		printerr("typ_map size: %s" % CurrentMapData.typ_map.size())
@@ -37,12 +37,17 @@ static func load_level() -> void:
 		return
 	
 	file.seek(0)
-	
-	_handle_description(file)
+	string_line = ""
+	file.get_line()
+
+	description_mode = true
+
 	while file.get_position() < file.get_length():
-		if string_line.is_empty():
+		if string_line.is_empty() and not description_mode:
 			string_line = file.get_line().get_slice(';', 0).strip_edges()
 			continue
+		
+		_handle_description(file)
 		_handle_level_parameters(file)
 		_handle_briefing_maps(file)
 		_handle_beam_gates(file)
@@ -53,8 +58,12 @@ static func load_level() -> void:
 		_handle_prototype_enabling(file)
 		_handle_tech_upgrades(file)
 		
-		string_line = file.get_line().get_slice(';', 0).strip_edges()
+		if description_mode:
+			string_line = file.get_line().get_slice(';', 1)
+		else:
+			string_line = file.get_line().get_slice(';', 0).strip_edges()
 	
+	CurrentMapData.level_description = CurrentMapData.level_description.strip_edges()
 	_infer_game_type()
 	
 	EventSystem.map_created.emit()
@@ -64,14 +73,15 @@ static func load_level() -> void:
 
 static func _handle_typ_map(file: FileAccess) -> void:
 	if string_line.to_lower().begins_with('typ_map'):
+		if description_mode: description_mode = false
 		string_line = file.get_line().strip_edges()
 		for i in len(string_line):
 			if string_line[i] == " ":
-				CurrentMapData.horizontal_sectors = int(string_line.substr(0,i))
+				CurrentMapData.horizontal_sectors = int(string_line.substr(0, i))
 				CurrentMapData.vertical_sectors = int(string_line.substr(i))
 		
-		CurrentMapData.horizontal_sectors -=2
-		CurrentMapData.vertical_sectors -=2
+		CurrentMapData.horizontal_sectors -= 2
+		CurrentMapData.vertical_sectors -= 2
 		string_line = file.get_line().strip_edges()
 		for v in CurrentMapData.vertical_sectors:
 			string_line = file.get_line().strip_edges().substr(3)
@@ -85,6 +95,7 @@ static func _handle_typ_map(file: FileAccess) -> void:
 
 static func _handle_own_map(file: FileAccess) -> void:
 	if string_line.to_lower().begins_with('own_map'):
+		if description_mode: description_mode = false
 		string_line = file.get_line()
 		string_line = file.get_line()
 		for v in CurrentMapData.vertical_sectors:
@@ -99,10 +110,11 @@ static func _handle_own_map(file: FileAccess) -> void:
 
 static func _handle_hgt_map(file: FileAccess) -> void:
 	if string_line.to_lower().begins_with('hgt_map'):
+		if description_mode: description_mode = false
 		string_line = file.get_line()
-		for v in CurrentMapData.vertical_sectors+2:
+		for v in CurrentMapData.vertical_sectors + 2:
 			string_line = file.get_line().strip_edges()
-			for h in CurrentMapData.horizontal_sectors+2:
+			for h in CurrentMapData.horizontal_sectors + 2:
 				if string_line.substr(0, 2).is_valid_hex_number():
 					CurrentMapData.hgt_map.append(string_line.substr(0, 2).hex_to_int())
 				else:
@@ -112,6 +124,7 @@ static func _handle_hgt_map(file: FileAccess) -> void:
 
 static func _handle_blg_map(file: FileAccess) -> void:
 	if string_line.to_lower().begins_with('blg_map'):
+		if description_mode: description_mode = false
 		string_line = file.get_line()
 		string_line = file.get_line()
 		for v in CurrentMapData.vertical_sectors:
@@ -125,22 +138,41 @@ static func _handle_blg_map(file: FileAccess) -> void:
 
 
 static func _handle_description(file: FileAccess) -> void:
-	file.get_line()
-	#file.get_line()
-	#file.get_line()
-	#file.get_line()
-	#file.get_line()
-	#file.get_line()
-	string_line = file.get_line().strip_edges(true, false)
-	
-	while(not string_line.is_empty() and string_line[0] == ';' and file.get_position() < file.get_length()):
-		CurrentMapData.level_description += string_line.substr(1) + '\n'
-		string_line = file.get_line().strip_edges(true, false)
+	if description_mode:
+		var temp_pattern := ""
+
+		if string_line.contains("------------------------------------------------------------"):
+			temp_pattern = "------------------------------------------------------------\n"
+			string_line = file.get_line()
+			if string_line.contains(";--- Main Level Info                                      ---"):
+				temp_pattern += "--- Main Level Info                                      ---\n"
+				string_line = file.get_line()
+				if string_line.contains(";------------------------------------------------------------"):
+					description_mode = false
+					return
+				else:
+					string_line = string_line.strip_edges()
+					if string_line.is_empty():
+						temp_pattern += '\n'
+					elif string_line[0] == ';':
+						temp_pattern += string_line.get_slice(';', 1) + '\n'
+			else:
+				string_line = string_line.strip_edges()
+				if string_line.is_empty():
+					temp_pattern += '\n'
+				elif string_line[0] == ';':
+					temp_pattern += string_line.get_slice(';', 1) + '\n'
+		else:
+			CurrentMapData.level_description += string_line + '\n'
+		
+		if not temp_pattern.is_empty():
+			CurrentMapData.level_description += temp_pattern
 
 
 static func _handle_level_parameters(file: FileAccess) -> void:
 	if string_line.to_lower().begins_with('begin_level'):
-		while(string_line != "end" and file.get_position() < file.get_length()):
+		if description_mode: description_mode = false
+		while (string_line != "end" and file.get_position() < file.get_length()):
 			string_line = file.get_line().get_slice(';', 0).strip_edges()
 			if string_line.is_empty(): continue
 			string_line = string_line.to_lower()
@@ -176,7 +208,8 @@ static func _handle_level_parameters(file: FileAccess) -> void:
 
 static func _handle_briefing_maps(file: FileAccess) -> void:
 	if string_line.to_lower().begins_with('begin_mbmap'):
-		while(string_line != "end" and file.get_position() < file.get_length()):
+		if description_mode: description_mode = false
+		while (string_line != "end" and file.get_position() < file.get_length()):
 			string_line = file.get_line().get_slice(';', 0).strip_edges()
 			if string_line.is_empty(): continue
 			string_line = string_line.to_lower()
@@ -194,7 +227,8 @@ static func _handle_briefing_maps(file: FileAccess) -> void:
 				CurrentMapData.briefing_size_y = int(string_line)
 				
 	if string_line.to_lower().begins_with('begin_dbmap'):
-		while(string_line != "end" and file.get_position() < file.get_length()):
+		if description_mode: description_mode = false
+		while (string_line != "end" and file.get_position() < file.get_length()):
 			string_line = file.get_line().get_slice(';', 0).strip_edges()
 			if string_line.is_empty(): continue
 			string_line = string_line.to_lower()
@@ -214,6 +248,7 @@ static func _handle_briefing_maps(file: FileAccess) -> void:
 
 static func _handle_beam_gates(file: FileAccess) -> void:
 	if string_line.to_lower().begins_with('begin_gate'):
+		if description_mode: description_mode = false
 		var sec_x: int
 		var sec_y: int
 		var closed_bp: int
@@ -223,7 +258,7 @@ static func _handle_beam_gates(file: FileAccess) -> void:
 		var key_sector: Vector2i
 		var mb_status := false
 		
-		while(string_line != "end" and file.get_position() < file.get_length()):
+		while (string_line != "end" and file.get_position() < file.get_length()):
 			string_line = file.get_line().get_slice(';', 0).strip_edges()
 			if string_line.is_empty(): continue
 			string_line = string_line.to_lower()
@@ -271,6 +306,7 @@ static func _handle_beam_gates(file: FileAccess) -> void:
 
 static func _handle_host_stations(file: FileAccess) -> void:
 	if string_line.to_lower().begins_with('begin_robo'):
+		if description_mode: description_mode = false
 		var owner_id: int
 		var vehicle_id: int
 		var pos_x: int
@@ -299,7 +335,7 @@ static func _handle_host_stations(file: FileAccess) -> void:
 		var cpl_budget: int
 		var cpl_delay: int
 		
-		while(string_line != "end" and file.get_position() < file.get_length()):
+		while (string_line != "end" and file.get_position() < file.get_length()):
 			string_line = file.get_line().get_slice(';', 0).strip_edges()
 			if string_line.is_empty(): continue
 			string_line = string_line.to_lower()
@@ -439,6 +475,7 @@ static func _handle_host_stations(file: FileAccess) -> void:
 
 static func _handle_bombs(file: FileAccess) -> void:
 	if string_line.to_lower().begins_with('begin_item'):
+		if description_mode: description_mode = false
 		var sec_x: int
 		var sec_y: int
 		var inactive_bp: int
@@ -449,7 +486,7 @@ static func _handle_bombs(file: FileAccess) -> void:
 		var key_sectors: Array[Vector2i] = []
 		var key_sector: Vector2i
 		
-		while(string_line != "end" and file.get_position() < file.get_length()):
+		while (string_line != "end" and file.get_position() < file.get_length()):
 			string_line = file.get_line().get_slice(';', 0).strip_edges()
 			if string_line.is_empty(): continue
 			string_line = string_line.to_lower()
@@ -503,6 +540,7 @@ static func _handle_bombs(file: FileAccess) -> void:
 
 static func _handle_predefined_squads(file: FileAccess) -> void:
 	if string_line.to_lower().begins_with('begin_squad'):
+		if description_mode: description_mode = false
 		var owner_id: int
 		var vehicle_id: int
 		var quantity: int
@@ -511,7 +549,7 @@ static func _handle_predefined_squads(file: FileAccess) -> void:
 		var useable := false
 		var mb_status := false
 		
-		while(string_line != "end" and file.get_position() < file.get_length()):
+		while (string_line != "end" and file.get_position() < file.get_length()):
 			string_line = file.get_line().get_slice(';', 0).strip_edges()
 			if string_line.is_empty(): continue
 			string_line = string_line.to_lower()
@@ -554,7 +592,8 @@ static func _handle_predefined_squads(file: FileAccess) -> void:
 
 static func _handle_modifications(file: FileAccess) -> void:
 	if string_line.to_lower().begins_with('include'):
-		while(file.get_position() < file.get_length()):
+		if description_mode: description_mode = false
+		while (file.get_position() < file.get_length()):
 			CurrentMapData.prototype_modifications += string_line + '\n'
 			string_line = file.get_line()
 			if not string_line.is_empty() and string_line[0] == ';': break
@@ -564,10 +603,11 @@ static func _handle_modifications(file: FileAccess) -> void:
 
 static func _handle_prototype_enabling(file: FileAccess) -> void:
 	if string_line.to_lower().begins_with("begin_enable"):
+		if description_mode: description_mode = false
 		string_line = string_line.replacen("begin_enable", "").replace("=", "").strip_edges()
 		var owner_id = int(string_line)
 		
-		while(string_line != "end" and file.get_position() < file.get_length()):
+		while (string_line != "end" and file.get_position() < file.get_length()):
 			string_line = file.get_line().get_slice(';', 0).strip_edges()
 			if string_line.is_empty(): continue
 			string_line = string_line.to_lower()
@@ -599,6 +639,7 @@ static func _handle_prototype_enabling(file: FileAccess) -> void:
 
 static func _handle_tech_upgrades(file: FileAccess) -> void:
 	if string_line.to_lower().begins_with("begin_gem"):
+		if description_mode: description_mode = false
 		var sec_x: int
 		var sec_y: int
 		var building_id := 4
@@ -608,7 +649,7 @@ static func _handle_tech_upgrades(file: FileAccess) -> void:
 		var weapons := []
 		var buildings := []
 		
-		while(string_line != "end" and file.get_position() < file.get_length()):
+		while (string_line != "end" and file.get_position() < file.get_length()):
 			string_line = file.get_line().get_slice(';', 0).strip_edges()
 			if string_line.is_empty(): continue
 			string_line = string_line.to_lower()
@@ -633,7 +674,7 @@ static func _handle_tech_upgrades(file: FileAccess) -> void:
 				mb_status = true
 			
 			if string_line.begins_with("begin_action"):
-				while(string_line != "end_action" and file.get_position() < file.get_length()):
+				while (string_line != "end_action" and file.get_position() < file.get_length()):
 					string_line = file.get_line().get_slice(';', 0).strip_edges()
 					if string_line.is_empty(): continue
 					string_line = string_line.to_lower()
@@ -653,7 +694,7 @@ static func _handle_tech_upgrades(file: FileAccess) -> void:
 						var blacksect_enabled := false
 						var training_enabled := false
 						
-						while(string_line != "end" and file.get_position() < file.get_length()):
+						while (string_line != "end" and file.get_position() < file.get_length()):
 							string_line = file.get_line().get_slice(';', 0).strip_edges()
 							if string_line.is_empty(): continue
 							string_line = string_line.to_lower()
@@ -708,7 +749,7 @@ static func _handle_tech_upgrades(file: FileAccess) -> void:
 						var shot_time := 0
 						var shot_time_user := 0
 						
-						while(string_line != "end" and file.get_position() < file.get_length()):
+						while (string_line != "end" and file.get_position() < file.get_length()):
 							string_line = file.get_line().get_slice(';', 0).strip_edges()
 							if string_line.is_empty(): continue
 							string_line = string_line.to_lower()
@@ -743,7 +784,7 @@ static func _handle_tech_upgrades(file: FileAccess) -> void:
 						var blacksect_enabled := false
 						var training_enabled := false
 						
-						while(string_line != "end" and file.get_position() < file.get_length()):
+						while (string_line != "end" and file.get_position() < file.get_length()):
 							string_line = file.get_line().get_slice(';', 0).strip_edges()
 							if string_line.is_empty(): continue
 							string_line = string_line.to_lower()
@@ -819,14 +860,14 @@ static func _infer_game_type() -> void:
 		player_hs = CurrentMapData.host_stations.get_child(0)
 	var inferred_game_type: String
 	for game_type in Preloads.ua_data.data:
-		if ((CurrentMapData.briefing_map in Preloads.ua_data.data[game_type].missionBriefingMaps or 
+		if ((CurrentMapData.briefing_map in Preloads.ua_data.data[game_type].missionBriefingMaps or
 			CurrentMapData.briefing_map in Preloads.ua_data.data[game_type].missionDebriefingMaps) and
 			(CurrentMapData.debriefing_map in Preloads.ua_data.data[game_type].missionDebriefingMaps or
-			CurrentMapData.debriefing_map in Preloads.ua_data.data[game_type].missionBriefingMaps) and 
+			CurrentMapData.debriefing_map in Preloads.ua_data.data[game_type].missionBriefingMaps) and
 			inferred_game_type.is_empty()):
 			inferred_game_type = game_type
 		elif ((not CurrentMapData.briefing_map in Preloads.ua_data.data[game_type].missionBriefingMaps and
-			  not CurrentMapData.briefing_map in Preloads.ua_data.data[game_type].missionDebriefingMaps) or 
+			  not CurrentMapData.briefing_map in Preloads.ua_data.data[game_type].missionDebriefingMaps) or
 			  (not CurrentMapData.debriefing_map in Preloads.ua_data.data[game_type].missionDebriefingMaps and
 			  not CurrentMapData.debriefing_map in Preloads.ua_data.data[game_type].missionBriefingMaps)):
 			continue
@@ -842,8 +883,8 @@ static func _infer_game_type() -> void:
 							EditorState.game_data_type = inferred_game_type
 							return
 	
-	if ((CurrentMapData.prototype_modifications.containsn("include script:startupG.scr") or 
-		CurrentMapData.prototype_modifications.containsn("include script:startupT.scr")) and 
+	if ((CurrentMapData.prototype_modifications.containsn("include script:startupG.scr") or
+		CurrentMapData.prototype_modifications.containsn("include script:startupT.scr")) and
 		Preloads.ua_data.data.keys().has("metropolisDawn")):
 		inferred_game_type = "metropolisDawn"
 	
