@@ -1,6 +1,7 @@
-[gd_scene load_steps=2 format=3 uid="uid://ddlqlnhwj21fc"]
+[gd_scene load_steps=3 format=3 uid="uid://ddlqlnhwj21fc"]
 
 [ext_resource type="Script" uid="uid://d1pyhwjbebsvm" path="res://modals/prototype_modifications_window.gd" id="1_mlj6c"]
+[ext_resource type="FontFile" uid="uid://dfhhbnlpwva78" path="res://resources/JetBrainsMonoNL-Regular.ttf" id="2_ypmq3"]
 
 [node name="PrototypeModificationsWindow" type="Window"]
 auto_translate_mode = 1
@@ -45,6 +46,7 @@ autowrap_mode = 2
 unique_name_in_owner = true
 layout_mode = 2
 size_flags_vertical = 3
+theme_override_fonts/font = ExtResource("2_ypmq3")
 theme_override_font_sizes/font_size = 14
 text = "include data:scripts/startup2.scr"
 

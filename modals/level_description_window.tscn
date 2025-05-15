@@ -1,6 +1,7 @@
-[gd_scene load_steps=2 format=3 uid="uid://bn561fiqobkc3"]
+[gd_scene load_steps=3 format=3 uid="uid://bn561fiqobkc3"]
 
 [ext_resource type="Script" uid="uid://c85yafo2nyyg7" path="res://modals/level_description_window.gd" id="1_5582k"]
+[ext_resource type="FontFile" uid="uid://dfhhbnlpwva78" path="res://resources/JetBrainsMonoNL-Regular.ttf" id="2_q8ggk"]
 
 [node name="LevelDescriptionWindow" type="Window"]
 auto_translate_mode = 1
@@ -43,6 +44,7 @@ horizontal_alignment = 1
 unique_name_in_owner = true
 layout_mode = 2
 size_flags_vertical = 3
+theme_override_fonts/font = ExtResource("2_q8ggk")
 theme_override_font_sizes/font_size = 14
 text = "Testing this area
 
