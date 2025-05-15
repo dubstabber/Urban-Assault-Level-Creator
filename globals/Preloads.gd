@@ -99,7 +99,7 @@ func _ready():
 	building_top_images[6] = {}
 	
 	var idx := 0
-	while(idx < 256):
+	while (idx < 256):
 		if idx == 54: idx = 59
 		if idx == 60: idx = 66
 		if idx == 83: idx = 95
@@ -117,7 +117,7 @@ func _ready():
 		
 	
 	idx = 0
-	while(idx < 256):
+	while (idx < 256):
 		if idx == 25: idx = 27
 		if idx == 105: idx = 110
 		if idx == 114: idx = 118
@@ -133,7 +133,7 @@ func _ready():
 		idx += 1
 	
 	idx = 0
-	while(idx < 256):
+	while (idx < 256):
 		if idx == 50: idx = 59
 		if idx == 60: idx = 66
 		if idx == 83: idx = 100
@@ -150,7 +150,7 @@ func _ready():
 		idx += 1
 		
 	idx = 0
-	while(idx < 256):
+	while (idx < 256):
 		if idx == 50: idx = 59
 		if idx == 61: idx = 66
 		if idx == 83: idx = 100
@@ -167,7 +167,7 @@ func _ready():
 		idx += 1
 		
 	idx = 0
-	while(idx < 256):
+	while (idx < 256):
 		if idx == 96: idx = 97
 		if idx == 117: idx = 118
 		if idx == 132: idx = 133
@@ -182,7 +182,7 @@ func _ready():
 		idx += 1
 		
 	idx = 0
-	while(idx < 256):
+	while (idx < 256):
 		if idx == 50: idx = 59
 		if idx == 60: idx = 66
 		if idx == 83: idx = 95
@@ -308,21 +308,21 @@ func reload_units_and_buildings() -> void:
 		EventSystem.editor_fatal_error_occured.emit.call_deferred("no_hoststations")
 		return
 	for hs in ua_data.data[EditorState.game_data_type].hoststations:
-		hs_images[str(ua_data.data[EditorState.game_data_type].hoststations[hs].owner)] = load("res://resources/img/hostStationImages/"+ ua_data.data[EditorState.game_data_type].hoststations[hs].image_file)
+		hs_images[int(ua_data.data[EditorState.game_data_type].hoststations[hs].owner)] = load("res://resources/img/hostStationImages/" + ua_data.data[EditorState.game_data_type].hoststations[hs].image_file)
 		for robo in ua_data.data[EditorState.game_data_type].hoststations[hs].robos:
 			hs_robo_images[int(robo.id)] = {
 				"name": robo.name,
-				"image": load("res://resources/img/hostStationRoboImages/"+robo.image_file)
+				"image": load("res://resources/img/hostStationRoboImages/" + robo.image_file)
 			}
 		for squad in ua_data.data[EditorState.game_data_type].hoststations[hs].units:
-			squad_images[str(squad.id)] = load("res://resources/img/squadImages/" + squad.image_file)
+			squad_images[int(squad.id)] = load("res://resources/img/squadImages/" + squad.image_file)
 		for building in ua_data.data[EditorState.game_data_type].hoststations[hs].buildings:
-			special_building_images[str(building.id)] = load("res://resources/img/blgMapImages/" + building.image_file)
+			special_building_images[int(building.id)] = load("res://resources/img/blgMapImages/" + building.image_file)
 	
 	for squad in ua_data.data[EditorState.game_data_type].other.units:
-		squad_images[str(squad.id)] = load("res://resources/img/squadImages/" + squad.image_file)
+		squad_images[int(squad.id)] = load("res://resources/img/squadImages/" + squad.image_file)
 	for building in ua_data.data[EditorState.game_data_type].other.buildings:
-		special_building_images[str(building.id)] = load("res://resources/img/blgMapImages/" + building.image_file)
+		special_building_images[int(building.id)] = load("res://resources/img/blgMapImages/" + building.image_file)
 
 
 func reload_mb_db_maps() -> void:

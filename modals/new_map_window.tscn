@@ -1,6 +1,6 @@
 [gd_scene load_steps=2 format=3 uid="uid://c3kputnns5tlf"]
 
-[ext_resource type="Script" path="res://modals/new_map_window.gd" id="1_0khff"]
+[ext_resource type="Script" uid="uid://isjo3xjq8e18" path="res://modals/new_map_window.gd" id="1_0khff"]
 
 [node name="NewMapWindow" type="Window"]
 auto_translate_mode = 1

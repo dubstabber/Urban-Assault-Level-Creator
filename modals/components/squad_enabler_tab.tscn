@@ -1,6 +1,6 @@
 [gd_scene load_steps=3 format=3 uid="uid://d30kmftj8dl8g"]
 
-[ext_resource type="Script" path="res://modals/components/squad_enabler_tab.gd" id="1_7dgui"]
+[ext_resource type="Script" uid="uid://gyrd3ycpc5pi" path="res://modals/components/squad_enabler_tab.gd" id="1_7dgui"]
 [ext_resource type="PackedScene" uid="uid://bfmapkerqoldp" path="res://modals/components/item_check_box_container.tscn" id="2_uc5tb"]
 
 [node name="SquadEnablerTab" type="TabBar"]

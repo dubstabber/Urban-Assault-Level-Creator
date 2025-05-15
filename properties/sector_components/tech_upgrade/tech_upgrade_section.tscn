@@ -1,7 +1,7 @@
 [gd_scene load_steps=5 format=3 uid="uid://bwoqr46387uyb"]
 
 [ext_resource type="PackedScene" uid="uid://1tb0vcurfq8p" path="res://properties/sector_components/tech_upgrade/tech_upgrade_modifiers/tech_upgrade_modifier_1.tscn" id="1_i1upn"]
-[ext_resource type="Script" path="res://properties/sector_components/tech_upgrade/tech_upgrade_section.gd" id="1_rs1k5"]
+[ext_resource type="Script" uid="uid://boh7r4crd7y5f" path="res://properties/sector_components/tech_upgrade/tech_upgrade_section.gd" id="1_rs1k5"]
 [ext_resource type="PackedScene" uid="uid://cr4k2w8eq5ovg" path="res://properties/sector_components/tech_upgrade/tech_upgrade_modifiers/tech_upgrade_modifier_2.tscn" id="2_8gbl3"]
 [ext_resource type="PackedScene" uid="uid://brldpw5luakhu" path="res://properties/sector_components/tech_upgrade/tech_upgrade_modifiers/tech_upgrade_modifier_3.tscn" id="4_4dhvb"]
 

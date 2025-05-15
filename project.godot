@@ -12,12 +12,12 @@ config_version=5
 
 config/name="Urban Assault Level Creator"
 run/main_scene="res://main/main.tscn"
-config/features=PackedStringArray("4.3", "GL Compatibility")
+config/features=PackedStringArray("4.4", "GL Compatibility")
 run/low_processor_mode=true
 run/low_processor_mode_sleep_usec=26000
 boot_splash/bg_color=Color(0.141176, 0.141176, 0.141176, 0)
-boot_splash/image="res://resources/img/loading.png"
 boot_splash/fullsize=false
+boot_splash/image="res://resources/img/loading.png"
 config/icon="res://resources/img/icons/icon.png"
 config/windows_native_icon="res://resources/img/icons/icon.ico"
 

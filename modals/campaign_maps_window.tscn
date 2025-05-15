@@ -1,7 +1,7 @@
 [gd_scene load_steps=6 format=3 uid="uid://duerssxf27lsy"]
 
 [ext_resource type="Texture2D" uid="uid://cn1u5i4mc5wv5" path="res://resources/img/campaignMaps/originalMap.jpg" id="1_73toq"]
-[ext_resource type="Script" path="res://modals/campaign_maps_window.gd" id="1_wcpne"]
+[ext_resource type="Script" uid="uid://vfacd741ruah" path="res://modals/campaign_maps_window.gd" id="1_wcpne"]
 [ext_resource type="FontFile" uid="uid://b5bou0wtu243w" path="res://resources/Xolonium-Regular.ttf" id="2_1thal"]
 [ext_resource type="Texture2D" uid="uid://n2caoutggohf" path="res://resources/img/campaignMaps/MDGhorMap.jpg" id="2_uj755"]
 [ext_resource type="Texture2D" uid="uid://d4ceqrrlaou3j" path="res://resources/img/campaignMaps/MDTaerMap.jpg" id="3_pxwhm"]

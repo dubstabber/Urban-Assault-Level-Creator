@@ -1,6 +1,6 @@
 [gd_scene load_steps=3 format=3 uid="uid://bmiwat7c1bw0s"]
 
-[ext_resource type="Script" path="res://modals/briefing_map_picker_window.gd" id="1_0ja6o"]
+[ext_resource type="Script" uid="uid://p6tbuml1yxeh" path="res://modals/briefing_map_picker_window.gd" id="1_0ja6o"]
 
 [sub_resource type="PlaceholderTexture2D" id="PlaceholderTexture2D_a3nxt"]
 size = Vector2(350, 350)

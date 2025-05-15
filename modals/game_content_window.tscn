@@ -1,7 +1,7 @@
 [gd_scene load_steps=3 format=3 uid="uid://38jgl31xlam5"]
 
 [ext_resource type="ButtonGroup" uid="uid://d0w8qxd16g417" path="res://themes/game_content_button_group.tres" id="1_2xh6p"]
-[ext_resource type="Script" path="res://modals/game_content_window.gd" id="1_vqrql"]
+[ext_resource type="Script" uid="uid://d3yi4hpone63f" path="res://modals/game_content_window.gd" id="1_vqrql"]
 
 [node name="GameContentWindow" type="Window"]
 auto_translate_mode = 1

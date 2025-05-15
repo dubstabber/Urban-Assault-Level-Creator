@@ -1,6 +1,6 @@
 [gd_scene load_steps=2 format=3 uid="uid://brldpw5luakhu"]
 
-[ext_resource type="Script" path="res://properties/sector_components/tech_upgrade/tech_upgrade_modifiers/tech_upgrade_modifier_3.gd" id="1_gox1j"]
+[ext_resource type="Script" uid="uid://b8yshgnhjumii" path="res://properties/sector_components/tech_upgrade/tech_upgrade_modifiers/tech_upgrade_modifier_3.gd" id="1_gox1j"]
 
 [node name="TechUpgradeModifier3" type="VBoxContainer"]
 anchors_preset = 15

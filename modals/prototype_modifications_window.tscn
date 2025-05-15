@@ -1,6 +1,6 @@
 [gd_scene load_steps=2 format=3 uid="uid://ddlqlnhwj21fc"]
 
-[ext_resource type="Script" path="res://modals/prototype_modifications_window.gd" id="1_mlj6c"]
+[ext_resource type="Script" uid="uid://d1pyhwjbebsvm" path="res://modals/prototype_modifications_window.gd" id="1_mlj6c"]
 
 [node name="PrototypeModificationsWindow" type="Window"]
 auto_translate_mode = 1

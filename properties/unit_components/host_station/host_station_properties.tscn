@@ -1,6 +1,6 @@
 [gd_scene load_steps=3 format=3 uid="uid://d21eco4mp6ath"]
 
-[ext_resource type="Script" path="res://properties/unit_components/host_station/host_station_properties.gd" id="1_efq3l"]
+[ext_resource type="Script" uid="uid://b8sahljnq7nhc" path="res://properties/unit_components/host_station/host_station_properties.gd" id="1_efq3l"]
 [ext_resource type="Theme" uid="uid://cdrs6kxi0mn0v" path="res://resources/themes/ua_theme.tres" id="1_moywq"]
 
 [node name="HostStationProperties" type="VBoxContainer"]

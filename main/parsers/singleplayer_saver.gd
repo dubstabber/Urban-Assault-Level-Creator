@@ -3,7 +3,7 @@ class_name SingleplayerSaver
 
 static func save() -> void:
 	var file = FileAccess.open(CurrentMapData.map_path, FileAccess.WRITE)
-	if not file: 
+	if not file:
 		printerr("Error: File '%s' cannot be saved" % CurrentMapData.map_path)
 		printerr("The path is not accessible and cannot be saved.")
 		EventSystem.save_map_failed.emit("path_inaccessible")
@@ -37,7 +37,7 @@ static func _handle_header(file: FileAccess) -> void:
 
 
 static func _handle_description(file: FileAccess) -> void:
-	file.store_line(";"+CurrentMapData.level_description.strip_edges(false, true).replace('\n', '\n;'))
+	file.store_line(";" + CurrentMapData.level_description.strip_edges(false, true).replace('\n', '\n;'))
 	file.store_line("")
 
 
@@ -117,9 +117,9 @@ static func _handle_host_stations(file: FileAccess) -> void:
 			file.store_line("\towner = %s" % CurrentMapData.player_host_station.owner_id)
 			if CurrentMapData.player_host_station.player_vehicle >= 0: file.store_line("\tvehicle = %s" % CurrentMapData.player_host_station.player_vehicle)
 			else: file.store_line("\tvehicle = %s" % CurrentMapData.player_host_station.vehicle)
-			file.store_line("\tpos_x = %s" % round(CurrentMapData.player_host_station.position.x))
+			file.store_line("\tpos_x = %s" % roundi(CurrentMapData.player_host_station.position.x))
 			file.store_line("\tpos_y = %s" % CurrentMapData.player_host_station.pos_y)
-			file.store_line("\tpos_z = -%s" % round(CurrentMapData.player_host_station.position.y))
+			file.store_line("\tpos_z = -%s" % roundi(CurrentMapData.player_host_station.position.y))
 			file.store_line("\tenergy = %s" % CurrentMapData.player_host_station.energy)
 			if CurrentMapData.player_host_station.reload_const_enabled: file.store_line("\treload_const = %s" % CurrentMapData.player_host_station.reload_const)
 			if CurrentMapData.player_host_station.view_angle_enabled: file.store_line("\tviewangle = %s" % CurrentMapData.player_host_station.view_angle)
@@ -131,9 +131,9 @@ static func _handle_host_stations(file: FileAccess) -> void:
 			file.store_line("begin_robo")
 			file.store_line("\towner = %s" % hs.owner_id)
 			file.store_line("\tvehicle = %s" % hs.vehicle)
-			file.store_line("\tpos_x = %s" % round(hs.position.x))
+			file.store_line("\tpos_x = %s" % roundi(hs.position.x))
 			file.store_line("\tpos_y = %s" % hs.pos_y)
-			file.store_line("\tpos_z = -%s" % round(hs.position.y))
+			file.store_line("\tpos_z = -%s" % roundi(hs.position.y))
 			file.store_line("\tenergy = %s" % hs.energy)
 			if hs.reload_const_enabled: file.store_line("\treload_const = %s" % hs.reload_const)
 			if hs.view_angle_enabled: file.store_line("\tviewangle = %s" % hs.view_angle)
@@ -192,8 +192,8 @@ static func _handle_predefined_squads(file: FileAccess) -> void:
 			file.store_line("\tvehicle = %s" % squad.vehicle)
 			file.store_line("\tnum = %s" % squad.quantity)
 			if squad.useable: file.store_line("\tuseable")
-			file.store_line("\tpos_x = %s" % round(squad.position.x))
-			file.store_line("\tpos_z = -%s" % round(squad.position.y))
+			file.store_line("\tpos_x = %s" % roundi(squad.position.x))
+			file.store_line("\tpos_z = -%s" % roundi(squad.position.y))
 			if squad.mb_status: file.store_line("\tmb_status = unknown")
 			file.store_line("end")
 	else:
@@ -272,8 +272,8 @@ static func _handle_tech_upgrades(file: FileAccess) -> void:
 				file.store_line("\tbegin_action")
 			
 				for vehicle in tu.vehicles:
-					if (vehicle.energy == 0 and vehicle.shield == 0 and vehicle.radar == 0 and vehicle.num_weapons == 0 and 
-					not vehicle.res_enabled and not vehicle.ghor_enabled and not vehicle.taer_enabled and not vehicle.myko_enabled and 
+					if (vehicle.energy == 0 and vehicle.shield == 0 and vehicle.radar == 0 and vehicle.num_weapons == 0 and
+					not vehicle.res_enabled and not vehicle.ghor_enabled and not vehicle.taer_enabled and not vehicle.myko_enabled and
 					not vehicle.sulg_enabled and not vehicle.blacksect_enabled and not vehicle.training_enabled): continue
 					
 					file.store_line("\t\tmodify_vehicle %s" % vehicle.vehicle_id)
@@ -287,7 +287,7 @@ static func _handle_tech_upgrades(file: FileAccess) -> void:
 					if vehicle.energy != 0: file.store_line("\t\t\tadd_energy = %s" % vehicle.energy)
 					if vehicle.shield != 0: file.store_line("\t\t\tadd_shield = %s" % vehicle.shield)
 					if vehicle.radar != 0: file.store_line("\t\t\tadd_radar = %s" % vehicle.radar)
-					if vehicle.num_weapons != 0: 
+					if vehicle.num_weapons != 0:
 						file.store_line("\t\t\tnum_weapons = %s" % vehicle.num_weapons)
 						file.store_line("\t\t\tfire_x = %s" % vehicle.fire_x)
 						file.store_line("\t\t\tfire_y = %s" % vehicle.fire_y)
@@ -330,7 +330,7 @@ static func _handle_typ_map(file: FileAccess) -> void:
 	file.store_line(";------------------------------------------------------------")
 	file.store_line("begin_maps")
 	file.store_line("    typ_map =")
-	file.store_line("        %s %s" % [(CurrentMapData.horizontal_sectors+2), (CurrentMapData.vertical_sectors+2)])
+	file.store_line("        %s %s" % [(CurrentMapData.horizontal_sectors + 2), (CurrentMapData.vertical_sectors + 2)])
 	file.store_string("        f8 ")
 	for _i in CurrentMapData.horizontal_sectors: file.store_string("fc ")
 	file.store_line("f9 ")
@@ -350,9 +350,9 @@ static func _handle_typ_map(file: FileAccess) -> void:
 
 static func _handle_own_map(file: FileAccess) -> void:
 	file.store_line("    own_map =")
-	file.store_line("        %s %s" % [(CurrentMapData.horizontal_sectors+2), (CurrentMapData.vertical_sectors+2)])
+	file.store_line("        %s %s" % [(CurrentMapData.horizontal_sectors + 2), (CurrentMapData.vertical_sectors + 2)])
 	file.store_string("        ")
-	for _i in CurrentMapData.horizontal_sectors+1: file.store_string("00 ")
+	for _i in CurrentMapData.horizontal_sectors + 1: file.store_string("00 ")
 	file.store_line("00 ")
 	var index := 0
 	for v in CurrentMapData.vertical_sectors:
@@ -362,28 +362,28 @@ static func _handle_own_map(file: FileAccess) -> void:
 			index += 1
 		file.store_line("00 ")
 	file.store_string("        ")
-	for _i in CurrentMapData.horizontal_sectors+1: file.store_string("00 ")
+	for _i in CurrentMapData.horizontal_sectors + 1: file.store_string("00 ")
 	file.store_line("00 ")
 
 
 static func _handle_hgt_map(file: FileAccess) -> void:
 	file.store_line("    hgt_map =")
-	file.store_line("        %s %s" % [(CurrentMapData.horizontal_sectors+2), (CurrentMapData.vertical_sectors+2)])
+	file.store_line("        %s %s" % [(CurrentMapData.horizontal_sectors + 2), (CurrentMapData.vertical_sectors + 2)])
 	var index := 0
-	for v in CurrentMapData.vertical_sectors+2:
+	for v in CurrentMapData.vertical_sectors + 2:
 		file.store_string("        ")
-		for h in CurrentMapData.horizontal_sectors+2:
+		for h in CurrentMapData.horizontal_sectors + 2:
 			if CurrentMapData.hgt_map[index] < 16: file.store_string("0%x " % CurrentMapData.hgt_map[index])
 			else: file.store_string("%x " % CurrentMapData.hgt_map[index])
 			index += 1
 		file.store_line("")
 
 
-static func _handle_blg_map(file: FileAccess) ->void:
+static func _handle_blg_map(file: FileAccess) -> void:
 	file.store_line("    blg_map =")
-	file.store_line("        %s %s" % [(CurrentMapData.horizontal_sectors+2), (CurrentMapData.vertical_sectors+2)])
+	file.store_line("        %s %s" % [(CurrentMapData.horizontal_sectors + 2), (CurrentMapData.vertical_sectors + 2)])
 	file.store_string("        ")
-	for _i in CurrentMapData.horizontal_sectors+1: file.store_string("00 ")
+	for _i in CurrentMapData.horizontal_sectors + 1: file.store_string("00 ")
 	file.store_line("00 ")
 	var index := 0
 	for v in CurrentMapData.vertical_sectors:
@@ -394,7 +394,7 @@ static func _handle_blg_map(file: FileAccess) ->void:
 			index += 1
 		file.store_line("00 ")
 	file.store_string("        ")
-	for _i in CurrentMapData.horizontal_sectors+1: file.store_string("00 ")
+	for _i in CurrentMapData.horizontal_sectors + 1: file.store_string("00 ")
 	file.store_line("00 ")
 	
 	file.store_line("; ------------------------ ")

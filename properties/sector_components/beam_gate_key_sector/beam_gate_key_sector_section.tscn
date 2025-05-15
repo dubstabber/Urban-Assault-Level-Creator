@@ -1,7 +1,7 @@
 [gd_scene load_steps=3 format=3 uid="uid://483vyvqaia2i"]
 
 [ext_resource type="PackedScene" uid="uid://co34kw1wyoao3" path="res://properties/sector_components/beam_gate_key_sector/beam_gate_key_sector_v_box.tscn" id="1_cbqfn"]
-[ext_resource type="Script" path="res://properties/sector_components/beam_gate_key_sector/beam_gate_key_sector_section.gd" id="1_t5th8"]
+[ext_resource type="Script" uid="uid://dkfqp6pdpas1a" path="res://properties/sector_components/beam_gate_key_sector/beam_gate_key_sector_section.gd" id="1_t5th8"]
 
 [node name="BeamGateKeySectorSection" type="VBoxContainer"]
 alignment = 1

@@ -1,6 +1,6 @@
 [gd_scene load_steps=2 format=3 uid="uid://dfamq5n451pat"]
 
-[ext_resource type="Script" path="res://modals/sector_height_window.gd" id="1_m0n6g"]
+[ext_resource type="Script" uid="uid://bh67p8dcvycqr" path="res://modals/sector_height_window.gd" id="1_m0n6g"]
 
 [node name="SectorHeightWindow" type="Window"]
 auto_translate_mode = 1

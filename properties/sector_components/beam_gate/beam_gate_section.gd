@@ -48,7 +48,7 @@ func _ready() -> void:
 func _update_properties() -> void:
 	if EditorState.selected_beam_gate:
 		show()
-		%BeamGateInfoLabel.text = 'Beam gate %s' % (CurrentMapData.beam_gates.find(EditorState.selected_beam_gate)+1)
+		%BeamGateInfoLabel.text = 'Beam gate %s' % (CurrentMapData.beam_gates.find(EditorState.selected_beam_gate) + 1)
 		if EditorState.selected_beam_gate.closed_bp == 5:
 			%BGBuildingOptionButton.selected = 0
 		elif EditorState.selected_beam_gate.closed_bp == 25:
@@ -66,7 +66,7 @@ func _update_properties() -> void:
 			for i in EditorState.selected_beam_gate.key_sectors.size():
 				var ks_label = Label.new()
 				%BGKeySectorsContainer.add_child(ks_label)
-				ks_label.text = 'Key sector %s at X:%s Y:%s' %[i+1, EditorState.selected_beam_gate.key_sectors[i].x, EditorState.selected_beam_gate.key_sectors[i].y]
+				ks_label.text = 'Key sector %s at X:%s Y:%s' % [i + 1, EditorState.selected_beam_gate.key_sectors[i].x, EditorState.selected_beam_gate.key_sectors[i].y]
 				ks_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 				ks_label.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
 				ks_label["theme_override_font_sizes/font_size"] = 12
@@ -75,11 +75,11 @@ func _update_properties() -> void:
 			%BGKeySectorsContainer.hide()
 			
 		%LevelsOptionButton.clear()
-		for level_id in Preloads.ua_data.data[EditorState.game_data_type].levels:
+		for level_id: int in Preloads.ua_data.data[EditorState.game_data_type].levels:
 			if level_id < 10:
-				%LevelsOptionButton.add_item('L0%s0%s'% [level_id,level_id], level_id)
+				%LevelsOptionButton.add_item('L0%s0%s' % [level_id, level_id], level_id)
 			else:
-				%LevelsOptionButton.add_item('L%s%s'% [level_id,level_id], level_id)
+				%LevelsOptionButton.add_item('L%s%s' % [level_id, level_id], level_id)
 		
 		for lvl in %UnlockLevelsContainer.get_children():
 			lvl.queue_free()

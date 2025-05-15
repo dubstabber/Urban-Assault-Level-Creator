@@ -1,6 +1,6 @@
 [gd_scene load_steps=2 format=3 uid="uid://jjjttp3iae4g"]
 
-[ext_resource type="Script" path="res://map/ua_structures/squad.gd" id="1_lsxyl"]
+[ext_resource type="Script" uid="uid://bcbkpwp226sw" path="res://map/ua_structures/squad.gd" id="1_lsxyl"]
 
 [node name="Squad" type="Sprite2D"]
 script = ExtResource("1_lsxyl")

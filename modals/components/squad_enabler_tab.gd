@@ -23,11 +23,12 @@ func refresh() -> void:
 	for hs in Preloads.ua_data.data[EditorState.game_data_type].hoststations:
 		for squad in Preloads.ua_data.data[EditorState.game_data_type].hoststations[hs].units:
 			var item_check_box = ITEM_CHECK_BOX_CONTAINER.instantiate()
-			item_check_box.item_texture = Preloads.squad_images[str(squad.id)]
+			var squad_id = int(squad.id)
+			item_check_box.item_texture = Preloads.squad_images[squad_id]
 			item_check_box.label_text = squad.name
 			item_check_box.item_type = "squad"
 			item_check_box.owner_id = host_station_owner_id
-			item_check_box.item_id = squad.id
+			item_check_box.item_id = squad_id
 			item_check_box.change_button_availability(true, Preloads.ua_data.data[EditorState.game_data_type].hoststations[hs].owner)
 			match hs:
 				"Resistance": %ResistanceUnitsContainer.add_child(item_check_box)
@@ -42,7 +43,7 @@ func refresh() -> void:
 			item_check_box.label_text = building.name
 			item_check_box.item_type = "building"
 			item_check_box.owner_id = host_station_owner_id
-			item_check_box.item_id = building.id
+			item_check_box.item_id = int(building.id)
 			item_check_box.change_button_availability(true, Preloads.ua_data.data[EditorState.game_data_type].hoststations[hs].owner)
 			match hs:
 				"Resistance": %ResistanceBuildingsContainer.add_child(item_check_box)
@@ -52,20 +53,22 @@ func refresh() -> void:
 				"BlackSect": %BlackSectBuildingsContainer.add_child(item_check_box)
 	for squad in Preloads.ua_data.data[EditorState.game_data_type].other.units:
 		var item_check_box = ITEM_CHECK_BOX_CONTAINER.instantiate()
-		item_check_box.item_texture = Preloads.squad_images[str(squad.id)]
+		var squad_id = int(squad.id)
+		item_check_box.item_texture = Preloads.squad_images[squad_id]
 		item_check_box.label_text = squad.name
 		item_check_box.item_type = "squad"
 		item_check_box.owner_id = host_station_owner_id
-		item_check_box.item_id = squad.id
+		item_check_box.item_id = squad_id
 		item_check_box.change_button_availability(true, 0)
 		%MiscUnitsContainer.add_child(item_check_box)
 	for building in Preloads.ua_data.data[EditorState.game_data_type].other.buildings:
 		var item_check_box = ITEM_CHECK_BOX_CONTAINER.instantiate()
+		var building_id = int(building.id)
 		item_check_box.item_texture = Preloads.building_icons[building.icon_type]
 		item_check_box.label_text = building.name
 		item_check_box.item_type = "building"
 		item_check_box.owner_id = host_station_owner_id
-		item_check_box.item_id = building.id
+		item_check_box.item_id = building_id
 		item_check_box.change_button_availability(true, 0)
 		%MiscBuildingsContainer.add_child(item_check_box)
 	%UnlockItemsCheckBox.button_pressed = false

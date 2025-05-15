@@ -1,6 +1,6 @@
 [gd_scene load_steps=4 format=3 uid="uid://bopbfkpvnejw3"]
 
-[ext_resource type="Script" path="res://modals/additional_information_window.gd" id="1_5xclc"]
+[ext_resource type="Script" uid="uid://bd4euho3c1tig" path="res://modals/additional_information_window.gd" id="1_5xclc"]
 [ext_resource type="FontFile" uid="uid://b5bou0wtu243w" path="res://resources/Xolonium-Regular.ttf" id="2_q1gkp"]
 [ext_resource type="FontFile" uid="uid://cucaeigtmvh2m" path="res://resources/Xolonium-Bold.otf" id="3_p72un"]
 

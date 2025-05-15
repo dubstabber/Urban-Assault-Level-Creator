@@ -1,6 +1,6 @@
 [gd_scene load_steps=2 format=3 uid="uid://dmgma8pcf28dy"]
 
-[ext_resource type="Script" path="res://map/ua_structures/host_station.gd" id="1_fpxdb"]
+[ext_resource type="Script" uid="uid://b1keyowuynwuy" path="res://map/ua_structures/host_station.gd" id="1_fpxdb"]
 
 [node name="Host station" type="Sprite2D"]
 script = ExtResource("1_fpxdb")

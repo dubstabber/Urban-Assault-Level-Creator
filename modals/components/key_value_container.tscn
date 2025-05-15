@@ -1,6 +1,6 @@
 [gd_scene load_steps=3 format=3 uid="uid://xaio0vf2qeug"]
 
-[ext_resource type="Script" path="res://modals/components/key_value_container.gd" id="1_maxvy"]
+[ext_resource type="Script" uid="uid://da1j8urtqvq3" path="res://modals/components/key_value_container.gd" id="1_maxvy"]
 [ext_resource type="Theme" uid="uid://cial0kmqqvbei" path="res://resources/themes/key_font.tres" id="2_fv5br"]
 
 [node name="KeyValueContainer" type="HBoxContainer"]

@@ -1,6 +1,6 @@
 [gd_scene load_steps=5 format=3 uid="uid://bev7jns5uf1v8"]
 
-[ext_resource type="Script" path="res://typ_map_designer/components/building_button.gd" id="1_ao71c"]
+[ext_resource type="Script" uid="uid://dh224ayu7rp2e" path="res://typ_map_designer/components/building_button.gd" id="1_ao71c"]
 
 [sub_resource type="Gradient" id="Gradient_sfxho"]
 offsets = PackedFloat32Array(1)

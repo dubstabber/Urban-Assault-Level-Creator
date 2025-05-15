@@ -1,6 +1,6 @@
 [gd_scene load_steps=2 format=3 uid="uid://deva3qdr8h12x"]
 
-[ext_resource type="Script" path="res://properties/sector_components/stoudson_bomb/stoudson_bomb_section.gd" id="1_gtxed"]
+[ext_resource type="Script" uid="uid://cv4dq13hfqux" path="res://properties/sector_components/stoudson_bomb/stoudson_bomb_section.gd" id="1_gtxed"]
 
 [node name="StoudsonBombSection" type="VBoxContainer"]
 alignment = 1

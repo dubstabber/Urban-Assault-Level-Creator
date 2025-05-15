@@ -1,7 +1,7 @@
 [gd_scene load_steps=6 format=3 uid="uid://dww5muvu8c87j"]
 
-[ext_resource type="Script" path="res://modals/level_parameters_window.gd" id="1_st6e7"]
-[ext_resource type="Script" path="res://modals/components/sky_option_button.gd" id="2_mmmkj"]
+[ext_resource type="Script" uid="uid://c5ecchd8s5hkt" path="res://modals/level_parameters_window.gd" id="1_st6e7"]
+[ext_resource type="Script" uid="uid://c1age88cf2oeg" path="res://modals/components/sky_option_button.gd" id="2_mmmkj"]
 [ext_resource type="Texture2D" uid="uid://cp1dapyg1847h" path="res://resources/img/ui_icons/eyedropper.png" id="3_1o3gn"]
 [ext_resource type="PackedScene" uid="uid://bsr84sb4x5nrk" path="res://modals/sky_picker_window.tscn" id="4_yqhch"]
 

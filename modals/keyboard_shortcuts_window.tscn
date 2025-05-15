@@ -1,6 +1,6 @@
 [gd_scene load_steps=3 format=3 uid="uid://d1s7m85hngi8m"]
 
-[ext_resource type="Script" path="res://modals/keyboard_shortcuts_window.gd" id="1_3psab"]
+[ext_resource type="Script" uid="uid://djwkwjxmrx5q3" path="res://modals/keyboard_shortcuts_window.gd" id="1_3psab"]
 [ext_resource type="PackedScene" uid="uid://xaio0vf2qeug" path="res://modals/components/key_value_container.tscn" id="2_pguif"]
 
 [node name="KeyboardShortcutsWindow" type="Window"]

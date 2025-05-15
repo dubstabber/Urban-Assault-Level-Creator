@@ -1,9 +1,9 @@
 [gd_scene load_steps=9 format=3 uid="uid://cwls8s52kffff"]
 
-[ext_resource type="Script" path="res://modals/mission_briefing_maps_window.gd" id="1_3ep5j"]
-[ext_resource type="Script" path="res://modals/components/briefing_maps_option_button.gd" id="2_1cafo"]
+[ext_resource type="Script" uid="uid://x1yty4lw71vk" path="res://modals/mission_briefing_maps_window.gd" id="1_3ep5j"]
+[ext_resource type="Script" uid="uid://bpvat8b17i1j6" path="res://modals/components/briefing_maps_option_button.gd" id="2_1cafo"]
 [ext_resource type="Texture2D" uid="uid://cp1dapyg1847h" path="res://resources/img/ui_icons/eyedropper.png" id="3_8gcvh"]
-[ext_resource type="Script" path="res://modals/components/debriefing_maps_option_button.gd" id="3_nbxoc"]
+[ext_resource type="Script" uid="uid://cxinni1ekfa45" path="res://modals/components/debriefing_maps_option_button.gd" id="3_nbxoc"]
 [ext_resource type="PackedScene" uid="uid://bmiwat7c1bw0s" path="res://modals/briefing_map_picker_window.tscn" id="5_d4al1"]
 [ext_resource type="PackedScene" uid="uid://de5odimivku1i" path="res://modals/debriefing_map_picker_window.tscn" id="6_ylvud"]
 

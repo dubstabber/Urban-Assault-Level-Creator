@@ -43,10 +43,10 @@ var _half_indent: float
 var _sector_rect_size: float
 var _total_horizontal_sectors: int
 var _total_vertical_sectors: int
-var _third_indent: float  # Cache sector_indent/3.0
-var _two_thirds_indent: float  # Cache 1200-sector_indent/3.0
+var _third_indent: float # Cache sector_indent/3.0
+var _two_thirds_indent: float # Cache 1200-sector_indent/3.0
 
-var _current_map_data: Node 
+var _current_map_data: Node
 var _editor_state: Node
 var _preloads: Node
 
@@ -121,7 +121,7 @@ func _draw() -> void:
 				
 			# Draw selection highlight
 			if EditorState.selected_sectors.any(func(dict): return dict.border_idx == current_border_sector):
-				draw_rect(Rect2(h_grid, v_grid, SECTOR_SIZE, SECTOR_SIZE), 
+				draw_rect(Rect2(h_grid, v_grid, SECTOR_SIZE, SECTOR_SIZE),
 						 Color(0.184314, 0.309804, 0.309804, 0.6))
 				
 			current_border_sector += 1
@@ -133,8 +133,10 @@ func _draw() -> void:
 	_draw_sector_values(current_sector, current_border_sector)
 	_draw_selection_rect()
 
+
 func _is_valid_sector(x: int, y: int) -> bool:
 	return x > 0 and x < _total_horizontal_sectors - 1 and y > 0 and y < _total_vertical_sectors - 1
+
 
 func _draw_sector_content(current_sector: int, h_grid: int, v_grid: int, rect_base: Rect2, level_set: int) -> void:
 	var typ := CurrentMapData.typ_map[current_sector]
@@ -145,7 +147,7 @@ func _draw_sector_content(current_sector: int, h_grid: int, v_grid: int, rect_ba
 	# Draw typ map image
 	if Preloads.building_top_images[level_set].has(typ):
 		if EditorState.typ_map_images_visible:
-			draw_texture_rect(Preloads.building_top_images[level_set][typ], 
+			draw_texture_rect(Preloads.building_top_images[level_set][typ],
 						 Rect2(h_grid, v_grid, SECTOR_SIZE, SECTOR_SIZE), false)
 	else:
 		draw_texture_rect(Preloads.error_sign, rect, false)
@@ -154,8 +156,8 @@ func _draw_sector_content(current_sector: int, h_grid: int, v_grid: int, rect_ba
 	if (blg == 62 and level_set in [3, 4, 5]) or (blg == 55 and level_set in [2, 5]):
 		draw_texture_rect(Preloads.error_sign, rect, false)
 	
-	if Preloads.special_building_images.has(str(blg)):
-		draw_texture_rect(Preloads.special_building_images[str(blg)], rect, false)
+	if Preloads.special_building_images.has(blg):
+		draw_texture_rect(Preloads.special_building_images[blg], rect, false)
 	
 	# Draw owner color
 	var owner_id := CurrentMapData.own_map[current_sector]
@@ -294,9 +296,9 @@ func _draw_tech_upgrades() -> void:
 			draw_texture_rect(Preloads.error_sign, rect, false)
 
 func _draw_sector_values(current_sector: int, current_border_sector: int) -> void:
-	if not (EditorState.typ_map_values_visible or 
-			EditorState.own_map_values_visible or 
-			EditorState.hgt_map_values_visible or 
+	if not (EditorState.typ_map_values_visible or
+			EditorState.own_map_values_visible or
+			EditorState.hgt_map_values_visible or
 			EditorState.blg_map_values_visible):
 		return
 		

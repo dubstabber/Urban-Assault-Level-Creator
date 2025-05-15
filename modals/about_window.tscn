@@ -1,6 +1,6 @@
 [gd_scene load_steps=2 format=3 uid="uid://c83t7utfh71k1"]
 
-[ext_resource type="Script" path="res://modals/about_window.gd" id="1_ot85n"]
+[ext_resource type="Script" uid="uid://dxmesf2tcq0i1" path="res://modals/about_window.gd" id="1_ot85n"]
 
 [node name="AboutWindow" type="Window"]
 title = "About"

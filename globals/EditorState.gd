@@ -5,7 +5,7 @@ enum States {
 	TypMapDesign
 }
 
-var game_data_type:String:
+var game_data_type: String:
 	set(value):
 		game_data_type = value
 		EventSystem.game_type_changed.emit()
@@ -87,7 +87,7 @@ func reload() -> void:
 	if (not CurrentMapData.briefing_map in Preloads.ua_data.data[game_data_type].missionBriefingMaps and
 		not CurrentMapData.briefing_map in Preloads.ua_data.data[game_data_type].missionDebriefingMaps):
 		CurrentMapData.briefing_map = Preloads.ua_data.data[game_data_type].missionBriefingMaps[0]
-	if (not CurrentMapData.debriefing_map in Preloads.ua_data.data[game_data_type].missionDebriefingMaps and 
+	if (not CurrentMapData.debriefing_map in Preloads.ua_data.data[game_data_type].missionDebriefingMaps and
 		not CurrentMapData.debriefing_map in Preloads.ua_data.data[game_data_type].missionBriefingMaps):
 		CurrentMapData.debriefing_map = Preloads.ua_data.data[game_data_type].missionDebriefingMaps[0]
 	
@@ -108,9 +108,9 @@ func reload() -> void:
 			for unit: Dictionary in Preloads.ua_data.data[game_data_type].hoststations[hs].units:
 				units_db[unit.name] = int(unit.id)
 			for building: Dictionary in Preloads.ua_data.data[game_data_type].hoststations[hs].buildings:
-				blg_names[str(building.id)] = building.name
+				blg_names[int(building.id)] = building.name
 	for building: Dictionary in Preloads.ua_data.data[game_data_type].other.buildings:
-		blg_names[str(building.id)] = building.name
+		blg_names[int(building.id)] = building.name
 	for unit: Dictionary in Preloads.ua_data.data[game_data_type].other.units:
 		units_db[unit.name] = int(unit.id)
 	for weapon in Preloads.ua_data.data[game_data_type].techUpgrade:
@@ -138,9 +138,9 @@ func refresh_warnings() -> void:
 	for y in CurrentMapData.vertical_sectors:
 		for x in CurrentMapData.horizontal_sectors:
 			if CurrentMapData.own_map[idx] > 7:
-				warning_messages.append('Detected an invalid own_map value "%s (0x%x)" at X:%s, Y:%s' % [CurrentMapData.own_map[idx], CurrentMapData.own_map[idx], x+1, y+1])
-			if str(CurrentMapData.blg_map[idx]) not in blg_names and CurrentMapData.blg_map[idx] not in [0, 5, 6, 25, 26, 60, 61, 4, 7, 15, 51, 50, 16, 65, 35, 36, 37, 68, 69, 70]:
-				warning_messages.append('Detected an unknown blg_map value "%s (0x%x)" at X:%s, Y:%s' % [CurrentMapData.blg_map[idx], CurrentMapData.blg_map[idx], x+1, y+1])
+				warning_messages.append('Detected an invalid own_map value "%s (0x%x)" at X:%s, Y:%s' % [CurrentMapData.own_map[idx], CurrentMapData.own_map[idx], x + 1, y + 1])
+			if CurrentMapData.blg_map[idx] not in blg_names and CurrentMapData.blg_map[idx] not in [0, 5, 6, 25, 26, 60, 61, 4, 7, 15, 51, 50, 16, 65, 35, 36, 37, 68, 69, 70]:
+				warning_messages.append('Detected an unknown blg_map value "%s (0x%x)" at X:%s, Y:%s' % [CurrentMapData.blg_map[idx], CurrentMapData.blg_map[idx], x + 1, y + 1])
 			idx += 1
 	
 	for hoststation: HostStation in CurrentMapData.host_stations.get_children():
@@ -158,7 +158,7 @@ func refresh_warnings() -> void:
 			if vehicle_modifier.vehicle_id not in units_db.values():
 				warning_messages.append('Detected an unknown unit in the tech upgrade at X:%s, Y:%s with vehicle ID "%s"' % [tech_upgrade.sec_x, tech_upgrade.sec_y, vehicle_modifier.vehicle_id])
 		for building_modifier in tech_upgrade.buildings:
-			if str(building_modifier.building_id) not in blg_names:
+			if building_modifier.building_id not in blg_names:
 				warning_messages.append('Detected an unknown building in the tech upgrade at X:%s, Y:%s with building ID "%s"' % [tech_upgrade.sec_x, tech_upgrade.sec_y, building_modifier.building_id])
 		for weapon_modifier in tech_upgrade.weapons:
 			if weapon_modifier.weapon_id not in weapons_db.values() and weapon_modifier.weapon_id not in units_db.values():
@@ -189,25 +189,25 @@ func refresh_warnings() -> void:
 		warning_messages.append('Detected an unknown owner ID "%s" in enabler for unit ID "%s"' % [unit_data.owner_id, unit_data.vehicle_id])
 	
 	for building_id in CurrentMapData.resistance_enabled_buildings:
-		if str(building_id) not in blg_names:
+		if building_id not in blg_names:
 			warning_messages.append('Detected an unknown enabled building for resistance with building ID "%s"' % building_id)
 	for building_id in CurrentMapData.ghorkov_enabled_buildings:
-		if str(building_id) not in blg_names:
+		if building_id not in blg_names:
 			warning_messages.append('Detected an unknown enabled building for ghorkov with building ID "%s"' % building_id)
 	for building_id in CurrentMapData.taerkasten_enabled_buildings:
-		if str(building_id) not in blg_names:
+		if building_id not in blg_names:
 			warning_messages.append('Detected an unknown enabled building for taerkasten with building ID "%s"' % building_id)
 	for building_id in CurrentMapData.mykonian_enabled_buildings:
-		if str(building_id) not in blg_names:
+		if building_id not in blg_names:
 			warning_messages.append('Detected an unknown enabled building for mykonian with building ID "%s"' % building_id)
 	for building_id in CurrentMapData.sulgogar_enabled_buildings:
-		if str(building_id) not in blg_names:
+		if building_id not in blg_names:
 			warning_messages.append('Detected an unknown enabled building for sulgogar with building ID "%s"' % building_id)
 	for building_id in CurrentMapData.blacksect_enabled_buildings:
-		if str(building_id) not in blg_names:
+		if building_id not in blg_names:
 			warning_messages.append('Detected an unknown enabled building for black sect with building ID "%s"' % building_id)
 	for building_id in CurrentMapData.training_enabled_buildings:
-		if str(building_id) not in blg_names:
+		if building_id not in blg_names:
 			warning_messages.append('Detected an unknown enabled building for training with building ID "%s"' % building_id)
 	for building_data in CurrentMapData.unknown_enabled_buildings:
 		warning_messages.append('Detected an unknown owner ID "%s" in enabler for building ID "%s"' % [building_data.owner_id, building_data.building_id])

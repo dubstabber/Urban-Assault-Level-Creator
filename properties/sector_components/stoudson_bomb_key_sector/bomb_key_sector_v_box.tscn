@@ -1,6 +1,6 @@
 [gd_scene load_steps=2 format=3 uid="uid://v6hlaoteehbu"]
 
-[ext_resource type="Script" path="res://properties/sector_components/stoudson_bomb_key_sector/bomb_key_sector_v_box.gd" id="1_4nfjw"]
+[ext_resource type="Script" uid="uid://b8srajtno74md" path="res://properties/sector_components/stoudson_bomb_key_sector/bomb_key_sector_v_box.gd" id="1_4nfjw"]
 
 [node name="BombKeySectorVBox" type="VBoxContainer"]
 anchors_preset = 15

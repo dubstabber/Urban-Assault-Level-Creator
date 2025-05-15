@@ -1,6 +1,6 @@
 [gd_scene load_steps=4 format=3 uid="uid://x4kwkajlf23r"]
 
-[ext_resource type="Script" path="res://modals/sector_building_window.gd" id="1_tvkoi"]
+[ext_resource type="Script" uid="uid://boo4m1g3yvpdb" path="res://modals/sector_building_window.gd" id="1_tvkoi"]
 [ext_resource type="Texture2D" uid="uid://cp1dapyg1847h" path="res://resources/img/ui_icons/eyedropper.png" id="2_yxpqq"]
 [ext_resource type="PackedScene" uid="uid://b0nqqrwki1xkj" path="res://modals/typ_map_picker_window.tscn" id="3_fp40g"]
 

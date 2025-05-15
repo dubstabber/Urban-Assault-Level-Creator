@@ -1,9 +1,9 @@
 [gd_scene load_steps=21 format=3 uid="uid://3c4x0gmdhcwn"]
 
-[ext_resource type="Script" path="res://typ_map_designer/typ_map_designer_container.gd" id="1_chs5p"]
+[ext_resource type="Script" uid="uid://b2bixkp71s701" path="res://typ_map_designer/typ_map_designer_container.gd" id="1_chs5p"]
 [ext_resource type="Texture2D" uid="uid://v8g3mn0iikby" path="res://resources/img/ui_icons/close.png" id="2_ks7xp"]
-[ext_resource type="Script" path="res://typ_map_designer/close_button.gd" id="3_hggst"]
-[ext_resource type="Script" path="res://typ_map_designer/typ_map_images_container.gd" id="4_6wcmy"]
+[ext_resource type="Script" uid="uid://dtnor0ada7ghe" path="res://typ_map_designer/close_button.gd" id="3_hggst"]
+[ext_resource type="Script" uid="uid://daog6akoycgma" path="res://typ_map_designer/typ_map_images_container.gd" id="4_6wcmy"]
 [ext_resource type="Texture2D" uid="uid://dmhafem3n0yam" path="res://resources/img/ui_icons/close-hovered.png" id="4_gf4sm"]
 [ext_resource type="ButtonGroup" uid="uid://u68msd2vjhjf" path="res://themes/building_view_button_group.tres" id="5_5ull5"]
 [ext_resource type="PackedScene" uid="uid://bev7jns5uf1v8" path="res://typ_map_designer/components/building_button.tscn" id="5_tphco"]

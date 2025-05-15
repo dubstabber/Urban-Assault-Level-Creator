@@ -10,7 +10,7 @@ func _ready() -> void:
 	get_parent().add_child(hs_submenu)
 	
 	for hs in Preloads.ua_data.data[EditorState.game_data_type].hoststations:
-		var hs_owner_id = str(Preloads.ua_data.data[EditorState.game_data_type].hoststations[hs].owner)
+		var hs_owner_id = int(Preloads.ua_data.data[EditorState.game_data_type].hoststations[hs].owner)
 		var hs_image = Preloads.hs_images[hs_owner_id]
 		hs_submenu.add_icon_item(hs_image, hs, int(hs_owner_id))
 	

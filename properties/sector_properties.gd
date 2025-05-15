@@ -8,10 +8,10 @@ func _ready() -> void:
 
 
 func _update_properties() -> void:
-	if EditorState.selected_sectors.size() > 1: 
+	if EditorState.selected_sectors.size() > 1:
 		%NoSectorLabel.hide()
 		return
-	if (CurrentMapData.horizontal_sectors > 0 and CurrentMapData.vertical_sectors > 0 
+	if (CurrentMapData.horizontal_sectors > 0 and CurrentMapData.vertical_sectors > 0
 		and EditorState.border_selected_sector_idx >= 0):
 		%NoSectorLabel.hide()
 		
@@ -19,8 +19,8 @@ func _update_properties() -> void:
 		%SectorPositionLabel.text = "Selected sector X:%s Y:%s" % [EditorState.selected_sector.x, EditorState.selected_sector.y]
 		
 		if (EditorState.selected_sector.x == 0 or EditorState.selected_sector.y == 0 or
-			EditorState.selected_sector.x == (CurrentMapData.horizontal_sectors+1) or
-			EditorState.selected_sector.y == (CurrentMapData.vertical_sectors+1)):
+			EditorState.selected_sector.x == (CurrentMapData.horizontal_sectors + 1) or
+			EditorState.selected_sector.y == (CurrentMapData.vertical_sectors + 1)):
 			%BorderInfoLabel.show()
 			$ScrollContainer/MarginContainer/SectorPropertiesContainer/GridContainer.hide()
 			$ScrollContainer/MarginContainer/SectorPropertiesContainer/HSeparator.hide()
@@ -47,8 +47,8 @@ func _update_properties() -> void:
 		
 		if CurrentMapData.blg_map[EditorState.selected_sector_idx] == 0:
 			%SpecialBuildingLabel.text = 'None'
-		elif EditorState.blg_names.has(str(CurrentMapData.blg_map[EditorState.selected_sector_idx])):
-			%SpecialBuildingLabel.text = EditorState.blg_names[(str(CurrentMapData.blg_map[EditorState.selected_sector_idx]))]
+		elif EditorState.blg_names.has(CurrentMapData.blg_map[EditorState.selected_sector_idx]):
+			%SpecialBuildingLabel.text = EditorState.blg_names[CurrentMapData.blg_map[EditorState.selected_sector_idx]]
 		elif CurrentMapData.blg_map[EditorState.selected_sector_idx] in [5, 25]:
 			%SpecialBuildingLabel.text = 'Beam gate'
 		elif CurrentMapData.blg_map[EditorState.selected_sector_idx] in [35, 68]:

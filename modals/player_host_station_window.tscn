@@ -1,6 +1,6 @@
 [gd_scene load_steps=3 format=3 uid="uid://dt41sbmncyves"]
 
-[ext_resource type="Script" path="res://modals/player_host_station_window.gd" id="1_07hdg"]
+[ext_resource type="Script" uid="uid://b0vugrc5q1yol" path="res://modals/player_host_station_window.gd" id="1_07hdg"]
 [ext_resource type="ButtonGroup" uid="uid://ctgdt77o11ivx" path="res://themes/player_host_station_button_group.tres" id="1_7ohb4"]
 
 [node name="PlayerHostStationWindow" type="Window"]

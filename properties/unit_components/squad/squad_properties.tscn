@@ -1,6 +1,6 @@
 [gd_scene load_steps=4 format=3 uid="uid://wmfw6govhni3"]
 
-[ext_resource type="Script" path="res://properties/unit_components/squad/squad_properties.gd" id="1_6qsq1"]
+[ext_resource type="Script" uid="uid://bmxrdhq1qkvqy" path="res://properties/unit_components/squad/squad_properties.gd" id="1_6qsq1"]
 [ext_resource type="Theme" uid="uid://cdrs6kxi0mn0v" path="res://resources/themes/ua_theme.tres" id="1_iwvux"]
 
 [sub_resource type="PlaceholderTexture2D" id="PlaceholderTexture2D_37be0"]
@@ -47,6 +47,7 @@ text = "Number of units: "
 [node name="QuantitySpinBox" type="SpinBox" parent="HBoxContainer2/GridContainer"]
 unique_name_in_owner = true
 layout_mode = 2
+size_flags_horizontal = 0
 theme = ExtResource("1_iwvux")
 min_value = 1.0
 max_value = 32.0
@@ -84,8 +85,7 @@ text = "000"
 [node name="ZposLabel" type="Label" parent="HBoxContainer3"]
 layout_mode = 2
 theme_override_font_sizes/font_size = 12
-text = "z: 
-"
+text = "z: "
 
 [node name="ZposSquadLineEdit" type="LineEdit" parent="HBoxContainer3"]
 unique_name_in_owner = true

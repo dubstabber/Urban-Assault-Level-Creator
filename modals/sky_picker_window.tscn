@@ -1,6 +1,6 @@
 [gd_scene load_steps=3 format=3 uid="uid://bsr84sb4x5nrk"]
 
-[ext_resource type="Script" path="res://modals/sky_picker_window.gd" id="1_g2wux"]
+[ext_resource type="Script" uid="uid://cde80b4yrwuyr" path="res://modals/sky_picker_window.gd" id="1_g2wux"]
 
 [sub_resource type="PlaceholderTexture2D" id="PlaceholderTexture2D_5dm3j"]
 size = Vector2(200, 100)

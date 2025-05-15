@@ -1,6 +1,6 @@
 [gd_scene load_steps=2 format=3 uid="uid://co34kw1wyoao3"]
 
-[ext_resource type="Script" path="res://properties/sector_components/beam_gate_key_sector/beam_gate_key_sector_v_box.gd" id="1_x4m82"]
+[ext_resource type="Script" uid="uid://gmp51lkfru2x" path="res://properties/sector_components/beam_gate_key_sector/beam_gate_key_sector_v_box.gd" id="1_x4m82"]
 
 [node name="BeamGateKeySectorVBox" type="VBoxContainer"]
 anchors_preset = 15
