@@ -2,6 +2,7 @@ class_name SingleplayerOpener
 
 static var string_line: String
 static var description_mode: bool
+static var modifications_mode: bool
 
 static func load_level() -> void:
 	var file = FileAccess.open(CurrentMapData.map_path, FileAccess.READ)
@@ -10,6 +11,8 @@ static func load_level() -> void:
 		EventSystem.open_map_failed.emit("path_inaccessible")
 		return
 	string_line = ""
+	description_mode = false
+	modifications_mode = false
 	
 	while file.get_position() < file.get_length():
 		string_line = file.get_line().strip_edges()
@@ -41,9 +44,10 @@ static func load_level() -> void:
 	file.get_line()
 
 	description_mode = true
+	modifications_mode = false
 
 	while file.get_position() < file.get_length():
-		if string_line.is_empty() and not description_mode:
+		if string_line.is_empty() and not description_mode and not modifications_mode:
 			string_line = file.get_line().get_slice(';', 0).strip_edges()
 			continue
 		
@@ -54,16 +58,19 @@ static func load_level() -> void:
 		_handle_host_stations(file)
 		_handle_bombs(file)
 		_handle_predefined_squads(file)
-		_handle_modifications(file)
 		_handle_prototype_enabling(file)
 		_handle_tech_upgrades(file)
+		_handle_modifications(file)
 		
 		if description_mode:
 			string_line = file.get_line().get_slice(';', 1)
+		elif modifications_mode and not string_line.begins_with("begin_enable"):
+			string_line = file.get_line()
 		else:
 			string_line = file.get_line().get_slice(';', 0).strip_edges()
 	
 	CurrentMapData.level_description = CurrentMapData.level_description.strip_edges()
+	CurrentMapData.prototype_modifications = CurrentMapData.prototype_modifications.strip_edges()
 	_infer_game_type()
 	
 	EventSystem.map_created.emit()
@@ -74,6 +81,7 @@ static func load_level() -> void:
 static func _handle_typ_map(file: FileAccess) -> void:
 	if string_line.to_lower().begins_with('typ_map'):
 		if description_mode: description_mode = false
+		if modifications_mode: modifications_mode = false
 		string_line = file.get_line().strip_edges()
 		for i in len(string_line):
 			if string_line[i] == " ":
@@ -96,6 +104,7 @@ static func _handle_typ_map(file: FileAccess) -> void:
 static func _handle_own_map(file: FileAccess) -> void:
 	if string_line.to_lower().begins_with('own_map'):
 		if description_mode: description_mode = false
+		if modifications_mode: modifications_mode = false
 		string_line = file.get_line()
 		string_line = file.get_line()
 		for v in CurrentMapData.vertical_sectors:
@@ -111,6 +120,7 @@ static func _handle_own_map(file: FileAccess) -> void:
 static func _handle_hgt_map(file: FileAccess) -> void:
 	if string_line.to_lower().begins_with('hgt_map'):
 		if description_mode: description_mode = false
+		if modifications_mode: modifications_mode = false
 		string_line = file.get_line()
 		for v in CurrentMapData.vertical_sectors + 2:
 			string_line = file.get_line().strip_edges()
@@ -125,6 +135,7 @@ static func _handle_hgt_map(file: FileAccess) -> void:
 static func _handle_blg_map(file: FileAccess) -> void:
 	if string_line.to_lower().begins_with('blg_map'):
 		if description_mode: description_mode = false
+		if modifications_mode: modifications_mode = false
 		string_line = file.get_line()
 		string_line = file.get_line()
 		for v in CurrentMapData.vertical_sectors:
@@ -151,13 +162,11 @@ static func _handle_description(file: FileAccess) -> void:
 					description_mode = false
 					return
 				else:
-					string_line = string_line.strip_edges()
 					if string_line.is_empty():
 						temp_pattern += '\n'
 					elif string_line[0] == ';':
 						temp_pattern += string_line.get_slice(';', 1) + '\n'
 			else:
-				string_line = string_line.strip_edges()
 				if string_line.is_empty():
 					temp_pattern += '\n'
 				elif string_line[0] == ';':
@@ -172,6 +181,7 @@ static func _handle_description(file: FileAccess) -> void:
 static func _handle_level_parameters(file: FileAccess) -> void:
 	if string_line.to_lower().begins_with('begin_level'):
 		if description_mode: description_mode = false
+		if modifications_mode: modifications_mode = false
 		while (string_line != "end" and file.get_position() < file.get_length()):
 			string_line = file.get_line().get_slice(';', 0).strip_edges()
 			if string_line.is_empty(): continue
@@ -209,6 +219,7 @@ static func _handle_level_parameters(file: FileAccess) -> void:
 static func _handle_briefing_maps(file: FileAccess) -> void:
 	if string_line.to_lower().begins_with('begin_mbmap'):
 		if description_mode: description_mode = false
+		if modifications_mode: modifications_mode = false
 		while (string_line != "end" and file.get_position() < file.get_length()):
 			string_line = file.get_line().get_slice(';', 0).strip_edges()
 			if string_line.is_empty(): continue
@@ -249,6 +260,7 @@ static func _handle_briefing_maps(file: FileAccess) -> void:
 static func _handle_beam_gates(file: FileAccess) -> void:
 	if string_line.to_lower().begins_with('begin_gate'):
 		if description_mode: description_mode = false
+		if modifications_mode: modifications_mode = false
 		var sec_x: int
 		var sec_y: int
 		var closed_bp: int
@@ -307,6 +319,7 @@ static func _handle_beam_gates(file: FileAccess) -> void:
 static func _handle_host_stations(file: FileAccess) -> void:
 	if string_line.to_lower().begins_with('begin_robo'):
 		if description_mode: description_mode = false
+		if modifications_mode: modifications_mode = false
 		var owner_id: int
 		var vehicle_id: int
 		var pos_x: int
@@ -476,6 +489,7 @@ static func _handle_host_stations(file: FileAccess) -> void:
 static func _handle_bombs(file: FileAccess) -> void:
 	if string_line.to_lower().begins_with('begin_item'):
 		if description_mode: description_mode = false
+		if modifications_mode: modifications_mode = false
 		var sec_x: int
 		var sec_y: int
 		var inactive_bp: int
@@ -541,6 +555,7 @@ static func _handle_bombs(file: FileAccess) -> void:
 static func _handle_predefined_squads(file: FileAccess) -> void:
 	if string_line.to_lower().begins_with('begin_squad'):
 		if description_mode: description_mode = false
+		if modifications_mode: modifications_mode = false
 		var owner_id: int
 		var vehicle_id: int
 		var quantity: int
@@ -592,18 +607,32 @@ static func _handle_predefined_squads(file: FileAccess) -> void:
 
 static func _handle_modifications(file: FileAccess) -> void:
 	if string_line.to_lower().begins_with('include'):
+		modifications_mode = true
 		if description_mode: description_mode = false
-		while (file.get_position() < file.get_length()):
-			CurrentMapData.prototype_modifications += string_line + '\n'
+
+	if modifications_mode:
+		var temp_pattern := ""
+
+		if string_line.contains(";------------------------------------------------------------"):
+			temp_pattern = ";------------------------------------------------------------\n"
 			string_line = file.get_line()
-			if not string_line.is_empty() and string_line[0] == ';': break
-		
-		CurrentMapData.prototype_modifications = CurrentMapData.prototype_modifications.strip_edges()
+			if string_line.contains(";--- Prototype Enabling                                   ---"):
+				temp_pattern += ";--- Prototype Enabling                                   ---\n"
+				string_line = file.get_line()
+				if string_line.contains(";------------------------------------------------------------"):
+					modifications_mode = false
+					return
+		else:
+			CurrentMapData.prototype_modifications += string_line + '\n'
+
+		if not temp_pattern.is_empty():
+			CurrentMapData.prototype_modifications += temp_pattern
 
 
 static func _handle_prototype_enabling(file: FileAccess) -> void:
 	if string_line.to_lower().begins_with("begin_enable"):
 		if description_mode: description_mode = false
+		if modifications_mode: modifications_mode = false
 		string_line = string_line.replacen("begin_enable", "").replace("=", "").strip_edges()
 		var owner_id = int(string_line)
 		
@@ -640,6 +669,7 @@ static func _handle_prototype_enabling(file: FileAccess) -> void:
 static func _handle_tech_upgrades(file: FileAccess) -> void:
 	if string_line.to_lower().begins_with("begin_gem"):
 		if description_mode: description_mode = false
+		if modifications_mode: modifications_mode = false
 		var sec_x: int
 		var sec_y: int
 		var building_id := 4
