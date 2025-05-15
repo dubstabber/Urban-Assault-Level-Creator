@@ -162,7 +162,7 @@ func _draw_sector_content(current_sector: int, h_grid: int, v_grid: int, rect_ba
 	# Draw owner color
 	var owner_id := CurrentMapData.own_map[current_sector]
 	var color_index := owner_id if owner_id >= 0 and owner_id <= 7 else -1
-	draw_rect(rect, _owner_colors[color_index], false, 30.0)
+	draw_rect(rect, _owner_colors[color_index], false, -1.0)
 
 
 func _draw_height_differences(border_sector: int, x: int, y: int, h_grid: int, v_grid: int, horizontal_sectors: int, vertical_sectors: int) -> void:
@@ -175,7 +175,7 @@ func _draw_height_differences(border_sector: int, x: int, y: int, h_grid: int, v
 			Vector2(h_grid + sector_indent, v_grid + _third_indent),
 			Vector2(h_grid + SECTOR_SIZE - sector_indent, v_grid + _third_indent),
 			Color.AQUA,
-			_half_indent
+			-1.0
 		)
 	
 	# Right edge - check if sector to the right is higher
@@ -184,7 +184,7 @@ func _draw_height_differences(border_sector: int, x: int, y: int, h_grid: int, v
 			Vector2(h_grid + _two_thirds_indent, v_grid + sector_indent),
 			Vector2(h_grid + _two_thirds_indent, v_grid + SECTOR_SIZE - sector_indent),
 			Color.AQUA,
-			_half_indent
+			-1.0
 		)
 	
 	# Bottom edge - check if sector below is higher
@@ -193,7 +193,7 @@ func _draw_height_differences(border_sector: int, x: int, y: int, h_grid: int, v
 			Vector2(h_grid + sector_indent, v_grid + _two_thirds_indent),
 			Vector2(h_grid + SECTOR_SIZE - sector_indent, v_grid + _two_thirds_indent),
 			Color.AQUA,
-			_half_indent
+			-1.0
 		)
 	
 	# Left edge - check if sector to the left is higher
@@ -202,7 +202,7 @@ func _draw_height_differences(border_sector: int, x: int, y: int, h_grid: int, v
 			Vector2(h_grid + _third_indent, v_grid + sector_indent),
 			Vector2(h_grid + _third_indent, v_grid + SECTOR_SIZE - sector_indent),
 			Color.AQUA,
-			_half_indent
+			-1.0
 		)
 
 
