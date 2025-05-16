@@ -4,8 +4,6 @@ extends Node2D
 const SECTOR_SIZE := 1200
 const HEIGHT_THRESHOLD := 4
 const HOST_STATION_LIMIT := 8
-const LINE_WIDTH := 30.0
-const ERROR_SIGN_DRAW := true
 
 var zoom_minimum := Vector2(.03, .03)
 var zoom_maximum := Vector2(.3, .3)
@@ -45,10 +43,6 @@ var _total_vertical_sectors: int
 var _third_indent: float # Cache sector_indent/3.0
 var _two_thirds_indent: float # Cache 1200-sector_indent/3.0
 
-var _current_map_data: Node
-var _editor_state: Node
-var _preloads: Node
-
 
 func _ready() -> void:
 	CurrentMapData.host_stations = $HostStations
@@ -68,9 +62,6 @@ func _ready() -> void:
 	_sector_rect_size = SECTOR_SIZE - (sector_indent * 2)
 	_third_indent = sector_indent / 3.0
 	_two_thirds_indent = SECTOR_SIZE - _third_indent
-	_current_map_data = CurrentMapData
-	_editor_state = EditorState
-	_preloads = Preloads
 
 
 func _process(delta) -> void:

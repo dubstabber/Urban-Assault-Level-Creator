@@ -1,9 +1,11 @@
 extends FileDialog
 
 
+@onready var load_behavior_file_dialog: FileDialog = %LoadBehaviorFileDialog
+
 func _ready() -> void:
 	EventSystem.load_hs_behavior_dialog_requested.connect(popup)
-	%LoadBehaviorFileDialog.file_selected.connect(func(path: String):
+	load_behavior_file_dialog.file_selected.connect(func(path: String):
 		var file = FileAccess.open(path, FileAccess.READ)
 		if not file:
 			printerr("File '%s' could not be loaded" % path)

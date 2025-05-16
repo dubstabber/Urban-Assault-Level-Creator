@@ -6,6 +6,7 @@ var is_left_pressed := false
 
 @onready var map: Node2D = %Map
 
+
 func _input(event):
 	if not map: return
 	
@@ -20,9 +21,8 @@ func _input(event):
 	elif event is InputEventMouseMotion:
 		_handle_mouse_motion(event)
 
+
 func _handle_mouse_input(event: InputEventMouseButton):
-	
-	
 	if event.is_action_pressed("select"):
 		is_left_pressed = true
 		if map.is_multi_selection:
@@ -47,6 +47,7 @@ func _handle_mouse_input(event: InputEventMouseButton):
 	
 	if event.button_index == MOUSE_BUTTON_LEFT and event.double_click and not EditorState.selected_unit:
 		EventSystem.left_double_clicked.emit()
+
 
 func _handle_keyboard_input(event: InputEventKey):
 	if event.is_action_pressed("hold"):
@@ -185,7 +186,7 @@ func _handle_context_menu():
 		%MapContextMenu.popup()
 
 func handle_selection(clicked_x: int, clicked_y: int):
-	if not map.is_selection_kept: 
+	if not map.is_selection_kept:
 		EditorState.selected_sectors.clear()
 	
 	_find_clicked_sector(clicked_x, clicked_y)
@@ -199,11 +200,11 @@ func _find_clicked_sector(clicked_x: int, clicked_y: int):
 	var h_size := 0
 	var v_size := 0
 	
-	for y_sector in CurrentMapData.vertical_sectors+2:
-		for x_sector in CurrentMapData.horizontal_sectors+2:
-			var is_within_bounds := (y_sector > 0 and y_sector < CurrentMapData.vertical_sectors+1 and
-				x_sector > 0 and x_sector < CurrentMapData.horizontal_sectors+1 and
-				sector_counter < (CurrentMapData.vertical_sectors*CurrentMapData.horizontal_sectors)
+	for y_sector in CurrentMapData.vertical_sectors + 2:
+		for x_sector in CurrentMapData.horizontal_sectors + 2:
+			var is_within_bounds := (y_sector > 0 and y_sector < CurrentMapData.vertical_sectors + 1 and
+				x_sector > 0 and x_sector < CurrentMapData.horizontal_sectors + 1 and
+				sector_counter < (CurrentMapData.vertical_sectors * CurrentMapData.horizontal_sectors)
 				)
 			if clicked_x > h_size and clicked_x < h_size + 1200 and clicked_y > v_size and clicked_y < v_size + 1200:
 				_update_sector_selection(sector_counter, border_sector_counter, x_sector, y_sector, is_within_bounds)
@@ -228,7 +229,7 @@ func _update_sector_selection(sector_idx: int, border_sector_idx: int, x: int, y
 			"x": x,
 			"y": y
 		}
-		if is_within_bounds: 
+		if is_within_bounds:
 			new_selection.idx = sector_idx
 		EditorState.selected_sectors.append(new_selection)
 	else:
@@ -281,11 +282,11 @@ func handle_batch_multi_selection(start_pos: Vector2, end_pos: Vector2) -> void:
 	var h_size := 0
 	var v_size := 0
 	
-	for y_sector in CurrentMapData.vertical_sectors+2:
-		for x_sector in CurrentMapData.horizontal_sectors+2:
-			var is_within_bounds := (y_sector > 0 and y_sector < CurrentMapData.vertical_sectors+1 and
-				x_sector > 0 and x_sector < CurrentMapData.horizontal_sectors+1 and
-				sector_counter < (CurrentMapData.vertical_sectors*CurrentMapData.horizontal_sectors)
+	for y_sector in CurrentMapData.vertical_sectors + 2:
+		for x_sector in CurrentMapData.horizontal_sectors + 2:
+			var is_within_bounds := (y_sector > 0 and y_sector < CurrentMapData.vertical_sectors + 1 and
+				x_sector > 0 and x_sector < CurrentMapData.horizontal_sectors + 1 and
+				sector_counter < (CurrentMapData.vertical_sectors * CurrentMapData.horizontal_sectors)
 				)
 			if (start_pos.x > h_size or end_pos.x > h_size) and (start_pos.x < h_size + 1200 or end_pos.x < h_size + 1200) and (start_pos.y > v_size or end_pos.y > v_size) and (start_pos.y < v_size + 1200 or end_pos.y < v_size + 1200):
 				var is_already_selected = EditorState.selected_sectors.any(func(dict): return dict.border_idx == border_sector_counter)
@@ -293,8 +294,8 @@ func handle_batch_multi_selection(start_pos: Vector2, end_pos: Vector2) -> void:
 					EditorState.selected_sectors.append(
 						{
 							"border_idx": border_sector_counter,
-							"x": x_sector, 
-							"y":y_sector
+							"x": x_sector,
+							"y": y_sector
 						})
 					if is_within_bounds: EditorState.selected_sectors[-1].idx = sector_counter
 			h_size += 1200

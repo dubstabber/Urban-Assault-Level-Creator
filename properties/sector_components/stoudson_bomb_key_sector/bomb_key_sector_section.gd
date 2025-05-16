@@ -18,10 +18,10 @@ func _update_properties() -> void:
 			var ks_index = CurrentMapData.stoudson_bombs[bomb_index].key_sectors.find(EditorState.selected_bomb_key_sector)
 			if ks_index >= 0:
 				var stoudson_bomb_key_sector_container = STOUDSON_BOMB_KEY_SECTOR_CONTAINER.instantiate()
-				if CurrentMapData.stoudson_bombs[bomb_index].inactive_bp == 35:
-					stoudson_bomb_key_sector_container.set_labels(ks_index+1, bomb_index+1,"normal")
-				elif CurrentMapData.stoudson_bombs[bomb_index].inactive_bp == 68:
-					stoudson_bomb_key_sector_container.set_labels(ks_index+1, bomb_index+1,"parasite")
 				add_child(stoudson_bomb_key_sector_container)
+				if CurrentMapData.stoudson_bombs[bomb_index].inactive_bp == 35:
+					stoudson_bomb_key_sector_container.set_labels(ks_index + 1, bomb_index + 1, "normal")
+				elif CurrentMapData.stoudson_bombs[bomb_index].inactive_bp == 68:
+					stoudson_bomb_key_sector_container.set_labels(ks_index + 1, bomb_index + 1, "parasite")
 	else:
 		hide()

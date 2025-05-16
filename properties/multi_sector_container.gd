@@ -1,5 +1,6 @@
 extends VBoxContainer
 
+@onready var sector_properties_container: Control = %SectorPropertiesContainer
 
 func _ready() -> void:
 	EventSystem.sector_selected.connect(_update_properties)
@@ -11,7 +12,7 @@ func _update_properties() -> void:
 	for child in get_children():
 		child.queue_free()
 	if EditorState.selected_sectors.size() > 1:
-		%SectorPropertiesContainer.hide()
+		sector_properties_container.hide()
 		show()
 		for sector_dict in EditorState.selected_sectors:
 			var sector_label = Label.new()

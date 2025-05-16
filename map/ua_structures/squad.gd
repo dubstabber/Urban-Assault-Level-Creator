@@ -5,8 +5,10 @@ var map_icon: String
 var quantity := 1:
 	set(value):
 		quantity = value
-		$Button.tooltip_text = "%sx %s" % [quantity, unit_name]
+		button.tooltip_text = "%sx %s" % [quantity, unit_name]
 var useable := false
+
+@onready var button: Button = $Button
 
 
 func _ready() -> void:
@@ -17,22 +19,32 @@ func _ready() -> void:
 func create(_owner_id: int, _vehicle_id: int):
 	vehicle = _vehicle_id
 	setup_properties()
-	scale = Vector2(6,6)
+	scale = Vector2(6, 6)
 	change_faction(_owner_id)
 
 
 func setup_properties() -> void:
-	for hs in Preloads.ua_data.data[EditorState.game_data_type].hoststations:
-		for squad: Dictionary in Preloads.ua_data.data[EditorState.game_data_type].hoststations[hs].units:
+	var game_data = Preloads.ua_data.data[EditorState.game_data_type]
+	
+	# Search in host stations
+	var hoststations = game_data.hoststations
+	for hs_key in hoststations:
+		var units = hoststations[hs_key].units
+		for squad in units:
 			if squad.id == vehicle:
 				map_icon = squad.map_icon
 				unit_name = squad.name
 				return
-	for squad: Dictionary in Preloads.ua_data.data[EditorState.game_data_type].other.units:
+	
+	# Search in other units
+	var other_units = game_data.other.units
+	for squad in other_units:
 		if squad.id == vehicle:
 			map_icon = squad.map_icon
 			unit_name = squad.name
 			return
+	
+	# Default fallback
 	unit_name = "Unknown unit"
 	if map_icon.is_empty():
 		map_icon = "square"
@@ -50,5 +62,5 @@ func change_faction(_owner_id: int = owner_id) -> void:
 		7: texture = Preloads.squad_icons["square"].red2
 		_: texture = Preloads.squad_icons["square"].unknown
 	
-	$Button.position = -Vector2(texture.get_width()/2.0, texture.get_height()/2.0)
-	$Button.tooltip_text = "%sx %s" % [quantity, unit_name]
+	button.position = - Vector2(texture.get_width() / 2.0, texture.get_height() / 2.0)
+	button.tooltip_text = "%sx %s" % [quantity, unit_name]

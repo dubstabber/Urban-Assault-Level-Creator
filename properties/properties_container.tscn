@@ -17,6 +17,9 @@
 [sub_resource type="GDScript" id="GDScript_hihdk"]
 script/source = "extends TabContainer
 
+@onready var unit: TabBar = $Unit
+@onready var sector: TabBar = $Sector
+
 
 func _ready() -> void:
 	owner.visibility_changed.connect(func():
@@ -25,21 +28,21 @@ func _ready() -> void:
 		)
 	EventSystem.hoststation_added.connect(func(_owner_id, _vehicle_id): 
 		owner.show()
-		$Unit.show()
+		unit.show()
 	)
-	EventSystem.squad_added.connect(func(_owner_id, _vehicle_id): $Unit.show())
+	EventSystem.squad_added.connect(func(_owner_id, _vehicle_id): unit.show())
 	EventSystem.item_added.connect(func():
 		owner.show()
 	)
 	EventSystem.item_updated.connect(func(): 
-		$Sector.show()
+		sector.show()
 	)
 	EventSystem.left_double_clicked.connect(func():
 		if EditorState.selected_unit:
-			$Unit.show()
+			unit.show()
 			owner.show()
 		else:
-			$Sector.show()
+			sector.show()
 			owner.show()
 		)
 	EventSystem.editor_mode_changed.connect(func(): 
@@ -170,30 +173,32 @@ text = "This sector is a border"
 horizontal_alignment = 1
 
 [node name="HSeparator" type="HSeparator" parent="TabContainer/Sector/ScrollContainer/MarginContainer/SectorPropertiesContainer"]
+unique_name_in_owner = true
 layout_mode = 2
 
-[node name="GridContainer" type="GridContainer" parent="TabContainer/Sector/ScrollContainer/MarginContainer/SectorPropertiesContainer"]
+[node name="SectorInfoContainer" type="GridContainer" parent="TabContainer/Sector/ScrollContainer/MarginContainer/SectorPropertiesContainer"]
+unique_name_in_owner = true
 layout_mode = 2
 size_flags_horizontal = 4
 columns = 2
 
-[node name="SectorOwnerTextLabel" type="Label" parent="TabContainer/Sector/ScrollContainer/MarginContainer/SectorPropertiesContainer/GridContainer"]
+[node name="SectorOwnerTextLabel" type="Label" parent="TabContainer/Sector/ScrollContainer/MarginContainer/SectorPropertiesContainer/SectorInfoContainer"]
 layout_mode = 2
 theme_override_font_sizes/font_size = 12
 text = "Sector owner:"
 
-[node name="SectorOwnerLabel" type="Label" parent="TabContainer/Sector/ScrollContainer/MarginContainer/SectorPropertiesContainer/GridContainer"]
+[node name="SectorOwnerLabel" type="Label" parent="TabContainer/Sector/ScrollContainer/MarginContainer/SectorPropertiesContainer/SectorInfoContainer"]
 unique_name_in_owner = true
 layout_mode = 2
 theme_override_font_sizes/font_size = 12
 text = "Faction"
 
-[node name="SpecialBuildingTextLabel" type="Label" parent="TabContainer/Sector/ScrollContainer/MarginContainer/SectorPropertiesContainer/GridContainer"]
+[node name="SpecialBuildingTextLabel" type="Label" parent="TabContainer/Sector/ScrollContainer/MarginContainer/SectorPropertiesContainer/SectorInfoContainer"]
 layout_mode = 2
 theme_override_font_sizes/font_size = 12
 text = "Special building:"
 
-[node name="SpecialBuildingLabel" type="Label" parent="TabContainer/Sector/ScrollContainer/MarginContainer/SectorPropertiesContainer/GridContainer"]
+[node name="SpecialBuildingLabel" type="Label" parent="TabContainer/Sector/ScrollContainer/MarginContainer/SectorPropertiesContainer/SectorInfoContainer"]
 unique_name_in_owner = true
 layout_mode = 2
 theme_override_font_sizes/font_size = 12
@@ -222,6 +227,7 @@ horizontal_alignment = 1
 autowrap_mode = 3
 
 [node name="HSeparator2" type="HSeparator" parent="TabContainer/Sector/ScrollContainer/MarginContainer/SectorPropertiesContainer"]
+unique_name_in_owner = true
 layout_mode = 2
 
 [node name="BuildingTextLabel" type="Label" parent="TabContainer/Sector/ScrollContainer/MarginContainer/SectorPropertiesContainer"]

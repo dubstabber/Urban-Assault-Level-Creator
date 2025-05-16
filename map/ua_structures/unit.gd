@@ -3,7 +3,7 @@ class_name Unit extends Sprite2D
 signal position_changed
 
 var dragging := false
-var of := Vector2(0,0)
+var of := Vector2(0, 0)
 var unit_name: String
 var init_pos := Vector2.ZERO
 
@@ -11,23 +11,27 @@ var owner_id: int
 var vehicle: int:
 	set(value):
 		vehicle = value
-		if self is HostStation:
-			for hs in Preloads.ua_data.data[EditorState.game_data_type].hoststations:
-				for robo in Preloads.ua_data.data[EditorState.game_data_type].hoststations[hs].robos:
-					if robo.id == vehicle:
-						if "player_id" in robo:
-							player_vehicle = robo.player_id
-						else:
-							player_vehicle = -1
-						break
+		if not self is HostStation:
+			return
+		
+		var game_data = Preloads.ua_data.data[EditorState.game_data_type]
+		var hoststations = game_data.hoststations
+		
+		for hs_key in hoststations:
+			var robos = hoststations[hs_key].robos
+			for robo in robos:
+				if robo.id == vehicle:
+					player_vehicle = robo.get("player_id", -1)
+					break
+			
 var player_vehicle: int
 var mb_status := false
 
 var pos_to_move: Vector2
 var top_limit := 1200
-var bottom_limit := CurrentMapData.vertical_sectors*1200+1200
+var bottom_limit := CurrentMapData.vertical_sectors * 1200 + 1200
 var left_limit := 1200
-var right_limit := CurrentMapData.horizontal_sectors*1200+1200
+var right_limit := CurrentMapData.horizontal_sectors * 1200 + 1200
 
 
 func _process(_delta):
@@ -53,8 +57,8 @@ func _on_button_button_up():
 
 
 func recalculate_limits():
-	bottom_limit = CurrentMapData.vertical_sectors*1200+1200
-	right_limit = CurrentMapData.horizontal_sectors*1200+1200
+	bottom_limit = CurrentMapData.vertical_sectors * 1200 + 1200
+	right_limit = CurrentMapData.horizontal_sectors * 1200 + 1200
 
 
 func _on_button_mouse_entered() -> void:

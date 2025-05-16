@@ -1,9 +1,11 @@
 extends FileDialog
 
 
+@onready var save_behavior_file_dialog: FileDialog = %SaveBehaviorFileDialog
+
 func _ready() -> void:
 	EventSystem.save_hs_behavior_dialog_requested.connect(popup)
-	%SaveBehaviorFileDialog.file_selected.connect(func(path: String):
+	save_behavior_file_dialog.file_selected.connect(func(path: String):
 		var file = FileAccess.open(path, FileAccess.WRITE)
 		if not file:
 			printerr("File '%s' could not be saved" % path)

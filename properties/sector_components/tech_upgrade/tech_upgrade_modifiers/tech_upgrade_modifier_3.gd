@@ -6,12 +6,17 @@ var item_name: String:
 		item_name = value
 		%ItemLabel.text = item_name
 
+@onready var add_damage_line_edit: LineEdit = %AddDamageLineEdit
+@onready var add_shot_time_line_edit: LineEdit = %AddShotTimeLineEdit
+@onready var add_shot_time_user_line_edit: LineEdit = %AddShotTimeUserLineEdit
+@onready var remove_button: Button = %RemoveButton
+
 
 func _ready() -> void:
-	%AddDamageLineEdit.text_changed.connect(modify_weapon.bind("energy"))
-	%AddShotTimeLineEdit.text_changed.connect(modify_weapon.bind("shot_time"))
-	%AddShotTimeUserLineEdit.text_changed.connect(modify_weapon.bind("shot_time_user"))
-	%RemoveButton.pressed.connect(func():
+	add_damage_line_edit.text_changed.connect(modify_weapon.bind("energy"))
+	add_shot_time_line_edit.text_changed.connect(modify_weapon.bind("shot_time"))
+	add_shot_time_user_line_edit.text_changed.connect(modify_weapon.bind("shot_time_user"))
+	remove_button.pressed.connect(func():
 		if weapon_modifier:
 			EditorState.selected_tech_upgrade.weapons.erase(weapon_modifier)
 			CurrentMapData.is_saved = false
@@ -30,6 +35,6 @@ func modify_weapon(new_text: String, property: String) -> void:
 
 func update_ui() -> void:
 	if weapon_modifier:
-		%AddDamageLineEdit.text = str(weapon_modifier.energy / 100)
-		%AddShotTimeLineEdit.text = str(weapon_modifier.shot_time)
-		%AddShotTimeUserLineEdit.text = str(weapon_modifier.shot_time_user)
+		add_damage_line_edit.text = str(weapon_modifier.energy / 100)
+		add_shot_time_line_edit.text = str(weapon_modifier.shot_time)
+		add_shot_time_user_line_edit.text = str(weapon_modifier.shot_time_user)
