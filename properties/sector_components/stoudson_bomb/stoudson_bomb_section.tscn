@@ -1,6 +1,11 @@
-[gd_scene load_steps=2 format=3 uid="uid://deva3qdr8h12x"]
+[gd_scene load_steps=3 format=3 uid="uid://deva3qdr8h12x"]
 
 [ext_resource type="Script" uid="uid://cv4dq13hfqux" path="res://properties/sector_components/stoudson_bomb/stoudson_bomb_section.gd" id="1_gtxed"]
+
+[sub_resource type="Theme" id="Theme_q18i8"]
+default_font_size = 12
+LineEdit/constants/minimum_character_width = 2
+SpinBox/constants/field_and_buttons_separation = 0
 
 [node name="StoudsonBombSection" type="VBoxContainer"]
 alignment = 1
@@ -54,6 +59,7 @@ alignment = 1
 selected = 0
 item_count = 2
 popup/item_0/text = "Normal"
+popup/item_0/id = 0
 popup/item_1/text = "Parasite(set 6 only)"
 popup/item_1/id = 1
 
@@ -65,6 +71,7 @@ horizontal_alignment = 1
 
 [node name="HBoxContainer2" type="HBoxContainer" parent="."]
 layout_mode = 2
+theme = SubResource("Theme_q18i8")
 alignment = 1
 
 [node name="HoursSpinBox" type="SpinBox" parent="HBoxContainer2"]
@@ -75,8 +82,8 @@ alignment = 1
 
 [node name="Label2" type="Label" parent="HBoxContainer2"]
 layout_mode = 2
-theme_override_font_sizes/font_size = 10
-text = "hours"
+theme_override_font_sizes/font_size = 12
+text = "hours "
 
 [node name="MinutesSpinBox" type="SpinBox" parent="HBoxContainer2"]
 unique_name_in_owner = true
@@ -86,8 +93,8 @@ alignment = 1
 
 [node name="Label3" type="Label" parent="HBoxContainer2"]
 layout_mode = 2
-theme_override_font_sizes/font_size = 10
-text = "minutes"
+theme_override_font_sizes/font_size = 12
+text = "minutes "
 
 [node name="SecondsSpinBox" type="SpinBox" parent="HBoxContainer2"]
 unique_name_in_owner = true
@@ -97,7 +104,7 @@ alignment = 1
 
 [node name="Label4" type="Label" parent="HBoxContainer2"]
 layout_mode = 2
-theme_override_font_sizes/font_size = 10
+theme_override_font_sizes/font_size = 12
 text = "seconds"
 
 [node name="BombKeySectorsLabel" type="Label" parent="."]
