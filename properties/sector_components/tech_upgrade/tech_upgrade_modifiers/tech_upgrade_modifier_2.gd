@@ -34,7 +34,8 @@ func _ready() -> void:
 
 
 func enable_building(toggled: bool, property: String) -> void:
-	if not building_modifier: building_modifier = EditorState.selected_tech_upgrade.new_building_modifier(int(EditorState.blg_names.find_key(item_name)))
+	if not building_modifier: building_modifier = EditorState.selected_tech_upgrade.new_building_modifier(int(EditorState.buildings_db.find_key(item_name)))
+	if building_modifier[property] == toggled: return
 	building_modifier[property] = toggled
 	EditorState.selected_tech_upgrade.synchronize(building_modifier, "enable")
 	CurrentMapData.is_saved = false

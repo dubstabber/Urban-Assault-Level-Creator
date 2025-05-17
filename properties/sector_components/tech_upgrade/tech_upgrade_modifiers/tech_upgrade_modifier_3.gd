@@ -23,8 +23,9 @@ func _ready() -> void:
 		queue_free()
 		)
 
+
 func modify_weapon(new_text: String, property: String) -> void:
-	if not weapon_modifier: weapon_modifier = EditorState.selected_tech_upgrade.new_weapon_modifier(EditorState.units_db[item_name])
+	if not weapon_modifier: weapon_modifier = EditorState.selected_tech_upgrade.new_weapon_modifier(find_id_by_name(item_name))
 	if property == "energy":
 		weapon_modifier[property] = int(new_text) * 100
 	else:
@@ -38,3 +39,10 @@ func update_ui() -> void:
 		add_damage_line_edit.text = str(weapon_modifier.energy / 100)
 		add_shot_time_line_edit.text = str(weapon_modifier.shot_time)
 		add_shot_time_user_line_edit.text = str(weapon_modifier.shot_time_user)
+
+
+func find_id_by_name(weapon_name: String) -> int:
+	for id in EditorState.weapons_db:
+		if EditorState.weapons_db[id] == weapon_name:
+			return id
+	return -1

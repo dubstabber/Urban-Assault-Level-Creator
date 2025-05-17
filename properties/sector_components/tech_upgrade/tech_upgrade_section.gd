@@ -51,27 +51,39 @@ func _ready() -> void:
 		for modifier in tech_upgrade_modifiers_container.get_children():
 			if modifier.item_name == item_name: return
 		
-		if item_name in EditorState.weapons_db:
+		# Check if the item is a weapon
+		var weapon_id = find_weapon_id_by_name(item_name)
+		if weapon_id != -1:
 			if TECH_UPGRADE_MODIFIER_3:
 				var tu_modifier3 = TECH_UPGRADE_MODIFIER_3.instantiate()
 				tu_modifier3.item_name = item_name
 				tech_upgrade_modifiers_container.add_child(tu_modifier3)
 			else:
 				printerr("TECH_UPGRADE_MODIFIER_3 scene could not be found")
-		elif item_name in EditorState.units_db:
+			return
+
+		# Check if the item is a unit
+		var unit_id = find_unit_id_by_name(item_name)
+		if unit_id != -1:
 			if TECH_UPGRADE_MODIFIER_1:
 				var tu_modifier1 = TECH_UPGRADE_MODIFIER_1.instantiate()
 				tu_modifier1.item_name = item_name
 				tech_upgrade_modifiers_container.add_child(tu_modifier1)
 			else:
-				printerr("TECH_UPGRADE_MODIFIER_1 scene could not be find")
-		elif item_name in EditorState.blg_names.values():
+				printerr("TECH_UPGRADE_MODIFIER_1 scene could not be found")
+			return
+		
+		
+		# Check if the item is a building
+		var building_id = find_building_id_by_name(item_name)
+		if building_id != -1:
 			if TECH_UPGRADE_MODIFIER_2:
 				var tu_modifier2 = TECH_UPGRADE_MODIFIER_2.instantiate()
 				tu_modifier2.item_name = item_name
 				tech_upgrade_modifiers_container.add_child(tu_modifier2)
 			else:
 				printerr("TECH_UPGRADE_MODIFIER_2 scene could not be found")
+			return
 		)
 
 
@@ -88,10 +100,10 @@ func _update_properties() -> void:
 		tech_upgrade_mbstatus_checkbox.button_pressed = EditorState.selected_tech_upgrade.mb_status
 		
 		tu_modify_option_button.clear()
-		for unit in EditorState.units_db:
-			tu_modify_option_button.add_item(unit)
-		for building in EditorState.blg_names:
-			tu_modify_option_button.add_item(EditorState.blg_names[building])
+		for unit_id in EditorState.units_db:
+			tu_modify_option_button.add_item(EditorState.units_db[unit_id])
+		for building_id in EditorState.buildings_db:
+			tu_modify_option_button.add_item(EditorState.buildings_db[building_id])
 		for modifier in tech_upgrade_modifiers_container.get_children():
 			modifier.queue_free()
 		for vehicle_modifier in EditorState.selected_tech_upgrade.vehicles:
@@ -100,10 +112,8 @@ func _update_properties() -> void:
 				tech_upgrade_modifiers_container.add_child(tu_modifier1)
 				tu_modifier1.vehicle_modifier = vehicle_modifier
 				var vehicle_name := ""
-				for unit in EditorState.units_db:
-					if EditorState.units_db[unit] == vehicle_modifier.vehicle_id:
-						vehicle_name = unit
-						break
+				if vehicle_modifier.vehicle_id in EditorState.units_db:
+					vehicle_name = EditorState.units_db[vehicle_modifier.vehicle_id]
 				
 				if vehicle_name.is_empty(): tu_modifier1.item_name = "Unknown unit"
 				else: tu_modifier1.item_name = vehicle_name
@@ -114,7 +124,7 @@ func _update_properties() -> void:
 				tu_modifier1.update_ui()
 			else:
 				printerr("TECH_UPGRADE_MODIFIER_1 scene could not be found")
-				return
+				break
 		
 		for weapon_modifier in EditorState.selected_tech_upgrade.weapons:
 			if EditorState.selected_tech_upgrade.vehicles.any(func(vehicle):
@@ -124,28 +134,24 @@ func _update_properties() -> void:
 			# If weapon_modifier is just a weapon then use "TECH_UPGRADE_MODIFIER_3" container
 			# else if weapon_modifier is a squad then use "TECH_UPGRADE_MODIFIER_1" container
 			var tu_modifier: VBoxContainer = null
-			for weapon_id in EditorState.weapons_db.values():
-				if weapon_id == weapon_modifier.weapon_id:
-					if TECH_UPGRADE_MODIFIER_3:
-						tu_modifier = TECH_UPGRADE_MODIFIER_3.instantiate()
-						break
-					else:
-						printerr("TECH_UPGRADE_MODIFIER_3 scene could not be found")
-						return
+			if weapon_modifier.weapon_id in EditorState.weapons_db:
+				if TECH_UPGRADE_MODIFIER_3:
+					tu_modifier = TECH_UPGRADE_MODIFIER_3.instantiate()
+				else:
+					printerr("TECH_UPGRADE_MODIFIER_3 scene could not be found")
+					break
+
 			if tu_modifier == null:
 				if TECH_UPGRADE_MODIFIER_1:
 					tu_modifier = TECH_UPGRADE_MODIFIER_1.instantiate()
 				else:
 					printerr("TECH_UPGRADE_MODIFIER_1 scene could not be found")
-					return
+					break
 			tech_upgrade_modifiers_container.add_child(tu_modifier)
 			tu_modifier.weapon_modifier = weapon_modifier
 			var vehicle_name := ""
-			for unit in EditorState.units_db:
-				if EditorState.units_db[unit] == weapon_modifier.weapon_id:
-					vehicle_name = unit
-					break
-			
+			if weapon_modifier.weapon_id in EditorState.units_db:
+				vehicle_name = EditorState.units_db[weapon_modifier.weapon_id]
 			if vehicle_name.is_empty(): tu_modifier.item_name = "Unknown unit/weapon"
 			else: tu_modifier.item_name = vehicle_name
 			tu_modifier.update_ui()
@@ -155,12 +161,34 @@ func _update_properties() -> void:
 				var tu_modifier2 = TECH_UPGRADE_MODIFIER_2.instantiate()
 				tech_upgrade_modifiers_container.add_child(tu_modifier2)
 				tu_modifier2.building_modifier = building_modifier
-				if EditorState.blg_names.has(building_modifier.building_id):
-					tu_modifier2.item_name = EditorState.blg_names[building_modifier.building_id]
+				if EditorState.buildings_db.has(building_modifier.building_id):
+					tu_modifier2.item_name = EditorState.buildings_db[building_modifier.building_id]
 				else: tu_modifier2.item_name = "Unknown building"
 				tu_modifier2.update_ui()
 			else:
 				printerr("TECH_UPGRADE_MODIFIER_2 scene could not be found")
-				return
+				break
 	else:
 		hide()
+
+
+# Helper functions for finding IDs by name
+func find_unit_id_by_name(unit_name: String) -> int:
+	for id in EditorState.units_db:
+		if EditorState.units_db[id] == unit_name:
+			return id
+	return -1
+
+
+func find_weapon_id_by_name(weapon_name: String) -> int:
+	for id in EditorState.weapons_db:
+		if EditorState.weapons_db[id] == weapon_name:
+			return id
+	return -1
+
+
+func find_building_id_by_name(building_name: String) -> int:
+	for id in EditorState.buildings_db:
+		if EditorState.buildings_db[id] == building_name:
+			return id
+	return -1

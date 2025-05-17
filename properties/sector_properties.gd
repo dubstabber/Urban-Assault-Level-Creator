@@ -62,8 +62,8 @@ func _update_properties() -> void:
 		
 		if CurrentMapData.blg_map[EditorState.selected_sector_idx] == 0:
 			special_building_label.text = 'None'
-		elif EditorState.blg_names.has(CurrentMapData.blg_map[EditorState.selected_sector_idx]):
-			special_building_label.text = EditorState.blg_names[CurrentMapData.blg_map[EditorState.selected_sector_idx]]
+		elif EditorState.buildings_db.has(CurrentMapData.blg_map[EditorState.selected_sector_idx]):
+			special_building_label.text = EditorState.buildings_db[CurrentMapData.blg_map[EditorState.selected_sector_idx]]
 		elif CurrentMapData.blg_map[EditorState.selected_sector_idx] in [5, 25]:
 			special_building_label.text = 'Beam gate'
 		elif CurrentMapData.blg_map[EditorState.selected_sector_idx] in [35, 68]:

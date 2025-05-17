@@ -56,14 +56,17 @@ func _ready() -> void:
 
 
 func enable_vehicle(toggled: bool, property: String) -> void:
-	if not vehicle_modifier: vehicle_modifier = EditorState.selected_tech_upgrade.new_vehicle_modifier(EditorState.units_db[item_name])
+	if not vehicle_modifier:
+		vehicle_modifier = EditorState.selected_tech_upgrade.new_vehicle_modifier(find_id_by_name(item_name))
+	if vehicle_modifier[property] == toggled: return
 	vehicle_modifier[property] = toggled
 	EditorState.selected_tech_upgrade.synchronize(vehicle_modifier, "enable")
 	CurrentMapData.is_saved = false
 
 
 func modify_vehicle(new_text: String, property: String) -> void:
-	if not vehicle_modifier: vehicle_modifier = EditorState.selected_tech_upgrade.new_vehicle_modifier(EditorState.units_db[item_name])
+	if not vehicle_modifier:
+		vehicle_modifier = EditorState.selected_tech_upgrade.new_vehicle_modifier(find_id_by_name(item_name))
 	if property == "energy":
 		vehicle_modifier[property] = int(new_text) * 100
 	else:
@@ -73,7 +76,8 @@ func modify_vehicle(new_text: String, property: String) -> void:
 
 
 func modify_weapon(new_text: String, property: String) -> void:
-	if not weapon_modifier: weapon_modifier = EditorState.selected_tech_upgrade.new_weapon_modifier(EditorState.units_db[item_name])
+	if not weapon_modifier:
+		weapon_modifier = EditorState.selected_tech_upgrade.new_weapon_modifier(find_id_by_name(item_name))
 	if property == "energy":
 		weapon_modifier[property] = int(new_text) * 100
 	else:
@@ -100,3 +104,10 @@ func update_ui() -> void:
 		add_damage_line_edit.text = str(weapon_modifier.energy / 100)
 		add_shot_time_line_edit.text = str(weapon_modifier.shot_time)
 		add_shot_time_user_line_edit.text = str(weapon_modifier.shot_time_user)
+
+
+func find_id_by_name(unit_name: String) -> int:
+	for id in EditorState.units_db:
+		if EditorState.units_db[id] == unit_name:
+			return id
+	return -1

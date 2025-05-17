@@ -30,10 +30,6 @@ static func save() -> void:
 static func _handle_header(file: FileAccess) -> void:
 	file.store_line(";#*+ don't edit the magic runes")
 	file.store_line("")
-	file.store_line(";------------------------------------------------------------")
-	file.store_line(";--- Original Header                                      ---")
-	file.store_line(";------------------------------------------------------------")
-	file.store_line(";")
 
 
 static func _handle_description(file: FileAccess) -> void:
