@@ -134,7 +134,7 @@ func close_map() -> void:
 	
 	EditorState.error_messages.clear()
 	EditorState.warning_messages.clear()
-	EventSystem.warning_logs_updated.emit()
+	EventSystem.warning_logs_updated.emit(true)
 	
 	DisplayServer.window_set_title("Urban Assault Level Creator")
 

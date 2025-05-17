@@ -28,7 +28,7 @@ signal map_updated
 signal map_view_updated
 signal item_added
 signal item_updated
-signal warning_logs_updated
+signal warning_logs_updated(refresh: bool)
 
 signal sector_faction_changed(faction_id: int)
 signal sector_height_changed(height_value: int)

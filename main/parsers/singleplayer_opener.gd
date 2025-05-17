@@ -75,6 +75,7 @@ static func load_level() -> void:
 	
 	EventSystem.map_created.emit()
 	EventSystem.item_updated.emit()
+	EventSystem.warning_logs_updated.emit(true)
 	CurrentMapData.is_saved = true
 
 

@@ -106,15 +106,16 @@ func _update_properties() -> void:
 			tu_modify_option_button.add_item(EditorState.buildings_db[building_id])
 		for modifier in tech_upgrade_modifiers_container.get_children():
 			modifier.queue_free()
+		if not TECH_UPGRADE_MODIFIER_1:
+			printerr("TECH_UPGRADE_MODIFIER_1 scene could not be found")
+			return
 		for vehicle_modifier in EditorState.selected_tech_upgrade.vehicles:
-			if TECH_UPGRADE_MODIFIER_1:
-				var tu_modifier1 = TECH_UPGRADE_MODIFIER_1.instantiate()
-				tech_upgrade_modifiers_container.add_child(tu_modifier1)
-				tu_modifier1.vehicle_modifier = vehicle_modifier
-				var vehicle_name := ""
-				if vehicle_modifier.vehicle_id in EditorState.units_db:
-					vehicle_name = EditorState.units_db[vehicle_modifier.vehicle_id]
-				
+			var tu_modifier1 = TECH_UPGRADE_MODIFIER_1.instantiate()
+			tech_upgrade_modifiers_container.add_child(tu_modifier1)
+			tu_modifier1.vehicle_modifier = vehicle_modifier
+			var vehicle_name := ""
+			if vehicle_modifier.vehicle_id in EditorState.units_db:
+				vehicle_name = EditorState.units_db[vehicle_modifier.vehicle_id]
 				if vehicle_name.is_empty(): tu_modifier1.item_name = "Unknown unit"
 				else: tu_modifier1.item_name = vehicle_name
 				
@@ -122,31 +123,23 @@ func _update_properties() -> void:
 					if weapon_modifier.weapon_id == vehicle_modifier.vehicle_id:
 						tu_modifier1.weapon_modifier = weapon_modifier
 				tu_modifier1.update_ui()
-			else:
-				printerr("TECH_UPGRADE_MODIFIER_1 scene could not be found")
-				break
 		
+		if not TECH_UPGRADE_MODIFIER_3:
+			printerr("TECH_UPGRADE_MODIFIER_3 scene could not be found")
+			return
 		for weapon_modifier in EditorState.selected_tech_upgrade.weapons:
 			if EditorState.selected_tech_upgrade.vehicles.any(func(vehicle):
 				return vehicle.vehicle_id == weapon_modifier.weapon_id):
-					continue
+				continue
 			
 			# If weapon_modifier is just a weapon then use "TECH_UPGRADE_MODIFIER_3" container
 			# else if weapon_modifier is a squad then use "TECH_UPGRADE_MODIFIER_1" container
 			var tu_modifier: VBoxContainer = null
 			if weapon_modifier.weapon_id in EditorState.weapons_db:
-				if TECH_UPGRADE_MODIFIER_3:
-					tu_modifier = TECH_UPGRADE_MODIFIER_3.instantiate()
-				else:
-					printerr("TECH_UPGRADE_MODIFIER_3 scene could not be found")
-					break
+				tu_modifier = TECH_UPGRADE_MODIFIER_3.instantiate()
+			else:
+				tu_modifier = TECH_UPGRADE_MODIFIER_1.instantiate()
 
-			if tu_modifier == null:
-				if TECH_UPGRADE_MODIFIER_1:
-					tu_modifier = TECH_UPGRADE_MODIFIER_1.instantiate()
-				else:
-					printerr("TECH_UPGRADE_MODIFIER_1 scene could not be found")
-					break
 			tech_upgrade_modifiers_container.add_child(tu_modifier)
 			tu_modifier.weapon_modifier = weapon_modifier
 			var vehicle_name := ""
@@ -156,18 +149,17 @@ func _update_properties() -> void:
 			else: tu_modifier.item_name = vehicle_name
 			tu_modifier.update_ui()
 		
+		if not TECH_UPGRADE_MODIFIER_2:
+			printerr("TECH_UPGRADE_MODIFIER_2 scene could not be found")
+			return
 		for building_modifier in EditorState.selected_tech_upgrade.buildings:
-			if TECH_UPGRADE_MODIFIER_2:
-				var tu_modifier2 = TECH_UPGRADE_MODIFIER_2.instantiate()
-				tech_upgrade_modifiers_container.add_child(tu_modifier2)
-				tu_modifier2.building_modifier = building_modifier
-				if EditorState.buildings_db.has(building_modifier.building_id):
-					tu_modifier2.item_name = EditorState.buildings_db[building_modifier.building_id]
-				else: tu_modifier2.item_name = "Unknown building"
-				tu_modifier2.update_ui()
-			else:
-				printerr("TECH_UPGRADE_MODIFIER_2 scene could not be found")
-				break
+			var tu_modifier2 = TECH_UPGRADE_MODIFIER_2.instantiate()
+			tech_upgrade_modifiers_container.add_child(tu_modifier2)
+			tu_modifier2.building_modifier = building_modifier
+			if EditorState.buildings_db.has(building_modifier.building_id):
+				tu_modifier2.item_name = EditorState.buildings_db[building_modifier.building_id]
+			else: tu_modifier2.item_name = "Unknown building"
+			tu_modifier2.update_ui()
 	else:
 		hide()
 
