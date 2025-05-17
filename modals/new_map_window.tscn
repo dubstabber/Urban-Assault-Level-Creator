@@ -1,6 +1,7 @@
-[gd_scene load_steps=2 format=3 uid="uid://c3kputnns5tlf"]
+[gd_scene load_steps=3 format=3 uid="uid://c3kputnns5tlf"]
 
 [ext_resource type="Script" uid="uid://isjo3xjq8e18" path="res://modals/new_map_window.gd" id="1_0khff"]
+[ext_resource type="Theme" uid="uid://blw01utmvrt21" path="res://resources/themes/sector_number_input_fields.tres" id="2_qrgyt"]
 
 [node name="NewMapWindow" type="Window"]
 auto_translate_mode = 1
@@ -41,6 +42,7 @@ theme_override_constants/margin_bottom = 0
 
 [node name="GridContainer" type="GridContainer" parent="PanelContainer/VBoxContainer/MarginContainer2"]
 layout_mode = 2
+theme = ExtResource("2_qrgyt")
 columns = 2
 
 [node name="Label" type="Label" parent="PanelContainer/VBoxContainer/MarginContainer2/GridContainer"]
