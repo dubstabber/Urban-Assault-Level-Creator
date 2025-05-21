@@ -133,7 +133,7 @@ Visit the [official releases page](https://github.com/dubstabber/Urban-Assault-L
 ### Building From Source
 
 ```
-1. Download and install Godot 4.3 from https://godotengine.org
+1. Download and install Godot 4.4.1 from https://godotengine.org
 2. Clone this repository or download the source code
 3. Open Godot and import the project
 4. Select 'Edit' to explore the source code or run the editor
