@@ -3,6 +3,9 @@ extends HBoxContainer
 @export var warning_icon: CompressedTexture2D
 @export var no_warning_icon: CompressedTexture2D
 
+# Common building IDs that are valid but not in buildings_db
+var common_valid_buildings = [0, 5, 6, 25, 26, 60, 61, 4, 7, 15, 51, 50, 16, 65, 35, 36, 37, 68, 69, 70]
+
 @onready var logs_button: Button = %LogsButton
 
 
@@ -24,8 +27,6 @@ func refresh_warnings() -> void:
 	
 	# Check map sectors
 	var idx := 0
-	# Common building IDs that are valid but not in buildings_db
-	var common_valid_buildings = [0, 5, 6, 25, 26, 60, 61, 4, 7, 15, 51, 50, 16, 65, 35, 36, 37, 68, 69, 70]
 	for y in CurrentMapData.vertical_sectors:
 		for x in CurrentMapData.horizontal_sectors:
 			if CurrentMapData.own_map[idx] > 7:
