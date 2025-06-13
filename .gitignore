@@ -1,4 +1,31 @@
 # Godot 4+ specific ignores
 .godot/
+/android/
+# Godot import cache
+.import/
+*.import
+
+# Export presets and configs
+export.cfg
 export_presets.cfg
+
+# Mono/C# build artifacts
+.mono/
+
+# Built/packed game exports and binaries
+/export/
+/bin/
+
+# IDE/settings
 .vscode/
+.idea/
+
+# OS-generated files
+.DS_Store
+Thumbs.db
+
+# Backup/temporary files
+*~
+*.tmp
+*.temp
+*.bak
