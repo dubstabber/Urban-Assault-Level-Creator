@@ -95,8 +95,9 @@ static func _handle_typ_map(file: FileAccess) -> void:
 		for v in CurrentMapData.vertical_sectors:
 			string_line = file.get_line().strip_edges().substr(3)
 			for h in CurrentMapData.horizontal_sectors:
-				if string_line.substr(0, 2).is_valid_hex_number():
-					CurrentMapData.typ_map.append(string_line.substr(0, 2).hex_to_int())
+				var sector_hex_value := string_line.substr(0, 2)
+				if sector_hex_value.is_valid_hex_number():
+					CurrentMapData.typ_map.append(sector_hex_value.hex_to_int())
 				else:
 					CurrentMapData.typ_map.append(0)
 				string_line = string_line.substr(3).strip_edges()
@@ -111,8 +112,9 @@ static func _handle_own_map(file: FileAccess) -> void:
 		for v in CurrentMapData.vertical_sectors:
 			string_line = file.get_line().strip_edges().substr(3)
 			for h in CurrentMapData.horizontal_sectors:
-				if string_line.substr(0, 2).is_valid_hex_number():
-					CurrentMapData.own_map.append(string_line.substr(0, 2).hex_to_int())
+				var sector_hex_value := string_line.substr(0, 2)
+				if sector_hex_value.is_valid_hex_number():
+					CurrentMapData.own_map.append(sector_hex_value.hex_to_int())
 				else:
 					CurrentMapData.own_map.append(0)
 				string_line = string_line.substr(3).strip_edges()
@@ -126,8 +128,9 @@ static func _handle_hgt_map(file: FileAccess) -> void:
 		for v in CurrentMapData.vertical_sectors + 2:
 			string_line = file.get_line().strip_edges()
 			for h in CurrentMapData.horizontal_sectors + 2:
-				if string_line.substr(0, 2).is_valid_hex_number():
-					CurrentMapData.hgt_map.append(string_line.substr(0, 2).hex_to_int())
+				var sector_hex_value := string_line.substr(0, 2)
+				if sector_hex_value.is_valid_hex_number():
+					CurrentMapData.hgt_map.append(sector_hex_value.hex_to_int())
 				else:
 					CurrentMapData.hgt_map.append(0)
 				string_line = string_line.substr(3).strip_edges()
@@ -142,8 +145,9 @@ static func _handle_blg_map(file: FileAccess) -> void:
 		for v in CurrentMapData.vertical_sectors:
 			string_line = file.get_line().strip_edges().substr(3)
 			for h in CurrentMapData.horizontal_sectors:
-				if string_line.substr(0, 2).is_valid_hex_number():
-					CurrentMapData.blg_map.append(string_line.substr(0, 2).hex_to_int())
+				var sector_hex_value := string_line.substr(0, 2)
+				if sector_hex_value.is_valid_hex_number():
+					CurrentMapData.blg_map.append(sector_hex_value.hex_to_int())
 				else:
 					CurrentMapData.blg_map.append(0)
 				string_line = string_line.substr(3).strip_edges()

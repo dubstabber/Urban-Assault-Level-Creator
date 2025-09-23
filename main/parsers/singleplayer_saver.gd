@@ -334,8 +334,7 @@ static func _handle_typ_map(file: FileAccess) -> void:
 	for v in CurrentMapData.vertical_sectors:
 		file.store_string("        ff ")
 		for h in CurrentMapData.horizontal_sectors:
-			if CurrentMapData.typ_map[index] < 16: file.store_string("0%x " % CurrentMapData.typ_map[index])
-			else: file.store_string("%x " % CurrentMapData.typ_map[index])
+			file.store_string("%02x " % CurrentMapData.typ_map[index])
 			index += 1
 		file.store_line("fd ")
 	
@@ -354,7 +353,7 @@ static func _handle_own_map(file: FileAccess) -> void:
 	for v in CurrentMapData.vertical_sectors:
 		file.store_string("        00 ")
 		for h in CurrentMapData.horizontal_sectors:
-			file.store_string("0%x " % CurrentMapData.own_map[index])
+			file.store_string("%02x " % CurrentMapData.own_map[index])
 			index += 1
 		file.store_line("00 ")
 	file.store_string("        ")
@@ -369,8 +368,7 @@ static func _handle_hgt_map(file: FileAccess) -> void:
 	for v in CurrentMapData.vertical_sectors + 2:
 		file.store_string("        ")
 		for h in CurrentMapData.horizontal_sectors + 2:
-			if CurrentMapData.hgt_map[index] < 16: file.store_string("0%x " % CurrentMapData.hgt_map[index])
-			else: file.store_string("%x " % CurrentMapData.hgt_map[index])
+			file.store_string("%02x " % CurrentMapData.hgt_map[index])
 			index += 1
 		file.store_line("")
 
@@ -385,8 +383,7 @@ static func _handle_blg_map(file: FileAccess) -> void:
 	for v in CurrentMapData.vertical_sectors:
 		file.store_string("        00 ")
 		for h in CurrentMapData.horizontal_sectors:
-			if CurrentMapData.blg_map[index] < 16: file.store_string("0%x " % CurrentMapData.blg_map[index])
-			else: file.store_string("%x " % CurrentMapData.blg_map[index])
+			file.store_string("%02x " % CurrentMapData.blg_map[index])
 			index += 1
 		file.store_line("00 ")
 	file.store_string("        ")

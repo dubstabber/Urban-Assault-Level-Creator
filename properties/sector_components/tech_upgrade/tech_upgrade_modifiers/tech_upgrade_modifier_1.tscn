@@ -76,6 +76,7 @@ text = "Add energy:"
 [node name="AddEnergyLineEdit" type="LineEdit" parent="GridContainer"]
 unique_name_in_owner = true
 layout_mode = 2
+tooltip_text = "This value is multiplied by 100 when saved to the file"
 text = "0"
 
 [node name="Label2" type="Label" parent="GridContainer"]
@@ -116,6 +117,7 @@ text = "Add damage:"
 [node name="AddDamageLineEdit" type="LineEdit" parent="GridContainer"]
 unique_name_in_owner = true
 layout_mode = 2
+tooltip_text = "This value is multiplied by 100 when saved to the file"
 text = "0"
 
 [node name="Label6" type="Label" parent="GridContainer"]
