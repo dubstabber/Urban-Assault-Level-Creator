@@ -91,11 +91,13 @@ static func _handle_typ_map(file: FileAccess) -> void:
 		
 		CurrentMapData.horizontal_sectors -= 2
 		CurrentMapData.vertical_sectors -= 2
+		
+		var sector_hex_value: String
 		string_line = file.get_line().strip_edges()
 		for v in CurrentMapData.vertical_sectors:
 			string_line = file.get_line().strip_edges().substr(3)
 			for h in CurrentMapData.horizontal_sectors:
-				var sector_hex_value := string_line.substr(0, 2)
+				sector_hex_value = string_line.substr(0, 2)
 				if sector_hex_value.is_valid_hex_number():
 					CurrentMapData.typ_map.append(sector_hex_value.hex_to_int())
 				else:
@@ -107,12 +109,14 @@ static func _handle_own_map(file: FileAccess) -> void:
 	if string_line.to_lower().begins_with('own_map'):
 		if description_mode: description_mode = false
 		if modifications_mode: modifications_mode = false
+		
+		var sector_hex_value: String
 		string_line = file.get_line()
 		string_line = file.get_line()
 		for v in CurrentMapData.vertical_sectors:
 			string_line = file.get_line().strip_edges().substr(3)
 			for h in CurrentMapData.horizontal_sectors:
-				var sector_hex_value := string_line.substr(0, 2)
+				sector_hex_value = string_line.substr(0, 2)
 				if sector_hex_value.is_valid_hex_number():
 					CurrentMapData.own_map.append(sector_hex_value.hex_to_int())
 				else:
@@ -124,11 +128,13 @@ static func _handle_hgt_map(file: FileAccess) -> void:
 	if string_line.to_lower().begins_with('hgt_map'):
 		if description_mode: description_mode = false
 		if modifications_mode: modifications_mode = false
+		
+		var sector_hex_value: String
 		string_line = file.get_line()
 		for v in CurrentMapData.vertical_sectors + 2:
 			string_line = file.get_line().strip_edges()
 			for h in CurrentMapData.horizontal_sectors + 2:
-				var sector_hex_value := string_line.substr(0, 2)
+				sector_hex_value = string_line.substr(0, 2)
 				if sector_hex_value.is_valid_hex_number():
 					CurrentMapData.hgt_map.append(sector_hex_value.hex_to_int())
 				else:
@@ -140,12 +146,14 @@ static func _handle_blg_map(file: FileAccess) -> void:
 	if string_line.to_lower().begins_with('blg_map'):
 		if description_mode: description_mode = false
 		if modifications_mode: modifications_mode = false
+		
+		var sector_hex_value: String
 		string_line = file.get_line()
 		string_line = file.get_line()
 		for v in CurrentMapData.vertical_sectors:
 			string_line = file.get_line().strip_edges().substr(3)
 			for h in CurrentMapData.horizontal_sectors:
-				var sector_hex_value := string_line.substr(0, 2)
+				sector_hex_value = string_line.substr(0, 2)
 				if sector_hex_value.is_valid_hex_number():
 					CurrentMapData.blg_map.append(sector_hex_value.hex_to_int())
 				else:
