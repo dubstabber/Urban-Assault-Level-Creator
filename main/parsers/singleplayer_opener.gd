@@ -635,6 +635,15 @@ static func _handle_modifications(file: FileAccess) -> void:
 				if string_line.contains(";------------------------------------------------------------"):
 					modifications_mode = false
 					return
+		
+		if string_line.begins_with("begin_enable"):
+			modifications_mode = false
+			_handle_prototype_enabling(file)
+			return
+		if string_line.begins_with("begin_gem"):
+			modifications_mode = false
+			_handle_tech_upgrades(file)
+			return
 		else:
 			CurrentMapData.prototype_modifications += string_line + '\n'
 

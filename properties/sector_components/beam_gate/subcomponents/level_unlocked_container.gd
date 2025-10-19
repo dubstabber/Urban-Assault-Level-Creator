@@ -6,10 +6,7 @@ var level_index: int
 func create(_level_index: int) -> void:
 	if _level_index > 0:
 		level_index = _level_index
-		if level_index < 10:
-			$Label.text = 'This beam gate unlocks: L0%s0%s' % [level_index, level_index]
-		else:
-			$Label.text = 'This beam gate unlocks: L%s%s' % [level_index, level_index]
+		$Label.text = 'This beam gate unlocks: L%02d%02d' % [level_index, level_index]
 
 
 func _on_button_pressed() -> void:

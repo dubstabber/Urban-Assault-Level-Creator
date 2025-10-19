@@ -89,10 +89,7 @@ func _update_properties() -> void:
 			
 		levels_option_button.clear()
 		for level_id: int in Preloads.ua_data.data[EditorState.game_data_type].levels:
-			if level_id < 10:
-				levels_option_button.add_item('L0%s0%s' % [level_id, level_id], level_id)
-			else:
-				levels_option_button.add_item('L%s%s' % [level_id, level_id], level_id)
+			levels_option_button.add_item('L%02d%02d' % [level_id, level_id], level_id)
 		
 		for lvl in unlock_levels_container.get_children():
 			lvl.queue_free()
