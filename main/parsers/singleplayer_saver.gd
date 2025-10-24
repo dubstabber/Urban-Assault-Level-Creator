@@ -55,11 +55,7 @@ static func _handle_level_parameters(file: FileAccess) -> void:
 	if CurrentMapData.event_loop > 0:
 		file.store_line("\tevent_loop = %s" % CurrentMapData.event_loop)
 	if CurrentMapData.music > 0:
-		file.store_string("\tambiencetrack = %s" % CurrentMapData.music)
-		if CurrentMapData.min_break < 10: file.store_string("_0%s" % CurrentMapData.min_break)
-		else: file.store_string("_%s" % CurrentMapData.min_break)
-		if CurrentMapData.max_break < 10: file.store_line("_0%s" % CurrentMapData.max_break)
-		else: file.store_line("_%s" % CurrentMapData.max_break)
+		file.store_line("\tambiencetrack = %d_%02d_%02d" % [CurrentMapData.music, CurrentMapData.min_break, CurrentMapData.max_break])
 	if not CurrentMapData.movie.is_empty(): file.store_line("\tmovie = mov:%s" % CurrentMapData.movie)
 	file.store_line("end")
 
