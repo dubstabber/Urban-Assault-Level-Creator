@@ -1,4 +1,4 @@
-[gd_scene load_steps=47 format=3 uid="uid://ctgiwn3scteuk"]
+[gd_scene load_steps=52 format=3 uid="uid://ctgiwn3scteuk"]
 
 [ext_resource type="Script" uid="uid://66b2147vfma0" path="res://main/main.gd" id="1_7pb5r"]
 [ext_resource type="Script" uid="uid://os5b5mds6770" path="res://modals/modals.gd" id="2_glk8b"]
@@ -100,6 +100,20 @@ func _ready() -> void:
 		CurrentMapData.is_saved = false
 	)
 "
+
+[sub_resource type="ShaderMaterial" id="ShaderMaterial_yjufm"]
+
+[sub_resource type="Sky" id="Sky_phifs"]
+sky_material = SubResource("ShaderMaterial_yjufm")
+
+[sub_resource type="Environment" id="Environment_cgvj2"]
+background_mode = 2
+sky = SubResource("Sky_phifs")
+
+[sub_resource type="SphereMesh" id="SphereMesh_yjufm"]
+
+[sub_resource type="PlaneMesh" id="PlaneMesh_yjufm"]
+size = Vector2(20, 20)
 
 [node name="Main" type="Control"]
 layout_mode = 3
@@ -330,7 +344,33 @@ theme_override_constants/minimum_grab_thickness = 1
 split_offset = 750
 
 [node name="MapContainer" parent="PanelContainer/MarginContainer/VBoxContainer/HSplitContainer" instance=ExtResource("19_hkn6c")]
+visible = false
 layout_mode = 2
+
+[node name="Map3DContainer" type="SubViewportContainer" parent="PanelContainer/MarginContainer/VBoxContainer/HSplitContainer"]
+layout_mode = 2
+stretch = true
+
+[node name="SubViewport" type="SubViewport" parent="PanelContainer/MarginContainer/VBoxContainer/HSplitContainer/Map3DContainer"]
+size = Vector2i(1200, 616)
+
+[node name="Map3D" type="Node3D" parent="PanelContainer/MarginContainer/VBoxContainer/HSplitContainer/Map3DContainer/SubViewport"]
+
+[node name="Camera3D" type="Camera3D" parent="PanelContainer/MarginContainer/VBoxContainer/HSplitContainer/Map3DContainer/SubViewport/Map3D"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.1143, 0)
+
+[node name="DirectionalLight3D" type="DirectionalLight3D" parent="PanelContainer/MarginContainer/VBoxContainer/HSplitContainer/Map3DContainer/SubViewport/Map3D"]
+transform = Transform3D(1, 0, 0, 0, 0.414153, 0.910207, 0, -0.910207, 0.414153, 0, 8.94659, 2.87136)
+
+[node name="WorldEnvironment" type="WorldEnvironment" parent="PanelContainer/MarginContainer/VBoxContainer/HSplitContainer/Map3DContainer/SubViewport/Map3D"]
+environment = SubResource("Environment_cgvj2")
+
+[node name="TestMesh" type="MeshInstance3D" parent="PanelContainer/MarginContainer/VBoxContainer/HSplitContainer/Map3DContainer/SubViewport/Map3D"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.729786, -5.38842)
+mesh = SubResource("SphereMesh_yjufm")
+
+[node name="TerrainMesh" type="MeshInstance3D" parent="PanelContainer/MarginContainer/VBoxContainer/HSplitContainer/Map3DContainer/SubViewport/Map3D"]
+mesh = SubResource("PlaneMesh_yjufm")
 
 [node name="PropertiesContainer" parent="PanelContainer/MarginContainer/VBoxContainer/HSplitContainer" instance=ExtResource("20_eh4tf")]
 unique_name_in_owner = true
