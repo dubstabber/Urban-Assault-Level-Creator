@@ -37,9 +37,12 @@ func test_build_mesh_2x2_flat() -> bool:
 		if mesh.get_surface_count() == 1:
 			var arrays := mesh.surface_get_arrays(0)
 			var verts: PackedVector3Array = arrays[Mesh.ARRAY_VERTEX]
-			# 4 tris per tile * 4 tiles * 3 verts = 48
-			_check(verts.size() == 4 * 4 * 3, "Unexpected vertex count for 2x2 flat")
-			# All Y should be 0 for flat map
+			var idxs: PackedInt32Array = arrays[Mesh.ARRAY_INDEX]
+			# 18 triangles per sector (center + 4 edges + 4 corners = 9 quads) * (w+2)*(h+2) sectors
+			var sectors := (w + 2) * (h + 2)
+			var expected_tris := 18 * sectors
+			_check(idxs.size() == expected_tris * 3, "Unexpected index count for 2x2 flat (expected %d, got %d)" % [expected_tris * 3, idxs.size()])
+			# All Y should be 0 for flat map (unique vertices array)
 			for v in verts:
 				_check(is_equal_approx(v.y, 0.0), "Flat mesh vertex Y not 0")
 	return _errors.is_empty()
@@ -67,17 +70,20 @@ func test_build_mesh_1x1_center_height() -> bool:
 		if mesh.get_surface_count() == 1:
 			var arrays := mesh.surface_get_arrays(0)
 			var verts: PackedVector3Array = arrays[Mesh.ARRAY_VERTEX]
-			# First triangle is (nw, ne, c) so index 2 is center
-			var center := verts[2]
-			var expected_center_y := (float(hgt[4]) + float(hgt[5]) + float(hgt[8]) + float(hgt[7])) * 0.25 * HEIGHT_SCALE
-			_check(is_equal_approx(center.y, expected_center_y), "Center Y not average of corners")
-			# Also check corner positions scale/orientation
-			var nw := verts[0]
-			var ne := verts[1]
-			_check(is_equal_approx(nw.x, 0.0), "NW x not 0")
-			_check(is_equal_approx(ne.x, SECTOR_SIZE), "NE x not sector size")
-			_check(is_equal_approx(nw.z, 0.0), "NW z not 0")
-			_check(is_equal_approx(ne.z, 0.0), "NE z not 0")
+			# With borders, full grid is (w+2) x (h+2). Check top edge (z = 0) exists and spans 0..(w+2)*SECTOR_SIZE
+			var min_x := INF
+			var max_x := -INF
+			var min_z := INF
+			for v in verts:
+				min_x = min(min_x, v.x)
+				max_x = max(max_x, v.x)
+				min_z = min(min_z, v.z)
+			# Expect top row at z = 0 and right edge at (w+2)*SECTOR_SIZE
+			var expected_max_x := float(w + 2) * SECTOR_SIZE
+			var expected_min_z := 0.0
+			_check(is_equal_approx(min_x, 0.0), "Min X not 0 with borders")
+			_check(is_equal_approx(max_x, expected_max_x), "Max X not (w+2)*SECTOR_SIZE")
+			_check(is_equal_approx(min_z, expected_min_z), "Min Z not 0 (should be +Z downward)")
 	return _errors.is_empty()
 
 func test_invalid_input_returns_empty_mesh() -> bool:
