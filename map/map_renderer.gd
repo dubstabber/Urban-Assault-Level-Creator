@@ -33,7 +33,7 @@ var _owner_colors := {
 	4: Color.YELLOW,
 	5: Color.DIM_GRAY,
 	6: Color.RED,
-	7: Color(0.070588, 0.0, 0.168627, 1),
+	7: Color(0.110088, 0.0, 0.188627, 1),
 	-1: Color.TRANSPARENT
 }
 
