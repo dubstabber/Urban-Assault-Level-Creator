@@ -17,6 +17,12 @@ var mode: States = States.Select:
 		mode = value
 		EventSystem.editor_mode_changed.emit()
 
+# Editor view mode: true = 3D preview visible, false = 2D map visible
+var view_mode_3d := true:
+	set(value):
+		view_mode_3d = value
+		EventSystem.map_view_updated.emit()
+
 var selected_typ_map: int
 
 var typ_map_images_visible := true:
@@ -80,26 +86,26 @@ func _ready():
 	game_data_type = Preloads.ua_data.data.keys()[0]
 	reload()
 	EventSystem.game_type_changed.connect(reload)
-	
+
 
 func reload() -> void:
 	# Cache commonly accessed data paths
 	var game_data = Preloads.ua_data.data[game_data_type]
 	var briefing_maps = game_data.missionBriefingMaps
 	var debriefing_maps = game_data.missionDebriefingMaps
-	
+
 	# Validate and set map references
 	if not (CurrentMapData.briefing_map in briefing_maps or CurrentMapData.briefing_map in debriefing_maps):
 		CurrentMapData.briefing_map = briefing_maps[0]
-		
+
 	if not (CurrentMapData.debriefing_map in debriefing_maps or CurrentMapData.debriefing_map in briefing_maps):
 		CurrentMapData.debriefing_map = debriefing_maps[0]
-	
+
 	# Clear databases
 	units_db.clear()
 	buildings_db.clear()
 	weapons_db.clear()
-	
+
 	# Process hoststations if they exist
 	if game_data.has("hoststations"):
 		var hoststations = game_data.hoststations
@@ -118,14 +124,14 @@ func reload() -> void:
 				units_db[int(unit.id)] = unit.name
 			for building in hoststation_data.buildings:
 				buildings_db[int(building.id)] = building.name
-	
+
 	# Process other buildings and units
 	for building in game_data.other.buildings:
 		buildings_db[int(building.id)] = building.name
-	
+
 	for unit in game_data.other.units:
 		units_db[int(unit.id)] = unit.name
-	
+
 	# Process tech upgrades (weapons)
 	for weapon in game_data.techUpgrade:
 		var weapon_id = int(weapon.id)

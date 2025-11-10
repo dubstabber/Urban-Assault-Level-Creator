@@ -1,4 +1,4 @@
-[gd_scene load_steps=52 format=3 uid="uid://ctgiwn3scteuk"]
+[gd_scene load_steps=55 format=3 uid="uid://ctgiwn3scteuk"]
 
 [ext_resource type="Script" uid="uid://66b2147vfma0" path="res://main/main.gd" id="1_7pb5r"]
 [ext_resource type="Script" uid="uid://os5b5mds6770" path="res://modals/modals.gd" id="2_glk8b"]
@@ -38,8 +38,11 @@
 [ext_resource type="Script" uid="uid://snb31q2rp2sf" path="res://main/status_bar_container.gd" id="27_esd3e"]
 [ext_resource type="Script" uid="uid://bot7cu1rwf43b" path="res://main/nav_bar/menu_bar_edit.gd" id="29_rprwg"]
 [ext_resource type="Script" uid="uid://cyxsdmnikua2r" path="res://main/status_bar_container_right.gd" id="34_21ltw"]
+[ext_resource type="Script" uid="uid://bwkyas1lpwor1" path="res://main/h_split_container.gd" id="34_t1yuj"]
 [ext_resource type="Texture2D" uid="uid://dpr45g77fuh7m" path="res://resources/img/ui_icons/warning-icon.png" id="34_wx03i"]
+[ext_resource type="Script" uid="uid://d1aadwj8xs7d3" path="res://map/map_3d_renderer.gd" id="35_cgvj2"]
 [ext_resource type="Texture2D" uid="uid://cqtiag6sfysm4" path="res://resources/img/ui_icons/no-warning-icon.png" id="36_qjqir"]
+[ext_resource type="Shader" uid="uid://b80jur7foaxae" path="res://shaders/sky.gdshader" id="36_t1yuj"]
 
 [sub_resource type="GDScript" id="GDScript_a23yx"]
 script/source = "extends ConfirmationDialog
@@ -102,6 +105,7 @@ func _ready() -> void:
 "
 
 [sub_resource type="ShaderMaterial" id="ShaderMaterial_yjufm"]
+shader = ExtResource("36_t1yuj")
 
 [sub_resource type="Sky" id="Sky_phifs"]
 sky_material = SubResource("ShaderMaterial_yjufm")
@@ -342,6 +346,7 @@ size_flags_vertical = 3
 theme_override_constants/separation = 1
 theme_override_constants/minimum_grab_thickness = 1
 split_offset = 750
+script = ExtResource("34_t1yuj")
 
 [node name="MapContainer" parent="PanelContainer/MarginContainer/VBoxContainer/HSplitContainer" instance=ExtResource("19_hkn6c")]
 visible = false
@@ -352,9 +357,12 @@ layout_mode = 2
 stretch = true
 
 [node name="SubViewport" type="SubViewport" parent="PanelContainer/MarginContainer/VBoxContainer/HSplitContainer/Map3DContainer"]
+handle_input_locally = false
 size = Vector2i(1200, 616)
+render_target_update_mode = 4
 
 [node name="Map3D" type="Node3D" parent="PanelContainer/MarginContainer/VBoxContainer/HSplitContainer/Map3DContainer/SubViewport"]
+script = ExtResource("35_cgvj2")
 
 [node name="Camera3D" type="Camera3D" parent="PanelContainer/MarginContainer/VBoxContainer/HSplitContainer/Map3DContainer/SubViewport/Map3D"]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.1143, 0)

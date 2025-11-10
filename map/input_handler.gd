@@ -9,10 +9,10 @@ var is_left_pressed := false
 
 func _input(event):
 	if not map: return
-	
+
 	# Early return if no map data
 	if CurrentMapData.horizontal_sectors <= 0: return
-	
+
 	# Handle different input types
 	if event is InputEventMouseButton:
 		_handle_mouse_input(event)
@@ -41,10 +41,10 @@ func _handle_mouse_input(event: InputEventMouseButton):
 			handle_batch_multi_selection(map.selection_start_point, map.current_mouse_pos)
 			map.selection_start_point = Vector2.ZERO
 		map.queue_redraw()
-	
+
 	if event.is_action_pressed("context_menu"):
 		_handle_context_menu()
-	
+
 	if event.button_index == MOUSE_BUTTON_LEFT and event.double_click and not EditorState.selected_unit:
 		EventSystem.left_double_clicked.emit()
 
@@ -54,7 +54,7 @@ func _handle_keyboard_input(event: InputEventKey):
 		map.is_selection_kept = true
 	elif event.is_action_released("hold"):
 		map.is_selection_kept = false
-	
+
 	if event.is_action_pressed("multi_selection"):
 		map.is_multi_selection = true
 	elif event.is_action_released("multi_selection"):
@@ -71,34 +71,34 @@ func _handle_keyboard_input(event: InputEventKey):
 				_handle_ownership_change()
 	elif event.is_released():
 		is_number_pressed = false
-	
+
 	if event.is_action_pressed("select_all"):
 		Utils.select_all_sectors()
-	
+
 	if event.is_action_pressed("increment_height") and CurrentMapData.hgt_map.size() > 0:
 		_handle_height_change(1)
-	
+
 	if event.is_action_pressed("decrement_height") and CurrentMapData.hgt_map.size() > 0:
 		_handle_height_change(-1)
-	
+
 	if event.is_action_pressed("previous_building"):
 		_handle_building_change(-1)
-	
+
 	if event.is_action_pressed("next_building"):
 		_handle_building_change(1)
-	
+
 	if event.is_action_pressed("show_height_window") and not CurrentMapData.hgt_map.is_empty():
 		EventSystem.sector_height_window_requested.emit()
-	
+
 	if event.is_action_pressed("show_building_window") and not CurrentMapData.typ_map.is_empty():
 		EventSystem.sector_building_windows_requested.emit()
-	
+
 	if event.is_action_pressed("clear_sector") and not CurrentMapData.typ_map.is_empty():
 		_handle_clear_sector()
-	
+
 	if event.is_action_pressed("copy"):
 		Utils.copy_sector()
-	
+
 	if event.is_action_pressed("paste"):
 		Utils.paste_sector()
 
@@ -139,6 +139,8 @@ func _handle_height_change(direction: int):
 			CurrentMapData.hgt_map[EditorState.border_selected_sector_idx] = new_height
 	CurrentMapData.is_saved = false
 	map.queue_redraw()
+	EventSystem.map_updated.emit()
+
 
 func _handle_building_change(direction: int):
 	if EditorState.selected_sectors.size() > 1:
@@ -169,15 +171,15 @@ func _handle_clear_sector():
 func _handle_context_menu():
 	map.right_clicked_x = round(map.get_local_mouse_position().x)
 	map.right_clicked_y = round(map.get_local_mouse_position().y)
-	
+
 	if EditorState.selected_sectors.size() > 1:
 		%MultiSectorMapContextMenu.position = Vector2(map.right_clicked_x_global, map.right_clicked_y_global)
 		%MultiSectorMapContextMenu.popup()
 		return
-	
+
 	_handle_single_selection()
 	EditorState.selected_unit = EditorState.mouse_over_unit
-	
+
 	if EditorState.selected_unit:
 		%UnitContextMenu.position = Vector2(map.right_clicked_x_global, map.right_clicked_y_global)
 		%UnitContextMenu.popup()
@@ -188,7 +190,7 @@ func _handle_context_menu():
 func handle_selection(clicked_x: int, clicked_y: int):
 	if not map.is_selection_kept:
 		EditorState.selected_sectors.clear()
-	
+
 	_find_clicked_sector(clicked_x, clicked_y)
 	_update_special_selections()
 	EventSystem.sector_selected.emit()
@@ -199,7 +201,7 @@ func _find_clicked_sector(clicked_x: int, clicked_y: int):
 	var border_sector_counter := 0
 	var h_size := 0
 	var v_size := 0
-	
+
 	for y_sector in CurrentMapData.vertical_sectors + 2:
 		for x_sector in CurrentMapData.horizontal_sectors + 2:
 			var is_within_bounds := (y_sector > 0 and y_sector < CurrentMapData.vertical_sectors + 1 and
@@ -212,7 +214,7 @@ func _find_clicked_sector(clicked_x: int, clicked_y: int):
 			h_size += 1200
 			if is_within_bounds: sector_counter += 1
 			border_sector_counter += 1
-		
+
 		v_size += 1200
 		h_size = 0
 
@@ -221,7 +223,7 @@ func _update_sector_selection(sector_idx: int, border_sector_idx: int, x: int, y
 	EditorState.border_selected_sector_idx = border_sector_idx
 	EditorState.selected_sector.x = x
 	EditorState.selected_sector.y = y
-	
+
 	var is_already_selected = EditorState.selected_sectors.any(func(dict): return dict.border_idx == border_sector_idx)
 	if not is_already_selected:
 		var new_selection = {
@@ -246,7 +248,7 @@ func _update_special_selections():
 	EditorState.selected_bg_key_sector = Vector2i(-1, -1)
 	EditorState.selected_bomb_key_sector = Vector2i(-1, -1)
 	EditorState.selected_tech_upgrade = null
-	
+
 	if EditorState.selected_sectors.size() == 1:
 		_update_beam_gate_selection()
 		_update_bomb_selection()
@@ -281,7 +283,7 @@ func handle_batch_multi_selection(start_pos: Vector2, end_pos: Vector2) -> void:
 	var border_sector_counter := 0
 	var h_size := 0
 	var v_size := 0
-	
+
 	for y_sector in CurrentMapData.vertical_sectors + 2:
 		for x_sector in CurrentMapData.horizontal_sectors + 2:
 			var is_within_bounds := (y_sector > 0 and y_sector < CurrentMapData.vertical_sectors + 1 and
@@ -301,9 +303,9 @@ func handle_batch_multi_selection(start_pos: Vector2, end_pos: Vector2) -> void:
 			h_size += 1200
 			if is_within_bounds: sector_counter += 1
 			border_sector_counter += 1
-		
+
 		v_size += 1200
 		h_size = 0
-	
+
 	EventSystem.sector_selected.emit()
 	map.queue_redraw()
