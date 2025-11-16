@@ -69,16 +69,14 @@ func _ready() -> void:
 		view_angle_line_edit.editable = toggled
 	)
 	reload_const_line_edit.text_changed.connect(func(new_value: String):
+		var converted_value: int
 		if CurrentMapData.player_host_station == EditorState.selected_unit:
-			var converted_value = abs(int(ceil(float(new_value) * (60000.0 / 255.0))))
-			if EditorState.selected_unit.reload_const != converted_value:
-				CurrentMapData.is_saved = false
-				EditorState.selected_unit.reload_const = converted_value
+			converted_value = abs(int(ceil(float(new_value) * (60000.0 / 255.0))))
 		else:
-			var converted_value = abs(int(ceil(float(new_value) * (70000.0 / 255.0))))
-			if EditorState.selected_unit.reload_const != converted_value:
-				CurrentMapData.is_saved = false
-				EditorState.selected_unit.reload_const = converted_value
+			converted_value = abs(int(ceil(float(new_value) * (70000.0 / 255.0))))
+		if EditorState.selected_unit.reload_const != converted_value:
+			CurrentMapData.is_saved = false
+			EditorState.selected_unit.reload_const = converted_value
 	)
 	reload_const_check_button.toggled.connect(func(toggled: bool):
 		if EditorState.selected_unit.reload_const_enabled != toggled:
