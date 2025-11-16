@@ -33,4 +33,6 @@ Thumbs.db
 .augment
 PLANNING.md
 TASK.md
-.usor
+.usor/
+scripts/
+tests/

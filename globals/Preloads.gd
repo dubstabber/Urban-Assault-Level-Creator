@@ -23,12 +23,27 @@ var mbmaps := {}
 var font = preload("res://resources/Xolonium-Regular.ttf")
 
 
+# UA 3D terrain (edge-based) resources
+var surface_type_map := {}
+var ground_textures: Array[Texture2D] = []
+# Note: SetSdfParser is a global class (class_name in set_sdf_parser.gd);
+# avoid naming conflicts by not preloading it into a const with the same name.
+var _ground_fb_colors := [
+	Color(0.35, 0.55, 0.35), # grass
+	Color(0.42, 0.30, 0.20), # dirt
+	Color(0.55, 0.55, 0.55), # concrete
+	Color(0.30, 0.30, 0.35), # rock
+	Color(0.20, 0.35, 0.60), # water
+	Color(0.70, 0.60, 0.45)  # sand
+]
+
+
 func _ready():
 	if not ua_data.data or typeof(ua_data.data) != TYPE_DICTIONARY or not ua_data.data.has("original"):
 		EventSystem.editor_fatal_error_occured.emit.call_deferred("invalid_json")
 		return
 	reload_units_and_buildings()
-	
+
 	squad_icons.square = {
 		"blue": load("res://resources/img/squadIcons/BlueUnit1.png"),
 		"red": load("res://resources/img/squadIcons/RedUnit1.png"),
@@ -66,7 +81,7 @@ func _ready():
 	building_icons.power_station = load("res://resources/img/buildingIcons/powerStation.png")
 	building_icons.flak_station = load("res://resources/img/buildingIcons/flakStation.png")
 	building_icons.radar_station = load("res://resources/img/buildingIcons/radarStation.png")
-	
+
 	sector_item_images.beam_gate = load("res://resources/img/sectorItems/beamgate.png")
 	sector_item_images.stoudson_bomb = load("res://resources/img/sectorItems/mainbomb.png")
 	sector_item_images.tech_upgrades = {}
@@ -80,11 +95,11 @@ func _ready():
 	sector_item_images.tech_upgrades[16] = load("res://resources/img/sectorItems/techupgradenewbuilding.png")
 	sector_item_images.tech_upgrades[65] = load("res://resources/img/sectorItems/techupgradenewvehicletower.png")
 	sector_item_images.tech_upgrades["unknown"] = load("res://resources/img/sectorItems/techupgradeunknown.png")
-	
-	
+
+
 	sector_item_images.beam_gate_key_sector = load("res://resources/img/sectorItems/keysector.png")
 	sector_item_images.bomb_key_sector = load("res://resources/img/sectorItems/sectorbomb.png")
-	
+
 	building_side_images[1] = {}
 	building_top_images[1] = {}
 	building_side_images[2] = {}
@@ -97,7 +112,7 @@ func _ready():
 	building_top_images[5] = {}
 	building_side_images[6] = {}
 	building_top_images[6] = {}
-	
+
 	var idx := 0
 	while (idx < 256):
 		if idx == 54: idx = 59
@@ -114,8 +129,8 @@ func _ready():
 		building_side_images[1][idx] = load("res://resources/img/Sector_images/set1-side/Set1_sector%s.jpg" % idx)
 		building_top_images[1][idx] = load("res://resources/img/Sector_images/set1-above/Set1_sector_%s.jpg" % idx)
 		idx += 1
-		
-	
+
+
 	idx = 0
 	while (idx < 256):
 		if idx == 25: idx = 27
@@ -131,7 +146,7 @@ func _ready():
 		building_side_images[2][idx] = load("res://resources/img/Sector_images/set2-side/Set2_sector%s.jpg" % idx)
 		building_top_images[2][idx] = load("res://resources/img/Sector_images/set2-above/Set2_sector_%s.jpg" % idx)
 		idx += 1
-	
+
 	idx = 0
 	while (idx < 256):
 		if idx == 50: idx = 59
@@ -148,7 +163,7 @@ func _ready():
 		building_side_images[3][idx] = load("res://resources/img/Sector_images/set3-side/Set3_sector%s.jpg" % idx)
 		building_top_images[3][idx] = load("res://resources/img/Sector_images/set3-above/Set3_sector_%s.jpg" % idx)
 		idx += 1
-		
+
 	idx = 0
 	while (idx < 256):
 		if idx == 50: idx = 59
@@ -165,7 +180,7 @@ func _ready():
 		building_side_images[4][idx] = load("res://resources/img/Sector_images/set4-side/Set4_sector%s.jpg" % idx)
 		building_top_images[4][idx] = load("res://resources/img/Sector_images/set4-above/Set4_sector_%s.jpg" % idx)
 		idx += 1
-		
+
 	idx = 0
 	while (idx < 256):
 		if idx == 96: idx = 97
@@ -180,7 +195,7 @@ func _ready():
 		building_side_images[5][idx] = load("res://resources/img/Sector_images/set5-side/Set5_sector%s.jpg" % idx)
 		building_top_images[5][idx] = load("res://resources/img/Sector_images/set5-above/Set5_sector_%s.jpg" % idx)
 		idx += 1
-		
+
 	idx = 0
 	while (idx < 256):
 		if idx == 50: idx = 59
@@ -197,10 +212,10 @@ func _ready():
 		building_side_images[6][idx] = load("res://resources/img/Sector_images/set6-side/Set6_sector%s.jpg" % idx)
 		building_top_images[6][idx] = load("res://resources/img/Sector_images/set6-above/Set6_sector_%s.jpg" % idx)
 		idx += 1
-		
+
 	error_sign = load("res://resources/img/blgMapImages/error.png")
 	error_icon = load("res://resources/img/ui_icons/error-icon.png")
-	
+
 	movies_db["none"] = ""
 	movies_db["Intro"] = "intro.mpg"
 	movies_db["Tutorial 1"] = "tut1.mpg"
@@ -213,7 +228,7 @@ func _ready():
 	movies_db["Black sect"] = "black.mpg"
 	movies_db["Lose"] = "lose.mpg"
 	movies_db["Win"] = "win.mpg"
-	
+
 	skies["1998_01"] = load("res://resources/img/sky-images/1998_01.jpg")
 	skies["1998_02"] = load("res://resources/img/sky-images/1998_02.jpg")
 	skies["1998_03"] = load("res://resources/img/sky-images/1998_03.jpg")
@@ -280,19 +295,28 @@ func _ready():
 	skies["x2"] = load("res://resources/img/sky-images/x2.jpg")
 	skies["x4"] = load("res://resources/img/sky-images/x4.jpg")
 	skies["x5"] = load("res://resources/img/sky-images/x5.jpg")
+
+	# 3D terrain edge-based resources
+	load_ground_textures()
+	reload_surface_type_map()
+	if EventSystem:
+		# Reload both the surface type map and the ground textures when set changes
+		EventSystem.level_set_changed.connect(reload_surface_type_map)
+		EventSystem.level_set_changed.connect(load_ground_textures)
+
 	skies["x7"] = load("res://resources/img/sky-images/x7.jpg")
 	skies["x8"] = load("res://resources/img/sky-images/x8.jpg")
 	skies["x9"] = load("res://resources/img/sky-images/x9.jpg")
 	skies["xa"] = load("res://resources/img/sky-images/xa.jpg")
 	skies["xb"] = load("res://resources/img/sky-images/xb.jpg")
 	skies["xc"] = load("res://resources/img/sky-images/xc.jpg")
-	
+
 	musics[2] = load("res://resources/audio/track-2.mp3")
 	musics[3] = load("res://resources/audio/track-3.mp3")
 	musics[4] = load("res://resources/audio/track-4.mp3")
 	musics[5] = load("res://resources/audio/track-5.mp3")
 	musics[6] = load("res://resources/audio/track-6.mp3")
-	
+
 	reload_mb_db_maps()
 	EventSystem.game_type_changed.connect(reload_units_and_buildings)
 	EventSystem.game_type_changed.connect(reload_mb_db_maps)
@@ -303,7 +327,7 @@ func reload_units_and_buildings() -> void:
 		return
 	squad_images.clear()
 	special_building_images.clear()
-	
+
 	if not ua_data.data[EditorState.game_data_type].has("hoststations"):
 		EventSystem.editor_fatal_error_occured.emit.call_deferred("no_hoststations")
 		return
@@ -318,7 +342,7 @@ func reload_units_and_buildings() -> void:
 			squad_images[int(squad.id)] = load("res://resources/img/squadImages/" + squad.image_file)
 		for building in ua_data.data[EditorState.game_data_type].hoststations[hs].buildings:
 			special_building_images[int(building.id)] = load("res://resources/img/blgMapImages/" + building.image_file)
-	
+
 	for squad in ua_data.data[EditorState.game_data_type].other.units:
 		squad_images[int(squad.id)] = load("res://resources/img/squadImages/" + squad.image_file)
 	for building in ua_data.data[EditorState.game_data_type].other.buildings:
@@ -336,3 +360,62 @@ func reload_mb_db_maps() -> void:
 				mbmaps[map_name] = load("res://resources/img/mbgfx/%s/%s" % [EditorState.game_data_type, file_name])
 			elif map_name.begins_with("db"):
 				mbmaps[map_name] = load("res://resources/img/mbgfx/%s/%s" % [EditorState.game_data_type, file_name])
+
+
+# ---- UA 3D terrain helpers ----
+func load_ground_textures() -> void:
+	# Determine current set (1..6); default to 1 if unavailable
+	var set_id := 1
+	var cmd = get_node_or_null("/root/CurrentMapData")
+	if cmd:
+		set_id = int(cmd.level_set)
+	ground_textures.resize(6)
+	for i in 6:
+		# Three-tier fallback: set-specific -> common -> procedural color
+		var set_path := "res://resources/terrain/textures/set%d/ground_%d.png" % [set_id, i]
+		var common_path := "res://resources/terrain/textures/common/ground_%d.png" % i
+		var tex: Texture2D = null
+		# Only try loading set-specific if the file exists to avoid benign loader errors
+		if FileAccess.file_exists(set_path):
+			tex = load(set_path)
+			if tex is Texture2D:
+				ground_textures[i] = tex
+				print("[Preloads] ground_%d <- %s" % [i, set_path])
+				continue
+		# Try common fallback if present
+		if FileAccess.file_exists(common_path):
+			tex = load(common_path)
+			if tex is Texture2D:
+				ground_textures[i] = tex
+				print("[Preloads] ground_%d <- %s" % [i, common_path])
+				continue
+		# Final fallback: procedural color
+		ground_textures[i] = _make_color_tex(_ground_fb_colors[i % _ground_fb_colors.size()])
+		push_warning("Preloads: no ground texture for index %d (set %d). Using procedural color." % [i, set_id])
+
+func get_ground_texture(surface_type: int) -> Texture2D:
+	if ground_textures.is_empty():
+		load_ground_textures()
+	var idx: int = clampi(surface_type, 0, 5)
+	var tex: Texture2D = ground_textures[idx]
+	if tex == null:
+		tex = _make_color_tex(_ground_fb_colors[idx])
+		ground_textures[idx] = tex
+	return tex
+
+func reload_surface_type_map() -> void:
+	var set_id := 1
+	var cmd = get_node_or_null("/root/CurrentMapData")
+	if cmd:
+		set_id = int(cmd.level_set)
+	surface_type_map = SetSdfParser.parse_surface_type_map(set_id)
+	if surface_type_map.is_empty():
+		# Leave empty; renderer will default to 0
+		push_warning("Preloads: surface_type_map empty for set %d; edges will use texture 0" % set_id)
+	else:
+		print("[Preloads] surface_type_map loaded for set ", set_id, ", entries=", surface_type_map.size())
+
+func _make_color_tex(color: Color) -> Texture2D:
+	var img := Image.create(8, 8, false, Image.FORMAT_RGBA8)
+	img.fill(color)
+	return ImageTexture.create_from_image(img)
