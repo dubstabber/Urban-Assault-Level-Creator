@@ -19,6 +19,7 @@ export_presets.cfg
 # IDE/settings
 .vscode/
 .idea/
+.augment/
 
 # OS-generated files
 .DS_Store
@@ -29,3 +30,10 @@ Thumbs.db
 *.tmp
 *.temp
 *.bak
+
+.usor/
+PLANNING.md
+TASK.md
+resources/ua/
+scripts/
+tests/
