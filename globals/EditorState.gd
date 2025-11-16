@@ -119,7 +119,7 @@ func reload() -> void:
 	
 	# Process tech upgrades (weapons)
 	for weapon in game_data.techUpgrade:
-		var weapon_id = int(weapon.id)
+		var weapon_id := int(weapon.id)
 		units_db[weapon_id] = weapon.name
 		weapons_db[weapon_id] = weapon.name
 

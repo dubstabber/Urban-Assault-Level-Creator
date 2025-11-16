@@ -46,16 +46,13 @@ func synchronize(modifier, property: String) -> void:
 			match property:
 				'energy':
 					var found_weapon := false
-					for weapon_id in EditorState.weapons_db.values():
+					for weapon_id in EditorState.weapons_db.keys():
 						if weapon_id == modifier.weapon_id:
 							found_weapon = true
 							break
-					if found_weapon:
-						building_id = 61
-						CurrentMapData.typ_map[EditorState.selected_sector_idx] = 113
-					else:
-						building_id = 51
-						CurrentMapData.typ_map[EditorState.selected_sector_idx] = 101
+					
+					building_id = 61 if found_weapon else 51
+					CurrentMapData.typ_map[EditorState.selected_sector_idx] = 113 if found_weapon else 101
 					type = 1
 				'shot_time', 'shot_time_user':
 					building_id = 51
