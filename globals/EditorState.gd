@@ -103,17 +103,8 @@ func reload() -> void:
 	# Process hoststations if they exist
 	if game_data.has("hoststations"):
 		var hoststations = game_data.hoststations
-		var host_station_children = [] if not CurrentMapData.host_stations else CurrentMapData.host_stations.get_children()
-
-		var vehicle_to_hoststation = {}
-		for hss in host_station_children:
-			vehicle_to_hoststation[hss.vehicle] = hss
-
 		for hs in hoststations:
 			var hoststation_data = hoststations[hs]
-			for robo in hoststation_data.robos:
-				if robo.id in vehicle_to_hoststation:
-					vehicle_to_hoststation[robo.id].player_vehicle = robo.get("player_id", -1)
 			for unit in hoststation_data.units:
 				units_db[int(unit.id)] = unit.name
 			for building in hoststation_data.buildings:
