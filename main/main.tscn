@@ -331,6 +331,8 @@ split_offset = 750
 
 [node name="MapContainer" parent="PanelContainer/MarginContainer/VBoxContainer/HSplitContainer" instance=ExtResource("19_hkn6c")]
 layout_mode = 2
+focus_next = NodePath(".")
+focus_previous = NodePath(".")
 
 [node name="PropertiesContainer" parent="PanelContainer/MarginContainer/VBoxContainer/HSplitContainer" instance=ExtResource("20_eh4tf")]
 unique_name_in_owner = true
