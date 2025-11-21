@@ -19,6 +19,8 @@ export_presets.cfg
 # IDE/settings
 .vscode/
 .idea/
+.windsurf/
+.augment/
 
 # OS-generated files
 .DS_Store
@@ -30,9 +32,10 @@ Thumbs.db
 *.temp
 *.bak
 
-.augment
-PLANNING.md
-TASK.md
-.usor/
-scripts/
 tests/
+ua_source_code_prototype/
+scripts/
+resources/ua/
+resources/terrain/
+.usor/
+docs/

@@ -13,6 +13,7 @@ func _compute_tile_scale() -> float:
 
 @onready var _terrain_mesh: MeshInstance3D = $TerrainMesh
 @onready var _edge_mesh: MeshInstance3D = $EdgeMesh if has_node("EdgeMesh") else null
+var _edge_overlay_enabled := false
 
 @onready var _camera: Camera3D = $Camera3D
 
@@ -23,6 +24,7 @@ var _move_speed := 1200.0
 var _sprint_mult := 2.0
 var _look_sens := 0.0025
 var _framed := false
+var _debug_shader_mode: int = 0 # 0=normal, 1=file index colors, 2=variant grayscale
 
 func _ready() -> void:
 	var test_mesh := get_node_or_null("TestMesh")
@@ -49,6 +51,15 @@ func _ready() -> void:
 		if _cmd.horizontal_sectors > 0 and _cmd.vertical_sectors > 0 and not _cmd.hgt_map.is_empty():
 			print("[Map3D] _ready: building from current map")
 			build_from_current_map()
+
+func _apply_debug_mode_to_existing_materials() -> void:
+	if _terrain_mesh == null or _terrain_mesh.mesh == null:
+		return
+	var mesh := _terrain_mesh.mesh
+	for si in mesh.get_surface_count():
+		var mat := mesh.surface_get_material(si)
+		if mat is ShaderMaterial:
+			(mat as ShaderMaterial).set_shader_parameter("debug_mode", _debug_shader_mode)
 			_frame_if_needed()
 
 func _process(_delta: float) -> void:
@@ -92,6 +103,12 @@ func _unhandled_input(event: InputEvent) -> void:
 		_yaw -= mm.relative.x * _look_sens
 		_pitch = clampf(_pitch - mm.relative.y * _look_sens, deg_to_rad(-85.0), deg_to_rad(85.0))
 		_update_camera_rotation()
+	elif event is InputEventKey and event.pressed and not event.echo:
+		var kev := event as InputEventKey
+		if kev.keycode == KEY_F9:
+			_debug_shader_mode = (_debug_shader_mode + 1) % 3
+			print("[Map3D] shader debug_mode=", _debug_shader_mode, " (0=normal,1=file,2=variant)")
+			_apply_debug_mode_to_existing_materials()
 
 func _wheel_step() -> float:
 	var _cmd = get_node_or_null("/root/CurrentMapData")
@@ -181,7 +198,12 @@ func build_from_current_map() -> void:
 
 	var pre = get_node_or_null("/root/Preloads")
 	var mapping: Dictionary = pre.surface_type_map if pre else {}
-	var result := build_mesh_with_textures(hgt, typ, w, h, mapping)
+	var subsector_patterns: Dictionary = pre.subsector_patterns if pre else {}
+	var tile_mapping: Dictionary = pre.tile_mapping if pre else {}
+	var current_set = 1
+	if _cmd:
+		current_set = int(_cmd.level_set)
+	var result := build_mesh_with_textures(hgt, typ, w, h, mapping, subsector_patterns, tile_mapping, pre.tile_remap if pre else {}, current_set)
 	var mesh: ArrayMesh = result["mesh"]
 	var surface_to_surface_type: Dictionary = result["surface_to_surface_type"]
 	var surf_count: int = mesh.get_surface_count()
@@ -190,11 +212,15 @@ func build_from_current_map() -> void:
 		_terrain_mesh.mesh = mesh
 		print("[Map3D] build_from_current_map: mesh assigned to TerrainMesh")
 
-		# Apply sector top textures per surface (using ground_textures based on SurfaceType)
+		# Apply sector top materials per surface (using ground_textures based on SurfaceType)
 		_apply_sector_top_materials(mesh, pre, surface_to_surface_type)
 
-		# Build UA-style edge strips with texture blending
-		_build_edges_from_current_map()
+		# Optionally build overlay edge strips; disabled to avoid z-fighting
+		if _edge_overlay_enabled:
+			_build_edges_from_current_map()
+		else:
+			if _edge_mesh:
+				_edge_mesh.mesh = null
 
 func clear() -> void:
 	if _terrain_mesh:
@@ -288,18 +314,94 @@ static func build_mesh(hgt: PackedByteArray, w: int, h: int) -> ArrayMesh:
 	var mesh2: ArrayMesh = st.commit()
 	return mesh2
 
-# Compute a per-sector atlas variant from a typ_map value.
-# This is a placeholder until we have a UA-faithful typ->variant mapping table.
-static func _variant_from_typ(typ_value: int) -> int:
-	# Simple baseline: use the low two bits of typ_value so 0..3 map
-	# to the four cells of a 2x2 atlas. This ensures that different
-	# typ ids sharing a SurfaceType can still pick different quadrants.
+# Compute a per-sector atlas variant from a typ_map value using subsector patterns.
+# Returns the average/center subsector index from the 3x3 grid for simple cases,
+# or encodes full pattern information for faithful rendering.
+static func _variant_from_typ(typ_value: int, subsector_patterns: Dictionary) -> int:
+	if subsector_patterns.has(typ_value):
+		var pattern = subsector_patterns[typ_value]
+		var subsectors: PackedInt32Array = pattern.get("subsectors", PackedInt32Array())
+		# Use center subsector (index 4 in 3x3 grid) as representative variant
+		# This provides better variety than just typ_value & 3
+		if subsectors.size() >= 5:
+			# Map subsector index to 0-3 range for 2x2 atlas compatibility
+			return subsectors[4] & 3
+	# Fallback to simple variant
 	return typ_value & 3
+# This function maps subsector tile indices to ground texture files using UA's original logic
+static func _decode_raw_to_fcv(raw_val: int, default_file: int) -> Array:
+	var f: int
+	var cells: int
+	var v: int
+	# Map raw tile id by repeating 36-entry buckets. UA encodes files/variants in groups of 36.
+	var n := raw_val % 36
+	if n >= 0 and n < 4:
+		# 0-3: sector surface type, 2x2
+		f = default_file
+		cells = (16 if f == 4 else 4)
+		v = n
+	elif n < 8:
+		# 4-7: file 1, 2x2
+		f = 1
+		cells = 4
+		v = n - 4
+	elif n < 12:
+		# 8-11: file 2, 2x2
+		f = 2
+		cells = 4
+		v = n - 8
+	elif n < 16:
+		# 12-15: file 3, 2x2
+		f = 3
+		cells = 4
+		v = n - 12
+	elif n < 32:
+		# 16-31: file 4, 4x4 (16 variants)
+		f = 4
+		cells = 16
+		v = n - 16
+	else:
+		# 32-35: file 5, 2x2
+		f = 5
+		cells = 4
+		v = n - 32
+	return [f, cells, v]
+
+# Same as above, but first consults an optional per-set remap (raw tile id -> file/variant)
+static func _decode_raw_to_fcv_with_remap(raw_val: int, default_file: int, tile_remap: Dictionary) -> Array:
+	if tile_remap and tile_remap.has(str(raw_val)):
+		var m: Dictionary = tile_remap[str(raw_val)]
+		var file_idx: int = int(m.get("file", default_file))
+		var cells: int = (16 if file_idx == 4 else 4)
+		var variant_idx: int = clampi(int(m.get("variant", 0)), 0, cells - 1)
+		return [file_idx, cells, variant_idx]
+	return _decode_raw_to_fcv(raw_val, default_file)
+
+# Debug helper to understand subsector-to-texture mapping
+static func debug_subsector_mapping(typ_value: int, subsector_patterns: Dictionary, tile_mapping: Dictionary) -> void:
+	if not subsector_patterns.has(typ_value):
+		print("DEBUG: typ %d has no subsector pattern" % typ_value)
+		return
+	
+	var pattern = subsector_patterns[typ_value]
+	var subsectors: PackedInt32Array = pattern.get("subsectors", PackedInt32Array())
+	var surface_type: int = int(pattern.get("surface_type", 0))
+	
+	print("DEBUG: typ %d -> surface_type %d, subsectors: %s" % [typ_value, surface_type, subsectors])
+	
+	for i in range(min(subsectors.size(), 9)):
+		var sub_idx = subsectors[i]
+		if tile_mapping.has(sub_idx):
+			var tile_data = tile_mapping[sub_idx]
+			var raw_vals = [tile_data.get("val0", 0), tile_data.get("val1", 0), tile_data.get("val2", 0), tile_data.get("val3", 0)]
+			print("  subsector[%d] = %d -> tile_mapping vals: %s" % [i, sub_idx, raw_vals])
+		else:
+			print("  subsector[%d] = %d -> NO TILE MAPPING!" % [i, sub_idx])
 
 # Build mesh with per-sector texturing support
 # Creates separate surfaces for each SurfaceType (0-5) to enable different ground textures
 # Returns: Dictionary with keys "mesh" (ArrayMesh) and "surface_to_surface_type" (Dictionary mapping surface_index -> SurfaceType)
-static func build_mesh_with_textures(hgt: PackedByteArray, typ: PackedByteArray, w: int, h: int, mapping: Dictionary) -> Dictionary:
+static func build_mesh_with_textures(hgt: PackedByteArray, typ: PackedByteArray, w: int, h: int, mapping: Dictionary, subsector_patterns: Dictionary = {}, tile_mapping: Dictionary = {}, tile_remap: Dictionary = {}, set_id: int = 1) -> Dictionary:
 	var bw := w + 2
 	var bh := h + 2
 	if hgt.size() != bw * bh or typ.size() != w * h or w <= 0 or h <= 0:
@@ -307,8 +409,8 @@ static func build_mesh_with_textures(hgt: PackedByteArray, typ: PackedByteArray,
 
 	# Group sectors by SurfaceType (0-5) to create separate surfaces
 	# This allows each SurfaceType to have its own ground texture
-	var surface_tools := {}  # SurfaceType -> SurfaceTool
-	var surface_type_order: Array[int] = []  # Track order of SurfaceTypes for surface index mapping
+	var surface_tools := {} # SurfaceType -> SurfaceTool
+	var surface_type_order: Array[int] = [] # Track order of SurfaceTypes for surface index mapping
 
 	# Pre-create SurfaceTools for all 6 SurfaceTypes
 	for i in 6:
@@ -341,7 +443,7 @@ static func build_mesh_with_textures(hgt: PackedByteArray, typ: PackedByteArray,
 			var typ_value := 0
 			if not is_border:
 				# Get typ_map value for this sector and map to SurfaceType
-				var sector_x := bx - 1  # Convert from bordered coords to typ_map coords
+				var sector_x := bx - 1 # Convert from bordered coords to typ_map coords
 				var sector_y := by - 1
 				var typ_idx := sector_y * w + sector_x
 				typ_value = int(typ[typ_idx])
@@ -357,12 +459,22 @@ static func build_mesh_with_textures(hgt: PackedByteArray, typ: PackedByteArray,
 			# Encode a per-sector atlas variant into the vertex color so the shader
 			# can pick different 2x2 atlas quadrants for different typ ids sharing
 			# the same SurfaceType. Border sectors keep the default variant 0.
+			var total_cells := 4
 			var variant_index := 0
 			if not is_border:
-				variant_index = _variant_from_typ(typ_value)
+				total_cells = (16 if surface_type == 4 else 4)
+				if subsector_patterns.has(typ_value):
+					var pattern2 = subsector_patterns[typ_value]
+					var subs2: PackedInt32Array = pattern2.get("subsectors", PackedInt32Array())
+					if subs2.size() >= 5:
+						variant_index = subs2[4] & (total_cells - 1)
+					else:
+						variant_index = typ_value & (total_cells - 1)
+				else:
+					variant_index = typ_value & (total_cells - 1)
 			# Pack variant (0..3) into COLOR.r in the 0..1 range as (cell+0.5)/4.
-			var packed_variant := clampi(variant_index, 0, 3)
-			st.set_color(Color((float(packed_variant) + 0.5) / 4.0, 0.0, 0.0))
+			var packed_variant := clampi(variant_index, 0, total_cells - 1)
+			st.set_color(Color((float(packed_variant) + 0.5) / float(total_cells), 0.0, 0.0))
 
 			# Heights: hgt values are sector centers; scale to world Y
 			var y_c := float(hgt[by * bw + bx]) * HEIGHT_SCALE
@@ -397,33 +509,304 @@ static func build_mesh_with_textures(hgt: PackedByteArray, typ: PackedByteArray,
 			var y_w_edge := (y_c + y_w) * 0.5
 			var y_e_edge := (y_c + y_e) * 0.5
 
-			# 1) Center plateau (flat at sector height) - this is what gets textured
-			var p_nw := Vector3(ix0, y_c, iz0)
-			var p_ne := Vector3(ix1, y_c, iz0)
-			var p_se := Vector3(ix1, y_c, iz1)
-			var p_sw := Vector3(ix0, y_c, iz1)
-			st.add_vertex(p_nw); st.add_vertex(p_ne); st.add_vertex(p_se)
-			st.add_vertex(p_nw); st.add_vertex(p_se); st.add_vertex(p_sw)
+			# 1) Center plateau (flat at sector height)
+			# 3x3 mosaic from subsector patterns when sector type is SECTYPE_3X3 (0)
+			var composed := false
+			# Special-case: set 1 typ 0 is 3x3 of ground_2 top-left (2x2 atlas, cell 0)
+			var override_typ0 := (set_id == 1 and not is_border and typ_value == 0)
+			if override_typ0:
+				var step_x_o: float = (ix1 - ix0) / 3.0
+				var step_z_o: float = (iz1 - iz0) / 3.0
+				for cy_o in 3:
+					for cx_o in 3:
+						var xl_o: float = ix0 + float(cx_o) * step_x_o
+						var xr_o: float = xl_o + step_x_o
+						var zt_o: float = iz0 + float(cy_o) * step_z_o
+						var zb_o: float = zt_o + step_z_o
+						var f_override := 2
+						var cells_override := 4
+						var v_override := 0
+						st.set_color(Color((float(v_override) + 0.5) / float(cells_override), (float(f_override) + 0.5) / 6.0, 0.0))
+						# Single quad filling the subcell with atlas cell 0 of ground_2
+						st.set_uv(Vector2(0.0, 0.0)); st.add_vertex(Vector3(xl_o, y_c, zt_o))
+						st.set_uv(Vector2(1.0, 0.0)); st.add_vertex(Vector3(xr_o, y_c, zt_o))
+						st.set_uv(Vector2(1.0, 1.0)); st.add_vertex(Vector3(xr_o, y_c, zb_o))
+						st.set_uv(Vector2(0.0, 0.0)); st.add_vertex(Vector3(xl_o, y_c, zt_o))
+						st.set_uv(Vector2(1.0, 1.0)); st.add_vertex(Vector3(xr_o, y_c, zb_o))
+						st.set_uv(Vector2(0.0, 1.0)); st.add_vertex(Vector3(xl_o, y_c, zb_o))
+				composed = true
+			if not composed and not is_border and subsector_patterns.has(typ_value):
+				var pat = subsector_patterns[typ_value]
+				var sector_t: int = int(pat.get("sector_type", -1))
+				var subs: PackedInt32Array = pat.get("subsectors", PackedInt32Array())
+				if sector_t == 0 and subs.size() >= 9:
+					var step_x: float = (ix1 - ix0) / 3.0
+					var step_z: float = (iz1 - iz0) / 3.0
+					for cy in 3:
+						for cx in 3:
+							# Sector coords in typ space for world-subcell addressing
+							var _sx := bx - 1
+							var _sy := by - 1
+							var si: int = subs[cy * 3 + cx]
+							var td: Dictionary = tile_mapping.get(si, {"val0": 0, "val1": 0, "val2": 0, "val3": 0, "flag": 0})
+							var vals := [int(td.get("val0", 0)), int(td.get("val1", 0)), int(td.get("val2", 0)), int(td.get("val3", 0))]
+							var flg: int = int(td.get("flag", 0))
+							# Selection rule inferred from UA:
+							# - If flag != 0: pick one of the four values pseudo-randomly but deterministically by world subcell
+							# - Else: use a 2x2 tiling pattern across the world: NW,NE,SW,SE
+							var world_cx := (_sx * 3) + cx
+							var world_cy := (_sy * 3) + cy
+							var sel_idx: int
+							if flg != 0:
+								var sel_seed := (world_cx * 73856093) ^ (world_cy * 19349663) ^ (typ_value * 83492791)
+								sel_idx = sel_seed & 3
+							else:
+								sel_idx = ((world_cy & 1) << 1) | (world_cx & 1)
+							var raw: int = int(vals[sel_idx])
+							if raw == 0:
+								# Fallback: first non-zero among the group
+								for vtry in vals:
+									if int(vtry) != 0:
+										raw = int(vtry)
+										break
+							var dec := _decode_raw_to_fcv_with_remap(raw, surface_type, tile_remap)
+							var f: int = dec[0]
+							var cells: int = dec[1]
+							var v: int = dec[2]
+							var xl: float = ix0 + float(cx) * step_x
+							var xr: float = xl + step_x
+							var zt: float = iz0 + float(cy) * step_z
+							var zb: float = zt + step_z
+							st.set_color(Color((float(v) + 0.5) / float(cells), (float(f) + 0.5) / 6.0, 0.0))
+							st.set_uv(Vector2(0.0, 0.0)); st.add_vertex(Vector3(xl, y_c, zt))
+							st.set_uv(Vector2(1.0, 0.0)); st.add_vertex(Vector3(xr, y_c, zt))
+							st.set_uv(Vector2(1.0, 1.0)); st.add_vertex(Vector3(xr, y_c, zb))
+							st.set_uv(Vector2(0.0, 0.0)); st.add_vertex(Vector3(xl, y_c, zt))
+							st.set_uv(Vector2(1.0, 1.0)); st.add_vertex(Vector3(xr, y_c, zb))
+							st.set_uv(Vector2(0.0, 1.0)); st.add_vertex(Vector3(xl, y_c, zb))
+						# end mosaic cell
+						composed = true
+				elif subs.size() == 1:
+					# Uniform sector: replicate a single subsector across a 3x3 grid
+					var step_x1: float = (ix1 - ix0) / 3.0
+					var step_z1: float = (iz1 - iz0) / 3.0
+					var _sx1 := bx - 1
+					var _sy1 := by - 1
+					for cy1 in 3:
+						for cx1 in 3:
+							var si1: int = subs[0]
+							var td1: Dictionary = tile_mapping.get(si1, {"val0": 0, "val1": 0, "val2": 0, "val3": 0, "flag": 0})
+							var vals1 := [int(td1.get("val0", 0)), int(td1.get("val1", 0)), int(td1.get("val2", 0)), int(td1.get("val3", 0))]
+							var flg1: int = int(td1.get("flag", 0))
+							var wcx1 := (_sx1 * 3) + cx1
+							var wcy1 := (_sy1 * 3) + cy1
+							var sel1: int
+							if flg1 != 0:
+								var sel_seed1 := (wcx1 * 73856093) ^ (wcy1 * 19349663) ^ (typ_value * 83492791)
+								sel1 = sel_seed1 & 3
+							else:
+								sel1 = ((wcy1 & 1) << 1) | (wcx1 & 1)
+							var raw1: int = int(vals1[sel1])
+							if raw1 == 0:
+								for vtry1 in vals1:
+									if int(vtry1) != 0:
+										raw1 = int(vtry1)
+										break
+							var dec1 := _decode_raw_to_fcv_with_remap(raw1, surface_type, tile_remap)
+							var f1: int = dec1[0]
+							var cells1: int = dec1[1]
+							var v1: int = dec1[2]
+							var xl1: float = ix0 + float(cx1) * step_x1
+							var xr1: float = xl1 + step_x1
+							var zt1: float = iz0 + float(cy1) * step_z1
+							var zb1: float = zt1 + step_z1
+							st.set_color(Color((float(v1) + 0.5) / float(cells1), (float(f1) + 0.5) / 6.0, 0.0))
+							st.set_uv(Vector2(0.0, 0.0)); st.add_vertex(Vector3(xl1, y_c, zt1))
+							st.set_uv(Vector2(1.0, 0.0)); st.add_vertex(Vector3(xr1, y_c, zt1))
+							st.set_uv(Vector2(1.0, 1.0)); st.add_vertex(Vector3(xr1, y_c, zb1))
+							st.set_uv(Vector2(0.0, 0.0)); st.add_vertex(Vector3(xl1, y_c, zt1))
+							st.set_uv(Vector2(1.0, 1.0)); st.add_vertex(Vector3(xr1, y_c, zb1))
+							st.set_uv(Vector2(0.0, 1.0)); st.add_vertex(Vector3(xl1, y_c, zb1))
+					composed = true
+				elif subs.size() == 4:
+					# 2x2 pattern
+					var step_x2: float = (ix1 - ix0) / 2.0
+					var step_z2: float = (iz1 - iz0) / 2.0
+					var _sx3 := bx - 1
+					var _sy3 := by - 1
+					for cy2 in 2:
+						for cx2 in 2:
+							var si2: int = subs[cy2 * 2 + cx2]
+							var td2: Dictionary = tile_mapping.get(si2, {"val0": 0, "val1": 0, "val2": 0, "val3": 0, "flag": 0})
+							var vals2 := [int(td2.get("val0", 0)), int(td2.get("val1", 0)), int(td2.get("val2", 0)), int(td2.get("val3", 0))]
+							var flg2: int = int(td2.get("flag", 0))
+							var wcx2 := (_sx3 * 2) + cx2
+							var wcy2 := (_sy3 * 2) + cy2
+							var sel2: int
+							if flg2 != 0:
+								var sel_seed2 := (wcx2 * 73856093) ^ (wcy2 * 19349663) ^ (typ_value * 83492791)
+								sel2 = sel_seed2 & 3
+							else:
+								sel2 = ((wcy2 & 1) << 1) | (wcx2 & 1)
+							var raw2: int = int(vals2[sel2])
+							if raw2 == 0:
+								for vtry2 in vals2:
+									if int(vtry2) != 0:
+										raw2 = int(vtry2)
+										break
+							var dec2 := _decode_raw_to_fcv_with_remap(raw2, surface_type, tile_remap)
+							var f2: int = dec2[0]
+							var cells2: int = dec2[1]
+							var v2: int = dec2[2]
+							var xl2: float = ix0 + float(cx2) * step_x2
+							var xr2: float = xl2 + step_x2
+							var zt2: float = iz0 + float(cy2) * step_z2
+							var zb2: float = zt2 + step_z2
+							st.set_color(Color((float(v2) + 0.5) / float(cells2), (float(f2) + 0.5) / 6.0, 0.0))
+							st.set_uv(Vector2(0.0, 0.0)); st.add_vertex(Vector3(xl2, y_c, zt2))
+							st.set_uv(Vector2(1.0, 0.0)); st.add_vertex(Vector3(xr2, y_c, zt2))
+							st.set_uv(Vector2(1.0, 1.0)); st.add_vertex(Vector3(xr2, y_c, zb2))
+							st.set_uv(Vector2(0.0, 0.0)); st.add_vertex(Vector3(xl2, y_c, zt2))
+							st.set_uv(Vector2(1.0, 1.0)); st.add_vertex(Vector3(xr2, y_c, zb2))
+							st.set_uv(Vector2(0.0, 1.0)); st.add_vertex(Vector3(xl2, y_c, zb2))
+					composed = true
+			if not composed:
+				var p_nw := Vector3(ix0, y_c, iz0)
+				var p_ne := Vector3(ix1, y_c, iz0)
+				var p_se := Vector3(ix1, y_c, iz1)
+				var p_sw := Vector3(ix0, y_c, iz1)
+				# Temporary: choose atlas cell from a hash of typ and sector coords to reduce tiling
+				var cells_fallback: int = (16 if surface_type == 4 else 4)
+				var seed_f: int = (typ_value ^ (bx * 73856093) ^ (by * 19349663))
+				var vcell: int = (seed_f & 0x7fffffff) % cells_fallback
+				st.set_color(Color((float(vcell) + 0.5) / float(cells_fallback), (float(surface_type) + 0.5) / 6.0, 0.0))
+				st.set_uv(Vector2(0.0, 0.0)); st.add_vertex(p_nw)
+				st.set_uv(Vector2(1.0, 0.0)); st.add_vertex(p_ne)
+				st.set_uv(Vector2(1.0, 1.0)); st.add_vertex(p_se)
+				st.set_uv(Vector2(0.0, 0.0)); st.add_vertex(p_nw)
+				st.set_uv(Vector2(1.0, 1.0)); st.add_vertex(p_se)
+				st.set_uv(Vector2(0.0, 1.0)); st.add_vertex(p_sw)
 
-			# 2) Edge strips: north, south, west, east
-			st.add_vertex(Vector3(ix0, y_n_edge, z0)); st.add_vertex(Vector3(ix1, y_n_edge, z0)); st.add_vertex(Vector3(ix1, y_c, iz0))
-			st.add_vertex(Vector3(ix0, y_n_edge, z0)); st.add_vertex(Vector3(ix1, y_c, iz0)); st.add_vertex(Vector3(ix0, y_c, iz0))
-			st.add_vertex(Vector3(ix0, y_c, iz1)); st.add_vertex(Vector3(ix1, y_c, iz1)); st.add_vertex(Vector3(ix1, y_s_edge, z1))
-			st.add_vertex(Vector3(ix0, y_c, iz1)); st.add_vertex(Vector3(ix1, y_s_edge, z1)); st.add_vertex(Vector3(ix0, y_s_edge, z1))
-			st.add_vertex(Vector3(x0, y_w_edge, iz0)); st.add_vertex(Vector3(ix0, y_c, iz0)); st.add_vertex(Vector3(ix0, y_c, iz1))
-			st.add_vertex(Vector3(x0, y_w_edge, iz0)); st.add_vertex(Vector3(ix0, y_c, iz1)); st.add_vertex(Vector3(x0, y_w_edge, iz1))
-			st.add_vertex(Vector3(ix1, y_c, iz0)); st.add_vertex(Vector3(x1, y_e_edge, iz0)); st.add_vertex(Vector3(x1, y_e_edge, iz1))
-			st.add_vertex(Vector3(ix1, y_c, iz0)); st.add_vertex(Vector3(x1, y_e_edge, iz1)); st.add_vertex(Vector3(ix1, y_c, iz1))
+			# 2) Edge strips: pick file/variant from side mosaic cells when available
+			var north_f := surface_type; var north_cells := (16 if north_f == 4 else 4); var north_v := packed_variant
+			var south_f := north_f; var south_cells := north_cells; var south_v := packed_variant
+			var west_f := north_f; var west_cells := north_cells; var west_v := packed_variant
+			var east_f := north_f; var east_cells := north_cells; var east_v := packed_variant
+			if override_typ0:
+				north_f = 2; south_f = 2; west_f = 2; east_f = 2
+				north_cells = 4; south_cells = 4; west_cells = 4; east_cells = 4
+				north_v = 0; south_v = 0; west_v = 0; east_v = 0
+			elif subsector_patterns.has(typ_value):
+				var patE = subsector_patterns[typ_value]
+				if int(patE.get("sector_type", -1)) == 0:
+					var subsE: PackedInt32Array = patE.get("subsectors", PackedInt32Array())
+					if subsE.size() >= 9:
+						# Select raw from N, S, W, E mid cells; prefer first non-zero
+						var _sx2 := bx - 1
+						var _sy2 := by - 1
+						var idxN := subsE[0 * 3 + 1]
+						var tN: Dictionary = tile_mapping.get(idxN, {"val0": 0, "val1": 0, "val2": 0, "val3": 0, "flag": 0})
+						var valsN := [int(tN.get("val0", 0)), int(tN.get("val1", 0)), int(tN.get("val2", 0)), int(tN.get("val3", 0))]
+						var flgN: int = int(tN.get("flag", 0))
+						var selN: int = ((((_sy2 * 3 + 0) & 1) << 1) | (((_sx2 * 3 + 1) & 1)))
+						if flgN != 0:
+							var sel_seedN := (((_sx2 * 3 + 1) * 73856093) ^ ((_sy2 * 3 + 0) * 19349663) ^ (typ_value * 83492791))
+							selN = sel_seedN & 3
+						var rawN: int = int(valsN[selN]); if rawN == 0: for vtry in valsN: if int(vtry) != 0: rawN = int(vtry); break
+						var dN := _decode_raw_to_fcv_with_remap(rawN, surface_type, tile_remap); north_f = dN[0]; north_cells = dN[1]; north_v = dN[2]
+						var idxS := subsE[2 * 3 + 1]
+						var tS: Dictionary = tile_mapping.get(idxS, {"val0": 0, "val1": 0, "val2": 0, "val3": 0, "flag": 0})
+						var valsS := [int(tS.get("val0", 0)), int(tS.get("val1", 0)), int(tS.get("val2", 0)), int(tS.get("val3", 0))]
+						var flgS: int = int(tS.get("flag", 0))
+						var selS: int = ((((_sy2 * 3 + 2) & 1) << 1) | (((_sx2 * 3 + 1) & 1)))
+						if flgS != 0:
+							var sel_seedS := (((_sx2 * 3 + 1) * 73856093) ^ ((_sy2 * 3 + 2) * 19349663) ^ (typ_value * 83492791))
+							selS = sel_seedS & 3
+						var rawS: int = int(valsS[selS]); if rawS == 0: for vtry in valsS: if int(vtry) != 0: rawS = int(vtry); break
+						var dS := _decode_raw_to_fcv_with_remap(rawS, surface_type, tile_remap); south_f = dS[0]; south_cells = dS[1]; south_v = dS[2]
+						var idxW := subsE[1 * 3 + 0]
+						var tW: Dictionary = tile_mapping.get(idxW, {"val0": 0, "val1": 0, "val2": 0, "val3": 0, "flag": 0})
+						var valsW := [int(tW.get("val0", 0)), int(tW.get("val1", 0)), int(tW.get("val2", 0)), int(tW.get("val3", 0))]
+						var flgW: int = int(tW.get("flag", 0))
+						var selW: int = ((((_sy2 * 3 + 1) & 1) << 1) | (((_sx2 * 3 + 0) & 1)))
+						if flgW != 0:
+							var sel_seedW := (((_sx2 * 3 + 0) * 73856093) ^ ((_sy2 * 3 + 1) * 19349663) ^ (typ_value * 83492791))
+							selW = sel_seedW & 3
+						var rawW: int = int(valsW[selW]); if rawW == 0: for vtry in valsW: if int(vtry) != 0: rawW = int(vtry); break
+						var dW := _decode_raw_to_fcv_with_remap(rawW, surface_type, tile_remap); west_f = dW[0]; west_cells = dW[1]; west_v = dW[2]
+						var idxE := subsE[1 * 3 + 2]
+						var tE: Dictionary = tile_mapping.get(idxE, {"val0": 0, "val1": 0, "val2": 0, "val3": 0, "flag": 0})
+						var valsE := [int(tE.get("val0", 0)), int(tE.get("val1", 0)), int(tE.get("val2", 0)), int(tE.get("val3", 0))]
+						var flgE: int = int(tE.get("flag", 0))
+						var selE: int = ((((_sy2 * 3 + 1) & 1) << 1) | (((_sx2 * 3 + 2) & 1)))
+						if flgE != 0:
+							var sel_seedE := (((_sx2 * 3 + 2) * 73856093) ^ ((_sy2 * 3 + 1) * 19349663) ^ (typ_value * 83492791))
+							selE = sel_seedE & 3
+						var rawE: int = int(valsE[selE]); if rawE == 0: for vtry in valsE: if int(vtry) != 0: rawE = int(vtry); break
+						var dE := _decode_raw_to_fcv_with_remap(rawE, surface_type, tile_remap); east_f = dE[0]; east_cells = dE[1]; east_v = dE[2]
 
-			# 3) Corner patches
-			st.add_vertex(Vector3(x0, y_nw, z0)); st.add_vertex(Vector3(ix0, y_n_edge, z0)); st.add_vertex(Vector3(ix0, y_c, iz0))
-			st.add_vertex(Vector3(x0, y_nw, z0)); st.add_vertex(Vector3(ix0, y_c, iz0)); st.add_vertex(Vector3(x0, y_w_edge, iz0))
-			st.add_vertex(Vector3(ix1, y_n_edge, z0)); st.add_vertex(Vector3(x1, y_ne, z0)); st.add_vertex(Vector3(x1, y_e_edge, iz0))
-			st.add_vertex(Vector3(ix1, y_n_edge, z0)); st.add_vertex(Vector3(x1, y_e_edge, iz0)); st.add_vertex(Vector3(ix1, y_c, iz0))
-			st.add_vertex(Vector3(ix1, y_c, iz1)); st.add_vertex(Vector3(x1, y_e_edge, iz1)); st.add_vertex(Vector3(x1, y_se, z1))
-			st.add_vertex(Vector3(ix1, y_c, iz1)); st.add_vertex(Vector3(x1, y_se, z1)); st.add_vertex(Vector3(ix1, y_s_edge, z1))
-			st.add_vertex(Vector3(ix0, y_c, iz1)); st.add_vertex(Vector3(ix0, y_s_edge, z1)); st.add_vertex(Vector3(x0, y_sw, z1))
-			st.add_vertex(Vector3(x0, y_w_edge, iz1)); st.add_vertex(Vector3(ix0, y_c, iz1)); st.add_vertex(Vector3(x0, y_sw, z1))
+			# North strip
+			st.set_color(Color((float(north_v) + 0.5) / float(north_cells), (float(north_f) + 0.5) / 6.0, 0.0))
+			st.set_uv(Vector2(0.0, 0.0)); st.add_vertex(Vector3(ix0, y_n_edge, z0))
+			st.set_uv(Vector2(1.0, 0.0)); st.add_vertex(Vector3(ix1, y_n_edge, z0))
+			st.set_uv(Vector2(1.0, 1.0)); st.add_vertex(Vector3(ix1, y_c, iz0))
+			st.set_uv(Vector2(0.0, 0.0)); st.add_vertex(Vector3(ix0, y_n_edge, z0))
+			st.set_uv(Vector2(1.0, 1.0)); st.add_vertex(Vector3(ix1, y_c, iz0))
+			st.set_uv(Vector2(0.0, 1.0)); st.add_vertex(Vector3(ix0, y_c, iz0))
+			# South strip
+			st.set_color(Color((float(south_v) + 0.5) / float(south_cells), (float(south_f) + 0.5) / 6.0, 0.0))
+			st.set_uv(Vector2(0.0, 0.0)); st.add_vertex(Vector3(ix0, y_c, iz1))
+			st.set_uv(Vector2(1.0, 0.0)); st.add_vertex(Vector3(ix1, y_c, iz1))
+			st.set_uv(Vector2(1.0, 1.0)); st.add_vertex(Vector3(ix1, y_s_edge, z1))
+			st.set_uv(Vector2(0.0, 0.0)); st.add_vertex(Vector3(ix0, y_c, iz1))
+			st.set_uv(Vector2(1.0, 1.0)); st.add_vertex(Vector3(ix1, y_s_edge, z1))
+			st.set_uv(Vector2(0.0, 1.0)); st.add_vertex(Vector3(ix0, y_s_edge, z1))
+			# West strip
+			st.set_color(Color((float(west_v) + 0.5) / float(west_cells), (float(west_f) + 0.5) / 6.0, 0.0))
+			st.set_uv(Vector2(0.0, 0.0)); st.add_vertex(Vector3(x0, y_w_edge, iz0))
+			st.set_uv(Vector2(1.0, 0.0)); st.add_vertex(Vector3(ix0, y_c, iz0))
+			st.set_uv(Vector2(1.0, 1.0)); st.add_vertex(Vector3(ix0, y_c, iz1))
+			st.set_uv(Vector2(0.0, 0.0)); st.add_vertex(Vector3(x0, y_w_edge, iz0))
+			st.set_uv(Vector2(1.0, 1.0)); st.add_vertex(Vector3(ix0, y_c, iz1))
+			st.set_uv(Vector2(0.0, 1.0)); st.add_vertex(Vector3(x0, y_w_edge, iz1))
+			# East strip
+			st.set_color(Color((float(east_v) + 0.5) / float(east_cells), (float(east_f) + 0.5) / 6.0, 0.0))
+			st.set_uv(Vector2(0.0, 0.0)); st.add_vertex(Vector3(ix1, y_c, iz0))
+			st.set_uv(Vector2(1.0, 0.0)); st.add_vertex(Vector3(x1, y_e_edge, iz0))
+			st.set_uv(Vector2(1.0, 1.0)); st.add_vertex(Vector3(x1, y_e_edge, iz1))
+			st.set_uv(Vector2(0.0, 0.0)); st.add_vertex(Vector3(ix1, y_c, iz0))
+			st.set_uv(Vector2(1.0, 1.0)); st.add_vertex(Vector3(x1, y_e_edge, iz1))
+			st.set_uv(Vector2(0.0, 1.0)); st.add_vertex(Vector3(ix1, y_c, iz1))
+
+			# 3) Corner patches (mesh-local UVs)
+			# NW corner
+			st.set_uv(Vector2(0.0, 0.0)); st.add_vertex(Vector3(x0, y_nw, z0))
+			st.set_uv(Vector2(1.0, 0.0)); st.add_vertex(Vector3(ix0, y_n_edge, z0))
+			st.set_uv(Vector2(1.0, 1.0)); st.add_vertex(Vector3(ix0, y_c, iz0))
+			st.set_uv(Vector2(0.0, 0.0)); st.add_vertex(Vector3(x0, y_nw, z0))
+			st.set_uv(Vector2(1.0, 1.0)); st.add_vertex(Vector3(ix0, y_c, iz0))
+			st.set_uv(Vector2(0.0, 1.0)); st.add_vertex(Vector3(x0, y_w_edge, iz0))
+			# NE corner
+			st.set_uv(Vector2(0.0, 0.0)); st.add_vertex(Vector3(ix1, y_n_edge, z0))
+			st.set_uv(Vector2(1.0, 0.0)); st.add_vertex(Vector3(x1, y_ne, z0))
+			st.set_uv(Vector2(1.0, 1.0)); st.add_vertex(Vector3(x1, y_e_edge, iz0))
+			st.set_uv(Vector2(0.0, 0.0)); st.add_vertex(Vector3(ix1, y_n_edge, z0))
+			st.set_uv(Vector2(1.0, 1.0)); st.add_vertex(Vector3(x1, y_e_edge, iz0))
+			st.set_uv(Vector2(0.0, 1.0)); st.add_vertex(Vector3(ix1, y_c, iz0))
+			# SE corner
+			st.set_uv(Vector2(0.0, 0.0)); st.add_vertex(Vector3(ix1, y_c, iz1))
+			st.set_uv(Vector2(1.0, 0.0)); st.add_vertex(Vector3(x1, y_e_edge, iz1))
+			st.set_uv(Vector2(1.0, 1.0)); st.add_vertex(Vector3(x1, y_se, z1))
+			st.set_uv(Vector2(0.0, 0.0)); st.add_vertex(Vector3(ix1, y_c, iz1))
+			st.set_uv(Vector2(1.0, 1.0)); st.add_vertex(Vector3(x1, y_se, z1))
+			st.set_uv(Vector2(0.0, 1.0)); st.add_vertex(Vector3(ix1, y_s_edge, z1))
+			# SW corner
+			st.set_uv(Vector2(0.0, 0.0)); st.add_vertex(Vector3(ix0, y_c, iz1))
+			st.set_uv(Vector2(1.0, 0.0)); st.add_vertex(Vector3(ix0, y_s_edge, z1))
+			st.set_uv(Vector2(1.0, 1.0)); st.add_vertex(Vector3(x0, y_sw, z1))
+			st.set_uv(Vector2(0.0, 0.0)); st.add_vertex(Vector3(x0, y_w_edge, iz1))
+			st.set_uv(Vector2(1.0, 1.0)); st.add_vertex(Vector3(ix0, y_c, iz1))
+			st.set_uv(Vector2(0.0, 1.0)); st.add_vertex(Vector3(x0, y_sw, z1))
 
 	# Commit all non-empty surfaces to mesh and record actual indices
 	var mesh := ArrayMesh.new()
@@ -470,11 +853,18 @@ func _apply_sector_top_materials(mesh: ArrayMesh, preloads, surface_to_surface_t
 			border_mat.shader = shader
 			if preloads:
 				border_mat.set_shader_parameter("ground_texture", preloads.get_ground_texture(0))
+				# bind multi-textures for selection via COLOR.g
+				for i in 6:
+					border_mat.set_shader_parameter("ground%d" % i, preloads.get_ground_texture(i))
 				border_mat.set_shader_parameter("tile_scale", _compute_tile_scale())
-				# Use the 2x2 atlas layout but keep a neutral, fixed quadrant for borders.
+				# Use mesh UVs for center composition and allow per-vertex selection
+				border_mat.set_shader_parameter("use_mesh_uv", true)
+				border_mat.set_shader_parameter("use_multi_textures", true)
+				# Borders: fixed atlas layout 2x2
 				border_mat.set_shader_parameter("atlas_grid", Vector2(2.0, 2.0))
-				border_mat.set_shader_parameter("use_vertex_variant", false)
+				border_mat.set_shader_parameter("use_vertex_variant", true)
 				border_mat.set_shader_parameter("variant", 0)
+				border_mat.set_shader_parameter("debug_mode", _debug_shader_mode)
 			mesh.surface_set_material(surface_idx, border_mat)
 			continue
 		var mat := ShaderMaterial.new()
@@ -483,11 +873,17 @@ func _apply_sector_top_materials(mesh: ArrayMesh, preloads, surface_to_surface_t
 		var texture: Texture2D = preloads.get_ground_texture(surface_type)
 		if texture:
 			mat.set_shader_parameter("ground_texture", texture)
+			# bind all ground textures for per-vertex file selection
+			for i in 6:
+				mat.set_shader_parameter("ground%d" % i, preloads.get_ground_texture(i))
 			mat.set_shader_parameter("tile_scale", _compute_tile_scale())
-			# UA ground textures are 2x2 atlases; pick the quadrant per typ_map via vertex COLOR.
+			mat.set_shader_parameter("use_mesh_uv", true)
+			mat.set_shader_parameter("use_multi_textures", true)
+			# UA: 4x4 for file 4 handled in shader; default atlas grid here is a fallback only
 			mat.set_shader_parameter("atlas_grid", Vector2(2.0, 2.0))
 			mat.set_shader_parameter("use_vertex_variant", true)
 			mat.set_shader_parameter("variant", 0)
+			mat.set_shader_parameter("debug_mode", _debug_shader_mode)
 			mesh.surface_set_material(surface_idx, mat)
 
 # ---- UA edge-based strip rendering ----
@@ -546,11 +942,11 @@ func _build_edges_mesh(hgt: PackedByteArray, w: int, h: int, typ: PackedByteArra
 				st.begin(Mesh.PRIMITIVE_TRIANGLES)
 				horiz[key] = st
 			# geometry - offset by SECTOR_SIZE to account for border
-			var seam_x := float(x + 1 + 1) * SECTOR_SIZE  # +1 for seam, +1 for border offset
+			var seam_x := float(x + 1 + 1) * SECTOR_SIZE # +1 for seam, +1 for border offset
 			var x0 := seam_x - EDGE_SLOPE
 			var x1 := seam_x + EDGE_SLOPE
-			var z0 := float(y + 1) * SECTOR_SIZE  # +1 for border offset
-			var z1 := float(y + 1 + 1) * SECTOR_SIZE  # +1 for next sector, +1 for border offset
+			var z0 := float(y + 1) * SECTOR_SIZE # +1 for border offset
+			var z1 := float(y + 1 + 1) * SECTOR_SIZE # +1 for next sector, +1 for border offset
 			var yL := _center_h(hgt, w, h, x, y)
 			var yR := _center_h(hgt, w, h, x + 1, y)
 			var yN_L := _center_h(hgt, w, h, x, y - 1)
@@ -586,11 +982,11 @@ func _build_edges_mesh(hgt: PackedByteArray, w: int, h: int, typ: PackedByteArra
 				st2.begin(Mesh.PRIMITIVE_TRIANGLES)
 				vert[key2] = st2
 			# geometry - offset by SECTOR_SIZE to account for border
-			var seam_z := float(y + 1 + 1) * SECTOR_SIZE  # +1 for seam, +1 for border offset
+			var seam_z := float(y + 1 + 1) * SECTOR_SIZE # +1 for seam, +1 for border offset
 			var z0v := seam_z - EDGE_SLOPE
 			var z1v := seam_z + EDGE_SLOPE
-			var x0v := float(x + 1) * SECTOR_SIZE  # +1 for border offset
-			var x1v := float(x + 1 + 1) * SECTOR_SIZE  # +1 for next sector, +1 for border offset
+			var x0v := float(x + 1) * SECTOR_SIZE # +1 for border offset
+			var x1v := float(x + 1 + 1) * SECTOR_SIZE # +1 for next sector, +1 for border offset
 			var yT := _center_h(hgt, w, h, x, y)
 			var yB := _center_h(hgt, w, h, x, y + 1)
 			var yW_T := _center_h(hgt, w, h, x - 1, y)

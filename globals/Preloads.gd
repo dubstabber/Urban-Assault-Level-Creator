@@ -25,7 +25,10 @@ var font = preload("res://resources/Xolonium-Regular.ttf")
 
 # UA 3D terrain (edge-based) resources
 var surface_type_map := {}
+var subsector_patterns := {} # typ_id -> {surface_type, sector_type, subsectors: PackedInt32Array}
+var tile_mapping := {} # subsector_index -> {val0, val1, val2, val3, flag}
 var ground_textures: Array[Texture2D] = []
+var tile_remap := {} # optional: raw tile id -> {file:int, variant:int}
 # Note: SetSdfParser is a global class (class_name in set_sdf_parser.gd);
 # avoid naming conflicts by not preloading it into a const with the same name.
 var _ground_fb_colors := [
@@ -34,7 +37,7 @@ var _ground_fb_colors := [
 	Color(0.55, 0.55, 0.55), # concrete
 	Color(0.30, 0.30, 0.35), # rock
 	Color(0.20, 0.35, 0.60), # water
-	Color(0.70, 0.60, 0.45)  # sand
+	Color(0.70, 0.60, 0.45) # sand
 ]
 
 
@@ -408,12 +411,37 @@ func reload_surface_type_map() -> void:
 	var cmd = get_node_or_null("/root/CurrentMapData")
 	if cmd:
 		set_id = int(cmd.level_set)
-	surface_type_map = SetSdfParser.parse_surface_type_map(set_id)
+	
+	# Load full typ data including subsector patterns and tile mapping
+	var full_data := SetSdfParser.parse_full_typ_data(set_id)
+	surface_type_map = full_data.get("surface_types", {})
+	subsector_patterns = full_data.get("subsector_patterns", {})
+	tile_mapping = full_data.get("tile_mapping", {})
+
+	# Optional per-set remap file: res://resources/ua/sets/set{set_id}/scripts/tile_remap.json
+	# Format: { "0": {"file": 2, "variant": 0}, "1": {"file": 0, "variant": 1}, ... }
+	tile_remap = {}
+	var remap_path := "res://resources/ua/sets/set%d/scripts/tile_remap.json" % set_id
+	if FileAccess.file_exists(remap_path):
+		var f := FileAccess.open(remap_path, FileAccess.READ)
+		if f:
+			var txt := f.get_as_text()
+			f.close()
+			var tmp = JSON.parse_string(txt)
+			var parsed_map: Dictionary = {}
+			if typeof(tmp) == TYPE_DICTIONARY:
+				parsed_map = tmp
+			tile_remap = parsed_map
+	
 	if surface_type_map.is_empty():
 		# Leave empty; renderer will default to 0
 		push_warning("Preloads: surface_type_map empty for set %d; edges will use texture 0" % set_id)
 	else:
 		print("[Preloads] surface_type_map loaded for set ", set_id, ", entries=", surface_type_map.size())
+		print("[Preloads] subsector_patterns loaded for set ", set_id, ", entries=", subsector_patterns.size())
+		print("[Preloads] tile_mapping loaded for set ", set_id, ", entries=", tile_mapping.size())
+		if not tile_remap.is_empty():
+			print("[Preloads] tile_remap loaded for set ", set_id, ", entries=", tile_remap.size())
 
 func _make_color_tex(color: Color) -> Texture2D:
 	var img := Image.create(8, 8, false, Image.FORMAT_RGBA8)

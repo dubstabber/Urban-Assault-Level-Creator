@@ -1,11 +1,31 @@
 extends Resource
 class_name SetSdfParser
 
-# Parses UA set.sdf and returns a Dictionary mapping typ_id -> SurfaceType (0..5)
+# Parses UA set.sdf and returns mappings for typ_id data
 # Expected path per set: res://resources/ua/sets/set{N}/scripts/set.sdf
-# Format per line in sektor block: typ_id SectorType SurfaceType GUIElementID [SubSectors...]
-# Lines may contain comments starting with ';' or '#'. Tokens may be decimal or hex (0x..).
-# Missing/invalid files return an empty Dictionary. Callers should handle fallback.
+#
+# Three sections in set.sdf:
+# 1. Building definitions (before first '>') 
+# 2. Tile mapping (between first and second '>', lines ~258-430)
+# 3. Sector definitions (after second '>', lines 431+)
+#
+# Tile mapping format: subsector_index val0 val1 val2 val3 flag
+# Sector format: typ_id SectorType SurfaceType GUIElementID [9 SubSector indices]
+#
+# The 4 values encode: ground_file_index and quadrant within that file
+# Ground textures are 2×2 (4 subimages) except ground_4 which is 4×4 (16 subimages)
+
+# Parse complete typ data including subsector patterns and tile mapping
+# Returns: Dictionary with keys "surface_types", "subsector_patterns", and "tile_mapping"
+# - surface_types: typ_id -> SurfaceType (0..5)
+# - subsector_patterns: typ_id -> {surface_type, sector_type, subsectors: PackedInt32Array}
+# - tile_mapping: subsector_index -> {val0, val1, val2, val3, flag}
+static func parse_full_typ_data(set_id: int) -> Dictionary:
+	if set_id < 1 or set_id > 6:
+		push_warning("SetSdfParser: invalid set_id %d; defaulting to 1" % set_id)
+		set_id = 1
+	var path := "res://resources/ua/sets/set%d/scripts/set.sdf" % set_id
+	return parse_full_typ_data_at(path)
 
 static func parse_surface_type_map(set_id: int) -> Dictionary:
 	if set_id < 1 or set_id > 6:
@@ -129,6 +149,201 @@ static func parse_surface_type_map_at(path: String) -> Dictionary:
 	f.close()
 	return mapping
 
+# Parse tile mapping section (between first and second '>')
+# Returns: Dictionary mapping subsector_index -> {val0, val1, val2, val3, flag}
+static func parse_tile_mapping(path: String) -> Dictionary:
+	var tile_map := {}
+	if path.is_empty() or not FileAccess.file_exists(path):
+		return tile_map
+	
+	var f := FileAccess.open(path, FileAccess.READ)
+	if f == null:
+		return tile_map
+	
+	var section_idx := 0
+	var in_tile_section := false
+	var implicit_idx := 0 # UA: subsector id increments per parsed line
+	var line_bytes := PackedByteArray()
+	
+	while not f.eof_reached():
+		var b := f.get_8()
+		if b == 10: # LF
+			var tmp := PackedByteArray()
+			for i in range(line_bytes.size()):
+				var ch := line_bytes[i]
+				if ch != 13:
+					tmp.append(ch)
+			
+			# Check for section delimiter
+			var k := 0
+			while k < tmp.size() and (tmp[k] == 32 or tmp[k] == 9):
+				k += 1
+			if k < tmp.size() and tmp[k] == 62: # '>'
+				section_idx += 1
+				in_tile_section = (section_idx == 1)
+				if section_idx > 1:
+					break
+				line_bytes.resize(0)
+				continue
+			
+			if not in_tile_section:
+				line_bytes.resize(0)
+				continue
+			
+			# Cut at first comment
+			var cut := tmp.size()
+			for j in range(tmp.size()):
+				var ch2 := tmp[j]
+				if ch2 == 59 or ch2 == 35:
+					cut = j
+					break
+			
+			# Parse numeric values
+			var ascii := PackedByteArray()
+			for j in range(cut):
+				var ch3 := tmp[j]
+				var is_valid := (ch3 >= 48 and ch3 <= 57) or ch3 == 32 or ch3 == 9 or ch3 == 43 or ch3 == 45
+				var is_hex := (ch3 >= 65 and ch3 <= 70) or (ch3 >= 97 and ch3 <= 102) or ch3 == 120 or ch3 == 88
+				if is_valid or is_hex:
+					ascii.append(ch3)
+			
+			var line := ascii.get_string_from_ascii().strip_edges()
+			if not line.is_empty():
+				var normalized := line.replace("\t", " ")
+				var parts: PackedStringArray = normalized.split(" ", false)
+				
+				# UA: Each non-empty line in this section defines one subsector in order.
+				# Format: val0 val1 val2 val3 [flag]
+				if parts.size() >= 5:
+					var val0 := _parse_int_auto(parts[0], 0)
+					var val1 := _parse_int_auto(parts[1], 0)
+					var val2 := _parse_int_auto(parts[2], 0)
+					var val3 := _parse_int_auto(parts[3], 0)
+					var flag := _parse_int_auto(parts[4], 0)
+					if implicit_idx >= 0 and implicit_idx <= 255:
+						tile_map[implicit_idx] = {
+							"val0": val0,
+							"val1": val1,
+							"val2": val2,
+							"val3": val3,
+							"flag": flag
+						}
+					implicit_idx += 1
+			
+			line_bytes.resize(0)
+		else:
+			line_bytes.append(b)
+	
+	f.close()
+	print("[SetSdfParser] Parsed %d tile definitions from %s" % [tile_map.size(), path])
+	return tile_map
+
+# Parse full typ data including subsector patterns from a specific path
+static func parse_full_typ_data_at(path: String) -> Dictionary:
+	var result := {
+		"surface_types": {},
+		"subsector_patterns": {},
+		"tile_mapping": {}
+	}
+	if path.is_empty():
+		return result
+	if not FileAccess.file_exists(path):
+		push_warning("SetSdfParser: set.sdf not found at %s" % path)
+		return result
+	var f := FileAccess.open(path, FileAccess.READ)
+	if f == null:
+		push_warning("SetSdfParser: cannot open %s" % path)
+		return result
+	
+	var section_idx := 0
+	var in_sektor := false
+	var line_bytes := PackedByteArray()
+	
+	while not f.eof_reached():
+		var b := f.get_8()
+		if b == 10: # LF
+			var tmp := PackedByteArray()
+			for i in range(line_bytes.size()):
+				var ch := line_bytes[i]
+				if ch != 13: # Skip CR
+					tmp.append(ch)
+			
+			# Check for section delimiter
+			var k := 0
+			while k < tmp.size() and (tmp[k] == 32 or tmp[k] == 9):
+				k += 1
+			if k < tmp.size() and tmp[k] == 62: # '>'
+				section_idx += 1
+				in_sektor = (section_idx == 2)
+				if section_idx > 2:
+					break
+				line_bytes.resize(0)
+				continue
+			
+			if not in_sektor:
+				line_bytes.resize(0)
+				continue
+			
+			# Cut at first comment
+			var cut := tmp.size()
+			for j in range(tmp.size()):
+				var ch2 := tmp[j]
+				if ch2 == 59 or ch2 == 35: # ';' or '#'
+					cut = j
+					break
+			
+			# Keep only ASCII numeric and space
+			var ascii := PackedByteArray()
+			for j in range(cut):
+				var ch3 := tmp[j]
+				var is_valid := (ch3 >= 48 and ch3 <= 57) or ch3 == 32 or ch3 == 9 or ch3 == 43 or ch3 == 45
+				var is_hex := (ch3 >= 65 and ch3 <= 70) or (ch3 >= 97 and ch3 <= 102) or ch3 == 120 or ch3 == 88
+				if is_valid or is_hex:
+					ascii.append(ch3)
+			
+			var line := ascii.get_string_from_ascii().strip_edges()
+			if not line.is_empty():
+				var normalized := line.replace("\t", " ")
+				var parts: PackedStringArray = normalized.split(" ", false)
+				
+				if parts.size() >= 4:
+					var typ_id := _parse_int_auto(parts[0], -1)
+					var sector_type := _parse_int_auto(parts[1], -1)
+					var surface_type := _parse_int_auto(parts[2], -1)
+					var gui_id := _parse_int_auto(parts[3], -1)
+					
+					if typ_id >= 0 and typ_id <= 255 and sector_type >= 0:
+						if surface_type < 0 or surface_type > 5:
+							surface_type = 0
+						
+						result["surface_types"][typ_id] = surface_type
+						
+						# Parse subsectors (should be 9 values for 3x3 grid)
+						var subsectors := PackedInt32Array()
+						for i in range(4, parts.size()):
+							var sub_val := _parse_int_auto(parts[i], -1)
+							if sub_val >= 0:
+								subsectors.append(sub_val)
+						
+						# Store pattern data
+						result["subsector_patterns"][typ_id] = {
+							"surface_type": surface_type,
+							"sector_type": sector_type,
+							"gui_id": gui_id,
+							"subsectors": subsectors
+						}
+			
+			line_bytes.resize(0)
+		else:
+			line_bytes.append(b)
+	
+	f.close()
+	
+	# Also parse tile mapping
+	result["tile_mapping"] = parse_tile_mapping(path)
+	
+	return result
+
 static func _strip_comments(s: String) -> String:
 	var semi := s.find(";")
 	var hash_idx := s.find("#")
@@ -171,7 +386,6 @@ static func _is_hex(s: String) -> bool:
 		if not ((up >= "0" and up <= "9") or (up >= "A" and up <= "F")):
 			return false
 	return true
-
 
 
 static func _parse_hex(hex: String) -> int:
