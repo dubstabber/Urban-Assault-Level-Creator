@@ -245,57 +245,7 @@ func _ready() -> void:
 		EventSystem.save_hs_behavior_dialog_requested.emit()
 	)
 	
-	EventSystem.behavior_loaded.connect(func(behavior_data: Dictionary):
-		if behavior_data.has("con_budget"):
-			EditorState.selected_unit.con_budget = behavior_data.con_budget
-			conquering_h_slider.value = int(behavior_data.con_budget)
-		if behavior_data.has("con_delay"):
-			EditorState.selected_unit.con_delay = behavior_data.con_delay
-			conquering_delay_line_edit.text = str(int(behavior_data.con_delay/1024.0))
-		if behavior_data.has("def_budget"):
-			EditorState.selected_unit.def_budget = behavior_data.def_budget
-			defense_h_slider.value = int(behavior_data.def_budget)
-		if behavior_data.has("def_delay"):
-			EditorState.selected_unit.def_delay = behavior_data.def_delay
-			defense_delay_line_edit.text = str(int(behavior_data.def_delay/1024.0))
-		if behavior_data.has("rec_budget"):
-			EditorState.selected_unit.rec_budget = behavior_data.rec_budget
-			reconnaissance_h_slider.value = int(behavior_data.rec_budget)
-		if behavior_data.has("rec_delay"):
-			EditorState.selected_unit.rec_delay = behavior_data.rec_delay
-			reconnaissance_delay_line_edit.text = str(int(behavior_data.rec_delay/1024.0))
-		if behavior_data.has("rob_budget"):
-			EditorState.selected_unit.rob_budget = behavior_data.rob_budget
-			attacking_h_slider.value = int(behavior_data.rob_budget)
-		if behavior_data.has("rob_delay"):
-			EditorState.selected_unit.rob_delay = behavior_data.rob_delay
-			attacking_delay_line_edit.text = str(int(behavior_data.rob_delay/1024.0))
-		if behavior_data.has("pow_budget"):
-			EditorState.selected_unit.pow_budget = behavior_data.pow_budget
-			power_building_h_slider.value = int(behavior_data.pow_budget)
-		if behavior_data.has("pow_delay"):
-			EditorState.selected_unit.pow_delay = behavior_data.pow_delay
-			power_building_delay_line_edit.text = str(int(behavior_data.pow_delay/1024.0))
-		if behavior_data.has("rad_budget"):
-			EditorState.selected_unit.rad_budget = behavior_data.rad_budget
-			radar_building_h_slider.value = int(behavior_data.rad_budget)
-		if behavior_data.has("rad_delay"):
-			EditorState.selected_unit.rad_delay = behavior_data.rad_delay
-			radar_building_delay_line_edit.text = str(int(behavior_data.rad_delay/1024.0))
-		if behavior_data.has("saf_budget"):
-			EditorState.selected_unit.saf_budget = behavior_data.saf_budget
-			flak_building_h_slider.value = int(behavior_data.saf_budget)
-		if behavior_data.has("saf_delay"):
-			EditorState.selected_unit.saf_delay = behavior_data.saf_delay
-			flak_building_delay_line_edit.text = str(int(behavior_data.saf_delay/1024.0))
-		if behavior_data.has("cpl_budget"):
-			EditorState.selected_unit.cpl_budget = behavior_data.cpl_budget
-			moving_station_h_slider.value = int(behavior_data.cpl_budget)
-		if behavior_data.has("cpl_delay"):
-			EditorState.selected_unit.cpl_delay = behavior_data.cpl_delay
-			moving_station_delay_line_edit.text = str(int(behavior_data.cpl_delay/1024.0))
-		CurrentMapData.is_saved = false
-	)
+	EventSystem.behavior_loaded.connect(_on_behavior_loaded)
 
 
 func _update_properties() -> void:
@@ -367,3 +317,37 @@ func _update_coordinates():
 	if EditorState.selected_unit is HostStation:
 		xpos_host_station_line_edit.text = str(roundi(EditorState.selected_unit.position.x))
 		zpos_host_station_line_edit.text = str(roundi(-EditorState.selected_unit.position.y))
+
+
+func _on_behavior_loaded(behavior_data: Dictionary) -> void:
+	var behavior_mappings = [
+		{"key": "con_budget", "unit_attr": "con_budget", "slider": conquering_h_slider, "line_edit": null},
+		{"key": "con_delay", "unit_attr": "con_delay", "slider": null, "line_edit": conquering_delay_line_edit, "divide": 1024.0},
+		{"key": "def_budget", "unit_attr": "def_budget", "slider": defense_h_slider, "line_edit": null},
+		{"key": "def_delay", "unit_attr": "def_delay", "slider": null, "line_edit": defense_delay_line_edit, "divide": 1024.0},
+		{"key": "rec_budget", "unit_attr": "rec_budget", "slider": reconnaissance_h_slider, "line_edit": null},
+		{"key": "rec_delay", "unit_attr": "rec_delay", "slider": null, "line_edit": reconnaissance_delay_line_edit, "divide": 1024.0},
+		{"key": "rob_budget", "unit_attr": "rob_budget", "slider": attacking_h_slider, "line_edit": null},
+		{"key": "rob_delay", "unit_attr": "rob_delay", "slider": null, "line_edit": attacking_delay_line_edit, "divide": 1024.0},
+		{"key": "pow_budget", "unit_attr": "pow_budget", "slider": power_building_h_slider, "line_edit": null},
+		{"key": "pow_delay", "unit_attr": "pow_delay", "slider": null, "line_edit": power_building_delay_line_edit, "divide": 1024.0},
+		{"key": "rad_budget", "unit_attr": "rad_budget", "slider": radar_building_h_slider, "line_edit": null},
+		{"key": "rad_delay", "unit_attr": "rad_delay", "slider": null, "line_edit": radar_building_delay_line_edit, "divide": 1024.0},
+		{"key": "saf_budget", "unit_attr": "saf_budget", "slider": flak_building_h_slider, "line_edit": null},
+		{"key": "saf_delay", "unit_attr": "saf_delay", "slider": null, "line_edit": flak_building_delay_line_edit, "divide": 1024.0},
+		{"key": "cpl_budget", "unit_attr": "cpl_budget", "slider": moving_station_h_slider, "line_edit": null},
+		{"key": "cpl_delay", "unit_attr": "cpl_delay", "slider": null, "line_edit": moving_station_delay_line_edit, "divide": 1024.0},
+	]
+	
+	for mapping in behavior_mappings:
+		if behavior_data.has(mapping.key):
+			var value = behavior_data[mapping.key]
+			EditorState.selected_unit.set(mapping.unit_attr, value)
+			
+			if mapping.slider:
+				mapping.slider.value = int(value)
+			if mapping.line_edit:
+				var display_value = int(int(value) / mapping.get("divide", 1.0))
+				mapping.line_edit.text = str(display_value)
+	
+	CurrentMapData.is_saved = false

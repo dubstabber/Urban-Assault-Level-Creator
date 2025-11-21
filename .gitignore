@@ -20,6 +20,7 @@ export_presets.cfg
 .vscode/
 .idea/
 .augment/
+.windsurf/
 
 # OS-generated files
 .DS_Store
@@ -37,3 +38,5 @@ TASK.md
 resources/ua/
 scripts/
 tests/
+docs/
+ua_source_code_prototype/
