@@ -6,6 +6,7 @@
 
 [node name="AdditionalInformationWindow" type="Window"]
 auto_translate_mode = 1
+oversampling_override = 1.0
 title = "Additional information"
 initial_position = 1
 size = Vector2i(750, 500)
@@ -76,16 +77,93 @@ theme_override_fonts/bold_font = ExtResource("3_p72un")
 theme_override_font_sizes/normal_font_size = 14
 theme_override_font_sizes/bold_font_size = 14
 bbcode_enabled = true
-text = "Follow these steps to unlock all levels in the Urban Assault Original Campaign :
+text = "[b][u][font_size=24]Urban Assault Level Unlocking Guide[/font_size][/u][/b]
 
-1. Navigate to the Urban Assault main directory
-2. Open the SAVE folder
-3. Locate your profile name and open its corresponding folder
-4. Open the user.txt file using any text editor
-5. At the bottom of the file, you will see multiple \"begin_levelstatus\" sections, each closed by \"end\"
- - Each number after \"begin_levelstatus\" corresponds to a specific level in the game
- - To unlock a level, either change \"status = 1\" to \"status = 2\" or delete the entire section
-6. Repeat Step 5 for levels 1 through 99 to unlock all levels"
+[b][font_size=18]Overview[/font_size][/b]
+This guide explains how to unlock all levels in Urban Assault, including the regular campaign levels (1-75) and the hidden Demo/Debug levels (98-99). The Demo and Debug levels are special hidden levels that are normally inaccessible during regular gameplay but can be unlocked by modifying save file parameters.
+
+[b][font_size=18]⚠️ Important Warning[/font_size][/b]
+[color=ff6b6b][b]BACKUP YOUR SAVE FILES FIRST![/b][/color] The following method can alter or break your current save profile progress. It is highly recommended to:
+[indent]• Create a backup of your entire SAVE folder before proceeding
+• Use a new save profile for experimenting with these levels
+• Avoid modifying your main campaign progress profile[/indent]
+
+[b][font_size=18]Step-by-Step Instructions[/font_size][/b]
+
+[b][u]1. Navigate to Save Directory[/u][/b]
+[indent]• Go to your Urban Assault main installation directory
+• Open the [b]SAVE[/b] folder
+• Locate and open the folder corresponding to your desired save profile[/indent]
+
+[b][u]2. Edit the User Configuration[/u][/b]
+[indent]• Open the [b]user.txt[/b] file using any text editor (Notepad, Notepad++, etc.)
+• Scroll down to the bottom of the file or use Ctrl+F to search for \"levelstatus\"[/indent]
+
+[b][u]3. Understanding Level Status Entries[/u][/b]
+You will find multiple entries in this format:
+[code]begin_levelstatus [NUMBER] status = [VALUE] end[/code]
+
+[b]Status Values Explained:[/b]
+[indent]• [code]status = 1[/code] = Level is locked/inaccessible
+• [code]status = 2[/code] = Level is unlocked and playable
+• [b]Alternative:[/b] You can also delete the entire levelstatus section to unlock the level[/indent]
+
+[b]Level Number to File Mapping:[/b]
+Each number in [code]begin_levelstatus [NUMBER][/code] corresponds to a specific .ldf (level definition file) in the game:
+[indent]• [code]begin_levelstatus 1[/code] → L0101.ldf
+• [code]begin_levelstatus 15[/code] → L1515.ldf
+• [code]begin_levelstatus 42[/code] → L4242.ldf
+• [code]begin_levelstatus 98[/code] → L9898.ldf (Demo Level)
+• [code]begin_levelstatus 99[/code] → L9999.ldf (Debug Level)[/indent]
+
+The pattern is: the number in [code]begin_levelstatus XX[/code] is repeated twice to form the filename [code]LXXXX.ldf[/code]
+
+[b][u]4. Unlock Desired Levels[/u][/b]
+
+[b]For Regular Campaign Levels (1-75):[/b]
+[indent]• Change [code]status = 1[/code] to [code]status = 2[/code] for levels 1 through 75
+• Each number corresponds to the specific level in the campaign[/indent]
+
+[b]For Special Hidden Levels (98-99):[/b]
+[indent]• [b]Level 98 (Demo Level - L9898.ldf):[/b] Also known as 'E3 Assimilated', this was showcased at E3 1998
+• [b]Level 99 (Debug Level - L9999.ldf):[/b] Special debug level with access to units from all factions[/indent]
+
+Find these specific entries:
+[code]begin_levelstatus 98 status = 1 end
+begin_levelstatus 99 status = 1 end[/code]
+
+Change them to:
+[code]begin_levelstatus 98 status = 2 end
+begin_levelstatus 99 status = 2 end[/code]
+
+[b][u]5. Save and Launch[/u][/b]
+[indent]• Save the user.txt file
+• Launch Urban Assault
+• Under the modified save profile, you'll see:
+  [indent]• The levels you unlocked will be available in the level selection screen
+  • If you unlocked levels 98-99, two extra buttons for Demo/Debug levels will appear in the upper-left corner of the level selection screen[/indent][/indent]
+
+[b][font_size=18]Additional Notes[/font_size][/b]
+
+[b][u]About the Hidden Levels[/u][/b]
+[indent]• [b]Demo Level (98):[/b] Originally demonstrated at Microsoft's Urban Assault booth at E3 1998 in Atlanta
+• [b]Debug Level (99):[/b] Designed for testing, gives access to units from all factions (note: Taerkasten Phantom unit may be missing due to a development oversight)[/indent]
+
+[b][u]Caution[/u][/b]
+[indent]• Accessing special levels (98-99) may affect your current save profile progress
+• These levels were not intended for normal gameplay and may behave unexpectedly
+• Always use a separate profile for experimenting with hidden content[/indent]
+
+[b][u]Troubleshooting[/u][/b]
+[indent]• If levels don't appear after editing, double-check the syntax of your modifications
+• Verify that the user.txt file was saved properly after editing[/indent]
+
+[b][font_size=18]File Location Reference[/font_size][/b]
+[code][Urban Assault Directory]/
+└── SAVE/
+    └── [Your Profile Name]/
+        └── user.txt  ← Edit this file[/code]
+"
 fit_content = true
 
 [node name="UpkeepMechanicsLabel" type="RichTextLabel" parent="PanelContainer/VBoxContainer/HSplitContainer/PanelContainer2/ScrollContainer/InformationContainer"]
@@ -96,47 +174,58 @@ theme_override_fonts/bold_font = ExtResource("3_p72un")
 theme_override_font_sizes/normal_font_size = 14
 theme_override_font_sizes/bold_font_size = 14
 bbcode_enabled = true
-text = "The AI Host Stations in Urban Assault have a unique [b]unit upkeep/maintenance system[/b] that significantly impacts their energy management and gameplay behavior. This system is one of the main reasons why AI Host Stations often struggle with energy shortages, especially in later stages of the game. Here’s how it works:
+text = "The AI Host Stations in Urban Assault have a unique [b]unit upkeep/maintenance system[/b] that significantly impacts their energy management and gameplay behavior. This system is one of the main reasons why AI Host Stations often struggle with energy shortages, especially in later stages of the game. Here's how it works:
 
-[center][b]Key Differences Between User and AI Unit Costs[/b][/center]
-[b]User Host Stations[/b]: 
-[ul]Players can create units at a [b]fixed energy cost[/b], regardless of how many units they already control.
-Unit costs are [b]static[/b] and do not change, making energy management predictable and straightforward.[/ul]
-[b]AI Host Stations[/b]:
-[ul]The AI uses a [b]dynamic energy cost system[/b] for creating units. The cost of creating a new unit increases as the AI controls more units.
-This system is similar to the [b]soft limits[/b] in multiplayer mode but works differently in single-player.[/ul]
+[center][b][font_size=18]Key Differences Between User and AI Unit Costs[/font_size][/b][/center]
 
-[center][b]How the AI’s Dynamic Unit Cost System Works[/b][/center]
-- [b]Formula[/b]: The energy cost for creating a new unit is calculated using the following formula:
-  [code]K = k * (20 + n) / 40[/code]
-  - [b]K[/b]: The current dynamic cost of the new unit.
-  - [b]k[/b]: The standard (base) cost of the unit.
-  - [b]n[/b]: The total number of units the AI currently controls (including individual units, turrets, and radar stations).
-- [b]Behavior[/b]:
-  - The first [b]20 units[/b] are cheaper to create than the standard cost.
-  - The [b]20th unit[/b] costs the same as the standard unit cost.
-  - Beyond the 20th unit, the cost increases linearly. For example:
-    - The [b]100th unit[/b] costs [b]300%[/b] of the standard cost (200% higher).
-    - The [b]200th unit[/b] costs [b]550%[/b] of the standard cost (450% higher).
-  - The increased costs can only be reduced if existing units are destroyed.
+[b]User Host Stations:[/b]
+[indent]• Players can create units at a [b]fixed energy cost[/b], regardless of how many units they already control.
+• Unit costs are [b]static[/b] and do not change, making energy management predictable and straightforward.[/indent]
 
-[center][b]Why This Matters[/b][/center]
-- [b]Energy Strain[/b]: As the AI creates more units, the energy cost for producing additional units becomes prohibitively high. This often leaves the AI energy-starved and unable to maintain a strong offensive presence.
-- [b]Defensive Focus[/b]: To cope with the rising unit costs, AI Host Stations often prioritize building [b]flak stations[/b] and [b]radar stations[/b] (defensive structures) in later missions. While these structures help defend their bases, they also contribute to the total unit count, further increasing the cost of creating new units.
-- [b]Construction Costs[/b]: Unlike units, the energy cost for constructing [b]buildings[/b] (e.g., flak stations, radar stations) remains [b]fixed[/b] for the AI, just like for the player. This is why the AI tends to rely more on defensive structures in the late game.
+[b]AI Host Stations:[/b]
+[indent]• The AI uses a [b]dynamic energy cost system[/b] for creating units. The cost of creating a new unit increases as the AI controls more units.
+• This system is similar to the [b]soft limits[/b] in multiplayer mode but works differently in single-player.[/indent]
 
-[center][b]Example Scenario[/b][/center]
-- [b]Early Game[/b]:
-  - The AI can create its first 20 units cheaply, allowing it to build a small army quickly.
-- [b]Mid Game[/b]:
-  - By the time the AI controls 50 units, the cost of creating new units is [b]175%[/b] of the standard cost.
-- [b]Late Game[/b]:
-  - If the AI controls 100 units, the cost of creating new units rises to [b]300%[/b] of the standard cost, making it extremely difficult to maintain a large army.
+[center][b][font_size=18]How the AI's Dynamic Unit Cost System Works[/font_size][/b][/center]
 
-[center][b]Key Takeaways[/b][/center]
-- The AI’s dynamic unit cost system is a [b]major disadvantage[/b] compared to the player’s static unit costs.
-- The AI’s ability to create units becomes increasingly restricted as it controls more units, forcing it to rely more on defensive structures.
-- This system is why AI Host Stations often appear energy-starved and less aggressive in later missions."
+[b]Formula:[/b] The energy cost for creating a new unit is calculated using the following formula:
+[indent][code]K = k * (20 + n) / 40[/code]
+• [b]K[/b]: The current dynamic cost of the new unit.
+• [b]k[/b]: The standard (base) cost of the unit.
+• [b]n[/b]: The total number of units the AI currently controls (including individual units, turrets, and radar stations).[/indent]
+
+[b]Behavior:[/b]
+[indent]• The first [b]20 units[/b] are cheaper to create than the standard cost.
+• The [b]20th unit[/b] costs the same as the standard unit cost.
+• Beyond the 20th unit, the cost increases linearly. For example:
+  [indent]• The [b]100th unit[/b] costs [b]300%[/b] of the standard cost (200% higher).
+  • The [b]200th unit[/b] costs [b]550%[/b] of the standard cost (450% higher).[/indent]
+• The increased costs can only be reduced if existing units are destroyed.[/indent]
+
+[center][b][font_size=18]Why This Matters[/font_size][/b][/center]
+
+[b]Energy Strain:[/b] As the AI creates more units, the energy cost for producing additional units becomes prohibitively high. This often leaves the AI energy-starved and unable to maintain a strong offensive presence.
+
+[b]Defensive Focus:[/b] To cope with the rising unit costs, AI Host Stations often prioritize building [b]flak stations[/b] and [b]radar stations[/b] (defensive structures) in later missions. While these structures help defend their bases, they also contribute to the total unit count, further increasing the cost of creating new units.
+
+[b]Construction Costs:[/b] Unlike units, the energy cost for constructing [b]buildings[/b] (e.g., flak stations, radar stations) remains [b]fixed[/b] for the AI, just like for the player. This is why the AI tends to rely more on defensive structures in the late game.
+
+[center][b][font_size=18]Example Scenario[/font_size][/b][/center]
+
+[b]Early Game:[/b]
+[indent]• The AI can create its first 20 units cheaply, allowing it to build a small army quickly.[/indent]
+
+[b]Mid Game:[/b]
+[indent]• By the time the AI controls 50 units, the cost of creating new units is [b]175%[/b] of the standard cost.[/indent]
+
+[b]Late Game:[/b]
+[indent]• If the AI controls 100 units, the cost of creating new units rises to [b]300%[/b] of the standard cost, making it extremely difficult to maintain a large army.[/indent]
+
+[center][b][font_size=18]Key Takeaways[/font_size][/b][/center]
+
+[indent]• The AI's dynamic unit cost system is a [b]major disadvantage[/b] compared to the player's static unit costs.
+• The AI's ability to create units becomes increasingly restricted as it controls more units, forcing it to rely more on defensive structures.
+• This system is why AI Host Stations often appear energy-starved and less aggressive in later missions.[/indent]"
 fit_content = true
 
 [node name="EnergySystemLabel" type="RichTextLabel" parent="PanelContainer/VBoxContainer/HSplitContainer/PanelContainer2/ScrollContainer/InformationContainer"]
