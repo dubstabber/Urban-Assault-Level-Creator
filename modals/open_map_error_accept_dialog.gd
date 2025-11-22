@@ -17,9 +17,13 @@ func _ready() -> void:
 				dialog_text += "Horizontal sectors: %s\n" % CurrentMapData.horizontal_sectors
 				dialog_text += "Vertical sectors: %s\n" % CurrentMapData.vertical_sectors
 				var total_sectors = CurrentMapData.horizontal_sectors * CurrentMapData.vertical_sectors
-				var total_border_sectors = (CurrentMapData.horizontal_sectors+2) * (CurrentMapData.vertical_sectors+2)
+				var total_border_sectors = (CurrentMapData.horizontal_sectors + 2) * (CurrentMapData.vertical_sectors + 2)
 				dialog_text += "Total sectors: %s\n" % total_sectors
 				dialog_text += "Total sectors with borders: %s" % total_border_sectors
+			"invalid_format":
+				dialog_text += "The file is not a valid LDF format."
+			_:
+				dialog_text += "An unknown error occurred."
 		popup()
 		CurrentMapData.close_map()
 		EventSystem.map_updated.emit()

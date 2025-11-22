@@ -10,6 +10,14 @@ static func load_level() -> void:
 		printerr("Error: File '%s' cannot be opened" % CurrentMapData.map_path)
 		EventSystem.open_map_failed.emit("path_inaccessible")
 		return
+	
+	# Quick format validation: check if file contains required map sections
+	if not _is_valid_ldf_format(file):
+		printerr("Error: File '%s' is not a valid LDF format" % CurrentMapData.map_path)
+		EventSystem.open_map_failed.emit("invalid_format")
+		return
+	
+	file.seek(0)
 	string_line = ""
 	description_mode = false
 	modifications_mode = false
@@ -77,6 +85,37 @@ static func load_level() -> void:
 	EventSystem.item_updated.emit()
 	EventSystem.warning_logs_updated.emit(true)
 	CurrentMapData.is_saved = true
+
+
+static func _is_valid_ldf_format(file: FileAccess) -> bool:
+	# Scan file for required map sections with a reasonable limit
+	# to avoid reading entire large binary files
+	var lines_checked := 0
+	var max_lines_to_check := 10000 # Reasonable limit for LDF files
+	var found_typ_map := false
+	var found_own_map := false
+	var found_hgt_map := false
+	var found_blg_map := false
+	
+	while file.get_position() < file.get_length() and lines_checked < max_lines_to_check:
+		var line = file.get_line().strip_edges().to_lower()
+		lines_checked += 1
+		
+		if line.begins_with("typ_map"):
+			found_typ_map = true
+		elif line.begins_with("own_map"):
+			found_own_map = true
+		elif line.begins_with("hgt_map"):
+			found_hgt_map = true
+		elif line.begins_with("blg_map"):
+			found_blg_map = true
+		
+		# Early exit if we found all required sections
+		if found_typ_map and found_own_map and found_hgt_map and found_blg_map:
+			return true
+	
+	# If we hit the line limit without finding all sections, it's likely not a valid LDF file
+	return found_typ_map and found_own_map and found_hgt_map and found_blg_map
 
 
 static func _handle_typ_map(file: FileAccess) -> void:
