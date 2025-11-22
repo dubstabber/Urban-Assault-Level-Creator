@@ -6,6 +6,7 @@ func _ready() -> void:
 	add_separator()
 	add_item("Resize the map")
 	add_item("Generate buildings randomly")
+	add_item("Open map in text editor")
 	set_default_values()
 	index_pressed.connect(_on_index_pressed)
 	EventSystem.editor_mode_changed.connect(_update_checkitem.bind("Switch to building design mode"))
@@ -25,6 +26,18 @@ func _on_index_pressed(index: int) -> void:
 			%ResizeMapWindow.popup()
 		"Generate buildings randomly":
 			%RandomizeTypMapConfirmationDialog.popup()
+		"Open map in text editor":
+			_open_map_in_text_editor()
+
+
+func _open_map_in_text_editor() -> void:
+	if CurrentMapData.map_path.is_empty():
+		printerr("Error: No map is currently opened")
+		EventSystem.open_map_in_text_editor_failed.emit("no_map_opened")
+		return
+	
+	# Open file with default text editor
+	OS.shell_open(CurrentMapData.map_path)
 
 
 func _update_checkitem(item_name: String) -> void:

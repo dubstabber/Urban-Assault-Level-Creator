@@ -40,6 +40,16 @@ func _ready() -> void:
 				dialog_text += "An unknown error occurred."
 		_show_modal_with_focus.call_deferred()
 		)
+	EventSystem.open_map_in_text_editor_failed.connect(func(error_type: String):
+		title = "Open map in text editor error"
+		dialog_text = "Error: The current map cannot be opened in a text editor:\n"
+		match error_type:
+			"no_map_opened":
+				dialog_text += "No map is currently opened from file."
+			_:
+				dialog_text += "An unknown error occurred."
+		_show_modal_with_focus.call_deferred()
+		)
 
 
 func _show_modal_with_focus() -> void:

@@ -41,6 +41,7 @@ signal load_enemy_settings_failed(path: String)
 signal save_enemy_settings_failed(path: String)
 signal invalid_set_detected(level_set: int)
 signal editor_fatal_error_occured(error_type: String)
+signal open_map_in_text_editor_failed(error_type: String)
 
 signal editor_mode_changed
 signal too_many_sectors_provided
