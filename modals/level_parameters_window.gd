@@ -23,7 +23,7 @@ func _on_about_to_popup() -> void:
 	event_loop_option_button.selected = CurrentMapData.event_loop
 	var sky_index = get_option_index_by_text(sky_option_button, CurrentMapData.sky)
 	sky_option_button.select(sky_index)
-	sky_texture.texture = Preloads.skies[CurrentMapData.sky]
+	sky_texture.texture = Preloads.get_sky(CurrentMapData.sky)
 	music_option_button.selected = music_option_button.get_item_index(CurrentMapData.music)
 	min_break_line_edit.text = str(CurrentMapData.min_break)
 	max_break_line_edit.text = str(CurrentMapData.max_break)
@@ -60,7 +60,7 @@ func get_option_index_by_text(option_button: OptionButton, text: String) -> int:
 
 func _on_sky_option_button_item_selected(index: int) -> void:
 	var sky_text = sky_option_button.get_item_text(index)
-	sky_texture.texture = Preloads.skies[sky_text]
+	sky_texture.texture = Preloads.get_sky(sky_text)
 
 
 func _on_music_button_toggled(toggled_on: bool) -> void:

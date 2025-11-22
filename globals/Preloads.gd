@@ -17,8 +17,8 @@ var sector_item_images := {}
 var error_sign: CompressedTexture2D
 var error_icon: CompressedTexture2D
 var movies_db := {}
-var skies := {}
-var musics := {}
+var skies := {} # Lazy loaded on first access
+var musics := {} # Lazy loaded on first access
 var mbmaps := {}
 var font = preload("res://resources/Xolonium-Regular.ttf")
 
@@ -85,119 +85,34 @@ func _ready():
 	sector_item_images.beam_gate_key_sector = load("res://resources/img/sectorItems/keysector.png")
 	sector_item_images.bomb_key_sector = load("res://resources/img/sectorItems/sectorbomb.png")
 	
-	building_side_images[1] = {}
-	building_top_images[1] = {}
-	building_side_images[2] = {}
-	building_top_images[2] = {}
-	building_side_images[3] = {}
-	building_top_images[3] = {}
-	building_side_images[4] = {}
-	building_top_images[4] = {}
-	building_side_images[5] = {}
-	building_top_images[5] = {}
-	building_side_images[6] = {}
-	building_top_images[6] = {}
+	# Initialize building image dictionaries
+	for set_id in range(1, 7):
+		building_side_images[set_id] = {}
+		building_top_images[set_id] = {}
 	
-	var idx := 0
-	while (idx < 256):
-		if idx == 54: idx = 59
-		if idx == 60: idx = 66
-		if idx == 83: idx = 95
-		if idx == 105: idx = 110
-		if idx == 114: idx = 120
-		if idx == 122: idx = 130
-		if idx == 142: idx = 150
-		if idx == 190: idx = 198
-		if idx == 206: idx = 207
-		if idx == 209: idx = 228
-		if idx == 237: idx = 239
-		building_side_images[1][idx] = load("res://resources/img/Sector_images/set1-side/Set1_sector%s.jpg" % idx)
-		building_top_images[1][idx] = load("res://resources/img/Sector_images/set1-above/Set1_sector_%s.jpg" % idx)
-		idx += 1
-		
+	# Define skip indices for each level set
+	var skip_indices := {
+		1: [54, 60, 83, 105, 114, 122, 142, 190, 206, 209, 237],
+		2: [25, 105, 114, 132, 134, 196, 206, 209, 226, 231],
+		3: [50, 60, 83, 105, 114, 122, 142, 190, 206, 209, 231],
+		4: [50, 61, 83, 105, 114, 122, 142, 190, 206, 209, 231],
+		5: [96, 117, 132, 138, 192, 206, 209, 226, 231],
+		6: [50, 60, 83, 105, 114, 122, 142, 190, 206, 209, 236]
+	}
 	
-	idx = 0
-	while (idx < 256):
-		if idx == 25: idx = 27
-		if idx == 105: idx = 110
-		if idx == 114: idx = 118
-		if idx == 132: idx = 133
-		if idx == 134: idx = 150
-		if idx == 196: idx = 198
-		if idx == 206: idx = 207
-		if idx == 209: idx = 210
-		if idx == 226: idx = 228
-		if idx == 231: idx = 239
-		building_side_images[2][idx] = load("res://resources/img/Sector_images/set2-side/Set2_sector%s.jpg" % idx)
-		building_top_images[2][idx] = load("res://resources/img/Sector_images/set2-above/Set2_sector_%s.jpg" % idx)
-		idx += 1
+	# Define end indices for skip ranges
+	var skip_ends := {
+		1: [59, 66, 95, 110, 120, 130, 150, 198, 207, 228, 239],
+		2: [27, 110, 118, 133, 150, 198, 207, 210, 228, 239],
+		3: [59, 66, 100, 110, 121, 130, 150, 198, 207, 228, 239],
+		4: [59, 66, 100, 110, 121, 130, 150, 198, 207, 228, 239],
+		5: [97, 118, 133, 150, 198, 207, 210, 228, 239],
+		6: [59, 66, 95, 110, 121, 130, 150, 198, 207, 228, 239]
+	}
 	
-	idx = 0
-	while (idx < 256):
-		if idx == 50: idx = 59
-		if idx == 60: idx = 66
-		if idx == 83: idx = 100
-		if idx == 105: idx = 110
-		if idx == 114: idx = 121
-		if idx == 122: idx = 130
-		if idx == 142: idx = 150
-		if idx == 190: idx = 198
-		if idx == 206: idx = 207
-		if idx == 209: idx = 228
-		if idx == 231: idx = 239
-		building_side_images[3][idx] = load("res://resources/img/Sector_images/set3-side/Set3_sector%s.jpg" % idx)
-		building_top_images[3][idx] = load("res://resources/img/Sector_images/set3-above/Set3_sector_%s.jpg" % idx)
-		idx += 1
-		
-	idx = 0
-	while (idx < 256):
-		if idx == 50: idx = 59
-		if idx == 61: idx = 66
-		if idx == 83: idx = 100
-		if idx == 105: idx = 110
-		if idx == 114: idx = 121
-		if idx == 122: idx = 130
-		if idx == 142: idx = 150
-		if idx == 190: idx = 198
-		if idx == 206: idx = 207
-		if idx == 209: idx = 228
-		if idx == 231: idx = 239
-		building_side_images[4][idx] = load("res://resources/img/Sector_images/set4-side/Set4_sector%s.jpg" % idx)
-		building_top_images[4][idx] = load("res://resources/img/Sector_images/set4-above/Set4_sector_%s.jpg" % idx)
-		idx += 1
-		
-	idx = 0
-	while (idx < 256):
-		if idx == 96: idx = 97
-		if idx == 117: idx = 118
-		if idx == 132: idx = 133
-		if idx == 138: idx = 150
-		if idx == 192: idx = 198
-		if idx == 206: idx = 207
-		if idx == 209: idx = 210
-		if idx == 226: idx = 228
-		if idx == 231: idx = 239
-		building_side_images[5][idx] = load("res://resources/img/Sector_images/set5-side/Set5_sector%s.jpg" % idx)
-		building_top_images[5][idx] = load("res://resources/img/Sector_images/set5-above/Set5_sector_%s.jpg" % idx)
-		idx += 1
-		
-	idx = 0
-	while (idx < 256):
-		if idx == 50: idx = 59
-		if idx == 60: idx = 66
-		if idx == 83: idx = 95
-		if idx == 105: idx = 110
-		if idx == 114: idx = 121
-		if idx == 122: idx = 130
-		if idx == 142: idx = 150
-		if idx == 190: idx = 198
-		if idx == 206: idx = 207
-		if idx == 209: idx = 228
-		if idx == 236: idx = 239
-		building_side_images[6][idx] = load("res://resources/img/Sector_images/set6-side/Set6_sector%s.jpg" % idx)
-		building_top_images[6][idx] = load("res://resources/img/Sector_images/set6-above/Set6_sector_%s.jpg" % idx)
-		idx += 1
-		
+	# Load building images for all sets
+	for set_id in range(1, 7):
+		_load_building_images_for_set(set_id, skip_indices[set_id], skip_ends[set_id])
 	error_sign = load("res://resources/img/blgMapImages/error.png")
 	error_icon = load("res://resources/img/ui_icons/error-icon.png")
 	
@@ -214,88 +129,43 @@ func _ready():
 	movies_db["Lose"] = "lose.mpg"
 	movies_db["Win"] = "win.mpg"
 	
-	skies["1998_01"] = load("res://resources/img/sky-images/1998_01.jpg")
-	skies["1998_02"] = load("res://resources/img/sky-images/1998_02.jpg")
-	skies["1998_03"] = load("res://resources/img/sky-images/1998_03.jpg")
-	skies["1998_05"] = load("res://resources/img/sky-images/1998_05.jpg")
-	skies["1998_06"] = load("res://resources/img/sky-images/1998_06.jpg")
-	skies["Am_1"] = load("res://resources/img/sky-images/Am_1.jpg")
-	skies["Am_2"] = load("res://resources/img/sky-images/Am_2.jpg")
-	skies["Am_3"] = load("res://resources/img/sky-images/Am_3.jpg")
-	skies["ARZ1"] = load("res://resources/img/sky-images/ARZ1.jpg")
-	skies["ASKY2"] = load("res://resources/img/sky-images/ASKY2.jpg")
-	skies["BRAUN1"] = load("res://resources/img/sky-images/BRAUN1.jpg")
-	skies["CT6"] = load("res://resources/img/sky-images/CT6.jpg")
-	skies["H7"] = load("res://resources/img/sky-images/H7.jpg")
-	skies["H"] = load("res://resources/img/sky-images/H.jpg")
-	skies["HAAMITT1"] = load("res://resources/img/sky-images/HAAMITT1.jpg")
-	skies["HAAMITT4"] = load("res://resources/img/sky-images/HAAMITT4.jpg")
-	skies["MOD2"] = load("res://resources/img/sky-images/MOD2.jpg")
-	skies["MOD4"] = load("res://resources/img/sky-images/MOD4.jpg")
-	skies["MOD5"] = load("res://resources/img/sky-images/MOD5.jpg")
-	skies["MOD7"] = load("res://resources/img/sky-images/MOD7.jpg")
-	skies["MOD8"] = load("res://resources/img/sky-images/MOD8.jpg")
-	skies["MOD9"] = load("res://resources/img/sky-images/MOD9.jpg")
-	skies["MODA"] = load("res://resources/img/sky-images/MODA.jpg")
-	skies["MODB"] = load("res://resources/img/sky-images/MODB.jpg")
-	skies["Nacht1"] = load("res://resources/img/sky-images/Nacht1.jpg")
-	skies["NACHT2"] = load("res://resources/img/sky-images/NACHT2.jpg")
-	skies["NEWTRY5"] = load("res://resources/img/sky-images/NEWTRY5.jpg")
-	skies["NOSKY"] = load("res://resources/img/sky-images/NOSKY.jpg")
-	skies["NT1"] = load("res://resources/img/sky-images/NT1.jpg")
-	skies["NT2"] = load("res://resources/img/sky-images/NT2.jpg")
-	skies["NT3"] = load("res://resources/img/sky-images/NT3.jpg")
-	skies["NT5"] = load("res://resources/img/sky-images/NT5.jpg")
-	skies["NT6"] = load("res://resources/img/sky-images/NT6.jpg")
-	skies["NT7"] = load("res://resources/img/sky-images/NT7.jpg")
-	skies["NT8"] = load("res://resources/img/sky-images/NT8.jpg")
-	skies["NT9"] = load("res://resources/img/sky-images/NT9.jpg")
-	skies["NTA"] = load("res://resources/img/sky-images/NTA.jpg")
-	skies["S3_1"] = load("res://resources/img/sky-images/S3_1.jpg")
-	skies["S3_4"] = load("res://resources/img/sky-images/S3_4.jpg")
-	skies["SMOD1"] = load("res://resources/img/sky-images/SMOD1.jpg")
-	skies["SMOD2"] = load("res://resources/img/sky-images/SMOD2.jpg")
-	skies["SMOD3"] = load("res://resources/img/sky-images/SMOD3.jpg")
-	skies["SMOD4"] = load("res://resources/img/sky-images/SMOD4.jpg")
-	skies["SMOD5"] = load("res://resources/img/sky-images/SMOD5.jpg")
-	skies["SMOD6"] = load("res://resources/img/sky-images/SMOD6.jpg")
-	skies["SMOD7"] = load("res://resources/img/sky-images/SMOD7.jpg")
-	skies["SMOD8"] = load("res://resources/img/sky-images/SMOD8.jpg")
-	skies["STERNE"] = load("res://resources/img/sky-images/STERNE.jpg")
-	skies["wow1"] = load("res://resources/img/sky-images/wow1.jpg")
-	skies["wow5"] = load("res://resources/img/sky-images/wow5.jpg")
-	skies["wow7"] = load("res://resources/img/sky-images/wow7.jpg")
-	skies["wow8"] = load("res://resources/img/sky-images/wow8.jpg")
-	skies["wow9"] = load("res://resources/img/sky-images/wow9.jpg")
-	skies["wowa"] = load("res://resources/img/sky-images/wowa.jpg")
-	skies["wowb"] = load("res://resources/img/sky-images/wowb.jpg")
-	skies["wowc"] = load("res://resources/img/sky-images/wowc.jpg")
-	skies["wowd"] = load("res://resources/img/sky-images/wowd.jpg")
-	skies["wowe"] = load("res://resources/img/sky-images/wowe.jpg")
-	skies["wowf"] = load("res://resources/img/sky-images/wowf.jpg")
-	skies["wowh"] = load("res://resources/img/sky-images/wowh.jpg")
-	skies["wowi"] = load("res://resources/img/sky-images/wowi.jpg")
-	skies["wowj"] = load("res://resources/img/sky-images/wowj.jpg")
-	skies["x1"] = load("res://resources/img/sky-images/x1.jpg")
-	skies["x2"] = load("res://resources/img/sky-images/x2.jpg")
-	skies["x4"] = load("res://resources/img/sky-images/x4.jpg")
-	skies["x5"] = load("res://resources/img/sky-images/x5.jpg")
-	skies["x7"] = load("res://resources/img/sky-images/x7.jpg")
-	skies["x8"] = load("res://resources/img/sky-images/x8.jpg")
-	skies["x9"] = load("res://resources/img/sky-images/x9.jpg")
-	skies["xa"] = load("res://resources/img/sky-images/xa.jpg")
-	skies["xb"] = load("res://resources/img/sky-images/xb.jpg")
-	skies["xc"] = load("res://resources/img/sky-images/xc.jpg")
+	var sky_names := ["1998_01", "1998_02", "1998_03", "1998_05", "1998_06",
+		"Am_1", "Am_2", "Am_3", "ARZ1", "ASKY2", "BRAUN1", "CT6", "H7", "H",
+		"HAAMITT1", "HAAMITT4", "MOD2", "MOD4", "MOD5", "MOD7", "MOD8", "MOD9",
+		"MODA", "MODB", "Nacht1", "NACHT2", "NEWTRY5", "NOSKY", "NT1", "NT2",
+		"NT3", "NT5", "NT6", "NT7", "NT8", "NT9", "NTA", "S3_1", "S3_4",
+		"SMOD1", "SMOD2", "SMOD3", "SMOD4", "SMOD5", "SMOD6", "SMOD7", "SMOD8",
+		"STERNE", "wow1", "wow5", "wow7", "wow8", "wow9", "wowa", "wowb",
+		"wowc", "wowd", "wowe", "wowf", "wowh", "wowi", "wowj", "x1", "x2",
+		"x4", "x5", "x7", "x8", "x9", "xa", "xb", "xc"]
 	
-	musics[2] = load("res://resources/audio/track-2.mp3")
-	musics[3] = load("res://resources/audio/track-3.mp3")
-	musics[4] = load("res://resources/audio/track-4.mp3")
-	musics[5] = load("res://resources/audio/track-5.mp3")
-	musics[6] = load("res://resources/audio/track-6.mp3")
+	for sky_name in sky_names:
+		skies[sky_name] = load("res://resources/img/sky-images/%s.jpg" % sky_name)
+	
+	for track_id in [2, 3, 4, 5, 6]:
+		musics[track_id] = load("res://resources/audio/track-%s.mp3" % track_id)
 	
 	reload_mb_db_maps()
 	EventSystem.game_type_changed.connect(reload_units_and_buildings)
 	EventSystem.game_type_changed.connect(reload_mb_db_maps)
+
+
+func _load_building_images_for_set(set_id: int, skip_starts: Array, skip_ends: Array) -> void:
+	"""Load building images for a specific level set, skipping invalid indices."""
+	var idx := 0
+	var skip_idx := 0
+	
+	while idx < 256:
+		# Check if we need to skip to next valid range
+		if skip_idx < skip_starts.size() and idx == skip_starts[skip_idx]:
+			idx = skip_ends[skip_idx]
+			skip_idx += 1
+			continue
+		
+		# Load the images for this index
+		building_side_images[set_id][idx] = load("res://resources/img/Sector_images/set%s-side/Set%s_sector%s.jpg" % [set_id, set_id, idx])
+		building_top_images[set_id][idx] = load("res://resources/img/Sector_images/set%s-above/Set%s_sector_%s.jpg" % [set_id, set_id, idx])
+		idx += 1
 
 
 func reload_units_and_buildings() -> void:
@@ -323,6 +193,18 @@ func reload_units_and_buildings() -> void:
 		squad_images[int(squad.id)] = load("res://resources/img/squadImages/" + squad.image_file)
 	for building in ua_data.data[EditorState.game_data_type].other.buildings:
 		special_building_images[int(building.id)] = load("res://resources/img/blgMapImages/" + building.image_file)
+
+
+func get_sky(sky_name: String) -> Texture2D:
+	if not skies.has(sky_name):
+		return null
+	return skies[sky_name]
+
+
+func get_music(track_id: int) -> AudioStream:
+	if not musics.has(track_id):
+		return null
+	return musics[track_id]
 
 
 func reload_mb_db_maps() -> void:

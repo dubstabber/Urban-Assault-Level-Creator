@@ -23,6 +23,7 @@ config/windows_native_icon="res://resources/img/icons/icon.ico"
 
 [autoload]
 
+Constants="*res://globals/Constants.gd"
 EventSystem="*res://globals/EventSystem.gd"
 CurrentMapData="*res://globals/CurrentMapData.gd"
 Preloads="*res://globals/Preloads.gd"

@@ -12,7 +12,7 @@ func _on_about_to_popup() -> void:
 	
 	for sky in Preloads.skies:
 		var sky_button = Button.new()
-		sky_button.icon = Preloads.skies[sky]
+		sky_button.icon = Preloads.get_sky(sky)
 		sky_button.custom_minimum_size = Vector2(400, 200)
 		sky_button.icon_alignment = HORIZONTAL_ALIGNMENT_CENTER
 		sky_button.expand_icon = true
