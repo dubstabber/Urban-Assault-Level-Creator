@@ -39,7 +39,8 @@ text = "Urban Assault Level Creator"
 [node name="HSeparator" type="HSeparator" parent="ScrollContainer/MarginContainer/VBoxContainer"]
 layout_mode = 2
 
-[node name="Label2" type="Label" parent="ScrollContainer/MarginContainer/VBoxContainer"]
+[node name="VersionLabel" type="Label" parent="ScrollContainer/MarginContainer/VBoxContainer"]
+unique_name_in_owner = true
 layout_mode = 2
 theme_override_font_sizes/font_size = 14
 text = "Version 1.0.4b"

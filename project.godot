@@ -11,6 +11,7 @@ config_version=5
 [application]
 
 config/name="Urban Assault Level Creator"
+config/version="1.0.4b"
 run/main_scene="res://main/main.tscn"
 config/features=PackedStringArray("4.5", "GL Compatibility")
 run/low_processor_mode=true
