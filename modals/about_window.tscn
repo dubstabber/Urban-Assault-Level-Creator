@@ -3,6 +3,7 @@
 [ext_resource type="Script" uid="uid://dxmesf2tcq0i1" path="res://modals/about_window.gd" id="1_ot85n"]
 
 [node name="AboutWindow" type="Window"]
+oversampling_override = 1.0
 title = "About"
 initial_position = 1
 size = Vector2i(420, 200)
@@ -41,7 +42,7 @@ layout_mode = 2
 [node name="Label2" type="Label" parent="ScrollContainer/MarginContainer/VBoxContainer"]
 layout_mode = 2
 theme_override_font_sizes/font_size = 14
-text = "Version 1.0.4a"
+text = "Version 1.0.4b"
 
 [node name="HSeparator2" type="HSeparator" parent="ScrollContainer/MarginContainer/VBoxContainer"]
 layout_mode = 2
