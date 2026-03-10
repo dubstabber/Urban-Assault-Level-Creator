@@ -27,8 +27,10 @@ var font = preload("res://resources/Xolonium-Regular.ttf")
 var surface_type_map := {}
 var subsector_patterns := {} # typ_id -> {surface_type, sector_type, subsectors: PackedInt32Array}
 var tile_mapping := {} # subsector_index -> {val0, val1, val2, val3, flag}
+var lego_defs := {} # raw selected tile id -> {raw_id, base_name, base_file, skeleton_ref}
 var ground_textures: Array[Texture2D] = []
 var tile_remap := {} # optional: raw tile id -> {file:int, variant:int}
+var subsector_idx_remap := {} # optional: sub_idx -> remapped_sub_idx (per UA remap table)
 # Note: SetSdfParser is a global class (class_name in set_sdf_parser.gd);
 # avoid naming conflicts by not preloading it into a const with the same name.
 var _ground_fb_colors := [
@@ -392,6 +394,14 @@ func load_ground_textures() -> void:
 				ground_textures[i] = tex
 				print("[Preloads] ground_%d <- %s" % [i, common_path])
 				continue
+		else:
+			_ensure_common_placeholder_png(i)
+			if FileAccess.file_exists(common_path):
+				tex = load(common_path)
+				if tex is Texture2D:
+					ground_textures[i] = tex
+					print("[Preloads] ground_%d <- %s (placeholder)" % [i, common_path])
+					continue
 		# Final fallback: procedural color
 		ground_textures[i] = _make_color_tex(_ground_fb_colors[i % _ground_fb_colors.size()])
 		push_warning("Preloads: no ground texture for index %d (set %d). Using procedural color." % [i, set_id])
@@ -417,6 +427,7 @@ func reload_surface_type_map() -> void:
 	surface_type_map = full_data.get("surface_types", {})
 	subsector_patterns = full_data.get("subsector_patterns", {})
 	tile_mapping = full_data.get("tile_mapping", {})
+	lego_defs = full_data.get("lego_defs", {})
 
 	# Optional per-set remap file: res://resources/ua/sets/set{set_id}/scripts/tile_remap.json
 	# Format: { "0": {"file": 2, "variant": 0}, "1": {"file": 0, "variant": 1}, ... }
@@ -432,6 +443,20 @@ func reload_surface_type_map() -> void:
 			if typeof(tmp) == TYPE_DICTIONARY:
 				parsed_map = tmp
 			tile_remap = parsed_map
+
+	# Optional per-set subsector index remap: res://resources/ua/sets/set{set_id}/scripts/subsector_idx_remap.json
+	subsector_idx_remap = {}
+	var subremap_path := "res://resources/ua/sets/set%d/scripts/subsector_idx_remap.json" % set_id
+	if FileAccess.file_exists(subremap_path):
+		var f2 := FileAccess.open(subremap_path, FileAccess.READ)
+		if f2:
+			var txt2 := f2.get_as_text()
+			f2.close()
+			var tmp2 = JSON.parse_string(txt2)
+			var parsed_map2: Dictionary = {}
+			if typeof(tmp2) == TYPE_DICTIONARY:
+				parsed_map2 = tmp2
+			subsector_idx_remap = parsed_map2
 	
 	if surface_type_map.is_empty():
 		# Leave empty; renderer will default to 0
@@ -440,10 +465,27 @@ func reload_surface_type_map() -> void:
 		print("[Preloads] surface_type_map loaded for set ", set_id, ", entries=", surface_type_map.size())
 		print("[Preloads] subsector_patterns loaded for set ", set_id, ", entries=", subsector_patterns.size())
 		print("[Preloads] tile_mapping loaded for set ", set_id, ", entries=", tile_mapping.size())
+		print("[Preloads] lego_defs loaded for set ", set_id, ", entries=", lego_defs.size())
 		if not tile_remap.is_empty():
 			print("[Preloads] tile_remap loaded for set ", set_id, ", entries=", tile_remap.size())
+		if not subsector_idx_remap.is_empty():
+			print("[Preloads] subsector_idx_remap loaded for set ", set_id, ", entries=", subsector_idx_remap.size())
 
 func _make_color_tex(color: Color) -> Texture2D:
 	var img := Image.create(8, 8, false, Image.FORMAT_RGBA8)
 	img.fill(color)
 	return ImageTexture.create_from_image(img)
+
+func _ensure_common_placeholder_png(i: int) -> void:
+	var dir := "res://resources/terrain/textures/common"
+	var da := DirAccess.open("res://")
+	if da:
+		da.make_dir_recursive("resources/terrain/textures/common")
+	var path := "%s/ground_%d.png" % [dir, i]
+	if FileAccess.file_exists(path):
+		return
+	var img := Image.create(8, 8, false, Image.FORMAT_RGBA8)
+	img.fill(_ground_fb_colors[i % _ground_fb_colors.size()])
+	var err := img.save_png(path)
+	if err != OK:
+		push_warning("Preloads: failed to save placeholder %s (err %d)" % [path, err])

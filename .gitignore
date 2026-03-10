@@ -19,8 +19,8 @@ export_presets.cfg
 # IDE/settings
 .vscode/
 .idea/
-.windsurf/
 .augment/
+.windsurf/
 
 # OS-generated files
 .DS_Store
@@ -39,3 +39,6 @@ resources/ua/
 resources/terrain/
 .usor/
 docs/
+UA_source/
+urban_assault_decompiled-master/
+.augmentignore

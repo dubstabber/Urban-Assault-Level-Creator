@@ -19,6 +19,10 @@ func _init() -> void:
 			push_error("Failed to load test file: %s" % path)
 			failures += 1
 			continue
+		var base_type: String = String(Test.get_instance_base_type())
+		if base_type == "EditorScript" or not ClassDB.can_instantiate(base_type):
+			print("SKIP ", path, " (editor-only or non-instantiable test script)")
+			continue
 		var t = Test.new()
 		if not t.has_method("run"):
 			push_error("Test %s missing run() method" % path)

@@ -1,18 +1,31 @@
 extends Node3D
 class_name Map3DRenderer
 
+const UATerrainPieceLibraryScript := preload("res://map/terrain/ua_authored_piece_library.gd")
+
 const SECTOR_SIZE := 1200.0
 const HEIGHT_SCALE := 100.0
 const EDGE_SLOPE := 150.0 # Per-side width; UA fillers span ~300 across seam (~150 into each sector)
+const BORDER_TYP_TOP_LEFT := 248
+const BORDER_TYP_TOP := 252
+const BORDER_TYP_TOP_RIGHT := 249
+const BORDER_TYP_LEFT := 255
+const BORDER_TYP_RIGHT := 253
+const BORDER_TYP_BOTTOM_LEFT := 251
+const BORDER_TYP_BOTTOM := 254
+const BORDER_TYP_BOTTOM_RIGHT := 250
+const TERRAIN_PREVIEW_COLOR := Color(0.62, 0.66, 0.58, 1.0)
+const EDGE_PREVIEW_COLOR := Color(0.82, 0.48, 0.24, 0.55)
+const EDGE_BLEND_SHADER_PATH := "res://resources/terrain/shaders/edge_blend.gdshader"
 
 
-# Compute a world-space tile scale so a single texture tile spans ~3 sectors.
-# This reduces visible repetition within a single sector and keeps seamless tiling across sectors.
+# Preview top surfaces use world-space tiling with one repeat per sector.
 func _compute_tile_scale() -> float:
-	return 1.0 / (SECTOR_SIZE * 3.0)
+	return 1.0 / SECTOR_SIZE
 
 @onready var _terrain_mesh: MeshInstance3D = $TerrainMesh
 @onready var _edge_mesh: MeshInstance3D = $EdgeMesh if has_node("EdgeMesh") else null
+@onready var _authored_overlay: Node3D = $AuthoredOverlay if has_node("AuthoredOverlay") else null
 var _edge_overlay_enabled := false
 
 @onready var _camera: Camera3D = $Camera3D
@@ -24,7 +37,7 @@ var _move_speed := 1200.0
 var _sprint_mult := 2.0
 var _look_sens := 0.0025
 var _framed := false
-var _debug_shader_mode: int = 0 # 0=normal, 1=file index colors, 2=variant grayscale
+var _debug_shader_mode: int = 0 # Debug visualization for the current surface-type preview shader.
 
 func _ready() -> void:
 	var test_mesh := get_node_or_null("TestMesh")
@@ -130,12 +143,11 @@ func _frame_if_needed() -> void:
 	var h: int = int(_cmd.vertical_sectors)
 	if w <= 0 or h <= 0:
 		return
-	# Compute map center (XZ) - center on playable area, not including borders
-	# Use +Z downward to match 2D map (0,0) at top-left
-	# Playable area starts at SECTOR_SIZE and extends for w*SECTOR_SIZE (same for Z)
-	# So center is at (1 + w/2) * SECTOR_SIZE for X, and (1 + h/2) * SECTOR_SIZE for Z
+	# Compute map center (XZ) over the playable area, but offset by the rendered border ring.
+	# Use +Z downward to match 2D map (0,0) at top-left.
+	# Border sectors occupy [0 .. SECTOR_SIZE] on each side, so playable terrain starts at +1 sector.
 	var center := Vector3((1.0 + w * 0.5) * SECTOR_SIZE, 0.0, (1.0 + h * 0.5) * SECTOR_SIZE)
-	var dist: float = float(max(w, h)) * SECTOR_SIZE * 1.6
+	var dist: float = float(max(w + 2, h + 2)) * SECTOR_SIZE * 1.6
 	# Estimate terrain base height from hgt_map (use max for safety)
 	var hgt: PackedByteArray = _cmd.hgt_map
 	var mn: int = 255
@@ -197,116 +209,99 @@ func build_from_current_map() -> void:
 		return
 
 	var pre = get_node_or_null("/root/Preloads")
-	var mapping: Dictionary = pre.surface_type_map if pre else {}
-	var subsector_patterns: Dictionary = pre.subsector_patterns if pre else {}
-	var tile_mapping: Dictionary = pre.tile_mapping if pre else {}
-	var current_set = 1
-	if _cmd:
-		current_set = int(_cmd.level_set)
-	var result := build_mesh_with_textures(hgt, typ, w, h, mapping, subsector_patterns, tile_mapping, pre.tile_remap if pre else {}, current_set)
+	if pre == null:
+		var fallback_mesh := build_mesh(hgt, w, h)
+		print("[Map3D] build_from_current_map: Preloads unavailable, using untextured mesh with surfaces=", fallback_mesh.get_surface_count())
+		if _terrain_mesh:
+			_terrain_mesh.mesh = fallback_mesh
+			_apply_untextured_materials(fallback_mesh)
+		_set_authored_overlay([])
+		if _edge_mesh:
+			_edge_mesh.mesh = null
+		return
+
+	var result := build_mesh_with_textures(
+		hgt,
+		typ,
+		w,
+		h,
+		pre.surface_type_map,
+		pre.subsector_patterns,
+		pre.tile_mapping,
+		pre.tile_remap,
+		pre.subsector_idx_remap,
+		pre.lego_defs,
+		int(_cmd.level_set)
+	)
 	var mesh: ArrayMesh = result["mesh"]
 	var surface_to_surface_type: Dictionary = result["surface_to_surface_type"]
-	var surf_count: int = mesh.get_surface_count()
-	print("[Map3D] build_from_current_map: built mesh with surfaces=", surf_count)
+	var authored_piece_descriptors: Array = result.get("authored_piece_descriptors", [])
+	print("[Map3D] build_from_current_map: built textured mesh with surfaces=", mesh.get_surface_count())
 	if _terrain_mesh:
 		_terrain_mesh.mesh = mesh
 		print("[Map3D] build_from_current_map: mesh assigned to TerrainMesh")
-
-		# Apply sector top materials per surface (using ground_textures based on SurfaceType)
 		_apply_sector_top_materials(mesh, pre, surface_to_surface_type)
+	_set_authored_overlay(authored_piece_descriptors)
 
-		# Optionally build overlay edge strips; disabled to avoid z-fighting
-		if _edge_overlay_enabled:
-			_build_edges_from_current_map()
-		else:
-			if _edge_mesh:
-				_edge_mesh.mesh = null
+	# Optional edge overlay approximates retail `vside` / `hside` slurps with
+	# ordered-pair texture blends. Exact authored filler payloads are still unresolved.
+	if _edge_overlay_enabled and typ.size() == w * h:
+		_build_edges_from_current_map()
+	else:
+		if _edge_mesh:
+			_edge_mesh.mesh = null
 
 func clear() -> void:
 	if _terrain_mesh:
 		_terrain_mesh.mesh = null
+	if _edge_mesh:
+		_edge_mesh.mesh = null
+	_set_authored_overlay([])
+
+func _set_authored_overlay(descriptors: Array) -> void:
+	if _authored_overlay:
+		remove_child(_authored_overlay)
+		_authored_overlay.free()
+		_authored_overlay = null
+	if descriptors.is_empty():
+		return
+	_authored_overlay = UATerrainPieceLibraryScript.build_overlay_node(descriptors)
+	add_child(_authored_overlay)
+
+static func _make_preview_material(color: Color) -> StandardMaterial3D:
+	var mat := StandardMaterial3D.new()
+	mat.albedo_color = color
+	mat.metallic = 0.0
+	mat.roughness = 1.0
+	mat.cull_mode = BaseMaterial3D.CULL_DISABLED
+	if color.a < 1.0:
+		mat.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
+	return mat
+
+func _apply_untextured_materials(mesh: ArrayMesh) -> void:
+	if mesh == null:
+		return
+	for surface_idx in mesh.get_surface_count():
+		mesh.surface_set_material(surface_idx, _make_preview_material(TERRAIN_PREVIEW_COLOR))
 
 # Static, pure builder (useful for tests)
-# Rewritten to build a shared-vertex grid with alternating diagonals.
-# This avoids per-sector center splits (which cause T-junctions and seams)
-# and ensures consistent connectivity between adjacent sectors.
+# Retail constants confirmed from UA.EXE (`1200.0` sector size / `600.0` center offset).
+# The strongest current retail evidence shows one raw height per playable cell, with
+# flat cell-top placement and separate filler/slurp geometry bridging neighboring cells.
 static func build_mesh(hgt: PackedByteArray, w: int, h: int) -> ArrayMesh:
 	var bw := w + 2
-	var bh := h + 2
-	if hgt.size() != bw * bh or w <= 0 or h <= 0:
+	if hgt.size() != bw * (h + 2) or w <= 0 or h <= 0:
 		return ArrayMesh.new()
 	var st := SurfaceTool.new()
 	st.begin(Mesh.PRIMITIVE_TRIANGLES)
-	var EDGE: float = float(min(EDGE_SLOPE, SECTOR_SIZE * 0.49))
-	for y in bh:
-		for x in bw:
-			var bx := x
-			var by := y
-			# Heights: hgt values are sector centers; scale to world Y
-			var y_c := float(hgt[by * bw + bx]) * HEIGHT_SCALE
-			var bx0: int = max(0, bx - 1)
-			var bx1: int = min(bw - 1, bx + 1)
-			var by0: int = max(0, by - 1)
-			var by1: int = min(bh - 1, by + 1)
-			var y_w := float(hgt[by * bw + bx0]) * HEIGHT_SCALE
-			var y_e := float(hgt[by * bw + bx1]) * HEIGHT_SCALE
-			var y_n := float(hgt[by0 * bw + bx]) * HEIGHT_SCALE
-			var y_s := float(hgt[by1 * bw + bx]) * HEIGHT_SCALE
-			# Diagonal corner averaged heights (UA-style), clamped at borders
-			var y_nw := ((float(hgt[by0 * bw + bx0]) + float(hgt[by0 * bw + bx]) + float(hgt[by * bw + bx0]) + float(hgt[by * bw + bx])) * 0.25) * HEIGHT_SCALE
-			var y_ne := ((float(hgt[by0 * bw + bx1]) + float(hgt[by0 * bw + bx]) + float(hgt[by * bw + bx1]) + float(hgt[by * bw + bx])) * 0.25) * HEIGHT_SCALE
-			var y_sw := ((float(hgt[by1 * bw + bx0]) + float(hgt[by1 * bw + bx]) + float(hgt[by * bw + bx0]) + float(hgt[by * bw + bx])) * 0.25) * HEIGHT_SCALE
-			var y_se := ((float(hgt[by1 * bw + bx1]) + float(hgt[by1 * bw + bx]) + float(hgt[by * bw + bx1]) + float(hgt[by * bw + bx])) * 0.25) * HEIGHT_SCALE
-			# Sector outer/inner rects
-			var x0 := x * SECTOR_SIZE
-			var x1 := (x + 1) * SECTOR_SIZE
-			# Use +Z downward to match 2D map (row y increases downward)
-			var z0 := y * SECTOR_SIZE
-			var z1 := (y + 1) * SECTOR_SIZE
-			var ix0: float = x0 + EDGE
-			var ix1: float = x1 - EDGE
-			# Inner offsets: move inward from top (z0) by +EDGE, and from bottom (z1) by -EDGE
-			var iz0: float = z0 + EDGE
-			var iz1: float = z1 - EDGE
-			# Edge target heights at the shared boundary (symmetric midpoint; only cardinal neighbors)
-			var y_n_edge := (y_c + y_n) * 0.5
-			var y_s_edge := (y_c + y_s) * 0.5
-			var y_w_edge := (y_c + y_w) * 0.5
-			var y_e_edge := (y_c + y_e) * 0.5
-			# 1) Center plateau (flat at sector height)
-			var p_nw := Vector3(ix0, y_c, iz0)
-			var p_ne := Vector3(ix1, y_c, iz0)
-			var p_se := Vector3(ix1, y_c, iz1)
-			var p_sw := Vector3(ix0, y_c, iz1)
-			st.add_vertex(p_nw); st.add_vertex(p_ne); st.add_vertex(p_se)
-			st.add_vertex(p_nw); st.add_vertex(p_se); st.add_vertex(p_sw)
-			# 2) Edge strips: north, south, west, east (meet neighbors at the midpoint height; only cardinal neighbors)
-			# North strip: [ix0..ix1] x [z0..iz0] from y_n_edge at z0 to y_c at iz0
-			st.add_vertex(Vector3(ix0, y_n_edge, z0)); st.add_vertex(Vector3(ix1, y_n_edge, z0)); st.add_vertex(Vector3(ix1, y_c, iz0))
-			st.add_vertex(Vector3(ix0, y_n_edge, z0)); st.add_vertex(Vector3(ix1, y_c, iz0)); st.add_vertex(Vector3(ix0, y_c, iz0))
-			# South strip: [ix0..ix1] x [iz1..z1] from y_c at iz1 to y_s_edge at z1
-			st.add_vertex(Vector3(ix0, y_c, iz1)); st.add_vertex(Vector3(ix1, y_c, iz1)); st.add_vertex(Vector3(ix1, y_s_edge, z1))
-			st.add_vertex(Vector3(ix0, y_c, iz1)); st.add_vertex(Vector3(ix1, y_s_edge, z1)); st.add_vertex(Vector3(ix0, y_s_edge, z1))
-			# West strip: [x0..ix0] x [iz1..iz0] from y_w_edge at x0 to y_c at ix0
-			st.add_vertex(Vector3(x0, y_w_edge, iz0)); st.add_vertex(Vector3(ix0, y_c, iz0)); st.add_vertex(Vector3(ix0, y_c, iz1))
-			st.add_vertex(Vector3(x0, y_w_edge, iz0)); st.add_vertex(Vector3(ix0, y_c, iz1)); st.add_vertex(Vector3(x0, y_w_edge, iz1))
-			# East strip: [ix1..x1] x [iz1..iz0] from y_c at ix1 to y_e_edge at x1
-			st.add_vertex(Vector3(ix1, y_c, iz0)); st.add_vertex(Vector3(x1, y_e_edge, iz0)); st.add_vertex(Vector3(x1, y_e_edge, iz1))
-			st.add_vertex(Vector3(ix1, y_c, iz0)); st.add_vertex(Vector3(x1, y_e_edge, iz1)); st.add_vertex(Vector3(ix1, y_c, iz1))
-			# 3) Corner patches: use diagonal average only at the single corner vertex; edge boundaries use midpoint heights
-			# NW corner: [x0..ix0] x [z0..iz0]
-			st.add_vertex(Vector3(x0, y_nw, z0)); st.add_vertex(Vector3(ix0, y_n_edge, z0)); st.add_vertex(Vector3(ix0, y_c, iz0))
-			st.add_vertex(Vector3(x0, y_nw, z0)); st.add_vertex(Vector3(ix0, y_c, iz0)); st.add_vertex(Vector3(x0, y_w_edge, iz0))
-			# NE corner: [ix1..x1] x [z0..iz0]
-			st.add_vertex(Vector3(ix1, y_n_edge, z0)); st.add_vertex(Vector3(x1, y_ne, z0)); st.add_vertex(Vector3(x1, y_e_edge, iz0))
-			st.add_vertex(Vector3(ix1, y_n_edge, z0)); st.add_vertex(Vector3(x1, y_e_edge, iz0)); st.add_vertex(Vector3(ix1, y_c, iz0))
-			# SE corner: [ix1..x1] x [iz1..z1]
-			st.add_vertex(Vector3(ix1, y_c, iz1)); st.add_vertex(Vector3(x1, y_e_edge, iz1)); st.add_vertex(Vector3(x1, y_se, z1))
-			st.add_vertex(Vector3(ix1, y_c, iz1)); st.add_vertex(Vector3(x1, y_se, z1)); st.add_vertex(Vector3(ix1, y_s_edge, z1))
-			# SW corner: [x0..ix0] x [iz1..z1]
-			st.add_vertex(Vector3(ix0, y_c, iz1)); st.add_vertex(Vector3(ix0, y_s_edge, z1)); st.add_vertex(Vector3(x0, y_sw, z1))
-			st.add_vertex(Vector3(x0, y_w_edge, iz1)); st.add_vertex(Vector3(ix0, y_c, iz1)); st.add_vertex(Vector3(x0, y_sw, z1))
-
+	for y in range(-1, h + 1):
+		for x in range(-1, w + 1):
+			var sector_y := _sample_hgt_height(hgt, w, h, x, y)
+			var x0 := float(x + 1) * SECTOR_SIZE
+			var x1 := float(x + 2) * SECTOR_SIZE
+			var z0 := float(y + 1) * SECTOR_SIZE
+			var z1 := float(y + 2) * SECTOR_SIZE
+			_draw_flat_sector_geometry(st, x0, x1, z0, z1, sector_y)
 
 	# Index and generate normals
 	st.index()
@@ -314,581 +309,406 @@ static func build_mesh(hgt: PackedByteArray, w: int, h: int) -> ArrayMesh:
 	var mesh2: ArrayMesh = st.commit()
 	return mesh2
 
-# Compute a per-sector atlas variant from a typ_map value using subsector patterns.
-# Returns the average/center subsector index from the 3x3 grid for simple cases,
-# or encodes full pattern information for faithful rendering.
-static func _variant_from_typ(typ_value: int, subsector_patterns: Dictionary) -> int:
-	if subsector_patterns.has(typ_value):
-		var pattern = subsector_patterns[typ_value]
-		var subsectors: PackedInt32Array = pattern.get("subsectors", PackedInt32Array())
-		# Use center subsector (index 4 in 3x3 grid) as representative variant
-		# This provides better variety than just typ_value & 3
-		if subsectors.size() >= 5:
-			# Map subsector index to 0-3 range for 2x2 atlas compatibility
-			return subsectors[4] & 3
-	# Fallback to simple variant
-	return typ_value & 3
-# This function maps subsector tile indices to ground texture files using UA's original logic
+static func _sample_hgt_height(hgt: PackedByteArray, w: int, h: int, sx: int, sy: int) -> float:
+	var bw := w + 2
+	var bh := h + 2
+	sx = clampi(sx + 1, 0, bw - 1)
+	sy = clampi(sy + 1, 0, bh - 1)
+	return float(hgt[sy * bw + sx]) * HEIGHT_SCALE
+
+static func _implicit_border_typ_value(w: int, h: int, sx: int, sy: int) -> int:
+	var at_left := sx < 0
+	var at_right := sx >= w
+	var at_top := sy < 0
+	var at_bottom := sy >= h
+	if at_top:
+		if at_left:
+			return BORDER_TYP_TOP_LEFT
+		if at_right:
+			return BORDER_TYP_TOP_RIGHT
+		return BORDER_TYP_TOP
+	if at_bottom:
+		if at_left:
+			return BORDER_TYP_BOTTOM_LEFT
+		if at_right:
+			return BORDER_TYP_BOTTOM_RIGHT
+		return BORDER_TYP_BOTTOM
+	if at_left:
+		return BORDER_TYP_LEFT
+	if at_right:
+		return BORDER_TYP_RIGHT
+	return -1
+
+static func _typ_value_with_implicit_border(typ: PackedByteArray, w: int, h: int, sx: int, sy: int) -> int:
+	if sx >= 0 and sx < w and sy >= 0 and sy < h:
+		return int(typ[sy * w + sx])
+	return _implicit_border_typ_value(w, h, sx, sy)
+
+static func _corner_average_h(hgt: PackedByteArray, w: int, h: int, corner_x: int, corner_y: int) -> float:
+	var h_nw := _sample_hgt_height(hgt, w, h, corner_x - 1, corner_y - 1)
+	var h_ne := _sample_hgt_height(hgt, w, h, corner_x, corner_y - 1)
+	var h_sw := _sample_hgt_height(hgt, w, h, corner_x - 1, corner_y)
+	var h_se := _sample_hgt_height(hgt, w, h, corner_x, corner_y)
+	return (h_nw + h_ne + h_sw + h_se) * 0.25
+
+static func _draw_flat_sector_geometry(st: SurfaceTool, x0: float, x1: float, z0: float, z1: float, y: float) -> void:
+	var nw := Vector3(x0, y, z0)
+	var ne := Vector3(x1, y, z0)
+	var se := Vector3(x1, y, z1)
+	var sw := Vector3(x0, y, z1)
+	st.add_vertex(nw); st.add_vertex(ne); st.add_vertex(se)
+	st.add_vertex(nw); st.add_vertex(se); st.add_vertex(sw)
+
+static func _preview_surface_type_for_typ(mapping: Dictionary, typ_value: int) -> int:
+	if not mapping.has(typ_value):
+		return -1
+	return clampi(int(mapping.get(typ_value, 0)), 0, 5)
+
+static func _retail_slurp_bucket_key(surface_a: int, surface_b: int, neighbor_dx: int, neighbor_dy: int) -> String:
+	# Retail draw-list helpers (`sub_4D8498` / `sub_4D85B8`) select slurp tables by the
+	# ordered neighboring SurfaceType pair and by seam orientation.
+	# - left/right neighboring sectors -> `vside`
+	# - top/bottom neighboring sectors -> `hside`
+	if neighbor_dx != 0 and neighbor_dy == 0:
+		return "vside_%d_%d" % [surface_a, surface_b]
+	if neighbor_dy != 0 and neighbor_dx == 0:
+		return "hside_%d_%d" % [surface_a, surface_b]
+	return ""
+
+static func _surface_pair_from_slurp_bucket_key(bucket_key: String) -> Dictionary:
+	var parts := bucket_key.split("_")
+	if parts.size() != 3:
+		return {}
+	if parts[0] != "vside" and parts[0] != "hside":
+		return {}
+	return {
+		"family": parts[0],
+		"surface_a": clampi(int(parts[1]), 0, 5),
+		"surface_b": clampi(int(parts[2]), 0, 5),
+	}
+
+static func _draw_quad(st: SurfaceTool, xl: float, xr: float, zt: float, zb: float, y: float, f: int, cells: int, v: int, rot_deg: int = 0, u0: float = 0.0, vv0: float = 0.0, u1: float = 1.0, vv1: float = 1.0) -> void:
+	var rot := ((rot_deg % 360) + 360) % 360
+	var uv_nw := Vector2(u0, vv0)
+	var uv_ne := Vector2(u1, vv0)
+	var uv_se := Vector2(u1, vv1)
+	var uv_sw := Vector2(u0, vv1)
+	if rot == 90:
+		uv_nw = Vector2(u1, vv0)
+		uv_ne = Vector2(u1, vv1)
+		uv_se = Vector2(u0, vv1)
+		uv_sw = Vector2(u0, vv0)
+	elif rot == 180:
+		uv_nw = Vector2(u1, vv1)
+		uv_ne = Vector2(u0, vv1)
+		uv_se = Vector2(u0, vv0)
+		uv_sw = Vector2(u1, vv0)
+	elif rot == 270:
+		uv_nw = Vector2(u0, vv1)
+		uv_ne = Vector2(u0, vv0)
+		uv_se = Vector2(u1, vv0)
+		uv_sw = Vector2(u1, vv1)
+	st.set_color(Color((float(v) + 0.5) / float(cells), (float(f) + 0.5) / 6.0, 0.0))
+	st.set_uv(uv_nw)
+	st.add_vertex(Vector3(xl, y, zt))
+	st.set_uv(uv_ne)
+	st.add_vertex(Vector3(xr, y, zt))
+	st.set_uv(uv_se)
+	st.add_vertex(Vector3(xr, y, zb))
+	st.set_uv(uv_nw)
+	st.add_vertex(Vector3(xl, y, zt))
+	st.set_uv(uv_se)
+	st.add_vertex(Vector3(xr, y, zb))
+	st.set_uv(uv_sw)
+	st.add_vertex(Vector3(xl, y, zb))
+
 static func _decode_raw_to_fcv(raw_val: int, default_file: int) -> Array:
 	var f: int
 	var cells: int
 	var v: int
-	# Map raw tile id by repeating 36-entry buckets. UA encodes files/variants in groups of 36.
-	var n := raw_val % 36
-	if n >= 0 and n < 4:
-		# 0-3: sector surface type, 2x2
+	var n := maxi(raw_val, 0)
+	if n <= 3:
 		f = default_file
 		cells = (16 if f == 4 else 4)
 		v = n
-	elif n < 8:
-		# 4-7: file 1, 2x2
+	elif n <= 7:
 		f = 1
 		cells = 4
 		v = n - 4
-	elif n < 12:
-		# 8-11: file 2, 2x2
+	elif n <= 11:
 		f = 2
 		cells = 4
 		v = n - 8
-	elif n < 16:
-		# 12-15: file 3, 2x2
+	elif n <= 15:
 		f = 3
 		cells = 4
 		v = n - 12
-	elif n < 32:
-		# 16-31: file 4, 4x4 (16 variants)
+	elif n <= 31:
 		f = 4
 		cells = 16
 		v = n - 16
-	else:
-		# 32-35: file 5, 2x2
+	elif n <= 35:
 		f = 5
 		cells = 4
 		v = n - 32
+	elif n <= 127:
+		var file_idx := (n - 36) % 6
+		f = (default_file if file_idx == 0 else file_idx)
+		cells = (16 if f == 4 else 4)
+		v = 0
+	else:
+		f = default_file
+		cells = (16 if f == 4 else 4)
+		v = 0
 	return [f, cells, v]
 
-# Same as above, but first consults an optional per-set remap (raw tile id -> file/variant)
 static func _decode_raw_to_fcv_with_remap(raw_val: int, default_file: int, tile_remap: Dictionary) -> Array:
-	if tile_remap and tile_remap.has(str(raw_val)):
-		var m: Dictionary = tile_remap[str(raw_val)]
-		var file_idx: int = int(m.get("file", default_file))
-		var cells: int = (16 if file_idx == 4 else 4)
-		var variant_idx: int = clampi(int(m.get("variant", 0)), 0, cells - 1)
-		return [file_idx, cells, variant_idx]
+	if tile_remap:
+		var raw_key := str(raw_val)
+		if tile_remap.has(raw_key):
+			var remap_entry: Dictionary = tile_remap[raw_key]
+			var file_idx := int(remap_entry.get("file", default_file))
+			var cells := (16 if file_idx == 4 else 4)
+			var variant_idx := clampi(int(remap_entry.get("variant", 0)), 0, cells - 1)
+			return [file_idx, cells, variant_idx]
 	return _decode_raw_to_fcv(raw_val, default_file)
 
-# Debug helper to understand subsector-to-texture mapping
-static func debug_subsector_mapping(typ_value: int, subsector_patterns: Dictionary, tile_mapping: Dictionary) -> void:
-	if not subsector_patterns.has(typ_value):
-		print("DEBUG: typ %d has no subsector pattern" % typ_value)
-		return
-	
-	var pattern = subsector_patterns[typ_value]
-	var subsectors: PackedInt32Array = pattern.get("subsectors", PackedInt32Array())
-	var surface_type: int = int(pattern.get("surface_type", 0))
-	
-	print("DEBUG: typ %d -> surface_type %d, subsectors: %s" % [typ_value, surface_type, subsectors])
-	
-	for i in range(min(subsectors.size(), 9)):
-		var sub_idx = subsectors[i]
-		if tile_mapping.has(sub_idx):
-			var tile_data = tile_mapping[sub_idx]
-			var raw_vals = [tile_data.get("val0", 0), tile_data.get("val1", 0), tile_data.get("val2", 0), tile_data.get("val3", 0)]
-			print("  subsector[%d] = %d -> tile_mapping vals: %s" % [i, sub_idx, raw_vals])
-		else:
-			print("  subsector[%d] = %d -> NO TILE MAPPING!" % [i, sub_idx])
+static func _remap_subsector_idx(subsector_idx: int, remap_table: Dictionary) -> int:
+	if remap_table:
+		var key := str(subsector_idx)
+		if remap_table.has(key):
+			return int(remap_table[key])
+		if remap_table.has(subsector_idx):
+			return int(remap_table[subsector_idx])
+	return subsector_idx
 
-# Build mesh with per-sector texturing support
-# Creates separate surfaces for each SurfaceType (0-5) to enable different ground textures
-# Returns: Dictionary with keys "mesh" (ArrayMesh) and "surface_to_surface_type" (Dictionary mapping surface_index -> SurfaceType)
-static func build_mesh_with_textures(hgt: PackedByteArray, typ: PackedByteArray, w: int, h: int, mapping: Dictionary, subsector_patterns: Dictionary = {}, tile_mapping: Dictionary = {}, tile_remap: Dictionary = {}, set_id: int = 1) -> Dictionary:
+static func _tile_desc_for_subsector(tile_mapping: Dictionary, subsector_idx: int) -> Dictionary:
+	if tile_mapping.is_empty():
+		return {}
+	if tile_mapping.has(subsector_idx):
+		return tile_mapping[subsector_idx]
+	var key := str(subsector_idx)
+	if tile_mapping.has(key):
+		return tile_mapping[key]
+	return {}
+
+static func _sector_pattern_for_typ(subsector_patterns: Dictionary, typ_value: int, fallback_surface_type: int) -> Dictionary:
+	if subsector_patterns.is_empty():
+		return {
+			"surface_type": fallback_surface_type,
+			"sector_type": 1,
+			"subsectors": PackedInt32Array()
+		}
+	if subsector_patterns.has(typ_value):
+		return subsector_patterns[typ_value]
+	var key := str(typ_value)
+	if subsector_patterns.has(key):
+		return subsector_patterns[key]
+	return {
+		"surface_type": fallback_surface_type,
+		"sector_type": 1,
+		"subsectors": PackedInt32Array()
+	}
+
+static func _default_file_variant_for_subsector(surface_type: int, subsector_idx: int, tile_mapping: Dictionary, tile_remap: Dictionary, subsector_idx_remap: Dictionary) -> Array:
+	return _default_piece_selection_for_subsector(surface_type, subsector_idx, tile_mapping, tile_remap, subsector_idx_remap).get("piece", [clampi(surface_type, 0, 5), (16 if surface_type == 4 else 4), 0])
+
+static func _selected_raw_id_for_tile_desc(tile_desc: Dictionary) -> int:
+	var start_health := 255 if int(tile_desc.get("flag", 0)) != 0 else 0
+	return int(tile_desc.get("val0", 0)) if start_health >= 201 else int(tile_desc.get("val3", 0))
+
+static func _default_piece_selection_for_subsector(surface_type: int, subsector_idx: int, tile_mapping: Dictionary, tile_remap: Dictionary, subsector_idx_remap: Dictionary) -> Dictionary:
+	var default_file := clampi(surface_type, 0, 5)
+	var remapped_idx := _remap_subsector_idx(subsector_idx, subsector_idx_remap)
+	var tile_desc := _tile_desc_for_subsector(tile_mapping, remapped_idx)
+	if tile_desc.is_empty():
+		return {"raw_id": -1, "piece": [default_file, (16 if default_file == 4 else 4), 0]}
+	var raw_val := _selected_raw_id_for_tile_desc(tile_desc)
+	return {"raw_id": raw_val, "piece": _decode_raw_to_fcv_with_remap(raw_val, default_file, tile_remap)}
+
+static func _append_vertical_seam_strip(st: SurfaceTool, x0: float, seam_x: float, x1: float, z0: float, z1: float, y_left: float, y_right: float, y_top_avg: float, y_bottom_avg: float) -> void:
+	var lt := Vector3(x0, y_left, z0)
+	var st_top := Vector3(seam_x, y_top_avg, z0)
+	var rt := Vector3(x1, y_right, z0)
+	var lb := Vector3(x0, y_left, z1)
+	var st_bottom := Vector3(seam_x, y_bottom_avg, z1)
+	var rb := Vector3(x1, y_right, z1)
+	st.set_uv(Vector2(0.0, 0.0)); st.add_vertex(lt)
+	st.set_uv(Vector2(0.5, 0.0)); st.add_vertex(st_top)
+	st.set_uv(Vector2(0.5, 1.0)); st.add_vertex(st_bottom)
+	st.set_uv(Vector2(0.0, 0.0)); st.add_vertex(lt)
+	st.set_uv(Vector2(0.5, 1.0)); st.add_vertex(st_bottom)
+	st.set_uv(Vector2(0.0, 1.0)); st.add_vertex(lb)
+	st.set_uv(Vector2(0.5, 0.0)); st.add_vertex(st_top)
+	st.set_uv(Vector2(1.0, 0.0)); st.add_vertex(rt)
+	st.set_uv(Vector2(1.0, 1.0)); st.add_vertex(rb)
+	st.set_uv(Vector2(0.5, 0.0)); st.add_vertex(st_top)
+	st.set_uv(Vector2(1.0, 1.0)); st.add_vertex(rb)
+	st.set_uv(Vector2(0.5, 1.0)); st.add_vertex(st_bottom)
+
+static func _append_horizontal_seam_strip(st: SurfaceTool, x0: float, x1: float, z0: float, seam_z: float, z1: float, y_top: float, y_bottom: float, y_left_avg: float, y_right_avg: float) -> void:
+	var tl := Vector3(x0, y_top, z0)
+	var top_right := Vector3(x1, y_top, z0)
+	var sl := Vector3(x0, y_left_avg, seam_z)
+	var sr := Vector3(x1, y_right_avg, seam_z)
+	var bl := Vector3(x0, y_bottom, z1)
+	var br := Vector3(x1, y_bottom, z1)
+	st.set_uv(Vector2(0.0, 0.0)); st.add_vertex(tl)
+	st.set_uv(Vector2(1.0, 0.0)); st.add_vertex(top_right)
+	st.set_uv(Vector2(1.0, 0.5)); st.add_vertex(sr)
+	st.set_uv(Vector2(0.0, 0.0)); st.add_vertex(tl)
+	st.set_uv(Vector2(1.0, 0.5)); st.add_vertex(sr)
+	st.set_uv(Vector2(0.0, 0.5)); st.add_vertex(sl)
+	st.set_uv(Vector2(0.0, 0.5)); st.add_vertex(sl)
+	st.set_uv(Vector2(1.0, 0.5)); st.add_vertex(sr)
+	st.set_uv(Vector2(1.0, 1.0)); st.add_vertex(br)
+	st.set_uv(Vector2(0.0, 0.5)); st.add_vertex(sl)
+	st.set_uv(Vector2(1.0, 1.0)); st.add_vertex(br)
+	st.set_uv(Vector2(0.0, 1.0)); st.add_vertex(bl)
+static func build_mesh_with_textures(hgt: PackedByteArray, typ: PackedByteArray, w: int, h: int, mapping: Dictionary, subsector_patterns: Dictionary = {}, tile_mapping: Dictionary = {}, tile_remap: Dictionary = {}, subsector_idx_remap: Dictionary = {}, lego_defs: Dictionary = {}, set_id: int = 1) -> Dictionary:
 	var bw := w + 2
 	var bh := h + 2
 	if hgt.size() != bw * bh or typ.size() != w * h or w <= 0 or h <= 0:
-		return {"mesh": ArrayMesh.new(), "surface_to_surface_type": {}}
+		return {"mesh": ArrayMesh.new(), "surface_to_surface_type": {}, "authored_piece_descriptors": []}
 
-	# Group sectors by SurfaceType (0-5) to create separate surfaces
-	# This allows each SurfaceType to have its own ground texture
-	var surface_tools := {} # SurfaceType -> SurfaceTool
-	var surface_type_order: Array[int] = [] # Track order of SurfaceTypes for surface index mapping
+	# Retail evidence shows each playable sector stays at a single hgt_map height, but the visible
+	# top can still be composed from authored subsector pieces. Compact sectors render as 1x1,
+	# while non-compact sectors render a 3x3 grid. For the read-only preview we reuse the set.sdf
+	# subsector/tile tables to choose the default visible piece for each cell, then feed the ground
+	# shader per-piece file/variant data while keeping seam/slurp handling in the overlay mesh.
 
-	# Pre-create SurfaceTools for all 6 SurfaceTypes
+	var surface_tools := {}
+	var surface_type_order: Array[int] = []
 	for i in 6:
 		var st := SurfaceTool.new()
 		st.begin(Mesh.PRIMITIVE_TRIANGLES)
 		surface_tools[i] = st
 		surface_type_order.append(i)
-	# Add one extra surface for invalid/unmapped typ values (-1)
 	var st_invalid := SurfaceTool.new()
 	st_invalid.begin(Mesh.PRIMITIVE_TRIANGLES)
 	surface_tools[-1] = st_invalid
 	surface_type_order.append(-1)
-	# Add one extra surface for border sectors (no typ_map) (-2)
-	var st_border := SurfaceTool.new()
-	st_border.begin(Mesh.PRIMITIVE_TRIANGLES)
-	surface_tools[-2] = st_border
-	surface_type_order.append(-2)
+	var authored_piece_descriptors: Array = []
 
-	var EDGE: float = float(min(EDGE_SLOPE, SECTOR_SIZE * 0.49))
-
-	# Build geometry per sector, adding to appropriate SurfaceTool based on typ_map
-	for y in bh:
-		for x in bw:
-			var bx := x
-			var by := y
-
-			# Determine surface type. Border sectors use a fallback surface (-2).
-			var is_border := (bx == 0 or by == 0 or bx == bw - 1 or by == bh - 1)
-			var surface_type: int = -2 if is_border else 0
-			var typ_value := 0
-			if not is_border:
-				# Get typ_map value for this sector and map to SurfaceType
-				var sector_x := bx - 1 # Convert from bordered coords to typ_map coords
-				var sector_y := by - 1
-				var typ_idx := sector_y * w + sector_x
-				typ_value = int(typ[typ_idx])
-				var has_map := mapping.has(typ_value)
-				surface_type = int(mapping.get(typ_value, 0))
-				surface_type = clampi(surface_type, 0, 5)
-				if not has_map:
-					surface_type = -1
-
-			# Get SurfaceTool for this SurfaceType (already created)
+	for y in range(-1, h + 1):
+		for x in range(-1, w + 1):
+			var typ_value := _typ_value_with_implicit_border(typ, w, h, x, y)
+			var surface_type := _preview_surface_type_for_typ(mapping, typ_value)
 			var st: SurfaceTool = surface_tools[surface_type]
+			var sector_y := _sample_hgt_height(hgt, w, h, x, y)
+			var x0 := float(x + 1) * SECTOR_SIZE
+			var x1 := float(x + 2) * SECTOR_SIZE
+			var z0 := float(y + 1) * SECTOR_SIZE
+			var z1 := float(y + 2) * SECTOR_SIZE
+			if surface_type == -1:
+				_draw_quad(st, x0, x1, z0, z1, sector_y, 0, 1, 0)
+				continue
 
-			# Encode a per-sector atlas variant into the vertex color so the shader
-			# can pick different 2x2 atlas quadrants for different typ ids sharing
-			# the same SurfaceType. Border sectors keep the default variant 0.
-			var total_cells := 4
-			var variant_index := 0
-			if not is_border:
-				total_cells = (16 if surface_type == 4 else 4)
-				if subsector_patterns.has(typ_value):
-					var pattern2 = subsector_patterns[typ_value]
-					var subs2: PackedInt32Array = pattern2.get("subsectors", PackedInt32Array())
-					if subs2.size() >= 5:
-						variant_index = subs2[4] & (total_cells - 1)
-					else:
-						variant_index = typ_value & (total_cells - 1)
+			var pattern := _sector_pattern_for_typ(subsector_patterns, typ_value, surface_type)
+			var sector_type := int(pattern.get("sector_type", 1))
+			var subsectors: PackedInt32Array = pattern.get("subsectors", PackedInt32Array())
+			if sector_type == 0 and subsectors.size() >= 9:
+				var piece_w := SECTOR_SIZE / 3.0
+				var piece_h := SECTOR_SIZE / 3.0
+				for sub_y in 3:
+					for sub_x in 3:
+						var sub_idx := sub_y * 3 + sub_x
+						var selection := _default_piece_selection_for_subsector(surface_type, int(subsectors[sub_idx]), tile_mapping, tile_remap, subsector_idx_remap)
+						var piece: Array = selection.get("piece", [surface_type, (16 if surface_type == 4 else 4), 0])
+						var piece_x0 := x0 + float(sub_x) * piece_w
+						var piece_x1 := x0 + float(sub_x + 1) * piece_w
+						var piece_z0 := z0 + float(sub_y) * piece_h
+						var piece_z1 := z0 + float(sub_y + 1) * piece_h
+						var authored := UATerrainPieceLibraryScript.resolve_authored_descriptor(
+							set_id,
+							int(selection.get("raw_id", -1)),
+							lego_defs,
+							Vector3((piece_x0 + piece_x1) * 0.5, sector_y, (piece_z0 + piece_z1) * 0.5)
+						)
+						if not authored.is_empty():
+							authored_piece_descriptors.append(authored)
+							continue
+						_draw_quad(
+							st,
+							piece_x0,
+							piece_x1,
+							piece_z0,
+							piece_z1,
+							sector_y,
+							int(piece[0]),
+							int(piece[1]),
+							int(piece[2])
+						)
+			else:
+				var piece := [surface_type, (16 if surface_type == 4 else 4), 0]
+				var authored := {}
+				if subsectors.size() > 0:
+					var selection := _default_piece_selection_for_subsector(surface_type, int(subsectors[0]), tile_mapping, tile_remap, subsector_idx_remap)
+					piece = selection.get("piece", piece)
+					authored = UATerrainPieceLibraryScript.resolve_authored_descriptor(
+						set_id,
+						int(selection.get("raw_id", -1)),
+						lego_defs,
+						Vector3((x0 + x1) * 0.5, sector_y, (z0 + z1) * 0.5)
+					)
+				if authored.is_empty():
+					_draw_quad(st, x0, x1, z0, z1, sector_y, int(piece[0]), int(piece[1]), int(piece[2]))
 				else:
-					variant_index = typ_value & (total_cells - 1)
-			# Pack variant (0..3) into COLOR.r in the 0..1 range as (cell+0.5)/4.
-			var packed_variant := clampi(variant_index, 0, total_cells - 1)
-			st.set_color(Color((float(packed_variant) + 0.5) / float(total_cells), 0.0, 0.0))
+					authored_piece_descriptors.append(authored)
 
-			# Heights: hgt values are sector centers; scale to world Y
-			var y_c := float(hgt[by * bw + bx]) * HEIGHT_SCALE
-			var bx0: int = max(0, bx - 1)
-			var bx1: int = min(bw - 1, bx + 1)
-			var by0: int = max(0, by - 1)
-			var by1: int = min(bh - 1, by + 1)
-			var y_w := float(hgt[by * bw + bx0]) * HEIGHT_SCALE
-			var y_e := float(hgt[by * bw + bx1]) * HEIGHT_SCALE
-			var y_n := float(hgt[by0 * bw + bx]) * HEIGHT_SCALE
-			var y_s := float(hgt[by1 * bw + bx]) * HEIGHT_SCALE
-
-			# Diagonal corner averaged heights (UA-style), clamped at borders
-			var y_nw := ((float(hgt[by0 * bw + bx0]) + float(hgt[by0 * bw + bx]) + float(hgt[by * bw + bx0]) + float(hgt[by * bw + bx])) * 0.25) * HEIGHT_SCALE
-			var y_ne := ((float(hgt[by0 * bw + bx1]) + float(hgt[by0 * bw + bx]) + float(hgt[by * bw + bx1]) + float(hgt[by * bw + bx])) * 0.25) * HEIGHT_SCALE
-			var y_sw := ((float(hgt[by1 * bw + bx0]) + float(hgt[by1 * bw + bx]) + float(hgt[by * bw + bx0]) + float(hgt[by * bw + bx])) * 0.25) * HEIGHT_SCALE
-			var y_se := ((float(hgt[by1 * bw + bx1]) + float(hgt[by1 * bw + bx]) + float(hgt[by * bw + bx1]) + float(hgt[by * bw + bx])) * 0.25) * HEIGHT_SCALE
-
-			# Sector outer/inner rects
-			var x0 := x * SECTOR_SIZE
-			var x1 := (x + 1) * SECTOR_SIZE
-			var z0 := y * SECTOR_SIZE
-			var z1 := (y + 1) * SECTOR_SIZE
-			var ix0: float = x0 + EDGE
-			var ix1: float = x1 - EDGE
-			var iz0: float = z0 + EDGE
-			var iz1: float = z1 - EDGE
-
-			# Edge target heights at the shared boundary
-			var y_n_edge := (y_c + y_n) * 0.5
-			var y_s_edge := (y_c + y_s) * 0.5
-			var y_w_edge := (y_c + y_w) * 0.5
-			var y_e_edge := (y_c + y_e) * 0.5
-
-			# 1) Center plateau (flat at sector height)
-			# 3x3 mosaic from subsector patterns when sector type is SECTYPE_3X3 (0)
-			var composed := false
-			# Special-case: set 1 typ 0 is 3x3 of ground_2 top-left (2x2 atlas, cell 0)
-			var override_typ0 := (set_id == 1 and not is_border and typ_value == 0)
-			if override_typ0:
-				var step_x_o: float = (ix1 - ix0) / 3.0
-				var step_z_o: float = (iz1 - iz0) / 3.0
-				for cy_o in 3:
-					for cx_o in 3:
-						var xl_o: float = ix0 + float(cx_o) * step_x_o
-						var xr_o: float = xl_o + step_x_o
-						var zt_o: float = iz0 + float(cy_o) * step_z_o
-						var zb_o: float = zt_o + step_z_o
-						var f_override := 2
-						var cells_override := 4
-						var v_override := 0
-						st.set_color(Color((float(v_override) + 0.5) / float(cells_override), (float(f_override) + 0.5) / 6.0, 0.0))
-						# Single quad filling the subcell with atlas cell 0 of ground_2
-						st.set_uv(Vector2(0.0, 0.0)); st.add_vertex(Vector3(xl_o, y_c, zt_o))
-						st.set_uv(Vector2(1.0, 0.0)); st.add_vertex(Vector3(xr_o, y_c, zt_o))
-						st.set_uv(Vector2(1.0, 1.0)); st.add_vertex(Vector3(xr_o, y_c, zb_o))
-						st.set_uv(Vector2(0.0, 0.0)); st.add_vertex(Vector3(xl_o, y_c, zt_o))
-						st.set_uv(Vector2(1.0, 1.0)); st.add_vertex(Vector3(xr_o, y_c, zb_o))
-						st.set_uv(Vector2(0.0, 1.0)); st.add_vertex(Vector3(xl_o, y_c, zb_o))
-				composed = true
-			if not composed and not is_border and subsector_patterns.has(typ_value):
-				var pat = subsector_patterns[typ_value]
-				var sector_t: int = int(pat.get("sector_type", -1))
-				var subs: PackedInt32Array = pat.get("subsectors", PackedInt32Array())
-				if sector_t == 0 and subs.size() >= 9:
-					var step_x: float = (ix1 - ix0) / 3.0
-					var step_z: float = (iz1 - iz0) / 3.0
-					for cy in 3:
-						for cx in 3:
-							# Sector coords in typ space for world-subcell addressing
-							var _sx := bx - 1
-							var _sy := by - 1
-							var si: int = subs[cy * 3 + cx]
-							var td: Dictionary = tile_mapping.get(si, {"val0": 0, "val1": 0, "val2": 0, "val3": 0, "flag": 0})
-							var vals := [int(td.get("val0", 0)), int(td.get("val1", 0)), int(td.get("val2", 0)), int(td.get("val3", 0))]
-							var flg: int = int(td.get("flag", 0))
-							# Selection rule inferred from UA:
-							# - If flag != 0: pick one of the four values pseudo-randomly but deterministically by world subcell
-							# - Else: use a 2x2 tiling pattern across the world: NW,NE,SW,SE
-							var world_cx := (_sx * 3) + cx
-							var world_cy := (_sy * 3) + cy
-							var sel_idx: int
-							if flg != 0:
-								var sel_seed := (world_cx * 73856093) ^ (world_cy * 19349663) ^ (typ_value * 83492791)
-								sel_idx = sel_seed & 3
-							else:
-								sel_idx = ((world_cy & 1) << 1) | (world_cx & 1)
-							var raw: int = int(vals[sel_idx])
-							if raw == 0:
-								# Fallback: first non-zero among the group
-								for vtry in vals:
-									if int(vtry) != 0:
-										raw = int(vtry)
-										break
-							var dec := _decode_raw_to_fcv_with_remap(raw, surface_type, tile_remap)
-							var f: int = dec[0]
-							var cells: int = dec[1]
-							var v: int = dec[2]
-							var xl: float = ix0 + float(cx) * step_x
-							var xr: float = xl + step_x
-							var zt: float = iz0 + float(cy) * step_z
-							var zb: float = zt + step_z
-							st.set_color(Color((float(v) + 0.5) / float(cells), (float(f) + 0.5) / 6.0, 0.0))
-							st.set_uv(Vector2(0.0, 0.0)); st.add_vertex(Vector3(xl, y_c, zt))
-							st.set_uv(Vector2(1.0, 0.0)); st.add_vertex(Vector3(xr, y_c, zt))
-							st.set_uv(Vector2(1.0, 1.0)); st.add_vertex(Vector3(xr, y_c, zb))
-							st.set_uv(Vector2(0.0, 0.0)); st.add_vertex(Vector3(xl, y_c, zt))
-							st.set_uv(Vector2(1.0, 1.0)); st.add_vertex(Vector3(xr, y_c, zb))
-							st.set_uv(Vector2(0.0, 1.0)); st.add_vertex(Vector3(xl, y_c, zb))
-						# end mosaic cell
-						composed = true
-				elif subs.size() == 1:
-					# Uniform sector: replicate a single subsector across a 3x3 grid
-					var step_x1: float = (ix1 - ix0) / 3.0
-					var step_z1: float = (iz1 - iz0) / 3.0
-					var _sx1 := bx - 1
-					var _sy1 := by - 1
-					for cy1 in 3:
-						for cx1 in 3:
-							var si1: int = subs[0]
-							var td1: Dictionary = tile_mapping.get(si1, {"val0": 0, "val1": 0, "val2": 0, "val3": 0, "flag": 0})
-							var vals1 := [int(td1.get("val0", 0)), int(td1.get("val1", 0)), int(td1.get("val2", 0)), int(td1.get("val3", 0))]
-							var flg1: int = int(td1.get("flag", 0))
-							var wcx1 := (_sx1 * 3) + cx1
-							var wcy1 := (_sy1 * 3) + cy1
-							var sel1: int
-							if flg1 != 0:
-								var sel_seed1 := (wcx1 * 73856093) ^ (wcy1 * 19349663) ^ (typ_value * 83492791)
-								sel1 = sel_seed1 & 3
-							else:
-								sel1 = ((wcy1 & 1) << 1) | (wcx1 & 1)
-							var raw1: int = int(vals1[sel1])
-							if raw1 == 0:
-								for vtry1 in vals1:
-									if int(vtry1) != 0:
-										raw1 = int(vtry1)
-										break
-							var dec1 := _decode_raw_to_fcv_with_remap(raw1, surface_type, tile_remap)
-							var f1: int = dec1[0]
-							var cells1: int = dec1[1]
-							var v1: int = dec1[2]
-							var xl1: float = ix0 + float(cx1) * step_x1
-							var xr1: float = xl1 + step_x1
-							var zt1: float = iz0 + float(cy1) * step_z1
-							var zb1: float = zt1 + step_z1
-							st.set_color(Color((float(v1) + 0.5) / float(cells1), (float(f1) + 0.5) / 6.0, 0.0))
-							st.set_uv(Vector2(0.0, 0.0)); st.add_vertex(Vector3(xl1, y_c, zt1))
-							st.set_uv(Vector2(1.0, 0.0)); st.add_vertex(Vector3(xr1, y_c, zt1))
-							st.set_uv(Vector2(1.0, 1.0)); st.add_vertex(Vector3(xr1, y_c, zb1))
-							st.set_uv(Vector2(0.0, 0.0)); st.add_vertex(Vector3(xl1, y_c, zt1))
-							st.set_uv(Vector2(1.0, 1.0)); st.add_vertex(Vector3(xr1, y_c, zb1))
-							st.set_uv(Vector2(0.0, 1.0)); st.add_vertex(Vector3(xl1, y_c, zb1))
-					composed = true
-				elif subs.size() == 4:
-					# 2x2 pattern
-					var step_x2: float = (ix1 - ix0) / 2.0
-					var step_z2: float = (iz1 - iz0) / 2.0
-					var _sx3 := bx - 1
-					var _sy3 := by - 1
-					for cy2 in 2:
-						for cx2 in 2:
-							var si2: int = subs[cy2 * 2 + cx2]
-							var td2: Dictionary = tile_mapping.get(si2, {"val0": 0, "val1": 0, "val2": 0, "val3": 0, "flag": 0})
-							var vals2 := [int(td2.get("val0", 0)), int(td2.get("val1", 0)), int(td2.get("val2", 0)), int(td2.get("val3", 0))]
-							var flg2: int = int(td2.get("flag", 0))
-							var wcx2 := (_sx3 * 2) + cx2
-							var wcy2 := (_sy3 * 2) + cy2
-							var sel2: int
-							if flg2 != 0:
-								var sel_seed2 := (wcx2 * 73856093) ^ (wcy2 * 19349663) ^ (typ_value * 83492791)
-								sel2 = sel_seed2 & 3
-							else:
-								sel2 = ((wcy2 & 1) << 1) | (wcx2 & 1)
-							var raw2: int = int(vals2[sel2])
-							if raw2 == 0:
-								for vtry2 in vals2:
-									if int(vtry2) != 0:
-										raw2 = int(vtry2)
-										break
-							var dec2 := _decode_raw_to_fcv_with_remap(raw2, surface_type, tile_remap)
-							var f2: int = dec2[0]
-							var cells2: int = dec2[1]
-							var v2: int = dec2[2]
-							var xl2: float = ix0 + float(cx2) * step_x2
-							var xr2: float = xl2 + step_x2
-							var zt2: float = iz0 + float(cy2) * step_z2
-							var zb2: float = zt2 + step_z2
-							st.set_color(Color((float(v2) + 0.5) / float(cells2), (float(f2) + 0.5) / 6.0, 0.0))
-							st.set_uv(Vector2(0.0, 0.0)); st.add_vertex(Vector3(xl2, y_c, zt2))
-							st.set_uv(Vector2(1.0, 0.0)); st.add_vertex(Vector3(xr2, y_c, zt2))
-							st.set_uv(Vector2(1.0, 1.0)); st.add_vertex(Vector3(xr2, y_c, zb2))
-							st.set_uv(Vector2(0.0, 0.0)); st.add_vertex(Vector3(xl2, y_c, zt2))
-							st.set_uv(Vector2(1.0, 1.0)); st.add_vertex(Vector3(xr2, y_c, zb2))
-							st.set_uv(Vector2(0.0, 1.0)); st.add_vertex(Vector3(xl2, y_c, zb2))
-					composed = true
-			if not composed:
-				var p_nw := Vector3(ix0, y_c, iz0)
-				var p_ne := Vector3(ix1, y_c, iz0)
-				var p_se := Vector3(ix1, y_c, iz1)
-				var p_sw := Vector3(ix0, y_c, iz1)
-				# Temporary: choose atlas cell from a hash of typ and sector coords to reduce tiling
-				var cells_fallback: int = (16 if surface_type == 4 else 4)
-				var seed_f: int = (typ_value ^ (bx * 73856093) ^ (by * 19349663))
-				var vcell: int = (seed_f & 0x7fffffff) % cells_fallback
-				st.set_color(Color((float(vcell) + 0.5) / float(cells_fallback), (float(surface_type) + 0.5) / 6.0, 0.0))
-				st.set_uv(Vector2(0.0, 0.0)); st.add_vertex(p_nw)
-				st.set_uv(Vector2(1.0, 0.0)); st.add_vertex(p_ne)
-				st.set_uv(Vector2(1.0, 1.0)); st.add_vertex(p_se)
-				st.set_uv(Vector2(0.0, 0.0)); st.add_vertex(p_nw)
-				st.set_uv(Vector2(1.0, 1.0)); st.add_vertex(p_se)
-				st.set_uv(Vector2(0.0, 1.0)); st.add_vertex(p_sw)
-
-			# 2) Edge strips: pick file/variant from side mosaic cells when available
-			var north_f := surface_type; var north_cells := (16 if north_f == 4 else 4); var north_v := packed_variant
-			var south_f := north_f; var south_cells := north_cells; var south_v := packed_variant
-			var west_f := north_f; var west_cells := north_cells; var west_v := packed_variant
-			var east_f := north_f; var east_cells := north_cells; var east_v := packed_variant
-			if override_typ0:
-				north_f = 2; south_f = 2; west_f = 2; east_f = 2
-				north_cells = 4; south_cells = 4; west_cells = 4; east_cells = 4
-				north_v = 0; south_v = 0; west_v = 0; east_v = 0
-			elif subsector_patterns.has(typ_value):
-				var patE = subsector_patterns[typ_value]
-				if int(patE.get("sector_type", -1)) == 0:
-					var subsE: PackedInt32Array = patE.get("subsectors", PackedInt32Array())
-					if subsE.size() >= 9:
-						# Select raw from N, S, W, E mid cells; prefer first non-zero
-						var _sx2 := bx - 1
-						var _sy2 := by - 1
-						var idxN := subsE[0 * 3 + 1]
-						var tN: Dictionary = tile_mapping.get(idxN, {"val0": 0, "val1": 0, "val2": 0, "val3": 0, "flag": 0})
-						var valsN := [int(tN.get("val0", 0)), int(tN.get("val1", 0)), int(tN.get("val2", 0)), int(tN.get("val3", 0))]
-						var flgN: int = int(tN.get("flag", 0))
-						var selN: int = ((((_sy2 * 3 + 0) & 1) << 1) | (((_sx2 * 3 + 1) & 1)))
-						if flgN != 0:
-							var sel_seedN := (((_sx2 * 3 + 1) * 73856093) ^ ((_sy2 * 3 + 0) * 19349663) ^ (typ_value * 83492791))
-							selN = sel_seedN & 3
-						var rawN: int = int(valsN[selN]); if rawN == 0: for vtry in valsN: if int(vtry) != 0: rawN = int(vtry); break
-						var dN := _decode_raw_to_fcv_with_remap(rawN, surface_type, tile_remap); north_f = dN[0]; north_cells = dN[1]; north_v = dN[2]
-						var idxS := subsE[2 * 3 + 1]
-						var tS: Dictionary = tile_mapping.get(idxS, {"val0": 0, "val1": 0, "val2": 0, "val3": 0, "flag": 0})
-						var valsS := [int(tS.get("val0", 0)), int(tS.get("val1", 0)), int(tS.get("val2", 0)), int(tS.get("val3", 0))]
-						var flgS: int = int(tS.get("flag", 0))
-						var selS: int = ((((_sy2 * 3 + 2) & 1) << 1) | (((_sx2 * 3 + 1) & 1)))
-						if flgS != 0:
-							var sel_seedS := (((_sx2 * 3 + 1) * 73856093) ^ ((_sy2 * 3 + 2) * 19349663) ^ (typ_value * 83492791))
-							selS = sel_seedS & 3
-						var rawS: int = int(valsS[selS]); if rawS == 0: for vtry in valsS: if int(vtry) != 0: rawS = int(vtry); break
-						var dS := _decode_raw_to_fcv_with_remap(rawS, surface_type, tile_remap); south_f = dS[0]; south_cells = dS[1]; south_v = dS[2]
-						var idxW := subsE[1 * 3 + 0]
-						var tW: Dictionary = tile_mapping.get(idxW, {"val0": 0, "val1": 0, "val2": 0, "val3": 0, "flag": 0})
-						var valsW := [int(tW.get("val0", 0)), int(tW.get("val1", 0)), int(tW.get("val2", 0)), int(tW.get("val3", 0))]
-						var flgW: int = int(tW.get("flag", 0))
-						var selW: int = ((((_sy2 * 3 + 1) & 1) << 1) | (((_sx2 * 3 + 0) & 1)))
-						if flgW != 0:
-							var sel_seedW := (((_sx2 * 3 + 0) * 73856093) ^ ((_sy2 * 3 + 1) * 19349663) ^ (typ_value * 83492791))
-							selW = sel_seedW & 3
-						var rawW: int = int(valsW[selW]); if rawW == 0: for vtry in valsW: if int(vtry) != 0: rawW = int(vtry); break
-						var dW := _decode_raw_to_fcv_with_remap(rawW, surface_type, tile_remap); west_f = dW[0]; west_cells = dW[1]; west_v = dW[2]
-						var idxE := subsE[1 * 3 + 2]
-						var tE: Dictionary = tile_mapping.get(idxE, {"val0": 0, "val1": 0, "val2": 0, "val3": 0, "flag": 0})
-						var valsE := [int(tE.get("val0", 0)), int(tE.get("val1", 0)), int(tE.get("val2", 0)), int(tE.get("val3", 0))]
-						var flgE: int = int(tE.get("flag", 0))
-						var selE: int = ((((_sy2 * 3 + 1) & 1) << 1) | (((_sx2 * 3 + 2) & 1)))
-						if flgE != 0:
-							var sel_seedE := (((_sx2 * 3 + 2) * 73856093) ^ ((_sy2 * 3 + 1) * 19349663) ^ (typ_value * 83492791))
-							selE = sel_seedE & 3
-						var rawE: int = int(valsE[selE]); if rawE == 0: for vtry in valsE: if int(vtry) != 0: rawE = int(vtry); break
-						var dE := _decode_raw_to_fcv_with_remap(rawE, surface_type, tile_remap); east_f = dE[0]; east_cells = dE[1]; east_v = dE[2]
-
-			# North strip
-			st.set_color(Color((float(north_v) + 0.5) / float(north_cells), (float(north_f) + 0.5) / 6.0, 0.0))
-			st.set_uv(Vector2(0.0, 0.0)); st.add_vertex(Vector3(ix0, y_n_edge, z0))
-			st.set_uv(Vector2(1.0, 0.0)); st.add_vertex(Vector3(ix1, y_n_edge, z0))
-			st.set_uv(Vector2(1.0, 1.0)); st.add_vertex(Vector3(ix1, y_c, iz0))
-			st.set_uv(Vector2(0.0, 0.0)); st.add_vertex(Vector3(ix0, y_n_edge, z0))
-			st.set_uv(Vector2(1.0, 1.0)); st.add_vertex(Vector3(ix1, y_c, iz0))
-			st.set_uv(Vector2(0.0, 1.0)); st.add_vertex(Vector3(ix0, y_c, iz0))
-			# South strip
-			st.set_color(Color((float(south_v) + 0.5) / float(south_cells), (float(south_f) + 0.5) / 6.0, 0.0))
-			st.set_uv(Vector2(0.0, 0.0)); st.add_vertex(Vector3(ix0, y_c, iz1))
-			st.set_uv(Vector2(1.0, 0.0)); st.add_vertex(Vector3(ix1, y_c, iz1))
-			st.set_uv(Vector2(1.0, 1.0)); st.add_vertex(Vector3(ix1, y_s_edge, z1))
-			st.set_uv(Vector2(0.0, 0.0)); st.add_vertex(Vector3(ix0, y_c, iz1))
-			st.set_uv(Vector2(1.0, 1.0)); st.add_vertex(Vector3(ix1, y_s_edge, z1))
-			st.set_uv(Vector2(0.0, 1.0)); st.add_vertex(Vector3(ix0, y_s_edge, z1))
-			# West strip
-			st.set_color(Color((float(west_v) + 0.5) / float(west_cells), (float(west_f) + 0.5) / 6.0, 0.0))
-			st.set_uv(Vector2(0.0, 0.0)); st.add_vertex(Vector3(x0, y_w_edge, iz0))
-			st.set_uv(Vector2(1.0, 0.0)); st.add_vertex(Vector3(ix0, y_c, iz0))
-			st.set_uv(Vector2(1.0, 1.0)); st.add_vertex(Vector3(ix0, y_c, iz1))
-			st.set_uv(Vector2(0.0, 0.0)); st.add_vertex(Vector3(x0, y_w_edge, iz0))
-			st.set_uv(Vector2(1.0, 1.0)); st.add_vertex(Vector3(ix0, y_c, iz1))
-			st.set_uv(Vector2(0.0, 1.0)); st.add_vertex(Vector3(x0, y_w_edge, iz1))
-			# East strip
-			st.set_color(Color((float(east_v) + 0.5) / float(east_cells), (float(east_f) + 0.5) / 6.0, 0.0))
-			st.set_uv(Vector2(0.0, 0.0)); st.add_vertex(Vector3(ix1, y_c, iz0))
-			st.set_uv(Vector2(1.0, 0.0)); st.add_vertex(Vector3(x1, y_e_edge, iz0))
-			st.set_uv(Vector2(1.0, 1.0)); st.add_vertex(Vector3(x1, y_e_edge, iz1))
-			st.set_uv(Vector2(0.0, 0.0)); st.add_vertex(Vector3(ix1, y_c, iz0))
-			st.set_uv(Vector2(1.0, 1.0)); st.add_vertex(Vector3(x1, y_e_edge, iz1))
-			st.set_uv(Vector2(0.0, 1.0)); st.add_vertex(Vector3(ix1, y_c, iz1))
-
-			# 3) Corner patches (mesh-local UVs)
-			# NW corner
-			st.set_uv(Vector2(0.0, 0.0)); st.add_vertex(Vector3(x0, y_nw, z0))
-			st.set_uv(Vector2(1.0, 0.0)); st.add_vertex(Vector3(ix0, y_n_edge, z0))
-			st.set_uv(Vector2(1.0, 1.0)); st.add_vertex(Vector3(ix0, y_c, iz0))
-			st.set_uv(Vector2(0.0, 0.0)); st.add_vertex(Vector3(x0, y_nw, z0))
-			st.set_uv(Vector2(1.0, 1.0)); st.add_vertex(Vector3(ix0, y_c, iz0))
-			st.set_uv(Vector2(0.0, 1.0)); st.add_vertex(Vector3(x0, y_w_edge, iz0))
-			# NE corner
-			st.set_uv(Vector2(0.0, 0.0)); st.add_vertex(Vector3(ix1, y_n_edge, z0))
-			st.set_uv(Vector2(1.0, 0.0)); st.add_vertex(Vector3(x1, y_ne, z0))
-			st.set_uv(Vector2(1.0, 1.0)); st.add_vertex(Vector3(x1, y_e_edge, iz0))
-			st.set_uv(Vector2(0.0, 0.0)); st.add_vertex(Vector3(ix1, y_n_edge, z0))
-			st.set_uv(Vector2(1.0, 1.0)); st.add_vertex(Vector3(x1, y_e_edge, iz0))
-			st.set_uv(Vector2(0.0, 1.0)); st.add_vertex(Vector3(ix1, y_c, iz0))
-			# SE corner
-			st.set_uv(Vector2(0.0, 0.0)); st.add_vertex(Vector3(ix1, y_c, iz1))
-			st.set_uv(Vector2(1.0, 0.0)); st.add_vertex(Vector3(x1, y_e_edge, iz1))
-			st.set_uv(Vector2(1.0, 1.0)); st.add_vertex(Vector3(x1, y_se, z1))
-			st.set_uv(Vector2(0.0, 0.0)); st.add_vertex(Vector3(ix1, y_c, iz1))
-			st.set_uv(Vector2(1.0, 1.0)); st.add_vertex(Vector3(x1, y_se, z1))
-			st.set_uv(Vector2(0.0, 1.0)); st.add_vertex(Vector3(ix1, y_s_edge, z1))
-			# SW corner
-			st.set_uv(Vector2(0.0, 0.0)); st.add_vertex(Vector3(ix0, y_c, iz1))
-			st.set_uv(Vector2(1.0, 0.0)); st.add_vertex(Vector3(ix0, y_s_edge, z1))
-			st.set_uv(Vector2(1.0, 1.0)); st.add_vertex(Vector3(x0, y_sw, z1))
-			st.set_uv(Vector2(0.0, 0.0)); st.add_vertex(Vector3(x0, y_w_edge, iz1))
-			st.set_uv(Vector2(1.0, 1.0)); st.add_vertex(Vector3(ix0, y_c, iz1))
-			st.set_uv(Vector2(0.0, 1.0)); st.add_vertex(Vector3(x0, y_sw, z1))
-
-	# Commit all non-empty surfaces to mesh and record actual indices
 	var mesh := ArrayMesh.new()
 	var surface_to_surface_type := {}
 	for i in surface_type_order.size():
 		var surface_type: int = surface_type_order[i]
 		var st: SurfaceTool = surface_tools[surface_type]
-		# Index and normals even if empty; commit will no-op if there are no vertices
 		var before := mesh.get_surface_count()
 		st.index()
 		st.generate_normals()
 		st.commit(mesh)
 		var after := mesh.get_surface_count()
-		# Only map when a new surface was actually added
 		if after > before:
 			surface_to_surface_type[before] = surface_type
+	return {"mesh": mesh, "surface_to_surface_type": surface_to_surface_type, "authored_piece_descriptors": authored_piece_descriptors}
 
-	return {"mesh": mesh, "surface_to_surface_type": surface_to_surface_type}
-
-# Apply sector top materials with ground textures based on SurfaceType
-# surface_to_surface_type: Dictionary mapping surface_index -> SurfaceType (0-5)
 func _apply_sector_top_materials(mesh: ArrayMesh, preloads, surface_to_surface_type: Dictionary) -> void:
-	if not preloads:
+	if mesh == null:
+		return
+	if preloads == null:
+		_apply_untextured_materials(mesh)
 		return
 
 	var shader: Shader = load("res://resources/terrain/shaders/sector_top.gdshader")
-	if not shader:
+	if shader == null:
 		push_warning("[Map3D] Could not load sector_top.gdshader")
+		_apply_untextured_materials(mesh)
 		return
 
-	# Apply material for each surface using the surface_to_surface_type mapping
 	for surface_idx in surface_to_surface_type.keys():
-		var surface_type: int = surface_to_surface_type[surface_idx]
-		# Unmapped/invalid typ values: assign translucent debug material
+		var surface_type: int = int(surface_to_surface_type[surface_idx])
 		if surface_type == -1:
 			var dbg := StandardMaterial3D.new()
 			dbg.albedo_color = Color(1.0, 0.0, 1.0, 0.45)
 			dbg.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
 			mesh.surface_set_material(surface_idx, dbg)
 			continue
-		# Border sectors: use neutral set texture 0 with the sector_top shader
-		elif surface_type == -2:
-			var border_mat := ShaderMaterial.new()
-			border_mat.shader = shader
-			if preloads:
-				border_mat.set_shader_parameter("ground_texture", preloads.get_ground_texture(0))
-				# bind multi-textures for selection via COLOR.g
-				for i in 6:
-					border_mat.set_shader_parameter("ground%d" % i, preloads.get_ground_texture(i))
-				border_mat.set_shader_parameter("tile_scale", _compute_tile_scale())
-				# Use mesh UVs for center composition and allow per-vertex selection
-				border_mat.set_shader_parameter("use_mesh_uv", true)
-				border_mat.set_shader_parameter("use_multi_textures", true)
-				# Borders: fixed atlas layout 2x2
-				border_mat.set_shader_parameter("atlas_grid", Vector2(2.0, 2.0))
-				border_mat.set_shader_parameter("use_vertex_variant", true)
-				border_mat.set_shader_parameter("variant", 0)
-				border_mat.set_shader_parameter("debug_mode", _debug_shader_mode)
-			mesh.surface_set_material(surface_idx, border_mat)
-			continue
+
 		var mat := ShaderMaterial.new()
 		mat.shader = shader
-		# Get the ground texture for this SurfaceType (0-5)
-		var texture: Texture2D = preloads.get_ground_texture(surface_type)
-		if texture:
-			mat.set_shader_parameter("ground_texture", texture)
-			# bind all ground textures for per-vertex file selection
-			for i in 6:
-				mat.set_shader_parameter("ground%d" % i, preloads.get_ground_texture(i))
-			mat.set_shader_parameter("tile_scale", _compute_tile_scale())
-			mat.set_shader_parameter("use_mesh_uv", true)
-			mat.set_shader_parameter("use_multi_textures", true)
-			# UA: 4x4 for file 4 handled in shader; default atlas grid here is a fallback only
-			mat.set_shader_parameter("atlas_grid", Vector2(2.0, 2.0))
-			mat.set_shader_parameter("use_vertex_variant", true)
-			mat.set_shader_parameter("variant", 0)
-			mat.set_shader_parameter("debug_mode", _debug_shader_mode)
-			mesh.surface_set_material(surface_idx, mat)
+		mat.set_shader_parameter("ground_texture", preloads.get_ground_texture(clampi(surface_type, 0, 5)))
+		for ground_idx in 6:
+			mat.set_shader_parameter("ground%d" % ground_idx, preloads.get_ground_texture(ground_idx))
+		mat.set_shader_parameter("tile_scale", _compute_tile_scale())
+		mat.set_shader_parameter("use_mesh_uv", true)
+		mat.set_shader_parameter("use_multi_textures", true)
+		mat.set_shader_parameter("atlas_grid", Vector2(2.0, 2.0))
+		mat.set_shader_parameter("use_vertex_variant", true)
+		mat.set_shader_parameter("variant", 0)
+		mat.set_shader_parameter("debug_mode", _debug_shader_mode)
+		mesh.surface_set_material(surface_idx, mat)
 
 # ---- UA edge-based strip rendering ----
 func _on_level_set_changed() -> void:
-	# Rebuild the full terrain to refresh top materials and edge strips when set changes
+	# Rebuild the current preview for the newly selected set.
 	build_from_current_map()
 
 func _ensure_edge_node() -> void:
@@ -911,279 +731,215 @@ func _build_edges_from_current_map() -> void:
 		return
 	var pre = get_node_or_null("/root/Preloads")
 	var mapping: Dictionary = pre.surface_type_map if pre else {}
-	var mesh := _build_edges_mesh(hgt, w, h, typ, mapping)
+	var mesh := _build_edges_mesh(hgt, w, h, typ, mapping, pre)
 	_ensure_edge_node()
 	_edge_mesh.mesh = mesh
 
-func _build_edges_mesh(hgt: PackedByteArray, w: int, h: int, typ: PackedByteArray, mapping: Dictionary) -> ArrayMesh:
+func _make_edge_blend_material(bucket_key: String, preloads, use_uv_y_for_blend: bool) -> Material:
+	# Retail slurps/fillers are pre-authored objects loaded from orientation-specific 6x6 tables.
+	# The preview reuses the same ordered SurfaceType-pair key, but approximates the visible result
+	# by blending the two set ground textures across a narrow seam strip.
+	var pair := _surface_pair_from_slurp_bucket_key(bucket_key)
+	if pair.is_empty() or preloads == null:
+		return _make_preview_material(EDGE_PREVIEW_COLOR)
+	var shader: Shader = load(EDGE_BLEND_SHADER_PATH)
+	if shader == null:
+		push_warning("[Map3D] Could not load edge_blend.gdshader")
+		return _make_preview_material(EDGE_PREVIEW_COLOR)
+	var mat := ShaderMaterial.new()
+	mat.shader = shader
+	mat.set_shader_parameter("texture_a", preloads.get_ground_texture(int(pair["surface_a"])))
+	mat.set_shader_parameter("texture_b", preloads.get_ground_texture(int(pair["surface_b"])))
+	mat.set_shader_parameter("vertical_seam", use_uv_y_for_blend)
+	mat.set_shader_parameter("tile_scale", _compute_tile_scale())
+	mat.set_shader_parameter("atlas_grid", Vector2(1.0, 1.0))
+	mat.set_shader_parameter("variant_a", 0)
+	mat.set_shader_parameter("variant_b", 0)
+	return mat
+
+func _build_edges_mesh(hgt: PackedByteArray, w: int, h: int, typ: PackedByteArray, mapping: Dictionary, preloads = null) -> ArrayMesh:
 	var mesh := ArrayMesh.new()
-	var shader: Shader = load("res://resources/terrain/shaders/edge_blend.gdshader")
-	var pre = null
-	if is_inside_tree():
-		pre = get_node_or_null("/root/Preloads")
+	if preloads == null and is_inside_tree():
+		preloads = get_node_or_null("/root/Preloads")
 	# Collect per (surfaceA, surfaceB) pair to minimize materials
 	var horiz := {}
 	var vert := {}
-	# Horizontal seams between (x,y) and (x+1,y)
-	# typ_map coordinates need to be offset by 1 sector to account for the border in hgt_map
+
+	# Retail `vside` slurps apply to left/right neighboring sector pairs.
 	for y in h:
 		for x in (w - 1):
 			var a := int(typ[y * w + x])
 			var b := int(typ[y * w + x + 1])
-			# Skip seams touching invalid/unmapped typ values
 			if not mapping.has(a) or not mapping.has(b):
 				continue
 			var sa := int(mapping.get(a, 0))
 			var sb := int(mapping.get(b, 0))
-			var key := "h_%d_%d" % [sa, sb]
+			var key := _retail_slurp_bucket_key(sa, sb, 1, 0)
+			if key.is_empty():
+				continue
 			var st: SurfaceTool = horiz.get(key)
 			if st == null:
 				st = SurfaceTool.new()
 				st.begin(Mesh.PRIMITIVE_TRIANGLES)
 				horiz[key] = st
-			# geometry - offset by SECTOR_SIZE to account for border
-			var seam_x := float(x + 1 + 1) * SECTOR_SIZE # +1 for seam, +1 for border offset
+			var seam_x := float(x + 2) * SECTOR_SIZE
 			var x0 := seam_x - EDGE_SLOPE
 			var x1 := seam_x + EDGE_SLOPE
-			var z0 := float(y + 1) * SECTOR_SIZE # +1 for border offset
-			var z1 := float(y + 1 + 1) * SECTOR_SIZE # +1 for next sector, +1 for border offset
+			var z0 := float(y + 1) * SECTOR_SIZE
+			var z1 := float(y + 2) * SECTOR_SIZE
 			var yL := _center_h(hgt, w, h, x, y)
 			var yR := _center_h(hgt, w, h, x + 1, y)
-			var yN_L := _center_h(hgt, w, h, x, y - 1)
-			var yN_R := _center_h(hgt, w, h, x + 1, y - 1)
-			var yS_L := _center_h(hgt, w, h, x, y + 1)
-			var yS_R := _center_h(hgt, w, h, x + 1, y + 1)
-			var yLT := (yL + yN_L) * 0.5
-			var yRT := (yR + yN_R) * 0.5
-			var yLB := (yL + yS_L) * 0.5
-			var yRB := (yR + yS_R) * 0.5
-			# two triangles with UV across seam (x 0..1) and along length (z 0..1)
-			st.set_uv(Vector2(0.0, 0.0)); st.add_vertex(Vector3(x0, yLT, z0))
-			st.set_uv(Vector2(1.0, 0.0)); st.add_vertex(Vector3(x1, yRT, z0))
-			st.set_uv(Vector2(1.0, 1.0)); st.add_vertex(Vector3(x1, yRB, z1))
-			st.set_uv(Vector2(0.0, 0.0)); st.add_vertex(Vector3(x0, yLT, z0))
-			st.set_uv(Vector2(1.0, 1.0)); st.add_vertex(Vector3(x1, yRB, z1))
-			st.set_uv(Vector2(0.0, 1.0)); st.add_vertex(Vector3(x0, yLB, z1))
-	# Vertical seams between (x,y) and (x,y+1)
-	# typ_map coordinates need to be offset by 1 sector to account for the border in hgt_map
+			var yTopAvg := _corner_average_h(hgt, w, h, x + 1, y)
+			var yBottomAvg := _corner_average_h(hgt, w, h, x + 1, y + 1)
+			_append_vertical_seam_strip(st, x0, seam_x, x1, z0, z1, yL, yR, yTopAvg, yBottomAvg)
+
+	# Retail `hside` slurps apply to top/bottom neighboring sector pairs.
 	for y in (h - 1):
 		for x in w:
 			var a2 := int(typ[y * w + x])
 			var b2 := int(typ[(y + 1) * w + x])
-			# Skip seams touching invalid/unmapped typ values
 			if not mapping.has(a2) or not mapping.has(b2):
 				continue
 			var sa2 := int(mapping.get(a2, 0))
 			var sb2 := int(mapping.get(b2, 0))
-			var key2 := "v_%d_%d" % [sa2, sb2]
+			var key2 := _retail_slurp_bucket_key(sa2, sb2, 0, 1)
+			if key2.is_empty():
+				continue
 			var st2: SurfaceTool = vert.get(key2)
 			if st2 == null:
 				st2 = SurfaceTool.new()
 				st2.begin(Mesh.PRIMITIVE_TRIANGLES)
 				vert[key2] = st2
-			# geometry - offset by SECTOR_SIZE to account for border
-			var seam_z := float(y + 1 + 1) * SECTOR_SIZE # +1 for seam, +1 for border offset
+			var seam_z := float(y + 2) * SECTOR_SIZE
 			var z0v := seam_z - EDGE_SLOPE
 			var z1v := seam_z + EDGE_SLOPE
-			var x0v := float(x + 1) * SECTOR_SIZE # +1 for border offset
-			var x1v := float(x + 1 + 1) * SECTOR_SIZE # +1 for next sector, +1 for border offset
+			var x0v := float(x + 1) * SECTOR_SIZE
+			var x1v := float(x + 2) * SECTOR_SIZE
 			var yT := _center_h(hgt, w, h, x, y)
 			var yB := _center_h(hgt, w, h, x, y + 1)
-			var yW_T := _center_h(hgt, w, h, x - 1, y)
-			var yE_T := _center_h(hgt, w, h, x + 1, y)
-			var yW_B := _center_h(hgt, w, h, x - 1, y + 1)
-			var yE_B := _center_h(hgt, w, h, x + 1, y + 1)
-			var yTL := (yT + yW_T) * 0.5
-			var yTR := (yT + yE_T) * 0.5
-			var yBL := (yB + yW_B) * 0.5
-			var yBR := (yB + yE_B) * 0.5
-			# two triangles with UV across seam (x 0..1) and along length (z 0..1)
-			st2.set_uv(Vector2(0.0, 0.0)); st2.add_vertex(Vector3(x0v, yTL, z0v))
-			st2.set_uv(Vector2(1.0, 0.0)); st2.add_vertex(Vector3(x1v, yTR, z0v))
-			st2.set_uv(Vector2(1.0, 1.0)); st2.add_vertex(Vector3(x1v, yBR, z1v))
-			st2.set_uv(Vector2(0.0, 0.0)); st2.add_vertex(Vector3(x0v, yTL, z0v))
-			st2.set_uv(Vector2(1.0, 1.0)); st2.add_vertex(Vector3(x1v, yBR, z1v))
-			st2.set_uv(Vector2(0.0, 1.0)); st2.add_vertex(Vector3(x0v, yBL, z1v))
+			var yLeftAvg := _corner_average_h(hgt, w, h, x, y + 1)
+			var yRightAvg := _corner_average_h(hgt, w, h, x + 1, y + 1)
+			_append_horizontal_seam_strip(st2, x0v, x1v, z0v, seam_z, z1v, yT, yB, yLeftAvg, yRightAvg)
 
-		# --- Border seams: connect border ring to inner playable area ---
-		# North border (between border row and y=0)
-		for x in w:
-			var inner_typ_top := int(typ[0 * w + x])
-			if not mapping.has(inner_typ_top):
-				continue
-			var sa_top := 0
-			var sb_top := int(mapping.get(inner_typ_top, 0))
-			var key_top := "v_%d_%d" % [sa_top, sb_top]
-			var st_top: SurfaceTool = vert.get(key_top)
-			if st_top == null:
-				st_top = SurfaceTool.new()
-				st_top.begin(Mesh.PRIMITIVE_TRIANGLES)
-				vert[key_top] = st_top
-			var seam_zn := float(1) * SECTOR_SIZE
-			var z0n := seam_zn - EDGE_SLOPE
-			var z1n := seam_zn + EDGE_SLOPE
-			var x0n := float(x + 1) * SECTOR_SIZE
-			var x1n := float(x + 2) * SECTOR_SIZE
-			var yTn := _center_h(hgt, w, h, x, -1)
-			var yBn := _center_h(hgt, w, h, x, 0)
-			var yW_Tn := _center_h(hgt, w, h, x - 1, -1)
-			var yE_Tn := _center_h(hgt, w, h, x + 1, -1)
-			var yW_Bn := _center_h(hgt, w, h, x - 1, 0)
-			var yE_Bn := _center_h(hgt, w, h, x + 1, 0)
-			var yTLn := (yTn + yW_Tn) * 0.5
-			var yTRn := (yTn + yE_Tn) * 0.5
-			var yBLn := (yBn + yW_Bn) * 0.5
-			var yBRn := (yBn + yE_Bn) * 0.5
-			st_top.set_uv(Vector2(0.0, 0.0)); st_top.add_vertex(Vector3(x0n, yTLn, z0n))
-			st_top.set_uv(Vector2(1.0, 0.0)); st_top.add_vertex(Vector3(x1n, yTRn, z0n))
-			st_top.set_uv(Vector2(1.0, 1.0)); st_top.add_vertex(Vector3(x1n, yBRn, z1n))
-			st_top.set_uv(Vector2(0.0, 0.0)); st_top.add_vertex(Vector3(x0n, yTLn, z0n))
-			st_top.set_uv(Vector2(1.0, 1.0)); st_top.add_vertex(Vector3(x1n, yBRn, z1n))
-			st_top.set_uv(Vector2(0.0, 1.0)); st_top.add_vertex(Vector3(x0n, yBLn, z1n))
-		# South border (between y=h-1 and border row)
-		for x in w:
-			var inner_typ_bottom := int(typ[(h - 1) * w + x])
-			if not mapping.has(inner_typ_bottom):
-				continue
-			var sa_bottom := int(mapping.get(inner_typ_bottom, 0))
-			var sb_bottom := 0
-			var key_bottom := "v_%d_%d" % [sa_bottom, sb_bottom]
-			var st_bottom: SurfaceTool = vert.get(key_bottom)
-			if st_bottom == null:
-				st_bottom = SurfaceTool.new()
-				st_bottom.begin(Mesh.PRIMITIVE_TRIANGLES)
-				vert[key_bottom] = st_bottom
-			var seam_zs := float(h + 1) * SECTOR_SIZE
-			var z0s := seam_zs - EDGE_SLOPE
-			var z1s := seam_zs + EDGE_SLOPE
-			var x0s := float(x + 1) * SECTOR_SIZE
-			var x1s := float(x + 2) * SECTOR_SIZE
-			var yTs := _center_h(hgt, w, h, x, h - 1)
-			var yBs := _center_h(hgt, w, h, x, h)
-			var yW_Ts := _center_h(hgt, w, h, x - 1, h - 1)
-			var yE_Ts := _center_h(hgt, w, h, x + 1, h - 1)
-			var yW_Bs := _center_h(hgt, w, h, x - 1, h)
-			var yE_Bs := _center_h(hgt, w, h, x + 1, h)
-			var yTLs := (yTs + yW_Ts) * 0.5
-			var yTRs := (yTs + yE_Ts) * 0.5
-			var yBLs := (yBs + yW_Bs) * 0.5
-			var yBRs := (yBs + yE_Bs) * 0.5
-			st_bottom.set_uv(Vector2(0.0, 0.0)); st_bottom.add_vertex(Vector3(x0s, yTLs, z0s))
-			st_bottom.set_uv(Vector2(1.0, 0.0)); st_bottom.add_vertex(Vector3(x1s, yTRs, z0s))
-			st_bottom.set_uv(Vector2(1.0, 1.0)); st_bottom.add_vertex(Vector3(x1s, yBRs, z1s))
-			st_bottom.set_uv(Vector2(0.0, 0.0)); st_bottom.add_vertex(Vector3(x0s, yTLs, z0s))
-			st_bottom.set_uv(Vector2(1.0, 1.0)); st_bottom.add_vertex(Vector3(x1s, yBRs, z1s))
-			st_bottom.set_uv(Vector2(0.0, 1.0)); st_bottom.add_vertex(Vector3(x0s, yBLs, z1s))
-		# West border (between border column and x=0)
-		for yy in h:
-			var inner_typ_left := int(typ[yy * w + 0])
-			if not mapping.has(inner_typ_left):
-				continue
-			var sa_left := 0
-			var sb_left := int(mapping.get(inner_typ_left, 0))
-			var key_left := "h_%d_%d" % [sa_left, sb_left]
-			var st_left: SurfaceTool = horiz.get(key_left)
-			if st_left == null:
-				st_left = SurfaceTool.new()
-				st_left.begin(Mesh.PRIMITIVE_TRIANGLES)
-				horiz[key_left] = st_left
-			var seam_xw := float(1) * SECTOR_SIZE
-			var x0w := seam_xw - EDGE_SLOPE
-			var x1w := seam_xw + EDGE_SLOPE
-			var z0w := float(yy + 1) * SECTOR_SIZE
-			var z1w := float(yy + 2) * SECTOR_SIZE
-			var yLw := _center_h(hgt, w, h, -1, yy)
-			var yRw := _center_h(hgt, w, h, 0, yy)
-			var yN_Lw := _center_h(hgt, w, h, -1, yy - 1)
-			var yN_Rw := _center_h(hgt, w, h, 0, yy - 1)
-			var yS_Lw := _center_h(hgt, w, h, -1, yy + 1)
-			var yS_Rw := _center_h(hgt, w, h, 0, yy + 1)
-			var yLTw := (yLw + yN_Lw) * 0.5
-			var yRTw := (yRw + yN_Rw) * 0.5
-			var yLBw := (yLw + yS_Lw) * 0.5
-			var yRBw := (yRw + yS_Rw) * 0.5
-			st_left.set_uv(Vector2(0.0, 0.0)); st_left.add_vertex(Vector3(x0w, yLTw, z0w))
-			st_left.set_uv(Vector2(1.0, 0.0)); st_left.add_vertex(Vector3(x1w, yRTw, z0w))
-			st_left.set_uv(Vector2(1.0, 1.0)); st_left.add_vertex(Vector3(x1w, yRBw, z1w))
-			st_left.set_uv(Vector2(0.0, 0.0)); st_left.add_vertex(Vector3(x0w, yLTw, z0w))
-			st_left.set_uv(Vector2(1.0, 1.0)); st_left.add_vertex(Vector3(x1w, yRBw, z1w))
-			st_left.set_uv(Vector2(0.0, 1.0)); st_left.add_vertex(Vector3(x0w, yLBw, z1w))
-		# East border (between x=w-1 and border column)
-		for yy2 in h:
-			var inner_typ_right := int(typ[yy2 * w + (w - 1)])
-			if not mapping.has(inner_typ_right):
-				continue
-			var sa_right := int(mapping.get(inner_typ_right, 0))
-			var sb_right := 0
-			var key_right := "h_%d_%d" % [sa_right, sb_right]
-			var st_right: SurfaceTool = horiz.get(key_right)
-			if st_right == null:
-				st_right = SurfaceTool.new()
-				st_right.begin(Mesh.PRIMITIVE_TRIANGLES)
-				horiz[key_right] = st_right
-			var seam_xe := float(w + 1) * SECTOR_SIZE
-			var x0e := seam_xe - EDGE_SLOPE
-			var x1e := seam_xe + EDGE_SLOPE
-			var z0e := float(yy2 + 1) * SECTOR_SIZE
-			var z1e := float(yy2 + 2) * SECTOR_SIZE
-			var yLe := _center_h(hgt, w, h, w - 1, yy2)
-			var yRe := _center_h(hgt, w, h, w, yy2)
-			var yN_Le := _center_h(hgt, w, h, w - 1, yy2 - 1)
-			var yN_Re := _center_h(hgt, w, h, w, yy2 - 1)
-			var yS_Le := _center_h(hgt, w, h, w - 1, yy2 + 1)
-			var yS_Re := _center_h(hgt, w, h, w, yy2 + 1)
-			var yLTe := (yLe + yN_Le) * 0.5
-			var yRTe := (yRe + yN_Re) * 0.5
-			var yLBe := (yLe + yS_Le) * 0.5
-			var yRBe := (yRe + yS_Re) * 0.5
-			st_right.set_uv(Vector2(0.0, 0.0)); st_right.add_vertex(Vector3(x0e, yLTe, z0e))
-			st_right.set_uv(Vector2(1.0, 0.0)); st_right.add_vertex(Vector3(x1e, yRTe, z0e))
-			st_right.set_uv(Vector2(1.0, 1.0)); st_right.add_vertex(Vector3(x1e, yRBe, z1e))
-			st_right.set_uv(Vector2(0.0, 0.0)); st_right.add_vertex(Vector3(x0e, yLTe, z0e))
-			st_right.set_uv(Vector2(1.0, 1.0)); st_right.add_vertex(Vector3(x1e, yRBe, z1e))
-			st_right.set_uv(Vector2(0.0, 1.0)); st_right.add_vertex(Vector3(x0e, yLBe, z1e))
+	# --- Border seams: connect border ring to inner playable area ---
+	# North border (between border row and y=0)
+	for x in w:
+		var border_typ_top := _typ_value_with_implicit_border(typ, w, h, x, -1)
+		var inner_typ_top := _typ_value_with_implicit_border(typ, w, h, x, 0)
+		if not mapping.has(border_typ_top) or not mapping.has(inner_typ_top):
+			continue
+		var sa_top := int(mapping.get(border_typ_top, 0))
+		var sb_top := int(mapping.get(inner_typ_top, 0))
+		var key_top := _retail_slurp_bucket_key(sa_top, sb_top, 0, 1)
+		if key_top.is_empty():
+			continue
+		var st_top: SurfaceTool = vert.get(key_top)
+		if st_top == null:
+			st_top = SurfaceTool.new()
+			st_top.begin(Mesh.PRIMITIVE_TRIANGLES)
+			vert[key_top] = st_top
+		var seam_zn := SECTOR_SIZE
+		var z0n := seam_zn - EDGE_SLOPE
+		var z1n := seam_zn + EDGE_SLOPE
+		var x0n := float(x + 1) * SECTOR_SIZE
+		var x1n := float(x + 2) * SECTOR_SIZE
+		var yTn := _center_h(hgt, w, h, x, -1)
+		var yBn := _center_h(hgt, w, h, x, 0)
+		var yLeftAvgn := _corner_average_h(hgt, w, h, x, 0)
+		var yRightAvgn := _corner_average_h(hgt, w, h, x + 1, 0)
+		_append_horizontal_seam_strip(st_top, x0n, x1n, z0n, seam_zn, z1n, yTn, yBn, yLeftAvgn, yRightAvgn)
+
+	# South border (between y=h-1 and border row)
+	for x in w:
+		var inner_typ_bottom := _typ_value_with_implicit_border(typ, w, h, x, h - 1)
+		var border_typ_bottom := _typ_value_with_implicit_border(typ, w, h, x, h)
+		if not mapping.has(inner_typ_bottom) or not mapping.has(border_typ_bottom):
+			continue
+		var sa_bottom := int(mapping.get(inner_typ_bottom, 0))
+		var sb_bottom := int(mapping.get(border_typ_bottom, 0))
+		var key_bottom := _retail_slurp_bucket_key(sa_bottom, sb_bottom, 0, 1)
+		if key_bottom.is_empty():
+			continue
+		var st_bottom: SurfaceTool = vert.get(key_bottom)
+		if st_bottom == null:
+			st_bottom = SurfaceTool.new()
+			st_bottom.begin(Mesh.PRIMITIVE_TRIANGLES)
+			vert[key_bottom] = st_bottom
+		var seam_zs := float(h + 1) * SECTOR_SIZE
+		var z0s := seam_zs - EDGE_SLOPE
+		var z1s := seam_zs + EDGE_SLOPE
+		var x0s := float(x + 1) * SECTOR_SIZE
+		var x1s := float(x + 2) * SECTOR_SIZE
+		var yTs := _center_h(hgt, w, h, x, h - 1)
+		var yBs := _center_h(hgt, w, h, x, h)
+		var yLeftAvgs := _corner_average_h(hgt, w, h, x, h)
+		var yRightAvgs := _corner_average_h(hgt, w, h, x + 1, h)
+		_append_horizontal_seam_strip(st_bottom, x0s, x1s, z0s, seam_zs, z1s, yTs, yBs, yLeftAvgs, yRightAvgs)
+
+	# West border (between border column and x=0)
+	for yy in h:
+		var border_typ_left := _typ_value_with_implicit_border(typ, w, h, -1, yy)
+		var inner_typ_left := _typ_value_with_implicit_border(typ, w, h, 0, yy)
+		if not mapping.has(border_typ_left) or not mapping.has(inner_typ_left):
+			continue
+		var sa_left := int(mapping.get(border_typ_left, 0))
+		var sb_left := int(mapping.get(inner_typ_left, 0))
+		var key_left := _retail_slurp_bucket_key(sa_left, sb_left, 1, 0)
+		if key_left.is_empty():
+			continue
+		var st_left: SurfaceTool = horiz.get(key_left)
+		if st_left == null:
+			st_left = SurfaceTool.new()
+			st_left.begin(Mesh.PRIMITIVE_TRIANGLES)
+			horiz[key_left] = st_left
+		var seam_xw := SECTOR_SIZE
+		var x0w := seam_xw - EDGE_SLOPE
+		var x1w := seam_xw + EDGE_SLOPE
+		var z0w := float(yy + 1) * SECTOR_SIZE
+		var z1w := float(yy + 2) * SECTOR_SIZE
+		var yLw := _center_h(hgt, w, h, -1, yy)
+		var yRw := _center_h(hgt, w, h, 0, yy)
+		var yTopAvgw := _corner_average_h(hgt, w, h, 0, yy)
+		var yBottomAvgw := _corner_average_h(hgt, w, h, 0, yy + 1)
+		_append_vertical_seam_strip(st_left, x0w, seam_xw, x1w, z0w, z1w, yLw, yRw, yTopAvgw, yBottomAvgw)
+
+	# East border (between x=w-1 and border column)
+	for yy2 in h:
+		var inner_typ_right := _typ_value_with_implicit_border(typ, w, h, w - 1, yy2)
+		var border_typ_right := _typ_value_with_implicit_border(typ, w, h, w, yy2)
+		if not mapping.has(inner_typ_right) or not mapping.has(border_typ_right):
+			continue
+		var sa_right := int(mapping.get(inner_typ_right, 0))
+		var sb_right := int(mapping.get(border_typ_right, 0))
+		var key_right := _retail_slurp_bucket_key(sa_right, sb_right, 1, 0)
+		if key_right.is_empty():
+			continue
+		var st_right: SurfaceTool = horiz.get(key_right)
+		if st_right == null:
+			st_right = SurfaceTool.new()
+			st_right.begin(Mesh.PRIMITIVE_TRIANGLES)
+			horiz[key_right] = st_right
+		var seam_xe := float(w + 1) * SECTOR_SIZE
+		var x0e := seam_xe - EDGE_SLOPE
+		var x1e := seam_xe + EDGE_SLOPE
+		var z0e := float(yy2 + 1) * SECTOR_SIZE
+		var z1e := float(yy2 + 2) * SECTOR_SIZE
+		var yLe := _center_h(hgt, w, h, w - 1, yy2)
+		var yRe := _center_h(hgt, w, h, w, yy2)
+		var yTopAvge := _corner_average_h(hgt, w, h, w, yy2)
+		var yBottomAvge := _corner_average_h(hgt, w, h, w, yy2 + 1)
+		_append_vertical_seam_strip(st_right, x0e, seam_xe, x1e, z0e, z1e, yLe, yRe, yTopAvge, yBottomAvge)
+
 	# Commit groups and assign materials per pair
 	for key_h in horiz.keys():
 		var st_h: SurfaceTool = horiz[key_h]
 		st_h.index(); st_h.generate_normals(); st_h.commit(mesh)
-		var parts_h: Array = key_h.split("_")
-		var a_h := int(parts_h[1])
-		var b_h := int(parts_h[2])
-		var sm := ShaderMaterial.new()
-		sm.shader = shader
-		if pre:
-			sm.set_shader_parameter("texture_a", pre.get_ground_texture(a_h))
-			sm.set_shader_parameter("texture_b", pre.get_ground_texture(b_h))
-		sm.set_shader_parameter("vertical_seam", false)
-		sm.set_shader_parameter("tile_scale", _compute_tile_scale())
-		# Use full textures for edges as well; no atlas subdivision.
-		sm.set_shader_parameter("atlas_grid", Vector2(1.0, 1.0))
-		sm.set_shader_parameter("variant_a", 0)
-		sm.set_shader_parameter("variant_b", 0)
-		mesh.surface_set_material(mesh.get_surface_count() - 1, sm)
+		mesh.surface_set_material(mesh.get_surface_count() - 1, _make_edge_blend_material(String(key_h), preloads, false))
 	for key_v in vert.keys():
 		var st_v: SurfaceTool = vert[key_v]
 		st_v.index(); st_v.generate_normals(); st_v.commit(mesh)
-		var parts_v: Array = key_v.split("_")
-		var a_v := int(parts_v[1])
-		var b_v := int(parts_v[2])
-		var sm2 := ShaderMaterial.new()
-		sm2.shader = shader
-		if pre:
-			sm2.set_shader_parameter("texture_a", pre.get_ground_texture(a_v))
-			sm2.set_shader_parameter("texture_b", pre.get_ground_texture(b_v))
-		sm2.set_shader_parameter("vertical_seam", true)
-		sm2.set_shader_parameter("tile_scale", _compute_tile_scale())
-		# Match top surfaces: full texture, no atlas subdivision.
-		sm2.set_shader_parameter("atlas_grid", Vector2(1.0, 1.0))
-		sm2.set_shader_parameter("variant_a", 0)
-		sm2.set_shader_parameter("variant_b", 0)
-		mesh.surface_set_material(mesh.get_surface_count() - 1, sm2)
+		mesh.surface_set_material(mesh.get_surface_count() - 1, _make_edge_blend_material(String(key_v), preloads, true))
 	return mesh
 
 func _center_h(hgt: PackedByteArray, w: int, h: int, sx: int, sy: int) -> float:
-	var bw := w + 2
-	var bh := h + 2
-	sx = clampi(sx + 1, 0, bw - 1)
-	sy = clampi(sy + 1, 0, bh - 1)
-	return float(hgt[sy * bw + sx]) * HEIGHT_SCALE
+	return _sample_hgt_height(hgt, w, h, sx, sy)
