@@ -917,13 +917,19 @@ static func _find_piece_bas_path(set_id: int, base_name: String) -> String:
 	var bas_path := _find_file(_buildings_dir(set_id), filename)
 	if not bas_path.is_empty():
 		return bas_path
-	return _find_file(_ground_dir(set_id), filename)
+	bas_path = _find_file(_ground_dir(set_id), filename)
+	if not bas_path.is_empty():
+		return bas_path
+	return _find_file(_vehicles_dir(set_id), filename)
 
 static func _buildings_dir(set_id: int) -> String:
 	return "%s/objects/buildings" % _set_root(set_id)
 
 static func _ground_dir(set_id: int) -> String:
 	return "%s/objects/ground" % _set_root(set_id)
+
+static func _vehicles_dir(set_id: int) -> String:
+	return "%s/objects/vehicles" % _set_root(set_id)
 
 static func _hi_alpha_dir(set_id: int) -> String:
 	return "%s/hi/alpha" % _set_root(set_id)

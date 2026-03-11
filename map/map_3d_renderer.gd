@@ -17,6 +17,19 @@ const BORDER_TYP_BOTTOM_RIGHT := 250
 const TERRAIN_PREVIEW_COLOR := Color(0.62, 0.66, 0.58, 1.0)
 const EDGE_PREVIEW_COLOR := Color(0.82, 0.48, 0.24, 0.55)
 const EDGE_BLEND_SHADER_PATH := "res://resources/terrain/shaders/edge_blend.gdshader"
+const HOST_STATION_BASE_NAMES := {
+	56: "VP_ROBO",
+	57: "VP_KROBO",
+	58: "VP_BRGRO",
+	59: "VP_GIGNT",
+	60: "VP_TAERO",
+	61: "VP_SULG1",
+	62: "VP_BSECT",
+	132: "VP_TRAIN",
+	176: "VP_GIGNT",
+	177: "VP_KROBO",
+	178: "VP_TAERO",
+}
 
 
 # Preview top surfaces use world-space tiling with one repeat per sector.
@@ -239,6 +252,8 @@ func build_from_current_map() -> void:
 	var surface_to_surface_type: Dictionary = result["surface_to_surface_type"]
 	var authored_piece_descriptors: Array = result.get("authored_piece_descriptors", [])
 	var overlay_descriptors := authored_piece_descriptors.duplicate()
+	if _cmd.host_stations != null and is_instance_valid(_cmd.host_stations):
+		overlay_descriptors.append_array(_build_host_station_descriptors(_cmd.host_stations.get_children(), int(_cmd.level_set), hgt, w, h))
 	print("[Map3D] build_from_current_map: built textured mesh with surfaces=", mesh.get_surface_count())
 	if _terrain_mesh:
 		_terrain_mesh.mesh = mesh
@@ -399,6 +414,48 @@ static func _authored_slurp_base_name(surface_a: int, surface_b: int, vertical: 
 
 static func _sector_center_origin(sx: int, sy: int, sector_y: float) -> Vector3:
 	return Vector3((float(sx) + 1.5) * SECTOR_SIZE, sector_y, (float(sy) + 1.5) * SECTOR_SIZE)
+
+static func _host_station_base_name_for_vehicle(vehicle_id: int) -> String:
+	return String(HOST_STATION_BASE_NAMES.get(vehicle_id, ""))
+
+static func _world_to_sector_index(world_coord: float) -> int:
+	return int(floor(world_coord / SECTOR_SIZE)) - 1
+
+static func _ground_height_at_world_position(hgt: PackedByteArray, w: int, h: int, world_x: float, world_z: float) -> float:
+	if w <= 0 or h <= 0 or hgt.size() != (w + 2) * (h + 2):
+		return 0.0
+	return _sample_hgt_height(hgt, w, h, _world_to_sector_index(world_x), _world_to_sector_index(world_z))
+
+static func _host_station_origin(host_station: Node2D, hgt: PackedByteArray, w: int, h: int) -> Vector3:
+	var pos_y_value = host_station.get("pos_y")
+	var ua_x := float(host_station.position.x)
+	var world_z := absf(float(host_station.position.y))
+	var ua_y := float(pos_y_value if pos_y_value != null else 0.0)
+	var ground_y := _ground_height_at_world_position(hgt, w, h, ua_x, world_z)
+	return Vector3(ua_x, ground_y - ua_y, world_z)
+
+static func _build_host_station_descriptors(host_stations: Array, set_id: int, hgt: PackedByteArray, w: int, h: int) -> Array:
+	var descriptors: Array = []
+	for host_station in host_stations:
+		if host_station == null or not is_instance_valid(host_station):
+			continue
+		if not (host_station is Node2D):
+			continue
+		var vehicle_value = host_station.get("vehicle")
+		if vehicle_value == null:
+			continue
+		var base_name := _host_station_base_name_for_vehicle(int(vehicle_value))
+		if base_name.is_empty():
+			continue
+		if not UATerrainPieceLibraryScript.has_piece_source(set_id, base_name):
+			continue
+		descriptors.append({
+			"set_id": set_id,
+			"raw_id": -1,
+			"base_name": base_name,
+			"origin": _host_station_origin(host_station as Node2D, hgt, w, h),
+		})
+	return descriptors
 
 static func _draw_quad(st: SurfaceTool, xl: float, xr: float, zt: float, zb: float, y: float, f: int, cells: int, v: int, rot_deg: int = 0, u0: float = 0.0, vv0: float = 0.0, u1: float = 1.0, vv1: float = 1.0) -> void:
 	var rot := ((rot_deg % 360) + 360) % 360

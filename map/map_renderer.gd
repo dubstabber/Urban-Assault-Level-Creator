@@ -217,6 +217,7 @@ func add_hoststation(owner_id: int, vehicle_id: int) -> void:
 	CurrentMapData.is_saved = false
 	if CurrentMapData.host_stations.get_child_count() > HOST_STATION_LIMIT:
 		EventSystem.safe_host_station_limit_exceeded.emit()
+	EventSystem.map_updated.emit()
 
 
 func add_squad(owner_id: int, vehicle_id: int) -> void:
