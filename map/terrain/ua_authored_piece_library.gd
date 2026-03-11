@@ -2,8 +2,19 @@ extends RefCounted
 class_name UATerrainPieceLibrary
 
 const ASSET_ROOT := "res://urban_assault_decompiled-master/assets/sets"
-const MODEL_SCALE := 4.0 / 3.0
+# Raw BAS/SKLT terrain-piece coordinates already use UA world-space sector units:
+# - 3x3 top pieces are authored as 300x300 footprints
+# - full border-ring pieces are authored around 1200-unit sector spans
+# Keep a 1:1 scale here so the later source-backed 300-unit lattice placement does not
+# expand each subsector into a 400x400 overlap region and cause cross-piece z-fighting.
+const MODEL_SCALE := 1.0
+const OVERLAY_Y_BIAS := 1.0
+const UA_SECTOR_SPAN := 1200.0
+const UA_SECTOR_HALF := UA_SECTOR_SPAN * 0.5
+const UA_SLURP_HALF_WIDTH := 150.0
 const AnimatedSurfaceMeshInstanceScript = preload("res://map/terrain/ua_animated_surface_mesh_instance.gd")
+const AREA_POL_FLAG_GRADIENTSHADE := 0x30
+const AREA_POL_FLAG_SHADE_MASK := 0x30
 const AREA_POL_FLAG_CLEARTRACY := 0x40
 const AREA_POL_FLAG_FLATTRACY := 0x80
 const AREA_POL_FLAG_TRACY_MASK := 0xC0
@@ -36,9 +47,23 @@ static func build_overlay_node(descriptors: Array) -> Node3D:
 		var piece_node := _build_piece_node(set_id, base_name, int(desc.get("raw_id", -1)))
 		if piece_node == null:
 			continue
-		piece_node.position = desc.get("origin", Vector3.ZERO)
+		_apply_optional_piece_deform(piece_node, desc)
+		# Keep authored overlay geometry a tiny amount above the flat sector top so coplanar
+		# authored polygons do not fight the terrain plane and appear partially cut off.
+		piece_node.position = desc.get("origin", Vector3.ZERO) + Vector3(0.0, OVERLAY_Y_BIAS, 0.0)
 		root.add_child(piece_node)
 	return root
+
+static func has_piece_source(set_id: int, base_name: String) -> bool:
+	if base_name.is_empty():
+		return false
+	var bas_path := _find_piece_bas_path(set_id, base_name)
+	if bas_path.is_empty():
+		return false
+	var bas_data := _load_json(bas_path)
+	var skel_ref := _find_first_skeleton_ref(bas_data)
+	var skel_name := skel_ref.get_file().get_basename() if not skel_ref.is_empty() else base_name
+	return not _find_file(_skeleton_dir(set_id), "%s.skl.json" % skel_name).is_empty()
 
 static func _lego_for_raw_id(lego_defs: Dictionary, raw_id: int) -> Dictionary:
 	if lego_defs.has(raw_id):
@@ -85,6 +110,79 @@ static func _build_piece_node(set_id: int, base_name: String, raw_id: int) -> No
 		child.name = "Surface_%d" % i
 		piece.add_child(child)
 	return piece if piece.get_child_count() > 0 else null
+
+static func _apply_optional_piece_deform(piece_node: Node3D, desc: Dictionary) -> void:
+	var warp_mode := String(desc.get("warp_mode", ""))
+	if warp_mode.is_empty():
+		return
+	for child in piece_node.get_children():
+		if child is MeshInstance3D:
+			var mi := child as MeshInstance3D
+			if mi.mesh != null:
+				mi.mesh = _deformed_slurp_mesh(mi.mesh, desc)
+
+static func _deformed_slurp_mesh(source_mesh: Mesh, desc: Dictionary) -> ArrayMesh:
+	var out := ArrayMesh.new()
+	for surface_idx in source_mesh.get_surface_count():
+		var arrays := source_mesh.surface_get_arrays(surface_idx)
+		var verts: PackedVector3Array = arrays[Mesh.ARRAY_VERTEX]
+		if verts.is_empty():
+			continue
+		var deformed := PackedVector3Array()
+		deformed.resize(verts.size())
+		for i in verts.size():
+			deformed[i] = _deformed_slurp_vertex(verts[i], desc)
+		arrays[Mesh.ARRAY_VERTEX] = deformed
+		out.add_surface_from_arrays(Mesh.PRIMITIVE_TRIANGLES, arrays)
+		out.surface_set_material(out.get_surface_count() - 1, source_mesh.surface_get_material(surface_idx))
+	return out
+
+static func _deformed_slurp_vertex(vertex: Vector3, desc: Dictionary) -> Vector3:
+	var result := vertex
+	var warp_mode := String(desc.get("warp_mode", ""))
+	var anchor_height := float(desc.get("anchor_height", 0.0))
+	if warp_mode == "vside":
+		var seam_y := lerpf(
+			float(desc.get("top_avg", anchor_height)) - anchor_height,
+			float(desc.get("bottom_avg", anchor_height)) - anchor_height,
+			_inverse_lerp_clamped(-UA_SECTOR_HALF, UA_SECTOR_HALF, vertex.z)
+		)
+		if vertex.x <= -UA_SECTOR_HALF:
+			result.y = lerpf(
+			float(desc.get("left_height", anchor_height)) - anchor_height,
+			seam_y,
+			_inverse_lerp_clamped(-UA_SECTOR_HALF - UA_SLURP_HALF_WIDTH, -UA_SECTOR_HALF, vertex.x)
+			)
+		else:
+			result.y = lerpf(
+			seam_y,
+			float(desc.get("right_height", anchor_height)) - anchor_height,
+			_inverse_lerp_clamped(-UA_SECTOR_HALF, -UA_SECTOR_HALF + UA_SLURP_HALF_WIDTH, vertex.x)
+			)
+	elif warp_mode == "hside":
+		var seam_y_h := lerpf(
+			float(desc.get("left_avg", anchor_height)) - anchor_height,
+			float(desc.get("right_avg", anchor_height)) - anchor_height,
+			_inverse_lerp_clamped(-UA_SECTOR_HALF, UA_SECTOR_HALF, vertex.x)
+		)
+		if vertex.z <= -UA_SECTOR_HALF:
+			result.y = lerpf(
+			float(desc.get("top_height", anchor_height)) - anchor_height,
+			seam_y_h,
+			_inverse_lerp_clamped(-UA_SECTOR_HALF - UA_SLURP_HALF_WIDTH, -UA_SECTOR_HALF, vertex.z)
+			)
+		else:
+			result.y = lerpf(
+			seam_y_h,
+			float(desc.get("bottom_height", anchor_height)) - anchor_height,
+			_inverse_lerp_clamped(-UA_SECTOR_HALF, -UA_SECTOR_HALF + UA_SLURP_HALF_WIDTH, vertex.z)
+			)
+	return result
+
+static func _inverse_lerp_clamped(a: float, b: float, value: float) -> float:
+	if is_equal_approx(a, b):
+		return 0.0
+	return clampf((value - a) / (b - a), 0.0, 1.0)
 
 static func _extract_surfaces(node, points: Array, polys: Array, set_id: int) -> Array:
 	var result: Array = []
@@ -135,20 +233,34 @@ static func _surface_from_area(area_data: Array, points: Array, polys: Array, se
 	}
 
 static func _surfaces_from_amsh(amsh_data: Array, points: Array, polys: Array, set_id: int) -> Array:
-	var triangles: Array = []
+	var grouped_surfaces := {}
 	var atts_entries := _find_first_atts_entries(amsh_data)
 	var olpl_points := _find_first_points(amsh_data, "OLPL")
 	var texture_name := _find_first_name(amsh_data, "NAM2")
+	var render_hints := _render_hints_from_area(amsh_data)
+	var uses_shading := _area_uses_gradient_shade(_find_first_area_strc(amsh_data))
 	for i in atts_entries.size():
-		var poly_id := int(atts_entries[i].get("poly_id", -1))
+		var att_entry: Dictionary = atts_entries[i]
+		var poly_id := int(att_entry.get("poly_id", -1))
 		var polygon := _polygon_vertices(points, polys, poly_id)
 		if polygon.is_empty():
 			continue
 		var uv_points: Array = olpl_points[i] if i < olpl_points.size() else []
-		triangles.append_array(_triangulate(polygon, _coerce_uvs(uv_points, polygon, set_id, texture_name)))
-	if triangles.is_empty():
-		return []
-	return [{"texture_name": texture_name, "triangles": triangles}]
+		var triangles := _triangulate(polygon, _coerce_uvs(uv_points, polygon, set_id, texture_name))
+		if triangles.is_empty():
+			continue
+		var surface_hints: Dictionary = render_hints.duplicate(true)
+		if uses_shading:
+			surface_hints["shade_value"] = clampi(int(att_entry.get("shade_val", 0)), 0, 255)
+		var key := _surface_group_key(texture_name, surface_hints)
+		if not grouped_surfaces.has(key):
+			grouped_surfaces[key] = {
+				"texture_name": texture_name,
+				"triangles": [],
+				"render_hints": surface_hints,
+			}
+		grouped_surfaces[key]["triangles"].append_array(triangles)
+	return grouped_surfaces.values()
 
 static func _triangulate(polygon: Array, uvs: Array) -> Array:
 	var tris: Array = []
@@ -164,7 +276,10 @@ static func _polygon_vertices(points: Array, polys: Array, poly_id: int) -> Arra
 		if int(point_idx) < 0 or int(point_idx) >= points.size():
 			return []
 		var p: Dictionary = points[int(point_idx)]
-		polygon.append(Vector3(float(p.get("x", 0.0)) * MODEL_SCALE, -float(p.get("y", 0.0)) * MODEL_SCALE, float(p.get("z", 0.0)) * MODEL_SCALE))
+		# Retail UA sector rows advance toward negative world-Z. The editor preview keeps map
+		# rows growing toward positive Z, so authored local geometry must mirror Z as well or
+		# directional pieces/borders appear globally flipped relative to the terrain grid.
+		polygon.append(Vector3(float(p.get("x", 0.0)) * MODEL_SCALE, -float(p.get("y", 0.0)) * MODEL_SCALE, -float(p.get("z", 0.0)) * MODEL_SCALE))
 	return polygon
 
 static func _coerce_uvs(raw_uvs: Array, polygon: Array, set_id: int = 0, texture_name: String = "") -> Array:
@@ -283,6 +398,11 @@ static func _render_hints_from_area(node) -> Dictionary:
 		return {"transparency_mode": "cutout"}
 	return {}
 
+static func _area_uses_gradient_shade(strc: Dictionary) -> bool:
+	if strc.is_empty():
+		return false
+	return (int(strc.get("polFlags", 0)) & AREA_POL_FLAG_SHADE_MASK) == AREA_POL_FLAG_GRADIENTSHADE
+
 static func _find_first_skeleton_ref(node) -> String:
 	if typeof(node) == TYPE_DICTIONARY:
 		if node.has("SKLC"):
@@ -352,7 +472,9 @@ static func _material_for_texture(set_id: int, texture_name: String, render_hint
 	var mat := StandardMaterial3D.new()
 	mat.cull_mode = BaseMaterial3D.CULL_DISABLED
 	mat.texture_filter = BaseMaterial3D.TEXTURE_FILTER_NEAREST
+	mat.metallic = 0.0
 	mat.roughness = 1.0
+	mat.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
 	var tex := _texture_for_name(set_id, texture_name, hints)
 	if tex != null:
 		mat.albedo_texture = tex
@@ -367,6 +489,9 @@ static func _material_for_texture(set_id: int, texture_name: String, render_hint
 		elif has_alpha:
 			mat.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA_SCISSOR
 			mat.alpha_scissor_threshold = 0.5
+			var shade_multiplier := _shade_multiplier_from_value(int(hints.get("shade_value", 0)))
+			if not is_equal_approx(shade_multiplier, 1.0):
+				mat.albedo_color = Color(shade_multiplier, shade_multiplier, shade_multiplier, mat.albedo_color.a)
 	if mat.albedo_texture == null:
 		mat.albedo_color = Color(1.0, 0.0, 1.0, 0.5)
 		mat.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
@@ -377,8 +502,7 @@ static func _texture_for_name(set_id: int, texture_name: String, render_hints: D
 	var texture_file := _normalize_texture_name(texture_name)
 	if texture_file.is_empty():
 		return null
-	var hints := _normalized_render_hints(render_hints)
-	var cache_key := _render_cache_key(set_id, texture_file, hints)
+	var cache_key := _texture_cache_key(set_id, texture_file)
 	if _texture_cache.has(cache_key):
 		return _texture_cache[cache_key]
 	var texture_path := _find_file(_set_root(set_id), texture_file)
@@ -402,15 +526,32 @@ static func _normalized_render_hints(render_hints: Dictionary) -> Dictionary:
 	return {
 		"transparency_mode": mode,
 		"tracy_val": clampi(int(render_hints.get("tracy_val", 0)), 0, 255),
+		"shade_value": clampi(int(render_hints.get("shade_value", 0)), 0, 255),
 	}
 
 static func _render_cache_key(set_id: int, texture_file: String, render_hints: Dictionary) -> String:
-	return "%d:%s:%s:%d" % [
+	return "%d:%s:%s:%d:%d" % [
 		set_id,
 		texture_file.to_lower(),
 		String(render_hints.get("transparency_mode", "auto")),
 		int(render_hints.get("tracy_val", 0)),
+		int(render_hints.get("shade_value", 0)),
 	]
+
+static func _texture_cache_key(set_id: int, texture_file: String) -> String:
+	return "%d:%s" % [set_id, texture_file.to_lower()]
+
+static func _surface_group_key(texture_name: String, render_hints: Dictionary) -> String:
+	var hints := _normalized_render_hints(render_hints)
+	return "%s:%s:%d:%d" % [
+		texture_name.to_lower(),
+		String(hints.get("transparency_mode", "auto")),
+		int(hints.get("tracy_val", 0)),
+		int(hints.get("shade_value", 0)),
+	]
+
+static func _shade_multiplier_from_value(shade_value: int) -> float:
+	return clampf(1.0 - float(clampi(shade_value, 0, 255)) / 256.0, 0.0, 1.0)
 
 static func _apply_color_key_transparency(image: Image) -> Image:
 	var converted := image.duplicate()
@@ -494,7 +635,7 @@ static func _find_frames_list(node) -> Array:
 	return []
 
 static func _load_piece_source(set_id: int, base_name: String) -> Dictionary:
-	var bas_path := _find_file(_buildings_dir(set_id), "%s.bas.json" % base_name)
+	var bas_path := _find_piece_bas_path(set_id, base_name)
 	var bas_data := _load_json(bas_path)
 	var skel_ref := _find_first_skeleton_ref(bas_data)
 	var skel_name := skel_ref.get_file().get_basename() if not skel_ref.is_empty() else base_name
@@ -593,8 +734,18 @@ static func _find_file(dir_path: String, filename: String) -> String:
 static func _set_root(set_id: int) -> String:
 	return "%s/set%d" % [ASSET_ROOT, set_id]
 
+static func _find_piece_bas_path(set_id: int, base_name: String) -> String:
+	var filename := "%s.bas.json" % base_name
+	var bas_path := _find_file(_buildings_dir(set_id), filename)
+	if not bas_path.is_empty():
+		return bas_path
+	return _find_file(_ground_dir(set_id), filename)
+
 static func _buildings_dir(set_id: int) -> String:
 	return "%s/objects/buildings" % _set_root(set_id)
+
+static func _ground_dir(set_id: int) -> String:
+	return "%s/objects/ground" % _set_root(set_id)
 
 static func _skeleton_dir(set_id: int) -> String:
 	return "%s/Skeleton" % _set_root(set_id)

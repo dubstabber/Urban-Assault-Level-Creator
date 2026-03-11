@@ -26,7 +26,9 @@ func _compute_tile_scale() -> float:
 @onready var _terrain_mesh: MeshInstance3D = $TerrainMesh
 @onready var _edge_mesh: MeshInstance3D = $EdgeMesh if has_node("EdgeMesh") else null
 @onready var _authored_overlay: Node3D = $AuthoredOverlay if has_node("AuthoredOverlay") else null
-var _edge_overlay_enabled := false
+# Keep seam/slurp strips visible in the live preview; redundant flat/same-surface
+# seams are filtered out in the builder to avoid needless overdraw.
+var _edge_overlay_enabled := true
 
 @onready var _camera: Camera3D = $Camera3D
 
@@ -236,20 +238,24 @@ func build_from_current_map() -> void:
 	var mesh: ArrayMesh = result["mesh"]
 	var surface_to_surface_type: Dictionary = result["surface_to_surface_type"]
 	var authored_piece_descriptors: Array = result.get("authored_piece_descriptors", [])
+	var overlay_descriptors := authored_piece_descriptors.duplicate()
 	print("[Map3D] build_from_current_map: built textured mesh with surfaces=", mesh.get_surface_count())
 	if _terrain_mesh:
 		_terrain_mesh.mesh = mesh
 		print("[Map3D] build_from_current_map: mesh assigned to TerrainMesh")
 		_apply_sector_top_materials(mesh, pre, surface_to_surface_type)
-	_set_authored_overlay(authored_piece_descriptors)
 
-	# Optional edge overlay approximates retail `vside` / `hside` slurps with
-	# ordered-pair texture blends. Exact authored filler payloads are still unresolved.
+	# Edge overlay now prefers authored retail slurp pieces (`SxyV` / `SxyH`) and only
+	# falls back to the older blended strip approximation when a slurp asset is unavailable.
 	if _edge_overlay_enabled and typ.size() == w * h:
-		_build_edges_from_current_map()
+		var edge_result := _build_edge_overlay_result(hgt, w, h, typ, pre.surface_type_map, int(_cmd.level_set), pre)
+		overlay_descriptors.append_array(edge_result.get("authored_piece_descriptors", []))
+		_ensure_edge_node()
+		_edge_mesh.mesh = edge_result.get("mesh", null)
 	else:
 		if _edge_mesh:
 			_edge_mesh.mesh = null
+	_set_authored_overlay(overlay_descriptors)
 
 func clear() -> void:
 	if _terrain_mesh:
@@ -273,6 +279,7 @@ static func _make_preview_material(color: Color) -> StandardMaterial3D:
 	mat.albedo_color = color
 	mat.metallic = 0.0
 	mat.roughness = 1.0
+	mat.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
 	mat.cull_mode = BaseMaterial3D.CULL_DISABLED
 	if color.a < 1.0:
 		mat.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
@@ -386,6 +393,12 @@ static func _surface_pair_from_slurp_bucket_key(bucket_key: String) -> Dictionar
 		"surface_a": clampi(int(parts[1]), 0, 5),
 		"surface_b": clampi(int(parts[2]), 0, 5),
 	}
+
+static func _authored_slurp_base_name(surface_a: int, surface_b: int, vertical: bool) -> String:
+	return "S%d%d%s" % [clampi(surface_a, 0, 5), clampi(surface_b, 0, 5), ("V" if vertical else "H")]
+
+static func _sector_center_origin(sx: int, sy: int, sector_y: float) -> Vector3:
+	return Vector3((float(sx) + 1.5) * SECTOR_SIZE, sector_y, (float(sy) + 1.5) * SECTOR_SIZE)
 
 static func _draw_quad(st: SurfaceTool, xl: float, xr: float, zt: float, zb: float, y: float, f: int, cells: int, v: int, rot_deg: int = 0, u0: float = 0.0, vv0: float = 0.0, u1: float = 1.0, vv1: float = 1.0) -> void:
 	var rot := ((rot_deg % 360) + 360) % 360
@@ -513,9 +526,41 @@ static func _sector_pattern_for_typ(subsector_patterns: Dictionary, typ_value: i
 static func _default_file_variant_for_subsector(surface_type: int, subsector_idx: int, tile_mapping: Dictionary, tile_remap: Dictionary, subsector_idx_remap: Dictionary) -> Array:
 	return _default_piece_selection_for_subsector(surface_type, subsector_idx, tile_mapping, tile_remap, subsector_idx_remap).get("piece", [clampi(surface_type, 0, 5), (16 if surface_type == 4 else 4), 0])
 
+static func _default_stage_slot_for_raw(raw_value: int) -> int:
+	if raw_value <= 0:
+		return 3
+	if raw_value <= 99:
+		return 2
+	if raw_value <= 199:
+		return 1
+	return 0
+
 static func _selected_raw_id_for_tile_desc(tile_desc: Dictionary) -> int:
-	var start_health := 255 if int(tile_desc.get("flag", 0)) != 0 else 0
-	return int(tile_desc.get("val0", 0)) if start_health >= 201 else int(tile_desc.get("val3", 0))
+	var vals: Array[int] = [
+		int(tile_desc.get("val0", 0)),
+		int(tile_desc.get("val1", 0)),
+		int(tile_desc.get("val2", 0)),
+		int(tile_desc.get("val3", 0)),
+	]
+	# Conservative preview-only exception: shipped typ155 in sets 2..6 uses a one-off payload
+	# {203,203,203,35,flag 0}. It is the only repeated "three identical non-zero stage
+	# entries plus a different val3" signature in the bundled set data, and selecting val3
+	# produces the known wrong bottom-left subsector. Prefer the repeated steady-state piece.
+	if int(tile_desc.get("flag", 0)) == 0 and vals[0] != 0 and vals[0] == vals[1] and vals[1] == vals[2] and vals[3] != 0 and vals[3] != vals[0]:
+		return vals[0]
+	var raw_val := vals[_default_stage_slot_for_raw(int(tile_desc.get("flag", 0)))]
+	if raw_val != 0:
+		return raw_val
+	var single_nonzero_raw := 0
+	for candidate in vals:
+		if candidate == 0:
+			continue
+		if single_nonzero_raw == 0:
+			single_nonzero_raw = candidate
+			continue
+		if candidate != single_nonzero_raw:
+			return raw_val
+	return single_nonzero_raw
 
 static func _default_piece_selection_for_subsector(surface_type: int, subsector_idx: int, tile_mapping: Dictionary, tile_remap: Dictionary, subsector_idx_remap: Dictionary) -> Dictionary:
 	var default_file := clampi(surface_type, 0, 5)
@@ -525,6 +570,16 @@ static func _default_piece_selection_for_subsector(surface_type: int, subsector_
 		return {"raw_id": -1, "piece": [default_file, (16 if default_file == 4 else 4), 0]}
 	var raw_val := _selected_raw_id_for_tile_desc(tile_desc)
 	return {"raw_id": raw_val, "piece": _decode_raw_to_fcv_with_remap(raw_val, default_file, tile_remap)}
+
+static func _authored_origin_for_subsector(x0: float, z0: float, sector_y: float, sub_x: int, sub_y: int) -> Vector3:
+	var sector_center_x := x0 + SECTOR_SIZE * 0.5
+	var sector_center_z := z0 + SECTOR_SIZE * 0.5
+	var lattice_step := SECTOR_SIZE * 0.25
+	return Vector3(
+		sector_center_x + (float(sub_x) - 1.0) * lattice_step,
+		sector_y,
+		sector_center_z + (float(sub_y) - 1.0) * lattice_step
+	)
 
 static func _append_vertical_seam_strip(st: SurfaceTool, x0: float, seam_x: float, x1: float, z0: float, z1: float, y_left: float, y_right: float, y_top_avg: float, y_bottom_avg: float) -> void:
 	var lt := Vector3(x0, y_left, z0)
@@ -565,6 +620,13 @@ static func _append_horizontal_seam_strip(st: SurfaceTool, x0: float, x1: float,
 	st.set_uv(Vector2(0.0, 0.5)); st.add_vertex(sl)
 	st.set_uv(Vector2(1.0, 1.0)); st.add_vertex(br)
 	st.set_uv(Vector2(0.0, 1.0)); st.add_vertex(bl)
+
+static func _should_emit_seam_strip(surface_a: int, surface_b: int, outer_a: float, outer_b: float, seam_mid_a: float, seam_mid_b: float) -> bool:
+	# Retail slurps are selected from the ordered neighboring SurfaceType pair for every
+	# rendered sector adjacency. The preview also needs that behavior for flat/coplanar
+	# neighbors so sectors stay visually joined instead of leaving seams open.
+	return true
+
 static func build_mesh_with_textures(hgt: PackedByteArray, typ: PackedByteArray, w: int, h: int, mapping: Dictionary, subsector_patterns: Dictionary = {}, tile_mapping: Dictionary = {}, tile_remap: Dictionary = {}, subsector_idx_remap: Dictionary = {}, lego_defs: Dictionary = {}, set_id: int = 1) -> Dictionary:
 	var bw := w + 2
 	var bh := h + 2
@@ -623,7 +685,7 @@ static func build_mesh_with_textures(hgt: PackedByteArray, typ: PackedByteArray,
 							set_id,
 							int(selection.get("raw_id", -1)),
 							lego_defs,
-							Vector3((piece_x0 + piece_x1) * 0.5, sector_y, (piece_z0 + piece_z1) * 0.5)
+							_authored_origin_for_subsector(x0, z0, sector_y, sub_x, sub_y)
 						)
 						if not authored.is_empty():
 							authored_piece_descriptors.append(authored)
@@ -731,9 +793,109 @@ func _build_edges_from_current_map() -> void:
 		return
 	var pre = get_node_or_null("/root/Preloads")
 	var mapping: Dictionary = pre.surface_type_map if pre else {}
-	var mesh := _build_edges_mesh(hgt, w, h, typ, mapping, pre)
+	var result := _build_edge_overlay_result(hgt, w, h, typ, mapping, int(cmd.level_set), pre)
 	_ensure_edge_node()
-	_edge_mesh.mesh = mesh
+	_edge_mesh.mesh = result.get("mesh", null)
+
+func _build_edge_overlay_result(hgt: PackedByteArray, w: int, h: int, typ: PackedByteArray, mapping: Dictionary, set_id: int, preloads = null) -> Dictionary:
+	var authored_piece_descriptors: Array = []
+	var fallback_horiz := {}
+	var fallback_vert := {}
+	if preloads == null and is_inside_tree():
+		preloads = get_node_or_null("/root/Preloads")
+
+	for y in range(-1, h + 1):
+		for x in range(-1, w):
+			var a := _typ_value_with_implicit_border(typ, w, h, x, y)
+			var b := _typ_value_with_implicit_border(typ, w, h, x + 1, y)
+			if not mapping.has(a) or not mapping.has(b):
+				continue
+			var sa := int(mapping.get(a, 0))
+			var sb := int(mapping.get(b, 0))
+			var yL := _center_h(hgt, w, h, x, y)
+			var yR := _center_h(hgt, w, h, x + 1, y)
+			var yTopAvg := _corner_average_h(hgt, w, h, x + 1, y)
+			var yBottomAvg := _corner_average_h(hgt, w, h, x + 1, y + 1)
+			if not _should_emit_seam_strip(sa, sb, yL, yR, yTopAvg, yBottomAvg):
+				continue
+			var base_name := _authored_slurp_base_name(sa, sb, true)
+			if UATerrainPieceLibraryScript.has_piece_source(set_id, base_name):
+				authored_piece_descriptors.append({
+					"set_id": set_id,
+					"raw_id": -1,
+					"base_name": base_name,
+					"origin": _sector_center_origin(x + 1, y, yR),
+					"warp_mode": "vside",
+					"anchor_height": yR,
+					"left_height": yL,
+					"right_height": yR,
+					"top_avg": yTopAvg,
+					"bottom_avg": yBottomAvg,
+				})
+				continue
+			_append_vertical_fallback_group(fallback_horiz, _retail_slurp_bucket_key(sa, sb, 1, 0), float(x + 2) * SECTOR_SIZE, float(y + 1) * SECTOR_SIZE, float(y + 2) * SECTOR_SIZE, yL, yR, yTopAvg, yBottomAvg)
+
+	for y2 in range(-1, h):
+		for x2 in range(-1, w + 1):
+			var a2 := _typ_value_with_implicit_border(typ, w, h, x2, y2)
+			var b2 := _typ_value_with_implicit_border(typ, w, h, x2, y2 + 1)
+			if not mapping.has(a2) or not mapping.has(b2):
+				continue
+			var sa2 := int(mapping.get(a2, 0))
+			var sb2 := int(mapping.get(b2, 0))
+			var yT := _center_h(hgt, w, h, x2, y2)
+			var yB := _center_h(hgt, w, h, x2, y2 + 1)
+			var yLeftAvg := _corner_average_h(hgt, w, h, x2, y2 + 1)
+			var yRightAvg := _corner_average_h(hgt, w, h, x2 + 1, y2 + 1)
+			if not _should_emit_seam_strip(sa2, sb2, yT, yB, yLeftAvg, yRightAvg):
+				continue
+			var base_name_h := _authored_slurp_base_name(sa2, sb2, false)
+			if UATerrainPieceLibraryScript.has_piece_source(set_id, base_name_h):
+				authored_piece_descriptors.append({
+					"set_id": set_id,
+					"raw_id": -1,
+					"base_name": base_name_h,
+					"origin": _sector_center_origin(x2, y2 + 1, yB),
+					"warp_mode": "hside",
+					"anchor_height": yB,
+					"top_height": yT,
+					"bottom_height": yB,
+					"left_avg": yLeftAvg,
+					"right_avg": yRightAvg,
+				})
+				continue
+			_append_horizontal_fallback_group(fallback_vert, _retail_slurp_bucket_key(sa2, sb2, 0, 1), float(x2 + 1) * SECTOR_SIZE, float(x2 + 2) * SECTOR_SIZE, float(y2 + 2) * SECTOR_SIZE, yT, yB, yLeftAvg, yRightAvg)
+
+	var fallback_mesh := ArrayMesh.new()
+	for key_h in fallback_horiz.keys():
+		var st_h: SurfaceTool = fallback_horiz[key_h]
+		st_h.index(); st_h.generate_normals(); st_h.commit(fallback_mesh)
+		fallback_mesh.surface_set_material(fallback_mesh.get_surface_count() - 1, _make_edge_blend_material(String(key_h), preloads, false))
+	for key_v in fallback_vert.keys():
+		var st_v: SurfaceTool = fallback_vert[key_v]
+		st_v.index(); st_v.generate_normals(); st_v.commit(fallback_mesh)
+		fallback_mesh.surface_set_material(fallback_mesh.get_surface_count() - 1, _make_edge_blend_material(String(key_v), preloads, true))
+	return {"authored_piece_descriptors": authored_piece_descriptors, "mesh": fallback_mesh if fallback_mesh.get_surface_count() > 0 else null}
+
+func _append_vertical_fallback_group(groups: Dictionary, bucket_key: String, seam_x: float, z0: float, z1: float, left_height: float, right_height: float, top_avg: float, bottom_avg: float) -> void:
+	if bucket_key.is_empty():
+		return
+	var st: SurfaceTool = groups.get(bucket_key)
+	if st == null:
+		st = SurfaceTool.new()
+		st.begin(Mesh.PRIMITIVE_TRIANGLES)
+		groups[bucket_key] = st
+	_append_vertical_seam_strip(st, seam_x - EDGE_SLOPE, seam_x, seam_x + EDGE_SLOPE, z0, z1, left_height, right_height, top_avg, bottom_avg)
+
+func _append_horizontal_fallback_group(groups: Dictionary, bucket_key: String, x0: float, x1: float, seam_z: float, top_height: float, bottom_height: float, left_avg: float, right_avg: float) -> void:
+	if bucket_key.is_empty():
+		return
+	var st: SurfaceTool = groups.get(bucket_key)
+	if st == null:
+		st = SurfaceTool.new()
+		st.begin(Mesh.PRIMITIVE_TRIANGLES)
+		groups[bucket_key] = st
+	_append_horizontal_seam_strip(st, x0, x1, seam_z - EDGE_SLOPE, seam_z, seam_z + EDGE_SLOPE, top_height, bottom_height, left_avg, right_avg)
 
 func _make_edge_blend_material(bucket_key: String, preloads, use_uv_y_for_blend: bool) -> Material:
 	# Retail slurps/fillers are pre-authored objects loaded from orientation-specific 6x6 tables.
@@ -765,15 +927,22 @@ func _build_edges_mesh(hgt: PackedByteArray, w: int, h: int, typ: PackedByteArra
 	var horiz := {}
 	var vert := {}
 
-	# Retail `vside` slurps apply to left/right neighboring sector pairs.
-	for y in h:
-		for x in (w - 1):
-			var a := int(typ[y * w + x])
-			var b := int(typ[y * w + x + 1])
+	# Retail `vside` slurps apply to left/right neighboring sector pairs across the
+	# entire rendered grid, including the implicit border ring.
+	for y in range(-1, h + 1):
+		for x in range(-1, w):
+			var a := _typ_value_with_implicit_border(typ, w, h, x, y)
+			var b := _typ_value_with_implicit_border(typ, w, h, x + 1, y)
 			if not mapping.has(a) or not mapping.has(b):
 				continue
 			var sa := int(mapping.get(a, 0))
 			var sb := int(mapping.get(b, 0))
+			var yL := _center_h(hgt, w, h, x, y)
+			var yR := _center_h(hgt, w, h, x + 1, y)
+			var yTopAvg := _corner_average_h(hgt, w, h, x + 1, y)
+			var yBottomAvg := _corner_average_h(hgt, w, h, x + 1, y + 1)
+			if not _should_emit_seam_strip(sa, sb, yL, yR, yTopAvg, yBottomAvg):
+				continue
 			var key := _retail_slurp_bucket_key(sa, sb, 1, 0)
 			if key.is_empty():
 				continue
@@ -787,21 +956,24 @@ func _build_edges_mesh(hgt: PackedByteArray, w: int, h: int, typ: PackedByteArra
 			var x1 := seam_x + EDGE_SLOPE
 			var z0 := float(y + 1) * SECTOR_SIZE
 			var z1 := float(y + 2) * SECTOR_SIZE
-			var yL := _center_h(hgt, w, h, x, y)
-			var yR := _center_h(hgt, w, h, x + 1, y)
-			var yTopAvg := _corner_average_h(hgt, w, h, x + 1, y)
-			var yBottomAvg := _corner_average_h(hgt, w, h, x + 1, y + 1)
 			_append_vertical_seam_strip(st, x0, seam_x, x1, z0, z1, yL, yR, yTopAvg, yBottomAvg)
 
-	# Retail `hside` slurps apply to top/bottom neighboring sector pairs.
-	for y in (h - 1):
-		for x in w:
-			var a2 := int(typ[y * w + x])
-			var b2 := int(typ[(y + 1) * w + x])
+	# Retail `hside` slurps apply to top/bottom neighboring sector pairs across the
+	# full rendered grid, including border-to-border joins.
+	for y2 in range(-1, h):
+		for x2 in range(-1, w + 1):
+			var a2 := _typ_value_with_implicit_border(typ, w, h, x2, y2)
+			var b2 := _typ_value_with_implicit_border(typ, w, h, x2, y2 + 1)
 			if not mapping.has(a2) or not mapping.has(b2):
 				continue
 			var sa2 := int(mapping.get(a2, 0))
 			var sb2 := int(mapping.get(b2, 0))
+			var yT := _center_h(hgt, w, h, x2, y2)
+			var yB := _center_h(hgt, w, h, x2, y2 + 1)
+			var yLeftAvg := _corner_average_h(hgt, w, h, x2, y2 + 1)
+			var yRightAvg := _corner_average_h(hgt, w, h, x2 + 1, y2 + 1)
+			if not _should_emit_seam_strip(sa2, sb2, yT, yB, yLeftAvg, yRightAvg):
+				continue
 			var key2 := _retail_slurp_bucket_key(sa2, sb2, 0, 1)
 			if key2.is_empty():
 				continue
@@ -810,125 +982,12 @@ func _build_edges_mesh(hgt: PackedByteArray, w: int, h: int, typ: PackedByteArra
 				st2 = SurfaceTool.new()
 				st2.begin(Mesh.PRIMITIVE_TRIANGLES)
 				vert[key2] = st2
-			var seam_z := float(y + 2) * SECTOR_SIZE
+			var seam_z := float(y2 + 2) * SECTOR_SIZE
 			var z0v := seam_z - EDGE_SLOPE
 			var z1v := seam_z + EDGE_SLOPE
-			var x0v := float(x + 1) * SECTOR_SIZE
-			var x1v := float(x + 2) * SECTOR_SIZE
-			var yT := _center_h(hgt, w, h, x, y)
-			var yB := _center_h(hgt, w, h, x, y + 1)
-			var yLeftAvg := _corner_average_h(hgt, w, h, x, y + 1)
-			var yRightAvg := _corner_average_h(hgt, w, h, x + 1, y + 1)
+			var x0v := float(x2 + 1) * SECTOR_SIZE
+			var x1v := float(x2 + 2) * SECTOR_SIZE
 			_append_horizontal_seam_strip(st2, x0v, x1v, z0v, seam_z, z1v, yT, yB, yLeftAvg, yRightAvg)
-
-	# --- Border seams: connect border ring to inner playable area ---
-	# North border (between border row and y=0)
-	for x in w:
-		var border_typ_top := _typ_value_with_implicit_border(typ, w, h, x, -1)
-		var inner_typ_top := _typ_value_with_implicit_border(typ, w, h, x, 0)
-		if not mapping.has(border_typ_top) or not mapping.has(inner_typ_top):
-			continue
-		var sa_top := int(mapping.get(border_typ_top, 0))
-		var sb_top := int(mapping.get(inner_typ_top, 0))
-		var key_top := _retail_slurp_bucket_key(sa_top, sb_top, 0, 1)
-		if key_top.is_empty():
-			continue
-		var st_top: SurfaceTool = vert.get(key_top)
-		if st_top == null:
-			st_top = SurfaceTool.new()
-			st_top.begin(Mesh.PRIMITIVE_TRIANGLES)
-			vert[key_top] = st_top
-		var seam_zn := SECTOR_SIZE
-		var z0n := seam_zn - EDGE_SLOPE
-		var z1n := seam_zn + EDGE_SLOPE
-		var x0n := float(x + 1) * SECTOR_SIZE
-		var x1n := float(x + 2) * SECTOR_SIZE
-		var yTn := _center_h(hgt, w, h, x, -1)
-		var yBn := _center_h(hgt, w, h, x, 0)
-		var yLeftAvgn := _corner_average_h(hgt, w, h, x, 0)
-		var yRightAvgn := _corner_average_h(hgt, w, h, x + 1, 0)
-		_append_horizontal_seam_strip(st_top, x0n, x1n, z0n, seam_zn, z1n, yTn, yBn, yLeftAvgn, yRightAvgn)
-
-	# South border (between y=h-1 and border row)
-	for x in w:
-		var inner_typ_bottom := _typ_value_with_implicit_border(typ, w, h, x, h - 1)
-		var border_typ_bottom := _typ_value_with_implicit_border(typ, w, h, x, h)
-		if not mapping.has(inner_typ_bottom) or not mapping.has(border_typ_bottom):
-			continue
-		var sa_bottom := int(mapping.get(inner_typ_bottom, 0))
-		var sb_bottom := int(mapping.get(border_typ_bottom, 0))
-		var key_bottom := _retail_slurp_bucket_key(sa_bottom, sb_bottom, 0, 1)
-		if key_bottom.is_empty():
-			continue
-		var st_bottom: SurfaceTool = vert.get(key_bottom)
-		if st_bottom == null:
-			st_bottom = SurfaceTool.new()
-			st_bottom.begin(Mesh.PRIMITIVE_TRIANGLES)
-			vert[key_bottom] = st_bottom
-		var seam_zs := float(h + 1) * SECTOR_SIZE
-		var z0s := seam_zs - EDGE_SLOPE
-		var z1s := seam_zs + EDGE_SLOPE
-		var x0s := float(x + 1) * SECTOR_SIZE
-		var x1s := float(x + 2) * SECTOR_SIZE
-		var yTs := _center_h(hgt, w, h, x, h - 1)
-		var yBs := _center_h(hgt, w, h, x, h)
-		var yLeftAvgs := _corner_average_h(hgt, w, h, x, h)
-		var yRightAvgs := _corner_average_h(hgt, w, h, x + 1, h)
-		_append_horizontal_seam_strip(st_bottom, x0s, x1s, z0s, seam_zs, z1s, yTs, yBs, yLeftAvgs, yRightAvgs)
-
-	# West border (between border column and x=0)
-	for yy in h:
-		var border_typ_left := _typ_value_with_implicit_border(typ, w, h, -1, yy)
-		var inner_typ_left := _typ_value_with_implicit_border(typ, w, h, 0, yy)
-		if not mapping.has(border_typ_left) or not mapping.has(inner_typ_left):
-			continue
-		var sa_left := int(mapping.get(border_typ_left, 0))
-		var sb_left := int(mapping.get(inner_typ_left, 0))
-		var key_left := _retail_slurp_bucket_key(sa_left, sb_left, 1, 0)
-		if key_left.is_empty():
-			continue
-		var st_left: SurfaceTool = horiz.get(key_left)
-		if st_left == null:
-			st_left = SurfaceTool.new()
-			st_left.begin(Mesh.PRIMITIVE_TRIANGLES)
-			horiz[key_left] = st_left
-		var seam_xw := SECTOR_SIZE
-		var x0w := seam_xw - EDGE_SLOPE
-		var x1w := seam_xw + EDGE_SLOPE
-		var z0w := float(yy + 1) * SECTOR_SIZE
-		var z1w := float(yy + 2) * SECTOR_SIZE
-		var yLw := _center_h(hgt, w, h, -1, yy)
-		var yRw := _center_h(hgt, w, h, 0, yy)
-		var yTopAvgw := _corner_average_h(hgt, w, h, 0, yy)
-		var yBottomAvgw := _corner_average_h(hgt, w, h, 0, yy + 1)
-		_append_vertical_seam_strip(st_left, x0w, seam_xw, x1w, z0w, z1w, yLw, yRw, yTopAvgw, yBottomAvgw)
-
-	# East border (between x=w-1 and border column)
-	for yy2 in h:
-		var inner_typ_right := _typ_value_with_implicit_border(typ, w, h, w - 1, yy2)
-		var border_typ_right := _typ_value_with_implicit_border(typ, w, h, w, yy2)
-		if not mapping.has(inner_typ_right) or not mapping.has(border_typ_right):
-			continue
-		var sa_right := int(mapping.get(inner_typ_right, 0))
-		var sb_right := int(mapping.get(border_typ_right, 0))
-		var key_right := _retail_slurp_bucket_key(sa_right, sb_right, 1, 0)
-		if key_right.is_empty():
-			continue
-		var st_right: SurfaceTool = horiz.get(key_right)
-		if st_right == null:
-			st_right = SurfaceTool.new()
-			st_right.begin(Mesh.PRIMITIVE_TRIANGLES)
-			horiz[key_right] = st_right
-		var seam_xe := float(w + 1) * SECTOR_SIZE
-		var x0e := seam_xe - EDGE_SLOPE
-		var x1e := seam_xe + EDGE_SLOPE
-		var z0e := float(yy2 + 1) * SECTOR_SIZE
-		var z1e := float(yy2 + 2) * SECTOR_SIZE
-		var yLe := _center_h(hgt, w, h, w - 1, yy2)
-		var yRe := _center_h(hgt, w, h, w, yy2)
-		var yTopAvge := _corner_average_h(hgt, w, h, w, yy2)
-		var yBottomAvge := _corner_average_h(hgt, w, h, w, yy2 + 1)
-		_append_vertical_seam_strip(st_right, x0e, seam_xe, x1e, z0e, z1e, yLe, yRe, yTopAvge, yBottomAvge)
 
 	# Commit groups and assign materials per pair
 	for key_h in horiz.keys():

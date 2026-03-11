@@ -1,16 +1,16 @@
 shader_type spatial;
-render_mode cull_disabled, depth_draw_always;
+render_mode unshaded, cull_disabled, depth_draw_always;
 
 // Sector top surface shader with world-space tiling.
 // Supports atlas textures composed of an NxM grid (e.g., UA ground textures are 2x2 variants).
 
-uniform sampler2D ground_texture : source_color, filter_linear, repeat_disable; // fallback single
-uniform sampler2D ground0 : source_color, filter_linear, repeat_disable;
-uniform sampler2D ground1 : source_color, filter_linear, repeat_disable;
-uniform sampler2D ground2 : source_color, filter_linear, repeat_disable;
-uniform sampler2D ground3 : source_color, filter_linear, repeat_disable;
-uniform sampler2D ground4 : source_color, filter_linear, repeat_disable;
-uniform sampler2D ground5 : source_color, filter_linear, repeat_disable;
+uniform sampler2D ground_texture : source_color, filter_nearest, repeat_disable; // fallback single
+uniform sampler2D ground0 : source_color, filter_nearest, repeat_disable;
+uniform sampler2D ground1 : source_color, filter_nearest, repeat_disable;
+uniform sampler2D ground2 : source_color, filter_nearest, repeat_disable;
+uniform sampler2D ground3 : source_color, filter_nearest, repeat_disable;
+uniform sampler2D ground4 : source_color, filter_nearest, repeat_disable;
+uniform sampler2D ground5 : source_color, filter_nearest, repeat_disable;
 uniform float tile_scale : hint_range(0.0001, 0.01) = 0.000333; // world units to UV scale (~1 tile per ~3 sectors)
 uniform vec2 atlas_grid = vec2(1.0, 1.0); // e.g., vec2(2,2) for 2x2 atlas (fallback)
 uniform int variant = 0;                  // global fallback atlas cell (0..atlas_grid.x*atlas_grid.y-1)
@@ -21,6 +21,18 @@ uniform int debug_mode = 0;
 
 // Pass world position from vertex to fragment shader
 varying vec3 world_position;
+
+vec4 sample_ground_lod0(int file_index, vec2 atlas_uv) {
+	if (!use_multi_textures) {
+		return textureLod(ground_texture, atlas_uv, 0.0);
+	}
+	if (file_index == 0)      return textureLod(ground0, atlas_uv, 0.0);
+	else if (file_index == 1) return textureLod(ground1, atlas_uv, 0.0);
+	else if (file_index == 2) return textureLod(ground2, atlas_uv, 0.0);
+	else if (file_index == 3) return textureLod(ground3, atlas_uv, 0.0);
+	else if (file_index == 4) return textureLod(ground4, atlas_uv, 0.0);
+	return textureLod(ground5, atlas_uv, 0.0);
+}
 
 void vertex() {
 	// Calculate world position in vertex shader for accurate world-space UVs
@@ -80,21 +92,13 @@ void fragment() {
         float vnorm = float(variant_index) / denom;
         col = vec4(vec3(vnorm, vnorm, vnorm), 1.0);
     } else {
-        // Sample the selected ground texture
-        if (!use_multi_textures) {
-            col = texture(ground_texture, atlas_uv);
-        } else {
-            if (file_index == 0)      col = texture(ground0, atlas_uv);
-            else if (file_index == 1) col = texture(ground1, atlas_uv);
-            else if (file_index == 2) col = texture(ground2, atlas_uv);
-            else if (file_index == 3) col = texture(ground3, atlas_uv);
-            else if (file_index == 4) col = texture(ground4, atlas_uv);
-            else                      col = texture(ground5, atlas_uv);
-        }
+	        // Packed UA atlases should stay on LOD 0; lower mip levels prefilter across cell
+	        // boundaries and cause camera-angle-dependent texture swaps/bleed.
+	        col = sample_ground_lod0(file_index, atlas_uv);
     }
 
 	ALBEDO = col.rgb;
 	ROUGHNESS = 1.0;
 	METALLIC = 0.0;
-	SPECULAR = 0.2;
+	SPECULAR = 0.0;
 }

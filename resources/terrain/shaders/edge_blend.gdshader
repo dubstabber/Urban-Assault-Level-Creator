@@ -1,5 +1,5 @@
 shader_type spatial;
-render_mode cull_disabled, depth_draw_always;
+render_mode unshaded, cull_disabled, depth_draw_always;
 
 // Edge strip blend between two ground textures.
 // World-space UVs, with support for atlas textures (e.g., 2x2 variants).
@@ -40,8 +40,10 @@ void fragment() {
 	vec2 uv_b = offset_b + base * cell_size;
 
 	// sample both textures
-	vec4 col_a = texture(texture_a, uv_a);
-	vec4 col_b = texture(texture_b, uv_b);
+	// Keep seam textures on LOD 0 so camera distance/angle does not make the seam strip hop
+	// between prefiltered mip levels.
+	vec4 col_a = textureLod(texture_a, uv_a, 0.0);
+	vec4 col_b = textureLod(texture_b, uv_b, 0.0);
 
 	float t = vertical_seam ? UV.y : UV.x; // blend direction
 	t = clamp(t, 0.0, 1.0);
@@ -50,6 +52,6 @@ void fragment() {
 	ALBEDO = albedo;
 	ROUGHNESS = 1.0;
 	METALLIC = 0.0;
-	SPECULAR = 0.2;
+	SPECULAR = 0.0;
 }
 

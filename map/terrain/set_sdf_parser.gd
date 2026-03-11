@@ -168,7 +168,7 @@ static func parse_tile_mapping(path: String) -> Dictionary:
 					val1 = _parse_int_auto(parts[1], 0)
 					val2 = _parse_int_auto(parts[2], 0)
 					val3 = _parse_int_auto(parts[3], 0)
-					flag = _parse_int_auto(parts[4], 0)
+					flag = 255 if _parse_int_auto(parts[4], 0) != 0 else 0
 					opt = _parse_int_auto(parts[5], 0)
 				elif parts.size() == 5:
 					idx = implicit_idx
@@ -176,7 +176,7 @@ static func parse_tile_mapping(path: String) -> Dictionary:
 					val1 = _parse_int_auto(parts[1], 0)
 					val2 = _parse_int_auto(parts[2], 0)
 					val3 = _parse_int_auto(parts[3], 0)
-					flag = _parse_int_auto(parts[4], 0)
+					flag = 255 if _parse_int_auto(parts[4], 0) != 0 else 0
 				elif parts.size() == 4:
 					idx = implicit_idx
 					val0 = _parse_int_auto(parts[0], 0)
