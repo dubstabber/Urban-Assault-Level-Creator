@@ -19,6 +19,9 @@ const AREA_POL_FLAG_CLEARTRACY := 0x40
 const AREA_POL_FLAG_FLATTRACY := 0x80
 const AREA_POL_FLAG_TRACY_MASK := 0xC0
 const UA_LUMTRACY_ALPHA := 192.0 / 255.0
+const ILBM_MASK_HAS_MASK := 1
+const ILBM_MASK_TRANSPARENT_COLOR := 2
+const BMPANIM_UV_SCALE := 256.0
 
 static var _mesh_cache := {}
 static var _material_cache := {}
@@ -306,6 +309,20 @@ static func _coerce_uvs(raw_uvs: Array, polygon: Array, set_id: int = 0, texture
 		uvs.append(Vector2((v.x - min_x) / dx, (v.z - min_z) / dz))
 	return uvs
 
+static func _coerce_bmpanim_uvs(raw_uvs: Array, polygon: Array) -> Array:
+	var uvs: Array = []
+	for item in raw_uvs:
+		var uv: Variant = _uv_point_to_vector2(item)
+		if uv != null:
+			# Retail UA bmpanim stores dynamic-frame UVs as raw u8 atlas coordinates and
+			# normalizes them as uv / 256.0 when loading the ANM payload. Reusing the generic
+			# authored-texture path here shifts edge-heavy frames outward and can expose a
+			# thin border line on some animation steps.
+			uvs.append(Vector2(uv.x / BMPANIM_UV_SCALE, uv.y / BMPANIM_UV_SCALE))
+	if uvs.size() == polygon.size():
+		return uvs
+	return _coerce_uvs(raw_uvs, polygon)
+
 static func _uv_point_to_vector2(item):
 	if typeof(item) == TYPE_VECTOR2:
 		return item
@@ -481,6 +498,7 @@ static func _material_for_texture(set_id: int, texture_name: String, render_hint
 		var image := tex.get_image()
 		var has_alpha := image != null and image.detect_alpha() != Image.ALPHA_NONE
 		var transparency_mode := String(hints.get("transparency_mode", "auto"))
+		var shade_multiplier := _shade_multiplier_from_value(int(hints.get("shade_value", 0)))
 		if transparency_mode == "lumtracy":
 			mat.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
 			mat.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
@@ -489,9 +507,13 @@ static func _material_for_texture(set_id: int, texture_name: String, render_hint
 		elif has_alpha:
 			mat.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA_SCISSOR
 			mat.alpha_scissor_threshold = 0.5
-			var shade_multiplier := _shade_multiplier_from_value(int(hints.get("shade_value", 0)))
-			if not is_equal_approx(shade_multiplier, 1.0):
-				mat.albedo_color = Color(shade_multiplier, shade_multiplier, shade_multiplier, mat.albedo_color.a)
+		if not is_equal_approx(shade_multiplier, 1.0):
+			mat.albedo_color = Color(
+				mat.albedo_color.r * shade_multiplier,
+				mat.albedo_color.g * shade_multiplier,
+				mat.albedo_color.b * shade_multiplier,
+				mat.albedo_color.a
+			)
 	if mat.albedo_texture == null:
 		mat.albedo_color = Color(1.0, 0.0, 1.0, 0.5)
 		mat.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
@@ -502,8 +524,14 @@ static func _texture_for_name(set_id: int, texture_name: String, render_hints: D
 	var texture_file := _normalize_texture_name(texture_name)
 	if texture_file.is_empty():
 		return null
-	var cache_key := _texture_cache_key(set_id, texture_file)
+	var hints := _normalized_render_hints(render_hints)
+	var cache_key := _texture_cache_key(set_id, texture_file, hints)
 	if _texture_cache.has(cache_key):
+		return _texture_cache[cache_key]
+	var raw_image := _raw_image_for_texture(set_id, texture_name, hints)
+	if raw_image != null:
+		var converted_raw := _apply_color_key_transparency(raw_image)
+		_texture_cache[cache_key] = ImageTexture.create_from_image(converted_raw)
 		return _texture_cache[cache_key]
 	var texture_path := _find_file(_set_root(set_id), texture_file)
 	if texture_path.is_empty():
@@ -538,8 +566,12 @@ static func _render_cache_key(set_id: int, texture_file: String, render_hints: D
 		int(render_hints.get("shade_value", 0)),
 	]
 
-static func _texture_cache_key(set_id: int, texture_file: String) -> String:
-	return "%d:%s" % [set_id, texture_file.to_lower()]
+static func _texture_cache_key(set_id: int, texture_file: String, render_hints: Dictionary) -> String:
+	return "%d:%s:%s" % [
+		set_id,
+		texture_file.to_lower(),
+		String(render_hints.get("transparency_mode", "auto")),
+	]
 
 static func _surface_group_key(texture_name: String, render_hints: Dictionary) -> String:
 	var hints := _normalized_render_hints(render_hints)
@@ -552,6 +584,152 @@ static func _surface_group_key(texture_name: String, render_hints: Dictionary) -
 
 static func _shade_multiplier_from_value(shade_value: int) -> float:
 	return clampf(1.0 - float(clampi(shade_value, 0, 255)) / 256.0, 0.0, 1.0)
+
+static func _raw_image_for_texture(set_id: int, texture_name: String, render_hints: Dictionary) -> Image:
+	var raw_path := _raw_texture_override_path(set_id, texture_name, render_hints)
+	if raw_path.is_empty():
+		return null
+	return _load_ilbm_image(raw_path)
+
+static func _raw_texture_override_path(set_id: int, texture_name: String, render_hints: Dictionary) -> String:
+	if String(render_hints.get("transparency_mode", "auto")) != "lumtracy":
+		return ""
+	var base := texture_name.strip_edges().get_file().get_basename().to_lower()
+	if base != "fx1" and base != "fx2" and base != "fx3":
+		return ""
+	return _find_file(_hi_alpha_dir(set_id), "%s.ilb" % base)
+
+static func _load_ilbm_image(path: String) -> Image:
+	if path.is_empty() or not FileAccess.file_exists(path):
+		return null
+	var f := FileAccess.open(path, FileAccess.READ)
+	if f == null:
+		return null
+	var data := f.get_buffer(f.get_length())
+	f.close()
+	if data.size() < 12:
+		return null
+	if _ascii_from_bytes(data, 0, 4) != "FORM":
+		return null
+	var form_type := _ascii_from_bytes(data, 8, 4)
+	if form_type != "ILBM" and form_type != "PBM ":
+		return null
+	var width := 0
+	var height := 0
+	var nplanes := 0
+	var masking := 0
+	var compression := 0
+	var transparent_color := -1
+	var palette: Array = []
+	palette.resize(256)
+	for i in palette.size():
+		palette[i] = Color(0.0, 0.0, 0.0, 1.0)
+	var body := PackedByteArray()
+	var pos := 12
+	while pos + 8 <= data.size():
+		var tag := _ascii_from_bytes(data, pos, 4)
+		var chunk_size := _read_u32_be(data, pos + 4)
+		var chunk_start := pos + 8
+		var chunk_end := chunk_start + chunk_size
+		if chunk_end > data.size():
+			break
+		if tag == "BMHD" and chunk_size >= 20:
+			width = _read_u16_be(data, chunk_start)
+			height = _read_u16_be(data, chunk_start + 2)
+			nplanes = int(data[chunk_start + 8])
+			masking = int(data[chunk_start + 9])
+			compression = int(data[chunk_start + 10])
+			transparent_color = _read_u16_be(data, chunk_start + 12)
+		elif tag == "CMAP":
+			var color_count := mini(int(chunk_size / 3), 256)
+			for i in color_count:
+				var color_offset := chunk_start + i * 3
+				palette[i] = Color(
+					float(data[color_offset]) / 255.0,
+					float(data[color_offset + 1]) / 255.0,
+					float(data[color_offset + 2]) / 255.0,
+					1.0
+				)
+		elif tag == "BODY":
+			body.resize(chunk_size)
+			for i in chunk_size:
+				body[i] = data[chunk_start + i]
+		pos = chunk_end + (chunk_size & 1)
+	if width <= 0 or height <= 0 or nplanes <= 0 or body.is_empty():
+		return null
+	if compression == 1:
+		body = _byte_run1_decode(body)
+	var plane_row_bytes := int(ceili(float(width) / 8.0))
+	if (plane_row_bytes & 1) != 0:
+		plane_row_bytes += 1
+	var total_planes := nplanes + (1 if masking == ILBM_MASK_HAS_MASK else 0)
+	var row_bytes := plane_row_bytes * total_planes
+	if row_bytes <= 0 or body.size() < row_bytes * height:
+		return null
+	var image := Image.create(width, height, false, Image.FORMAT_RGBA8)
+	for y in height:
+		var row_offset := y * row_bytes
+		var mask_offset := row_offset + plane_row_bytes * nplanes
+		for x in width:
+			var byte_index := int(x / 8)
+			var bit_mask := 1 << (7 - (x & 7))
+			var color_index := 0
+			for plane in nplanes:
+				var plane_byte_offset := row_offset + plane * plane_row_bytes + byte_index
+				if (int(body[plane_byte_offset]) & bit_mask) != 0:
+					color_index |= 1 << plane
+			var color: Color = palette[color_index] if color_index < palette.size() else Color(0.0, 0.0, 0.0, 1.0)
+			if masking == ILBM_MASK_HAS_MASK:
+				var mask_byte := int(body[mask_offset + byte_index])
+				if (mask_byte & bit_mask) == 0:
+					color = Color(0.0, 0.0, 0.0, 0.0)
+			elif masking == ILBM_MASK_TRANSPARENT_COLOR and color_index == transparent_color:
+				color = Color(0.0, 0.0, 0.0, 0.0)
+			image.set_pixel(x, y, color)
+	return image
+
+static func _byte_run1_decode(src: PackedByteArray) -> PackedByteArray:
+	var out := PackedByteArray()
+	var i := 0
+	while i < src.size():
+		var control := int(src[i])
+		if control > 127:
+			control -= 256
+		i += 1
+		if control >= 0:
+			var literal_count := control + 1
+			for j in literal_count:
+				if i + j >= src.size():
+					break
+				out.append(src[i + j])
+			i += literal_count
+		elif control >= -127:
+			if i >= src.size():
+				break
+			var repeat_count := 1 - control
+			var repeated := src[i]
+			for _j in repeat_count:
+				out.append(repeated)
+			i += 1
+	return out
+
+static func _ascii_from_bytes(data: PackedByteArray, start: int, size: int) -> String:
+	var chars := PackedByteArray()
+	chars.resize(size)
+	for i in size:
+		chars[i] = data[start + i]
+	return chars.get_string_from_ascii()
+
+static func _read_u16_be(data: PackedByteArray, offset: int) -> int:
+	return (int(data[offset]) << 8) | int(data[offset + 1])
+
+static func _read_u32_be(data: PackedByteArray, offset: int) -> int:
+	return (
+		(int(data[offset]) << 24)
+		| (int(data[offset + 1]) << 16)
+		| (int(data[offset + 2]) << 8)
+		| int(data[offset + 3])
+	)
 
 static func _apply_color_key_transparency(image: Image) -> Image:
 	var converted := image.duplicate()
@@ -591,7 +769,7 @@ static func _clone_anim_frames(compiled_frames: Array, polygon: Array, set_id: i
 		if typeof(frame) != TYPE_DICTIONARY:
 			continue
 		var texture_name := String(frame.get("texture_name", ""))
-		var uvs := _coerce_uvs(frame.get("raw_uv_points", []), polygon, set_id, texture_name)
+		var uvs := _coerce_bmpanim_uvs(frame.get("raw_uv_points", []), polygon)
 		frames.append({
 			"texture_name": texture_name,
 			"triangles": _triangulate(polygon, uvs),
@@ -746,6 +924,9 @@ static func _buildings_dir(set_id: int) -> String:
 
 static func _ground_dir(set_id: int) -> String:
 	return "%s/objects/ground" % _set_root(set_id)
+
+static func _hi_alpha_dir(set_id: int) -> String:
+	return "%s/hi/alpha" % _set_root(set_id)
 
 static func _skeleton_dir(set_id: int) -> String:
 	return "%s/Skeleton" % _set_root(set_id)
