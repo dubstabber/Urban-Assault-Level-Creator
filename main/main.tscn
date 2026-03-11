@@ -1,4 +1,4 @@
-[gd_scene load_steps=55 format=3 uid="uid://ctgiwn3scteuk"]
+[gd_scene load_steps=56 format=3 uid="uid://ctgiwn3scteuk"]
 
 [ext_resource type="Script" uid="uid://66b2147vfma0" path="res://main/main.gd" id="1_7pb5r"]
 [ext_resource type="Script" uid="uid://os5b5mds6770" path="res://modals/modals.gd" id="2_glk8b"]
@@ -43,6 +43,7 @@
 [ext_resource type="Script" uid="uid://d1aadwj8xs7d3" path="res://map/map_3d_renderer.gd" id="35_cgvj2"]
 [ext_resource type="Texture2D" uid="uid://cqtiag6sfysm4" path="res://resources/img/ui_icons/no-warning-icon.png" id="36_qjqir"]
 [ext_resource type="Shader" uid="uid://b80jur7foaxae" path="res://shaders/sky.gdshader" id="36_t1yuj"]
+[ext_resource type="Script" uid="uid://dcn3v7t2psqg5" path="res://map/sky/ua_sky_runtime.gd" id="37_skyrt"]
 
 [sub_resource type="GDScript" id="GDScript_a23yx"]
 script/source = "extends ConfirmationDialog
@@ -373,6 +374,12 @@ visible = false
 
 [node name="WorldEnvironment" type="WorldEnvironment" parent="PanelContainer/MarginContainer/VBoxContainer/HSplitContainer/Map3DContainer/SubViewport/Map3D"]
 environment = SubResource("Environment_cgvj2")
+
+[node name="SkyRoot" type="Node3D" parent="PanelContainer/MarginContainer/VBoxContainer/HSplitContainer/Map3DContainer/SubViewport/Map3D"]
+script = ExtResource("37_skyrt")
+sky_vertical_offset = 250.0
+
+[node name="SkyContainer" type="Node3D" parent="PanelContainer/MarginContainer/VBoxContainer/HSplitContainer/Map3DContainer/SubViewport/Map3D/SkyRoot"]
 
 [node name="TestMesh" type="MeshInstance3D" parent="PanelContainer/MarginContainer/VBoxContainer/HSplitContainer/Map3DContainer/SubViewport/Map3D"]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.729786, -5.38842)

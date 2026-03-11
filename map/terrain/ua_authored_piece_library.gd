@@ -8,7 +8,7 @@ const ASSET_ROOT := "res://urban_assault_decompiled-master/assets/sets"
 # Keep a 1:1 scale here so the later source-backed 300-unit lattice placement does not
 # expand each subsector into a 400x400 overlap region and cause cross-piece z-fighting.
 const MODEL_SCALE := 1.0
-const OVERLAY_Y_BIAS := 1.0
+const OVERLAY_Y_BIAS := 8.0
 const UA_SECTOR_SPAN := 1200.0
 const UA_SECTOR_HALF := UA_SECTOR_SPAN * 0.5
 const UA_SLURP_HALF_WIDTH := 150.0
@@ -51,8 +51,8 @@ static func build_overlay_node(descriptors: Array) -> Node3D:
 		if piece_node == null:
 			continue
 		_apply_optional_piece_deform(piece_node, desc)
-		# Keep authored overlay geometry a tiny amount above the flat sector top so coplanar
-		# authored polygons do not fight the terrain plane and appear partially cut off.
+		# Keep authored overlay geometry slightly above the flat sector top so large flat
+		# slurp/border surfaces stay stable against terrain depth precision at distance.
 		piece_node.position = desc.get("origin", Vector3.ZERO) + Vector3(0.0, OVERLAY_Y_BIAS, 0.0)
 		root.add_child(piece_node)
 	return root
