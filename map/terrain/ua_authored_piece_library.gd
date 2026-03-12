@@ -105,7 +105,7 @@ static func _piece_basis_from_desc(desc: Dictionary) -> Basis:
 	var horizontal_forward := Vector3(forward.x, 0.0, forward.z)
 	if horizontal_forward.length_squared() <= 0.000001:
 		return Basis.IDENTITY
-	return Basis(Vector3.UP, atan2(horizontal_forward.x, -horizontal_forward.z))
+	return Basis(Vector3.UP, atan2(-horizontal_forward.x, -horizontal_forward.z))
 
 static func _mesh_support_height_at_world_position(mesh: Mesh, basis: Basis, origin: Vector3, world_x: float, world_z: float):
 	var seeded := false
@@ -589,6 +589,8 @@ static func _find_first_atts_entries(node) -> Array:
 
 static func _material_for_texture(set_id: int, texture_name: String, render_hints: Dictionary = {}) -> Material:
 	var texture_file := _normalize_texture_name(texture_name)
+	if texture_file.is_empty():
+		return null
 	var hints := _normalized_render_hints(render_hints)
 	var cache_key := _render_cache_key(set_id, texture_file, hints)
 	if _material_cache.has(cache_key):
@@ -940,7 +942,11 @@ static func _surface_node_from_surface(surface: Dictionary, set_id: int) -> Node
 		for frame in animation_frames:
 			var prepared: Dictionary = frame.duplicate(true)
 			prepared["material"] = _material_for_texture(set_id, String(frame.get("texture_name", "")), render_hints)
+			if prepared.get("material", null) == null:
+				continue
 			prepared_frames.append(prepared)
+		if prepared_frames.is_empty():
+			return null
 		animated.setup_animation(prepared_frames)
 		animated.set_meta("ua_authored_animated", true)
 		return animated
@@ -955,10 +961,17 @@ static func _mesh_surface_from_surface(surface: Dictionary, set_id: int) -> Dict
 	var animation_frames: Array = surface.get("animation_frames", [])
 	var render_hints: Dictionary = surface.get("render_hints", {})
 	if not animation_frames.is_empty():
-		var first_frame: Dictionary = animation_frames[0]
+		for frame in animation_frames:
+			var material := _material_for_texture(set_id, String(frame.get("texture_name", "")), render_hints)
+			if material == null:
+				continue
+			return {
+				"triangles": frame.get("triangles", []),
+				"material": material,
+			}
 		return {
-			"triangles": first_frame.get("triangles", []),
-			"material": _material_for_texture(set_id, String(first_frame.get("texture_name", "")), render_hints),
+			"triangles": [],
+			"material": null,
 		}
 	return {
 		"triangles": surface.get("triangles", []),

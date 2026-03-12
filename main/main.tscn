@@ -377,7 +377,7 @@ environment = SubResource("Environment_cgvj2")
 
 [node name="SkyRoot" type="Node3D" parent="PanelContainer/MarginContainer/VBoxContainer/HSplitContainer/Map3DContainer/SubViewport/Map3D"]
 script = ExtResource("37_skyrt")
-sky_vertical_offset = 250.0
+sky_vertical_offset = 550.0
 
 [node name="SkyContainer" type="Node3D" parent="PanelContainer/MarginContainer/VBoxContainer/HSplitContainer/Map3DContainer/SubViewport/Map3D/SkyRoot"]
 

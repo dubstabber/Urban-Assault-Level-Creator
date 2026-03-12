@@ -58,6 +58,17 @@ const SQUAD_VISPROTO_PATH_PATTERNS := {
 	"original": "res://urban_assault_decompiled-master/assets/sets/set%d/scripts/visproto.lst",
 	"metropolisDawn": "res://urban_assault_decompiled-master/assets/sets/set%d_xp/scripts/visproto.lst",
 }
+const TECH_UPGRADE_EDITOR_TYP_OVERRIDES := {
+	4: 100,
+	7: 73,
+	15: 104,
+	16: 103,
+	50: 102,
+	51: 101,
+	60: 106,
+	61: 113,
+	65: 110,
+}
 const SQUAD_FORMATION_SPACING := 100.0
 const SQUAD_EXTRA_Y_OFFSET := 8.0
 const UA_DATA_JSON = preload("res://resources/UAdata.json")
@@ -67,6 +78,7 @@ static var _squad_visproto_base_name_cache: Dictionary = {}
 static var _vehicle_visual_entries_cache: Dictionary = {}
 static var _blg_typ_override_cache: Dictionary = {}
 static var _building_definitions_cache: Dictionary = {}
+static var _building_sec_type_override_cache: Dictionary = {}
 
 
 # Preview top surfaces use world-space tiling with one repeat per sector.
@@ -261,15 +273,17 @@ func build_from_current_map() -> void:
 		clear()
 		return
 
-	var editor_state = get_node_or_null("/root/EditorState")
-	var game_data_type := "original"
-	if editor_state != null:
-		var editor_game_data_type = editor_state.get("game_data_type")
-		if editor_game_data_type != null:
-			game_data_type = String(editor_game_data_type)
-	if game_data_type.is_empty():
-		game_data_type = "original"
-	var effective_typ := _effective_typ_map_for_3d(typ, blg, game_data_type)
+	var game_data_type := _current_game_data_type()
+	var effective_typ := _effective_typ_map_for_3d(
+		typ,
+		blg,
+		game_data_type,
+		w,
+		h,
+		_cmd.beam_gates,
+		_cmd.tech_upgrades,
+		_cmd.stoudson_bombs
+	)
 
 	var pre = get_node_or_null("/root/Preloads")
 	if pre == null:
@@ -325,6 +339,17 @@ func build_from_current_map() -> void:
 	if _cmd.squads != null and is_instance_valid(_cmd.squads):
 		overlay_descriptors.append_array(_build_squad_descriptors(_cmd.squads.get_children(), int(_cmd.level_set), hgt, w, h, support_descriptors, game_data_type))
 	_set_authored_overlay(overlay_descriptors)
+
+func _current_game_data_type() -> String:
+	var editor_state = get_node_or_null("/root/EditorState")
+	var game_data_type := "original"
+	if editor_state != null:
+		var editor_game_data_type = editor_state.get("game_data_type")
+		if editor_game_data_type != null:
+			game_data_type = String(editor_game_data_type)
+	if game_data_type.is_empty():
+		return "original"
+	return game_data_type
 
 func clear() -> void:
 	if _terrain_mesh:
@@ -620,16 +645,137 @@ static func _blg_typ_overrides_for_game_data_type(game_data_type: String) -> Dic
 	_blg_typ_override_cache[normalized_game_data_type] = result
 	return result
 
-static func _effective_typ_map_for_3d(typ: PackedByteArray, blg: PackedByteArray, game_data_type: String) -> PackedByteArray:
-	var effective: PackedByteArray = typ.duplicate()
-	if blg.size() != typ.size():
-		return effective
-	var overrides := _blg_typ_overrides_for_game_data_type(game_data_type)
-	for i in min(typ.size(), blg.size()):
-		var building_id := int(blg[i])
-		if not overrides.has(building_id):
+static func _building_sec_type_overrides_from_script_path(script_path: String) -> Dictionary:
+	var result := {}
+	var ambiguous_building_ids := {}
+	for definition_value in _parse_building_definitions(script_path):
+		if typeof(definition_value) != TYPE_DICTIONARY:
 			continue
-		effective[i] = clampi(int(overrides[building_id]), 0, 255)
+		var definition := definition_value as Dictionary
+		var building_id := int(definition.get("building_id", -1))
+		var sec_type := int(definition.get("sec_type", -1))
+		if building_id < 0 or sec_type < 0:
+			continue
+		if ambiguous_building_ids.has(building_id):
+			continue
+		if result.has(building_id) and int(result[building_id]) != sec_type:
+			result.erase(building_id)
+			ambiguous_building_ids[building_id] = true
+			continue
+		result[building_id] = sec_type
+	return result
+
+static func _building_sec_type_overrides_for_script_names(game_data_type: String, script_names: Array[String]) -> Dictionary:
+	var normalized_game_data_type := _normalized_game_data_type(game_data_type)
+	var cache_key := normalized_game_data_type
+	for script_name in script_names:
+		cache_key += ":%s" % script_name
+	if _building_sec_type_override_cache.has(cache_key):
+		return _building_sec_type_override_cache[cache_key]
+	var result := {}
+	var script_root := _script_root_for_game_data_type(game_data_type)
+	for script_name in script_names:
+		var script_path := script_root.path_join(script_name)
+		var script_overrides := _building_sec_type_overrides_from_script_path(script_path)
+		for building_id in script_overrides.keys():
+			if result.has(building_id):
+				continue
+			result[building_id] = int(script_overrides[building_id])
+	_building_sec_type_override_cache[cache_key] = result
+	return result
+
+static func _tech_upgrade_typ_overrides_for_3d(game_data_type: String) -> Dictionary:
+	var overrides := _building_sec_type_overrides_for_script_names(game_data_type, ["NET_BLDG.SCR", "BUILD.SCR"]).duplicate()
+	# Tech upgrades are a special preview case: the editor already applies an
+	# explicit building_id -> visible typ_map mapping for the small finite set of
+	# selectable upgrade buildings, and some of those visuals intentionally differ
+	# from the raw script sec_type (for example 60 -> typ 106, not sec_type 1).
+	# Mirror that editor-facing visual contract first, then keep the script data as
+	# fallback for anything else.
+	for building_id in TECH_UPGRADE_EDITOR_TYP_OVERRIDES.keys():
+		overrides[int(building_id)] = int(TECH_UPGRADE_EDITOR_TYP_OVERRIDES[building_id])
+	return overrides
+
+static func _entity_property(entity: Variant, property_names: Array[String], default_value: Variant = null) -> Variant:
+	if typeof(entity) == TYPE_DICTIONARY:
+		var dict := entity as Dictionary
+		for property_name in property_names:
+			if dict.has(property_name):
+				return dict[property_name]
+		return default_value
+	if typeof(entity) != TYPE_OBJECT or entity == null:
+		return default_value
+	var object := entity as Object
+	var available_properties := {}
+	for property_value in object.get_property_list():
+		if typeof(property_value) != TYPE_DICTIONARY:
+			continue
+		var property_name := String(Dictionary(property_value).get("name", ""))
+		if property_name.is_empty():
+			continue
+		available_properties[property_name] = true
+	for property_name in property_names:
+		if available_properties.has(property_name):
+			return object.get(property_name)
+	return default_value
+
+static func _entity_int_property(entity: Variant, property_names: Array[String], default_value := -1) -> int:
+	var value = _entity_property(entity, property_names, null)
+	if value == null:
+		return default_value
+	return int(value)
+
+static func _apply_sector_building_overrides_from_entities(
+		effective: PackedByteArray,
+		w: int,
+		h: int,
+		entities: Array,
+		building_property_names: Array[String],
+		building_sec_type_overrides: Dictionary
+	) -> void:
+	if w <= 0 or h <= 0 or effective.size() != w * h:
+		return
+	for entity in entities:
+		var sector_x := _entity_int_property(entity, ["sec_x"], -1)
+		var sector_y := _entity_int_property(entity, ["sec_y"], -1)
+		# Beam gates, tech upgrades, and Stoudson bombs store playable-sector
+		# coordinates the same way the 2D editor does: 1-based within the
+		# non-border typ_map footprint. Normalize those to the renderer's
+		# 0-based flat typ_map indexing before applying preview-only overrides.
+		if sector_x <= 0 or sector_y <= 0 or sector_x > w or sector_y > h:
+			continue
+		var sec_x := sector_x - 1
+		var sec_y := sector_y - 1
+		var building_id := _entity_int_property(entity, building_property_names, -1)
+		if building_id < 0 or not building_sec_type_overrides.has(building_id):
+			continue
+		effective[sec_y * w + sec_x] = clampi(int(building_sec_type_overrides[building_id]), 0, 255)
+
+static func _effective_typ_map_for_3d(
+		typ: PackedByteArray,
+		blg: PackedByteArray,
+		game_data_type: String,
+		w: int = -1,
+		h: int = -1,
+		beam_gates: Array = [],
+		tech_upgrades: Array = [],
+		stoudson_bombs: Array = []
+	) -> PackedByteArray:
+	var effective: PackedByteArray = typ.duplicate()
+	var blg_overrides := _blg_typ_overrides_for_game_data_type(game_data_type)
+	if blg.size() == typ.size():
+		for i in min(typ.size(), blg.size()):
+			var building_id := int(blg[i])
+			if not blg_overrides.has(building_id):
+				continue
+			effective[i] = clampi(int(blg_overrides[building_id]), 0, 255)
+	if w <= 0 or h <= 0 or typ.size() != w * h:
+		return effective
+	var build_script_overrides := _building_sec_type_overrides_for_script_names(game_data_type, ["BUILD.SCR"])
+	var tech_upgrade_overrides := _tech_upgrade_typ_overrides_for_3d(game_data_type)
+	_apply_sector_building_overrides_from_entities(effective, w, h, beam_gates, ["closed_bp"], build_script_overrides)
+	_apply_sector_building_overrides_from_entities(effective, w, h, tech_upgrades, ["building_id", "building"], tech_upgrade_overrides)
+	_apply_sector_building_overrides_from_entities(effective, w, h, stoudson_bombs, ["inactive_bp"], build_script_overrides)
 	return effective
 
 static func _script_assignment_text(raw_line: String, prefix: String) -> String:
@@ -977,11 +1123,11 @@ static func _squad_formation_offsets(quantity: int) -> Array:
 	var offsets: Array = []
 	var columns := int(sqrt(float(quantity))) + 2
 	for unit_index in range(quantity):
-		# Retail-observed squad growth fills the formation from the opposite X side compared
-		# with the raw decompiled slot order, while preserving the same spacing, row count,
-		# and shared snapped anchor rules.
-		var x_offset := -SQUAD_FORMATION_SPACING * (float(unit_index % columns) - float(columns) / 2.0)
-		var z_offset: float = SQUAD_FORMATION_SPACING * floor(float(unit_index) / float(columns))
+		# Latest user-validated preview parity keeps the recovered spacing/column-count rule,
+		# but fills each row left-to-right and advances subsequent rows upward in preview space
+		# while preserving the same shared snapped anchor rules.
+		var x_offset := SQUAD_FORMATION_SPACING * (float(unit_index % columns) - float(columns) / 2.0)
+		var z_offset: float = -SQUAD_FORMATION_SPACING * floor(float(unit_index) / float(columns))
 		offsets.append(Vector3(x_offset, 0.0, z_offset))
 	return offsets
 
@@ -1399,12 +1545,23 @@ func _build_edges_from_current_map() -> void:
 	var h: int = int(cmd.vertical_sectors)
 	var hgt: PackedByteArray = cmd.hgt_map
 	var typ: PackedByteArray = cmd.typ_map
+	var blg: PackedByteArray = cmd.blg_map
 	if w <= 0 or h <= 0 or hgt.size() != (w + 2) * (h + 2) or typ.size() != w * h:
 		if _edge_mesh: _edge_mesh.mesh = null
 		return
 	var pre = get_node_or_null("/root/Preloads")
 	var mapping: Dictionary = pre.surface_type_map if pre else {}
-	var result := _build_edge_overlay_result(hgt, w, h, typ, mapping, int(cmd.level_set), pre)
+	var effective_typ := _effective_typ_map_for_3d(
+		typ,
+		blg,
+		_current_game_data_type(),
+		w,
+		h,
+		cmd.beam_gates,
+		cmd.tech_upgrades,
+		cmd.stoudson_bombs
+	)
+	var result := _build_edge_overlay_result(hgt, w, h, effective_typ, mapping, int(cmd.level_set), pre)
 	_ensure_edge_node()
 	_edge_mesh.mesh = result.get("mesh", null)
 

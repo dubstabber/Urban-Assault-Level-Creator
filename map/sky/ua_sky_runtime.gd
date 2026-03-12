@@ -3,10 +3,15 @@ class_name UASkyRuntime
 
 const DEFAULT_REGISTRY_PATH := "res://resources/ua/sky/registry.json"
 const NOSKY_CANONICAL_ID := "nosky"
-const DEFAULT_SKY_VERTICAL_OFFSET := -550.0
+# UA source defaults `_skyHeight` to -550 in UA coordinates.
+# Converted preview geometry already flips UA-down Y into Godot-up Y,
+# so the Godot-side runtime equivalent is the sign-flipped +550.
+const DEFAULT_SKY_VERTICAL_OFFSET := 550.0
 const DEFAULT_MIN_SKY_RADIUS := 22500.0
 const DEFAULT_MIN_SKY_TOP_EXTENT := 12000.0
 const MAP_SECTOR_WORLD_SIZE := 1200.0
+const DEFAULT_SKY_VIZ_LIMIT := 4200.0
+const DEFAULT_SKY_FADE_LENGTH := 1100.0
 
 @export var registry_path := DEFAULT_REGISTRY_PATH
 @export var sky_vertical_offset := DEFAULT_SKY_VERTICAL_OFFSET
@@ -19,6 +24,7 @@ var _texture_cache: Dictionary = {}
 var _warning_cache: Dictionary = {}
 var _active_sky_instance: Node3D = null
 var _active_canonical_id := ""
+var _active_family := ""
 var _active_base_radius := 0.0
 var _active_base_top_extent := 0.0
 var _event_system_override: Node = null
@@ -152,6 +158,7 @@ func _show_resolved_entry(entry: Dictionary, requested_sky_name: String, treat_a
 	_replace_active_sky(
 		instance,
 		canonical_id,
+		String(manifest.get("family", "")),
 		float(metrics.get("base_radius", 0.0)),
 		float(metrics.get("top_extent", 0.0))
 	)
@@ -161,6 +168,7 @@ func _show_resolved_entry(entry: Dictionary, requested_sky_name: String, treat_a
 
 func clear_active_sky() -> bool:
 	_active_canonical_id = ""
+	_active_family = ""
 	_active_base_radius = 0.0
 	_active_base_top_extent = 0.0
 	if is_instance_valid(_active_sky_instance):
@@ -280,6 +288,8 @@ func _build_mesh_instance_from_geometry(geometry: Dictionary, manifest: Dictiona
 	var flags := _normalized_sky_flags(manifest.get("flags", {}))
 	var material_cache: Dictionary = {}
 	var mesh := ArrayMesh.new()
+	var fog_vis_limit := DEFAULT_SKY_VIZ_LIMIT
+	var fog_fade_length := DEFAULT_SKY_FADE_LENGTH
 	var surface_index := 0
 	for surface in surfaces:
 		if typeof(surface) != TYPE_DICTIONARY:
@@ -300,7 +310,9 @@ func _build_mesh_instance_from_geometry(geometry: Dictionary, manifest: Dictiona
 				points,
 				int(point_indices[0]), uvs[0],
 				int(point_indices[i]), uvs[i],
-				int(point_indices[i + 1]), uvs[i + 1]
+				int(point_indices[i + 1]), uvs[i + 1],
+				fog_vis_limit,
+				fog_fade_length
 			)
 			if ok:
 				wrote_geometry = true
@@ -362,6 +374,7 @@ func _material_for_texture(texture_name: String, texture_lookup: Dictionary, fla
 	material.texture_repeat = false
 	material.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED if bool(flags.get("unshaded", true)) else BaseMaterial3D.SHADING_MODE_PER_PIXEL
 	material.cull_mode = BaseMaterial3D.CULL_DISABLED if bool(flags.get("double_sided", true)) else BaseMaterial3D.CULL_BACK
+	material.vertex_color_use_as_albedo = true
 	material.disable_receive_shadows = true
 	material.depth_draw_mode = BaseMaterial3D.DEPTH_DRAW_DISABLED
 	material.no_depth_test = false
@@ -449,6 +462,23 @@ func _material_texture_has_alpha(material: StandardMaterial3D) -> bool:
 	return image != null and image.detect_alpha() != Image.ALPHA_NONE
 
 
+func _static_fog_factor_for_distance(distance: float, vis_limit: float = DEFAULT_SKY_VIZ_LIMIT, fade_length: float = DEFAULT_SKY_FADE_LENGTH) -> float:
+	if vis_limit <= 0.0:
+		return 0.0
+	var clamped_distance: float = distance if distance > 0.0 else 0.0
+	if fade_length <= 0.0:
+		return 1.0 if clamped_distance <= vis_limit else 0.0
+	var fade_start: float = vis_limit - fade_length
+	if is_equal_approx(fade_start, vis_limit):
+		return 1.0 if clamped_distance <= vis_limit else 0.0
+	return clamp((vis_limit - clamped_distance) / (vis_limit - fade_start), 0.0, 1.0)
+
+
+func _static_fog_color_for_vertex(vertex: Vector3, vis_limit: float = DEFAULT_SKY_VIZ_LIMIT, fade_length: float = DEFAULT_SKY_FADE_LENGTH) -> Color:
+	var factor := _static_fog_factor_for_distance(vertex.length(), vis_limit, fade_length)
+	return Color(factor, factor, factor, 1.0)
+
+
 func _append_triangle(
 		surface_tool: SurfaceTool,
 		points: Array,
@@ -457,7 +487,9 @@ func _append_triangle(
 		point_index_b: int,
 		uv_b: Variant,
 		point_index_c: int,
-		uv_c: Variant) -> bool:
+			uv_c: Variant,
+			fog_vis_limit: float = DEFAULT_SKY_VIZ_LIMIT,
+			fog_fade_length: float = DEFAULT_SKY_FADE_LENGTH) -> bool:
 	var vertex_a: Variant = _vector3_from_point_index(points, point_index_a)
 	var vertex_b: Variant = _vector3_from_point_index(points, point_index_b)
 	var vertex_c: Variant = _vector3_from_point_index(points, point_index_c)
@@ -468,12 +500,18 @@ func _append_triangle(
 		return false
 	if not (tex_uv_a is Vector2 and tex_uv_b is Vector2 and tex_uv_c is Vector2):
 		return false
+	var pos_a: Vector3 = vertex_a as Vector3
+	var pos_b: Vector3 = vertex_b as Vector3
+	var pos_c: Vector3 = vertex_c as Vector3
+	surface_tool.set_color(_static_fog_color_for_vertex(pos_a, fog_vis_limit, fog_fade_length))
 	surface_tool.set_uv(tex_uv_a as Vector2)
-	surface_tool.add_vertex(vertex_a as Vector3)
+	surface_tool.add_vertex(pos_a)
+	surface_tool.set_color(_static_fog_color_for_vertex(pos_b, fog_vis_limit, fog_fade_length))
 	surface_tool.set_uv(tex_uv_b as Vector2)
-	surface_tool.add_vertex(vertex_b as Vector3)
+	surface_tool.add_vertex(pos_b)
+	surface_tool.set_color(_static_fog_color_for_vertex(pos_c, fog_vis_limit, fog_fade_length))
 	surface_tool.set_uv(tex_uv_c as Vector2)
-	surface_tool.add_vertex(vertex_c as Vector3)
+	surface_tool.add_vertex(pos_c)
 	return true
 
 
@@ -582,7 +620,7 @@ func get_active_effective_top_extent() -> float:
 func get_active_effective_vertical_offset() -> float:
 	if not is_instance_valid(_active_sky_instance):
 		return sky_vertical_offset
-	return sky_vertical_offset * _active_sky_instance.scale.y
+	return sky_vertical_offset * _sky_offset_scale_factor()
 
 
 func update_active_sky_transform() -> void:
@@ -619,9 +657,10 @@ func _scene_path_for_entry(entry: Dictionary) -> String:
 	return String(manifest.get("scene_path", "")) if typeof(manifest) == TYPE_DICTIONARY else ""
 
 
-func _replace_active_sky(instance: Node3D, canonical_id: String, base_radius: float, base_top_extent: float) -> void:
+func _replace_active_sky(instance: Node3D, canonical_id: String, family: String, base_radius: float, base_top_extent: float) -> void:
 	clear_active_sky()
 	_active_canonical_id = canonical_id
+	_active_family = family.to_lower()
 	_active_base_radius = max(base_radius, 0.0)
 	_active_base_top_extent = max(base_top_extent, 0.0)
 	_active_sky_instance = instance
@@ -671,9 +710,17 @@ func _sky_scale_factor() -> float:
 	var scale_factor := 1.0
 	if _active_base_radius > 0.0:
 		scale_factor = max(scale_factor, _desired_sky_radius() / _active_base_radius)
-	if _active_base_top_extent > 0.0:
+	if _should_enforce_top_coverage() and _active_base_top_extent > 0.0:
 		scale_factor = max(scale_factor, _desired_sky_top_extent() / _active_base_top_extent)
 	return scale_factor
+
+
+func _sky_offset_scale_factor() -> float:
+	if _active_base_radius > 0.0:
+		return maxf(1.0, _desired_sky_radius() / _active_base_radius)
+	if is_instance_valid(_active_sky_instance):
+		return maxf(1.0, _active_sky_instance.scale.y)
+	return 1.0
 
 
 func _desired_sky_radius() -> float:
@@ -696,6 +743,10 @@ func _desired_sky_top_extent() -> float:
 	if camera != null:
 		desired_top_extent = max(desired_top_extent, camera.far * 0.24)
 	return desired_top_extent
+
+
+func _should_enforce_top_coverage() -> bool:
+	return _active_family != "custom"
 
 
 func _sky_metrics_from_manifest(manifest: Dictionary) -> Dictionary:
