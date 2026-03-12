@@ -5,6 +5,7 @@ func _ready() -> void:
 	add_item("Show map properties panel")
 	add_separator()
 	add_check_item("Show 3D Preview")
+	add_check_item("Toggle 3D visibility range")
 	add_check_item("Toggle typ_map images")
 	add_check_item("Toggle typ_map values")
 	add_check_item("Toggle own_map values")
@@ -18,6 +19,7 @@ func set_default_values() -> void:
 	for i in range(get_item_count()):
 		match get_item_text(i):
 			"Show 3D Preview": set_item_checked(i, EditorState.view_mode_3d)
+			"Toggle 3D visibility range": set_item_checked(i, EditorState.map_3d_visibility_range_enabled)
 			"Toggle typ_map images": set_item_checked(i, EditorState.typ_map_images_visible)
 			"Toggle typ_map values": set_item_checked(i, EditorState.typ_map_values_visible)
 			"Toggle own_map values": set_item_checked(i, EditorState.own_map_values_visible)
@@ -32,6 +34,9 @@ func _on_index_pressed(index: int) -> void:
 		"Show 3D Preview":
 			EditorState.view_mode_3d = not EditorState.view_mode_3d
 			set_item_checked(index, EditorState.view_mode_3d)
+		"Toggle 3D visibility range":
+			EditorState.map_3d_visibility_range_enabled = not EditorState.map_3d_visibility_range_enabled
+			set_item_checked(index, EditorState.map_3d_visibility_range_enabled)
 		"Toggle typ_map images":
 			EditorState.typ_map_images_visible = not EditorState.typ_map_images_visible
 			set_item_checked(index, EditorState.typ_map_images_visible)

@@ -612,6 +612,10 @@ static func _material_for_texture(set_id: int, texture_name: String, render_hint
 			mat.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
 			mat.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
 			mat.blend_mode = BaseMaterial3D.BLEND_MODE_ADD
+			# UA luminous/additive surfaces can remain readable farther out than normal
+			# world geometry. Keep them out of the preview visibility fog so animated
+			# effects match the user's reported retail behavior more closely.
+			mat.disable_fog = true
 			mat.albedo_color = Color(1.0, 1.0, 1.0, UA_LUMTRACY_ALPHA)
 		elif has_alpha:
 			mat.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA_SCISSOR

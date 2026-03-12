@@ -22,6 +22,10 @@ var view_mode_3d := true:
 	set(value):
 		view_mode_3d = value
 		EventSystem.map_view_updated.emit()
+var map_3d_visibility_range_enabled := false:
+	set(value):
+		map_3d_visibility_range_enabled = value
+		EventSystem.map_view_updated.emit()
 
 var selected_typ_map: int
 

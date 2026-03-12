@@ -375,6 +375,10 @@ func _material_for_texture(texture_name: String, texture_lookup: Dictionary, fla
 	material.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED if bool(flags.get("unshaded", true)) else BaseMaterial3D.SHADING_MODE_PER_PIXEL
 	material.cull_mode = BaseMaterial3D.CULL_DISABLED if bool(flags.get("double_sided", true)) else BaseMaterial3D.CULL_BACK
 	material.vertex_color_use_as_albedo = true
+	# `fog_sky_affect` only excludes the background sky. The approved UA sky path in
+	# this editor is runtime mesh geometry, so it must opt out of preview distance fog
+	# explicitly to preserve the original-game behavior.
+	material.disable_fog = true
 	material.disable_receive_shadows = true
 	material.depth_draw_mode = BaseMaterial3D.DEPTH_DRAW_DISABLED
 	material.no_depth_test = false

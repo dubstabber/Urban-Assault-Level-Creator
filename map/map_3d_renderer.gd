@@ -16,6 +16,9 @@ const BORDER_TYP_BOTTOM := 254
 const BORDER_TYP_BOTTOM_RIGHT := 250
 const TERRAIN_PREVIEW_COLOR := Color(0.62, 0.66, 0.58, 1.0)
 const EDGE_PREVIEW_COLOR := Color(0.82, 0.48, 0.24, 0.55)
+const UA_NORMAL_VIZ_LIMIT := 2500.0
+const UA_NORMAL_FADE_LENGTH := 1000.0
+const UA_VISIBILITY_FOG_COLOR := Color.BLACK
 const EDGE_BLEND_SHADER_PATH := "res://resources/terrain/shaders/edge_blend.gdshader"
 const HOST_STATION_BASE_NAMES := {
 	56: "VP_ROBO",
@@ -85,6 +88,34 @@ static var _building_sec_type_override_cache: Dictionary = {}
 func _compute_tile_scale() -> float:
 	return 1.0 / SECTOR_SIZE
 
+static func visibility_range_fade_start(viz_limit: float = UA_NORMAL_VIZ_LIMIT, fade_length: float = UA_NORMAL_FADE_LENGTH) -> float:
+	return maxf(maxf(viz_limit, 0.0) - maxf(fade_length, 0.0), 0.0)
+
+static func visibility_range_config(viz_limit: float = UA_NORMAL_VIZ_LIMIT, fade_length: float = UA_NORMAL_FADE_LENGTH) -> Dictionary:
+	var clamped_viz_limit := maxf(viz_limit, 0.0)
+	return {
+		"fade_start": visibility_range_fade_start(clamped_viz_limit, fade_length),
+		"fade_end": clamped_viz_limit,
+	}
+
+static func apply_visibility_range_to_environment(environment: Environment, enabled: bool, viz_limit: float = UA_NORMAL_VIZ_LIMIT, fade_length: float = UA_NORMAL_FADE_LENGTH) -> bool:
+	if environment == null:
+		return false
+	var config := visibility_range_config(viz_limit, fade_length)
+	environment.fog_mode = Environment.FOG_MODE_DEPTH
+	environment.fog_depth_begin = float(config["fade_start"])
+	environment.fog_depth_end = float(config["fade_end"])
+	environment.fog_depth_curve = 1.0
+	environment.fog_density = 1.0
+	environment.fog_light_color = UA_VISIBILITY_FOG_COLOR
+	environment.fog_light_energy = 1.0
+	environment.fog_aerial_perspective = 0.0
+	environment.fog_height_density = 0.0
+	environment.fog_sky_affect = 0.0
+	environment.fog_sun_scatter = 0.0
+	environment.fog_enabled = enabled
+	return true
+
 @onready var _terrain_mesh: MeshInstance3D = $TerrainMesh
 @onready var _edge_mesh: MeshInstance3D = $EdgeMesh if has_node("EdgeMesh") else null
 @onready var _authored_overlay: Node3D = $AuthoredOverlay if has_node("AuthoredOverlay") else null
@@ -93,6 +124,7 @@ func _compute_tile_scale() -> float:
 var _edge_overlay_enabled := true
 
 @onready var _camera: Camera3D = $Camera3D
+@onready var _world_environment: WorldEnvironment = $WorldEnvironment if has_node("WorldEnvironment") else null
 
 var _mouselook := false
 var _yaw := 0.0
@@ -120,6 +152,8 @@ func _ready() -> void:
 		_es.map_created.connect(_on_map_changed)
 		_es.map_updated.connect(_on_map_changed)
 		_es.level_set_changed.connect(_on_level_set_changed)
+		_es.map_view_updated.connect(_on_map_view_updated)
+	_apply_visibility_range_from_editor_state()
 	var _cmd = get_node_or_null("/root/CurrentMapData")
 
 	if _cmd:
@@ -128,6 +162,18 @@ func _ready() -> void:
 		if _cmd.horizontal_sectors > 0 and _cmd.vertical_sectors > 0 and not _cmd.hgt_map.is_empty():
 			print("[Map3D] _ready: building from current map")
 			build_from_current_map()
+
+func _apply_visibility_range_from_editor_state() -> void:
+	if _world_environment == null or _world_environment.environment == null:
+		return
+	var editor_state = get_node_or_null("/root/EditorState")
+	var enabled := false
+	if editor_state != null:
+		enabled = bool(editor_state.get("map_3d_visibility_range_enabled"))
+	apply_visibility_range_to_environment(_world_environment.environment, enabled)
+
+func _on_map_view_updated() -> void:
+	_apply_visibility_range_from_editor_state()
 
 func _apply_debug_mode_to_existing_materials() -> void:
 	if _terrain_mesh == null or _terrain_mesh.mesh == null:
