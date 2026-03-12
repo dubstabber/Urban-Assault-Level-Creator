@@ -58,10 +58,15 @@ const SQUAD_VISPROTO_PATH_PATTERNS := {
 	"original": "res://urban_assault_decompiled-master/assets/sets/set%d/scripts/visproto.lst",
 	"metropolisDawn": "res://urban_assault_decompiled-master/assets/sets/set%d_xp/scripts/visproto.lst",
 }
+const SQUAD_FORMATION_SPACING := 100.0
 const SQUAD_EXTRA_Y_OFFSET := 8.0
+const UA_DATA_JSON = preload("res://resources/UAdata.json")
 
 static var _squad_vehicle_visuals_cache: Dictionary = {}
 static var _squad_visproto_base_name_cache: Dictionary = {}
+static var _vehicle_visual_entries_cache: Dictionary = {}
+static var _blg_typ_override_cache: Dictionary = {}
+static var _building_definitions_cache: Dictionary = {}
 
 
 # Preview top surfaces use world-space tiling with one repeat per sector.
@@ -248,12 +253,23 @@ func build_from_current_map() -> void:
 	var h: int = int(_cmd.vertical_sectors)
 	var hgt: PackedByteArray = _cmd.hgt_map
 	var typ: PackedByteArray = _cmd.typ_map
+	var blg: PackedByteArray = _cmd.blg_map
 	var expected := (w + 2) * (h + 2)
 	print("[Map3D] build_from_current_map: w=", w, " h=", h, " hgt_size=", hgt.size(), " expected=", expected)
 	if w <= 0 or h <= 0 or hgt.size() != expected or typ.size() != w * h:
 		print("[Map3D] build_from_current_map: invalid data, clearing mesh")
 		clear()
 		return
+
+	var editor_state = get_node_or_null("/root/EditorState")
+	var game_data_type := "original"
+	if editor_state != null:
+		var editor_game_data_type = editor_state.get("game_data_type")
+		if editor_game_data_type != null:
+			game_data_type = String(editor_game_data_type)
+	if game_data_type.is_empty():
+		game_data_type = "original"
+	var effective_typ := _effective_typ_map_for_3d(typ, blg, game_data_type)
 
 	var pre = get_node_or_null("/root/Preloads")
 	if pre == null:
@@ -269,7 +285,7 @@ func build_from_current_map() -> void:
 
 	var result := build_mesh_with_textures(
 		hgt,
-		typ,
+		effective_typ,
 		w,
 		h,
 		pre.surface_type_map,
@@ -285,16 +301,6 @@ func build_from_current_map() -> void:
 	var authored_piece_descriptors: Array = result.get("authored_piece_descriptors", [])
 	var support_descriptors := authored_piece_descriptors.duplicate()
 	var overlay_descriptors := authored_piece_descriptors.duplicate()
-	var editor_state = get_node_or_null("/root/EditorState")
-	var game_data_type := "original"
-	if editor_state != null:
-		var editor_game_data_type = editor_state.get("game_data_type")
-		if editor_game_data_type != null:
-			game_data_type = String(editor_game_data_type)
-	if game_data_type.is_empty():
-		game_data_type = "original"
-	if _cmd.host_stations != null and is_instance_valid(_cmd.host_stations):
-		overlay_descriptors.append_array(_build_host_station_descriptors(_cmd.host_stations.get_children(), int(_cmd.level_set), hgt, w, h))
 	print("[Map3D] build_from_current_map: built textured mesh with surfaces=", mesh.get_surface_count())
 	if _terrain_mesh:
 		_terrain_mesh.mesh = mesh
@@ -303,8 +309,8 @@ func build_from_current_map() -> void:
 
 	# Edge overlay now prefers authored retail slurp pieces (`SxyV` / `SxyH`) and only
 	# falls back to the older blended strip approximation when a slurp asset is unavailable.
-	if _edge_overlay_enabled and typ.size() == w * h:
-		var edge_result := _build_edge_overlay_result(hgt, w, h, typ, pre.surface_type_map, int(_cmd.level_set), pre)
+	if _edge_overlay_enabled and effective_typ.size() == w * h:
+		var edge_result := _build_edge_overlay_result(hgt, w, h, effective_typ, pre.surface_type_map, int(_cmd.level_set), pre)
 		var edge_authored_descriptors: Array = edge_result.get("authored_piece_descriptors", [])
 		support_descriptors.append_array(edge_authored_descriptors)
 		overlay_descriptors.append_array(edge_authored_descriptors)
@@ -313,6 +319,9 @@ func build_from_current_map() -> void:
 	else:
 		if _edge_mesh:
 			_edge_mesh.mesh = null
+	overlay_descriptors.append_array(_build_blg_attachment_descriptors(blg, effective_typ, int(_cmd.level_set), hgt, w, h, support_descriptors, game_data_type))
+	if _cmd.host_stations != null and is_instance_valid(_cmd.host_stations):
+		overlay_descriptors.append_array(_build_host_station_descriptors(_cmd.host_stations.get_children(), int(_cmd.level_set), hgt, w, h, support_descriptors))
 	if _cmd.squads != null and is_instance_valid(_cmd.squads):
 		overlay_descriptors.append_array(_build_squad_descriptors(_cmd.squads.get_children(), int(_cmd.level_set), hgt, w, h, support_descriptors, game_data_type))
 	_set_authored_overlay(overlay_descriptors)
@@ -491,15 +500,15 @@ static func _support_height_at_world_position(hgt: PackedByteArray, w: int, h: i
 		return max(float(authored_support), terrain_height)
 	return terrain_height
 
-static func _host_station_origin(host_station: Node2D, hgt: PackedByteArray, w: int, h: int) -> Vector3:
+static func _host_station_origin(host_station: Node2D, hgt: PackedByteArray, w: int, h: int, support_descriptors: Array) -> Vector3:
 	var pos_y_value = host_station.get("pos_y")
 	var ua_x := float(host_station.position.x)
 	var world_z := absf(float(host_station.position.y))
 	var ua_y := float(pos_y_value if pos_y_value != null else 0.0)
-	var ground_y := _ground_height_at_world_position(hgt, w, h, ua_x, world_z)
-	return Vector3(ua_x, ground_y - ua_y, world_z)
+	var support_y := _support_height_at_world_position(hgt, w, h, support_descriptors, ua_x, world_z)
+	return Vector3(ua_x, support_y - ua_y, world_z)
 
-static func _build_host_station_descriptors(host_stations: Array, set_id: int, hgt: PackedByteArray, w: int, h: int) -> Array:
+static func _build_host_station_descriptors(host_stations: Array, set_id: int, hgt: PackedByteArray, w: int, h: int, support_descriptors: Array = []) -> Array:
 	var descriptors: Array = []
 	for host_station in host_stations:
 		if host_station == null or not is_instance_valid(host_station):
@@ -514,7 +523,7 @@ static func _build_host_station_descriptors(host_stations: Array, set_id: int, h
 			continue
 		if not UATerrainPieceLibraryScript.has_piece_source(set_id, base_name):
 			continue
-		var origin := _host_station_origin(host_station as Node2D, hgt, w, h)
+		var origin := _host_station_origin(host_station as Node2D, hgt, w, h, support_descriptors)
 		descriptors.append({
 			"set_id": set_id,
 			"raw_id": -1,
@@ -572,6 +581,286 @@ static func _script_paths_for_game_data_type(game_data_type: String) -> Array:
 	dir.list_dir_end()
 	result.sort()
 	return result
+
+static func _append_blg_typ_entries_from_building_list(target: Dictionary, buildings_value: Variant) -> void:
+	if not (buildings_value is Array):
+		return
+	for entry in buildings_value:
+		if typeof(entry) != TYPE_DICTIONARY:
+			continue
+		var building := entry as Dictionary
+		var building_id := int(building.get("id", -1))
+		var typ_map := int(building.get("typ_map", -1))
+		if building_id >= 0 and typ_map >= 0:
+			target[building_id] = typ_map
+
+static func _blg_typ_overrides_for_game_data_type(game_data_type: String) -> Dictionary:
+	var normalized_game_data_type := _normalized_game_data_type(game_data_type)
+	if _blg_typ_override_cache.has(normalized_game_data_type):
+		return _blg_typ_override_cache[normalized_game_data_type]
+	var result := {}
+	if UA_DATA_JSON == null or typeof(UA_DATA_JSON.data) != TYPE_DICTIONARY:
+		_blg_typ_override_cache[normalized_game_data_type] = result
+		return result
+	var root_data: Dictionary = UA_DATA_JSON.data
+	if not root_data.has(normalized_game_data_type):
+		_blg_typ_override_cache[normalized_game_data_type] = result
+		return result
+	var game_data: Dictionary = root_data[normalized_game_data_type]
+	var hoststations_value = game_data.get("hoststations", {})
+	if typeof(hoststations_value) == TYPE_DICTIONARY:
+		for station_name in hoststations_value.keys():
+			var station_value = hoststations_value[station_name]
+			if typeof(station_value) != TYPE_DICTIONARY:
+				continue
+			_append_blg_typ_entries_from_building_list(result, Dictionary(station_value).get("buildings", []))
+	var other_value = game_data.get("other", {})
+	if typeof(other_value) == TYPE_DICTIONARY:
+		_append_blg_typ_entries_from_building_list(result, Dictionary(other_value).get("buildings", []))
+	_blg_typ_override_cache[normalized_game_data_type] = result
+	return result
+
+static func _effective_typ_map_for_3d(typ: PackedByteArray, blg: PackedByteArray, game_data_type: String) -> PackedByteArray:
+	var effective: PackedByteArray = typ.duplicate()
+	if blg.size() != typ.size():
+		return effective
+	var overrides := _blg_typ_overrides_for_game_data_type(game_data_type)
+	for i in min(typ.size(), blg.size()):
+		var building_id := int(blg[i])
+		if not overrides.has(building_id):
+			continue
+		effective[i] = clampi(int(overrides[building_id]), 0, 255)
+	return effective
+
+static func _script_assignment_text(raw_line: String, prefix: String) -> String:
+	var equals_index := raw_line.find("=")
+	if equals_index >= 0:
+		return raw_line.substr(equals_index + 1).strip_edges()
+	return raw_line.replacen(prefix, "").strip_edges()
+
+static func _empty_building_attachment() -> Dictionary:
+	return {
+		"act": -1,
+		"vehicle_id": -1,
+		"ua_offset": Vector3.ZERO,
+		"ua_direction": Vector3.ZERO,
+	}
+
+static func _append_building_attachment(target_building: Dictionary, attachment: Dictionary) -> void:
+	if target_building.is_empty() or attachment.is_empty():
+		return
+	var attachments: Array = target_building.get("attachments", [])
+	attachments.append(attachment.duplicate(true))
+	target_building["attachments"] = attachments
+
+static func _append_building_definition(result: Array, building: Dictionary) -> void:
+	if building.is_empty():
+		return
+	if int(building.get("building_id", -1)) < 0 or int(building.get("sec_type", -1)) < 0:
+		return
+	result.append(building.duplicate(true))
+
+static func _parse_building_definitions(script_path: String) -> Array:
+	var result: Array = []
+	if script_path.is_empty() or not FileAccess.file_exists(script_path):
+		return result
+	var file := FileAccess.open(script_path, FileAccess.READ)
+	if file == null:
+		return result
+	var current_building := {}
+	var current_attachment := {}
+	while not file.eof_reached():
+		var line := file.get_line().get_slice(";", 0).strip_edges().to_lower()
+		if line.is_empty():
+			continue
+		if line.begins_with("new_building"):
+			_append_building_attachment(current_building, current_attachment)
+			_append_building_definition(result, current_building)
+			current_building = {
+				"building_id": int(_script_assignment_text(line, "new_building")),
+				"sec_type": -1,
+				"attachments": [],
+			}
+			current_attachment = {}
+			continue
+		if line == "end":
+			_append_building_attachment(current_building, current_attachment)
+			_append_building_definition(result, current_building)
+			current_building = {}
+			current_attachment = {}
+			continue
+		if current_building.is_empty():
+			continue
+		if line.begins_with("sec_type"):
+			current_building["sec_type"] = int(_script_assignment_text(line, "sec_type"))
+		elif line.begins_with("sbact_act"):
+			_append_building_attachment(current_building, current_attachment)
+			current_attachment = _empty_building_attachment()
+			current_attachment["act"] = int(_script_assignment_text(line, "sbact_act"))
+		elif line.begins_with("sbact_vehicle"):
+			if current_attachment.is_empty():
+				current_attachment = _empty_building_attachment()
+			current_attachment["vehicle_id"] = int(_script_assignment_text(line, "sbact_vehicle"))
+		elif line.begins_with("sbact_pos_x"):
+			if current_attachment.is_empty():
+				current_attachment = _empty_building_attachment()
+			var ua_offset_x := Vector3(current_attachment.get("ua_offset", Vector3.ZERO))
+			ua_offset_x.x = float(_script_assignment_text(line, "sbact_pos_x"))
+			current_attachment["ua_offset"] = ua_offset_x
+		elif line.begins_with("sbact_pos_y"):
+			if current_attachment.is_empty():
+				current_attachment = _empty_building_attachment()
+			var ua_offset_y := Vector3(current_attachment.get("ua_offset", Vector3.ZERO))
+			ua_offset_y.y = float(_script_assignment_text(line, "sbact_pos_y"))
+			current_attachment["ua_offset"] = ua_offset_y
+		elif line.begins_with("sbact_pos_z"):
+			if current_attachment.is_empty():
+				current_attachment = _empty_building_attachment()
+			var ua_offset_z := Vector3(current_attachment.get("ua_offset", Vector3.ZERO))
+			ua_offset_z.z = float(_script_assignment_text(line, "sbact_pos_z"))
+			current_attachment["ua_offset"] = ua_offset_z
+		elif line.begins_with("sbact_dir_x"):
+			if current_attachment.is_empty():
+				current_attachment = _empty_building_attachment()
+			var ua_direction_x := Vector3(current_attachment.get("ua_direction", Vector3.ZERO))
+			ua_direction_x.x = float(_script_assignment_text(line, "sbact_dir_x"))
+			current_attachment["ua_direction"] = ua_direction_x
+		elif line.begins_with("sbact_dir_y"):
+			if current_attachment.is_empty():
+				current_attachment = _empty_building_attachment()
+			var ua_direction_y := Vector3(current_attachment.get("ua_direction", Vector3.ZERO))
+			ua_direction_y.y = float(_script_assignment_text(line, "sbact_dir_y"))
+			current_attachment["ua_direction"] = ua_direction_y
+		elif line.begins_with("sbact_dir_z"):
+			if current_attachment.is_empty():
+				current_attachment = _empty_building_attachment()
+			var ua_direction_z := Vector3(current_attachment.get("ua_direction", Vector3.ZERO))
+			ua_direction_z.z = float(_script_assignment_text(line, "sbact_dir_z"))
+			current_attachment["ua_direction"] = ua_direction_z
+	_append_building_attachment(current_building, current_attachment)
+	_append_building_definition(result, current_building)
+	return result
+
+static func _building_definitions_for_game_data_type(game_data_type: String) -> Array:
+	var normalized_game_data_type := _normalized_game_data_type(game_data_type)
+	if _building_definitions_cache.has(normalized_game_data_type):
+		return _building_definitions_cache[normalized_game_data_type]
+	var result: Array = []
+	for script_path in _script_paths_for_game_data_type(normalized_game_data_type):
+		result.append_array(_parse_building_definitions(String(script_path)))
+	_building_definitions_cache[normalized_game_data_type] = result
+	return result
+
+static func _building_definition_for_id_and_sec_type(building_id: int, sec_type: int, game_data_type: String) -> Dictionary:
+	for definition in _building_definitions_for_game_data_type(game_data_type):
+		if typeof(definition) != TYPE_DICTIONARY:
+			continue
+		var building := definition as Dictionary
+		if int(building.get("building_id", -1)) == building_id and int(building.get("sec_type", -1)) == sec_type:
+			return building
+	return {}
+
+static func _build_blg_attachment_descriptors(blg: PackedByteArray, effective_typ: PackedByteArray, set_id: int, hgt: PackedByteArray, w: int, h: int, _support_descriptors: Array, game_data_type: String) -> Array:
+	var descriptors: Array = []
+	if blg.size() != w * h or effective_typ.size() != w * h:
+		return descriptors
+	# Source-backed building turret/radar sockets (`sbact_pos_*`) are defined relative to
+	# the sector center, so their Y anchor should stay on the terrain sector height rather
+	# than snapping up to the authored support mesh used by squads/host stations.
+	for sy in h:
+		for sx in w:
+			var idx := sy * w + sx
+			var building_id := int(blg[idx])
+			if building_id <= 0:
+				continue
+			var definition := _building_definition_for_id_and_sec_type(building_id, int(effective_typ[idx]), game_data_type)
+			if definition.is_empty():
+				continue
+			var world_x := (float(sx) + 1.5) * SECTOR_SIZE
+			var world_z := (float(sy) + 1.5) * SECTOR_SIZE
+			var sector_origin := _sector_center_origin(sx, sy, _ground_height_at_world_position(hgt, w, h, world_x, world_z))
+			var attachments: Array = definition.get("attachments", [])
+			for attachment_value in attachments:
+				if typeof(attachment_value) != TYPE_DICTIONARY:
+					continue
+				var attachment := attachment_value as Dictionary
+				var base_name := _building_attachment_base_name_for_vehicle(int(attachment.get("vehicle_id", -1)), set_id, game_data_type)
+				if base_name.is_empty():
+					continue
+				if not UATerrainPieceLibraryScript.has_piece_source(set_id, base_name):
+					continue
+				var descriptor := {
+					"set_id": set_id,
+					"raw_id": -1,
+					"base_name": base_name,
+					"origin": sector_origin + _host_station_godot_offset_from_ua(Vector3(attachment.get("ua_offset", Vector3.ZERO))),
+				}
+				var godot_direction := _host_station_godot_direction_from_ua(Vector3(attachment.get("ua_direction", Vector3.ZERO)))
+				if godot_direction.length_squared() > 0.000001:
+					descriptor["forward"] = godot_direction
+				descriptors.append(descriptor)
+	return descriptors
+
+static func _append_vehicle_visual_entry(result: Dictionary, vehicle_id: int, entry: Dictionary) -> void:
+	if vehicle_id < 0:
+		return
+	if not entry.has("wait") and not entry.has("normal"):
+		return
+	var entries: Array = result.get(vehicle_id, [])
+	entries.append(entry.duplicate(true))
+	result[vehicle_id] = entries
+
+static func _parse_vehicle_visual_entries(script_path: String) -> Dictionary:
+	var result := {}
+	if script_path.is_empty() or not FileAccess.file_exists(script_path):
+		return result
+	var file := FileAccess.open(script_path, FileAccess.READ)
+	if file == null:
+		return result
+	var current_vehicle_id := -1
+	var current_entry: Dictionary = {}
+	while not file.eof_reached():
+		var line := file.get_line().get_slice(";", 0).strip_edges().to_lower()
+		if line.is_empty():
+			continue
+		if line.begins_with("new_vehicle"):
+			_append_vehicle_visual_entry(result, current_vehicle_id, current_entry)
+			var vehicle_text := line.replacen("new_vehicle", "").strip_edges()
+			current_vehicle_id = int(vehicle_text)
+			current_entry = {"model": ""}
+			continue
+		if line == "end":
+			_append_vehicle_visual_entry(result, current_vehicle_id, current_entry)
+			current_vehicle_id = -1
+			current_entry = {}
+			continue
+		if current_vehicle_id < 0:
+			continue
+		if line.begins_with("model"):
+			current_entry["model"] = _script_assignment_text(line, "model")
+			continue
+		if line.begins_with("vp_wait") or line.begins_with("vp_normal"):
+			var slot_name := "wait" if line.begins_with("vp_wait") else "normal"
+			var slot_prefix := "vp_wait" if slot_name == "wait" else "vp_normal"
+			var vp_text := line.replacen(slot_prefix, "").replacen("=", "").strip_edges()
+			if not vp_text.is_empty():
+				current_entry[slot_name] = int(vp_text)
+	_append_vehicle_visual_entry(result, current_vehicle_id, current_entry)
+	return result
+
+static func _vehicle_visual_entries_for_game_data_type(game_data_type: String) -> Dictionary:
+	var normalized_game_data_type := _normalized_game_data_type(game_data_type)
+	if _vehicle_visual_entries_cache.has(normalized_game_data_type):
+		return _vehicle_visual_entries_cache[normalized_game_data_type]
+	var merged := {}
+	for script_path in _script_paths_for_game_data_type(normalized_game_data_type):
+		var parsed: Dictionary = _parse_vehicle_visual_entries(String(script_path))
+		for vehicle_id in parsed.keys():
+			var entries: Array = merged.get(int(vehicle_id), [])
+			entries.append_array(Array(parsed.get(vehicle_id, [])))
+			merged[int(vehicle_id)] = entries
+	_vehicle_visual_entries_cache[normalized_game_data_type] = merged
+	return merged
 
 static func _parse_vehicle_visual_pairs(script_path: String) -> Dictionary:
 	var result := {}
@@ -646,6 +935,26 @@ static func _preferred_squad_visual_base_name(vehicle_visuals: Dictionary, vispr
 			return base_name
 	return ""
 
+static func _building_attachment_base_name_for_vehicle(vehicle_id: int, set_id: int, game_data_type: String) -> String:
+	var vehicle_entries: Dictionary = _vehicle_visual_entries_for_game_data_type(game_data_type)
+	if not vehicle_entries.has(vehicle_id):
+		return _squad_base_name_for_vehicle(vehicle_id, set_id, game_data_type)
+	var visproto_base_names := _visproto_base_names_for_set(set_id, game_data_type)
+	var fallback := ""
+	for entry_value in Array(vehicle_entries[vehicle_id]):
+		if typeof(entry_value) != TYPE_DICTIONARY:
+			continue
+		var vehicle_visuals := entry_value as Dictionary
+		var base_name := _preferred_squad_visual_base_name(vehicle_visuals, visproto_base_names)
+		if base_name.is_empty():
+			continue
+		var model_name := String(vehicle_visuals.get("model", "")).to_lower()
+		if model_name != "plane" and model_name != "heli":
+			return base_name
+		if fallback.is_empty():
+			fallback = base_name
+	return fallback
+
 static func _squad_base_name_for_vehicle(vehicle_id: int, set_id: int, game_data_type: String) -> String:
 	var vehicle_visuals: Dictionary = _squad_vehicle_visuals_for_game_data_type(game_data_type)
 	if not vehicle_visuals.has(vehicle_id):
@@ -653,10 +962,28 @@ static func _squad_base_name_for_vehicle(vehicle_id: int, set_id: int, game_data
 	var visproto_base_names := _visproto_base_names_for_set(set_id, game_data_type)
 	return _preferred_squad_visual_base_name(Dictionary(vehicle_visuals[vehicle_id]), visproto_base_names)
 
-static func _squad_origin(squad: Node2D, hgt: PackedByteArray, w: int, h: int, support_descriptors: Array) -> Vector3:
+static func _squad_quantity(squad: Object) -> int:
+	var quantity_value = squad.get("quantity")
+	if quantity_value == null:
+		return 1
+	return max(1, int(quantity_value))
+
+static func _squad_anchor_origin(squad: Node2D, hgt: PackedByteArray, w: int, h: int, support_descriptors: Array) -> Vector3:
 	var world_x := float(squad.position.x)
 	var world_z := absf(float(squad.position.y))
 	return Vector3(world_x, _support_height_at_world_position(hgt, w, h, support_descriptors, world_x, world_z), world_z)
+
+static func _squad_formation_offsets(quantity: int) -> Array:
+	var offsets: Array = []
+	var columns := int(sqrt(float(quantity))) + 2
+	for unit_index in range(quantity):
+		# Retail-observed squad growth fills the formation from the opposite X side compared
+		# with the raw decompiled slot order, while preserving the same spacing, row count,
+		# and shared snapped anchor rules.
+		var x_offset := -SQUAD_FORMATION_SPACING * (float(unit_index % columns) - float(columns) / 2.0)
+		var z_offset: float = SQUAD_FORMATION_SPACING * floor(float(unit_index) / float(columns))
+		offsets.append(Vector3(x_offset, 0.0, z_offset))
+	return offsets
 
 static func _build_squad_descriptors(squads: Array, set_id: int, hgt: PackedByteArray, w: int, h: int, support_descriptors: Array, game_data_type: String) -> Array:
 	var descriptors: Array = []
@@ -673,13 +1000,15 @@ static func _build_squad_descriptors(squads: Array, set_id: int, hgt: PackedByte
 			continue
 		if not UATerrainPieceLibraryScript.has_piece_source(set_id, base_name):
 			continue
-		descriptors.append({
-			"set_id": set_id,
-			"raw_id": -1,
-			"base_name": base_name,
-			"origin": _squad_origin(squad as Node2D, hgt, w, h, support_descriptors),
+		var squad_anchor_origin := _squad_anchor_origin(squad as Node2D, hgt, w, h, support_descriptors)
+		for formation_offset in _squad_formation_offsets(_squad_quantity(squad)):
+			descriptors.append({
+				"set_id": set_id,
+				"raw_id": -1,
+				"base_name": base_name,
+				"origin": squad_anchor_origin + Vector3(formation_offset),
 				"y_offset": SQUAD_EXTRA_Y_OFFSET,
-		})
+			})
 	return descriptors
 
 static func _draw_quad(st: SurfaceTool, xl: float, xr: float, zt: float, zb: float, y: float, f: int, cells: int, v: int, rot_deg: int = 0, u0: float = 0.0, vv0: float = 0.0, u1: float = 1.0, vv1: float = 1.0) -> void:
