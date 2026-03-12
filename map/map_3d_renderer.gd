@@ -30,6 +30,38 @@ const HOST_STATION_BASE_NAMES := {
 	177: "VP_KROBO",
 	178: "VP_TAERO",
 }
+const HOST_STATION_VISIBLE_GUN_BASE_NAMES := {
+	90: "VP_MFLAK",
+	91: "VP_MFLAK",
+	92: "VP_MFLAK",
+	93: "VP_FLAK2",
+	94: "VP_FLAK2",
+	95: "VP_FLAK2",
+}
+const HOST_STATION_GUN_ATTACHMENTS := {
+	56: [
+		{"gun_type": 90, "ua_offset": Vector3(0.0, -200.0, 55.0), "ua_direction": Vector3(0.0, 0.0, 1.0)},
+		{"gun_type": 91, "ua_offset": Vector3(0.0, -180.0, -80.0), "ua_direction": Vector3(0.0, 0.0, -1.0)},
+		{"gun_type": 92, "ua_offset": Vector3(0.0, -390.0, 0.0), "ua_direction": Vector3(0.0, 0.0, 1.0)},
+		{"gun_type": 93, "ua_offset": Vector3(0.0, 150.0, 0.0), "ua_direction": Vector3(0.0, 0.0, 1.0)},
+	],
+	62: [
+		{"gun_type": 95, "ua_offset": Vector3(0.0, -150.0, 375.0), "ua_direction": Vector3(0.0, 0.0, 1.0)},
+		{"gun_type": 94, "ua_offset": Vector3(0.0, -120.0, -380.0), "ua_direction": Vector3(0.0, 0.0, -1.0)},
+	],
+}
+const SQUAD_VEHICLE_SCRIPT_ROOTS := {
+	"original": "res://.usor/openua/DATA/SCRIPTS",
+	"metropolisDawn": "res://.usor/openua/dataxp/Scripts",
+}
+const SQUAD_VISPROTO_PATH_PATTERNS := {
+	"original": "res://urban_assault_decompiled-master/assets/sets/set%d/scripts/visproto.lst",
+	"metropolisDawn": "res://urban_assault_decompiled-master/assets/sets/set%d_xp/scripts/visproto.lst",
+}
+const SQUAD_EXTRA_Y_OFFSET := 8.0
+
+static var _squad_vehicle_visuals_cache: Dictionary = {}
+static var _squad_visproto_base_name_cache: Dictionary = {}
 
 
 # Preview top surfaces use world-space tiling with one repeat per sector.
@@ -251,7 +283,16 @@ func build_from_current_map() -> void:
 	var mesh: ArrayMesh = result["mesh"]
 	var surface_to_surface_type: Dictionary = result["surface_to_surface_type"]
 	var authored_piece_descriptors: Array = result.get("authored_piece_descriptors", [])
+	var support_descriptors := authored_piece_descriptors.duplicate()
 	var overlay_descriptors := authored_piece_descriptors.duplicate()
+	var editor_state = get_node_or_null("/root/EditorState")
+	var game_data_type := "original"
+	if editor_state != null:
+		var editor_game_data_type = editor_state.get("game_data_type")
+		if editor_game_data_type != null:
+			game_data_type = String(editor_game_data_type)
+	if game_data_type.is_empty():
+		game_data_type = "original"
 	if _cmd.host_stations != null and is_instance_valid(_cmd.host_stations):
 		overlay_descriptors.append_array(_build_host_station_descriptors(_cmd.host_stations.get_children(), int(_cmd.level_set), hgt, w, h))
 	print("[Map3D] build_from_current_map: built textured mesh with surfaces=", mesh.get_surface_count())
@@ -264,12 +305,16 @@ func build_from_current_map() -> void:
 	# falls back to the older blended strip approximation when a slurp asset is unavailable.
 	if _edge_overlay_enabled and typ.size() == w * h:
 		var edge_result := _build_edge_overlay_result(hgt, w, h, typ, pre.surface_type_map, int(_cmd.level_set), pre)
-		overlay_descriptors.append_array(edge_result.get("authored_piece_descriptors", []))
+		var edge_authored_descriptors: Array = edge_result.get("authored_piece_descriptors", [])
+		support_descriptors.append_array(edge_authored_descriptors)
+		overlay_descriptors.append_array(edge_authored_descriptors)
 		_ensure_edge_node()
 		_edge_mesh.mesh = edge_result.get("mesh", null)
 	else:
 		if _edge_mesh:
 			_edge_mesh.mesh = null
+	if _cmd.squads != null and is_instance_valid(_cmd.squads):
+		overlay_descriptors.append_array(_build_squad_descriptors(_cmd.squads.get_children(), int(_cmd.level_set), hgt, w, h, support_descriptors, game_data_type))
 	_set_authored_overlay(overlay_descriptors)
 
 func clear() -> void:
@@ -418,6 +463,19 @@ static func _sector_center_origin(sx: int, sy: int, sector_y: float) -> Vector3:
 static func _host_station_base_name_for_vehicle(vehicle_id: int) -> String:
 	return String(HOST_STATION_BASE_NAMES.get(vehicle_id, ""))
 
+static func _host_station_gun_base_name_for_type(gun_type: int) -> String:
+	return String(HOST_STATION_VISIBLE_GUN_BASE_NAMES.get(gun_type, ""))
+
+static func _host_station_godot_offset_from_ua(ua_offset: Vector3) -> Vector3:
+	return Vector3(ua_offset.x, -ua_offset.y, -ua_offset.z)
+
+static func _host_station_godot_direction_from_ua(ua_direction: Vector3) -> Vector3:
+	var godot_direction := Vector3(ua_direction.x, -ua_direction.y, -ua_direction.z)
+	var horizontal_direction := Vector3(godot_direction.x, 0.0, godot_direction.z)
+	if horizontal_direction.length_squared() <= 0.000001:
+		return Vector3.ZERO
+	return horizontal_direction.normalized()
+
 static func _world_to_sector_index(world_coord: float) -> int:
 	return int(floor(world_coord / SECTOR_SIZE)) - 1
 
@@ -425,6 +483,13 @@ static func _ground_height_at_world_position(hgt: PackedByteArray, w: int, h: in
 	if w <= 0 or h <= 0 or hgt.size() != (w + 2) * (h + 2):
 		return 0.0
 	return _sample_hgt_height(hgt, w, h, _world_to_sector_index(world_x), _world_to_sector_index(world_z))
+
+static func _support_height_at_world_position(hgt: PackedByteArray, w: int, h: int, support_descriptors: Array, world_x: float, world_z: float) -> float:
+	var terrain_height := _ground_height_at_world_position(hgt, w, h, world_x, world_z)
+	var authored_support = UATerrainPieceLibraryScript.support_height_at_world_position(support_descriptors, world_x, world_z)
+	if authored_support != null:
+		return max(float(authored_support), terrain_height)
+	return terrain_height
 
 static func _host_station_origin(host_station: Node2D, hgt: PackedByteArray, w: int, h: int) -> Vector3:
 	var pos_y_value = host_station.get("pos_y")
@@ -449,11 +514,171 @@ static func _build_host_station_descriptors(host_stations: Array, set_id: int, h
 			continue
 		if not UATerrainPieceLibraryScript.has_piece_source(set_id, base_name):
 			continue
+		var origin := _host_station_origin(host_station as Node2D, hgt, w, h)
 		descriptors.append({
 			"set_id": set_id,
 			"raw_id": -1,
 			"base_name": base_name,
-			"origin": _host_station_origin(host_station as Node2D, hgt, w, h),
+			"origin": origin,
+		})
+		var gun_attachments_value = HOST_STATION_GUN_ATTACHMENTS.get(int(vehicle_value), [])
+		if gun_attachments_value is Array:
+			for attachment in gun_attachments_value:
+				if typeof(attachment) != TYPE_DICTIONARY:
+					continue
+				var gun_type := int(attachment.get("gun_type", -1))
+				var gun_base_name := _host_station_gun_base_name_for_type(gun_type)
+				if gun_base_name.is_empty():
+					continue
+				if not UATerrainPieceLibraryScript.has_piece_source(set_id, gun_base_name):
+					continue
+				var ua_offset: Vector3 = attachment.get("ua_offset", Vector3.ZERO)
+				var gun_descriptor := {
+					"set_id": set_id,
+					"raw_id": -1,
+					"base_name": gun_base_name,
+					"origin": origin + _host_station_godot_offset_from_ua(ua_offset),
+				}
+				var ua_direction: Vector3 = attachment.get("ua_direction", Vector3.ZERO)
+				var godot_direction := _host_station_godot_direction_from_ua(ua_direction)
+				if godot_direction.length_squared() > 0.000001:
+					gun_descriptor["forward"] = godot_direction
+				descriptors.append(gun_descriptor)
+	return descriptors
+
+static func _normalized_game_data_type(game_data_type: String) -> String:
+	return "metropolisDawn" if game_data_type.to_lower() == "metropolisdawn" else "original"
+
+static func _script_root_for_game_data_type(game_data_type: String) -> String:
+	return String(SQUAD_VEHICLE_SCRIPT_ROOTS.get(_normalized_game_data_type(game_data_type), SQUAD_VEHICLE_SCRIPT_ROOTS["original"]))
+
+static func _visproto_path_for_set(set_id: int, game_data_type: String) -> String:
+	var normalized_game_data_type := _normalized_game_data_type(game_data_type)
+	var pattern := String(SQUAD_VISPROTO_PATH_PATTERNS.get(normalized_game_data_type, SQUAD_VISPROTO_PATH_PATTERNS["original"]))
+	return pattern % max(set_id, 1)
+
+static func _script_paths_for_game_data_type(game_data_type: String) -> Array:
+	var script_root := _script_root_for_game_data_type(game_data_type)
+	var result: Array = []
+	var dir := DirAccess.open(script_root)
+	if dir == null:
+		return result
+	dir.list_dir_begin()
+	var entry := dir.get_next()
+	while not entry.is_empty():
+		if not dir.current_is_dir() and entry.get_extension().to_lower() == "scr":
+			result.append("%s/%s" % [script_root, entry])
+		entry = dir.get_next()
+	dir.list_dir_end()
+	result.sort()
+	return result
+
+static func _parse_vehicle_visual_pairs(script_path: String) -> Dictionary:
+	var result := {}
+	if script_path.is_empty() or not FileAccess.file_exists(script_path):
+		return result
+	var file := FileAccess.open(script_path, FileAccess.READ)
+	if file == null:
+		return result
+	var current_vehicle_id := -1
+	while not file.eof_reached():
+		var line := file.get_line().get_slice(";", 0).strip_edges().to_lower()
+		if line.is_empty():
+			continue
+		if line.begins_with("new_vehicle"):
+			var vehicle_text := line.replacen("new_vehicle", "").strip_edges()
+			current_vehicle_id = int(vehicle_text)
+			continue
+		if current_vehicle_id >= 0 and (line.begins_with("vp_wait") or line.begins_with("vp_normal")):
+			var slot_name := "wait" if line.begins_with("vp_wait") else "normal"
+			var slot_prefix := "vp_wait" if slot_name == "wait" else "vp_normal"
+			var vp_text := line.replacen(slot_prefix, "").replacen("=", "").strip_edges()
+			if not vp_text.is_empty():
+				var visuals: Dictionary = result.get(current_vehicle_id, {})
+				visuals[slot_name] = int(vp_text)
+				result[current_vehicle_id] = visuals
+	return result
+
+static func _squad_vehicle_visuals_for_game_data_type(game_data_type: String) -> Dictionary:
+	var normalized_game_data_type := _normalized_game_data_type(game_data_type)
+	if _squad_vehicle_visuals_cache.has(normalized_game_data_type):
+		return _squad_vehicle_visuals_cache[normalized_game_data_type]
+	var merged := {}
+	for script_path in _script_paths_for_game_data_type(normalized_game_data_type):
+		var parsed: Dictionary = _parse_vehicle_visual_pairs(String(script_path))
+		for vehicle_id in parsed.keys():
+			merged[int(vehicle_id)] = Dictionary(parsed[vehicle_id]).duplicate(true)
+	_squad_vehicle_visuals_cache[normalized_game_data_type] = merged
+	return merged
+
+static func _visproto_base_names_for_set(set_id: int, game_data_type: String) -> Array:
+	var normalized_game_data_type := _normalized_game_data_type(game_data_type)
+	var cache_key := "%s:%d" % [normalized_game_data_type, max(set_id, 1)]
+	if _squad_visproto_base_name_cache.has(cache_key):
+		return _squad_visproto_base_name_cache[cache_key]
+	var result: Array = []
+	var visproto_path := _visproto_path_for_set(set_id, normalized_game_data_type)
+	if FileAccess.file_exists(visproto_path):
+		var file := FileAccess.open(visproto_path, FileAccess.READ)
+		if file != null:
+			while not file.eof_reached():
+				var line := file.get_line().get_slice(";", 0).strip_edges()
+				if line.is_empty():
+					continue
+				result.append(line.get_basename())
+	_squad_visproto_base_name_cache[cache_key] = result
+	return result
+
+static func _base_name_from_visproto_index(visproto_base_names: Array, visual_index: int) -> String:
+	if visual_index < 0 or visual_index >= visproto_base_names.size():
+		return ""
+	var base_name := String(visproto_base_names[visual_index])
+	if base_name.to_lower().begins_with("dummy"):
+		return ""
+	return base_name
+
+static func _preferred_squad_visual_base_name(vehicle_visuals: Dictionary, visproto_base_names: Array) -> String:
+	for slot_name in ["wait", "normal"]:
+		if not vehicle_visuals.has(slot_name):
+			continue
+		var base_name := _base_name_from_visproto_index(visproto_base_names, int(vehicle_visuals[slot_name]))
+		if not base_name.is_empty():
+			return base_name
+	return ""
+
+static func _squad_base_name_for_vehicle(vehicle_id: int, set_id: int, game_data_type: String) -> String:
+	var vehicle_visuals: Dictionary = _squad_vehicle_visuals_for_game_data_type(game_data_type)
+	if not vehicle_visuals.has(vehicle_id):
+		return ""
+	var visproto_base_names := _visproto_base_names_for_set(set_id, game_data_type)
+	return _preferred_squad_visual_base_name(Dictionary(vehicle_visuals[vehicle_id]), visproto_base_names)
+
+static func _squad_origin(squad: Node2D, hgt: PackedByteArray, w: int, h: int, support_descriptors: Array) -> Vector3:
+	var world_x := float(squad.position.x)
+	var world_z := absf(float(squad.position.y))
+	return Vector3(world_x, _support_height_at_world_position(hgt, w, h, support_descriptors, world_x, world_z), world_z)
+
+static func _build_squad_descriptors(squads: Array, set_id: int, hgt: PackedByteArray, w: int, h: int, support_descriptors: Array, game_data_type: String) -> Array:
+	var descriptors: Array = []
+	for squad in squads:
+		if squad == null or not is_instance_valid(squad):
+			continue
+		if not (squad is Node2D):
+			continue
+		var vehicle_value = squad.get("vehicle")
+		if vehicle_value == null:
+			continue
+		var base_name := _squad_base_name_for_vehicle(int(vehicle_value), set_id, game_data_type)
+		if base_name.is_empty():
+			continue
+		if not UATerrainPieceLibraryScript.has_piece_source(set_id, base_name):
+			continue
+		descriptors.append({
+			"set_id": set_id,
+			"raw_id": -1,
+			"base_name": base_name,
+			"origin": _squad_origin(squad as Node2D, hgt, w, h, support_descriptors),
+				"y_offset": SQUAD_EXTRA_Y_OFFSET,
 		})
 	return descriptors
 

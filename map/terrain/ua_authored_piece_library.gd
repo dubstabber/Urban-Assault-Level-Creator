@@ -53,9 +53,116 @@ static func build_overlay_node(descriptors: Array) -> Node3D:
 		_apply_optional_piece_deform(piece_node, desc)
 		# Keep authored overlay geometry slightly above the flat sector top so large flat
 		# slurp/border surfaces stay stable against terrain depth precision at distance.
-		piece_node.position = desc.get("origin", Vector3.ZERO) + Vector3(0.0, OVERLAY_Y_BIAS, 0.0)
+		piece_node.position = _piece_position_from_desc(desc)
 		root.add_child(piece_node)
+		_apply_optional_piece_orientation(piece_node, desc)
 	return root
+
+static func _piece_position_from_desc(desc: Dictionary) -> Vector3:
+	return Vector3(desc.get("origin", Vector3.ZERO)) + Vector3(0.0, OVERLAY_Y_BIAS + float(desc.get("y_offset", 0.0)), 0.0)
+
+static func support_height_at_world_position(descriptors: Array, world_x: float, world_z: float):
+	var seeded := false
+	var best_y := 0.0
+	for desc in descriptors:
+		if typeof(desc) != TYPE_DICTIONARY:
+			continue
+		var set_id := int(desc.get("set_id", 1))
+		var base_name := String(desc.get("base_name", ""))
+		var mesh: Mesh = _load_piece_mesh(set_id, base_name)
+		if mesh == null or mesh.get_surface_count() == 0:
+			continue
+		if not String(desc.get("warp_mode", "")).is_empty():
+			mesh = _deformed_slurp_mesh(mesh, desc)
+		var sampled_height = _mesh_support_height_at_world_position(
+			mesh,
+			_piece_basis_from_desc(desc),
+			_piece_position_from_desc(desc),
+			world_x,
+			world_z
+		)
+		if sampled_height == null:
+			continue
+		var sampled_height_float := float(sampled_height)
+		if not seeded or sampled_height_float > best_y:
+			best_y = sampled_height_float
+			seeded = true
+	if not seeded:
+		return null
+	return best_y
+
+static func _apply_optional_piece_orientation(piece_node: Node3D, desc: Dictionary) -> void:
+	var basis := _piece_basis_from_desc(desc)
+	if basis == Basis.IDENTITY:
+		return
+	piece_node.transform.basis = basis
+
+static func _piece_basis_from_desc(desc: Dictionary) -> Basis:
+	var forward_value = desc.get("forward", null)
+	if typeof(forward_value) != TYPE_VECTOR3:
+		return Basis.IDENTITY
+	var forward := Vector3(forward_value)
+	var horizontal_forward := Vector3(forward.x, 0.0, forward.z)
+	if horizontal_forward.length_squared() <= 0.000001:
+		return Basis.IDENTITY
+	return Basis(Vector3.UP, atan2(horizontal_forward.x, -horizontal_forward.z))
+
+static func _mesh_support_height_at_world_position(mesh: Mesh, basis: Basis, origin: Vector3, world_x: float, world_z: float):
+	var seeded := false
+	var best_y := 0.0
+	for surface_idx in mesh.get_surface_count():
+		var arrays := mesh.surface_get_arrays(surface_idx)
+		var verts: PackedVector3Array = arrays[Mesh.ARRAY_VERTEX]
+		if verts.is_empty():
+			continue
+		var indices: PackedInt32Array = arrays[Mesh.ARRAY_INDEX]
+		if indices.is_empty():
+			for i in range(0, verts.size(), 3):
+				if i + 2 >= verts.size():
+					break
+				var direct_height = _triangle_support_height_at_world_position(
+					origin + basis * verts[i],
+					origin + basis * verts[i + 1],
+					origin + basis * verts[i + 2],
+					world_x,
+					world_z
+				)
+				if direct_height != null and (not seeded or float(direct_height) > best_y):
+					best_y = float(direct_height)
+					seeded = true
+			continue
+		for i in range(0, indices.size(), 3):
+			if i + 2 >= indices.size():
+				break
+			var indexed_height = _triangle_support_height_at_world_position(
+				origin + basis * verts[indices[i]],
+				origin + basis * verts[indices[i + 1]],
+				origin + basis * verts[indices[i + 2]],
+				world_x,
+				world_z
+			)
+			if indexed_height != null and (not seeded or float(indexed_height) > best_y):
+				best_y = float(indexed_height)
+				seeded = true
+	if not seeded:
+		return null
+	return best_y
+
+static func _triangle_support_height_at_world_position(a: Vector3, b: Vector3, c: Vector3, world_x: float, world_z: float):
+	var normal := (b - a).cross(c - a)
+	if normal.length_squared() <= 0.000001:
+		return null
+	if absf(normal.normalized().y) <= 0.0001:
+		return null
+	var denominator := ((b.z - c.z) * (a.x - c.x)) + ((c.x - b.x) * (a.z - c.z))
+	if absf(denominator) <= 0.000001:
+		return null
+	var alpha := (((b.z - c.z) * (world_x - c.x)) + ((c.x - b.x) * (world_z - c.z))) / denominator
+	var beta := (((c.z - a.z) * (world_x - c.x)) + ((a.x - c.x) * (world_z - c.z))) / denominator
+	var gamma := 1.0 - alpha - beta
+	if alpha < -0.001 or beta < -0.001 or gamma < -0.001:
+		return null
+	return (alpha * a.y) + (beta * b.y) + (gamma * c.y)
 
 static func has_piece_source(set_id: int, base_name: String) -> bool:
 	if base_name.is_empty():
