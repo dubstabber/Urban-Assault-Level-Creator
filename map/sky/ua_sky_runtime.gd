@@ -29,6 +29,7 @@ var _active_base_radius := 0.0
 var _active_base_top_extent := 0.0
 var _event_system_override: Node = null
 var _current_map_data_override: Node = null
+var _editor_state_override: Node = null
 var _queued_request_kind := ""
 var _queued_request_sky_name := ""
 var _sky_request_deferred := false
@@ -42,12 +43,16 @@ func _ready() -> void:
 	if event_system:
 		event_system.map_created.connect(_on_map_changed)
 		event_system.map_updated.connect(_on_map_changed)
+		if event_system.has_signal("map_view_updated"):
+			event_system.map_view_updated.connect(_on_map_view_updated)
 		if event_system.has_signal("sky_preview_requested"):
 			event_system.sky_preview_requested.connect(_on_sky_preview_requested)
 		if event_system.has_signal("sky_preview_reset_requested"):
 			event_system.sky_preview_reset_requested.connect(_on_sky_preview_reset_requested)
+	_apply_preview_activity_state()
 	request_refresh_from_current_map()
-	call_deferred("update_active_sky_transform")
+	if _preview_updates_active():
+		call_deferred("update_active_sky_transform")
 
 
 func _process(_delta: float) -> void:
@@ -56,6 +61,15 @@ func _process(_delta: float) -> void:
 
 func _on_map_changed() -> void:
 	request_refresh_from_current_map()
+
+
+func _on_map_view_updated() -> void:
+	_apply_preview_activity_state()
+	if _preview_updates_active():
+		if _queued_request_kind != "":
+			_schedule_queued_sky_request()
+		else:
+			call_deferred("update_active_sky_transform")
 
 
 func _on_sky_preview_requested(sky_name: String) -> void:
@@ -77,6 +91,12 @@ func request_refresh_from_current_map() -> void:
 func _queue_sky_request(kind: String, sky_name: String = "") -> void:
 	_queued_request_kind = kind
 	_queued_request_sky_name = sky_name
+	if not _preview_updates_active():
+		return
+	_schedule_queued_sky_request()
+
+
+func _schedule_queued_sky_request() -> void:
 	if _sky_request_deferred:
 		return
 	_sky_request_deferred = true
@@ -85,6 +105,8 @@ func _queue_sky_request(kind: String, sky_name: String = "") -> void:
 
 func _apply_queued_sky_request() -> void:
 	_sky_request_deferred = false
+	if not _preview_updates_active():
+		return
 	var kind := _queued_request_kind
 	var sky_name := _queued_request_sky_name
 	_queued_request_kind = ""
@@ -591,6 +613,31 @@ func set_event_system_override(event_system: Node) -> void:
 
 func set_current_map_data_override(current_map_data: Node) -> void:
 	_current_map_data_override = current_map_data
+
+
+func set_editor_state_override(editor_state: Node) -> void:
+	_editor_state_override = editor_state
+
+
+func has_pending_sky_request() -> bool:
+	return _queued_request_kind != "" or _sky_request_deferred
+
+
+func _apply_preview_activity_state() -> void:
+	set_process(_preview_updates_active())
+
+
+func _preview_updates_active() -> bool:
+	var editor_state := _editor_state()
+	if editor_state != null:
+		return bool(editor_state.get("view_mode_3d"))
+	return true
+
+
+func _editor_state() -> Node:
+	if _editor_state_override != null and is_instance_valid(_editor_state_override):
+		return _editor_state_override
+	return get_node_or_null("/root/EditorState")
 
 
 func get_active_canonical_id() -> String:

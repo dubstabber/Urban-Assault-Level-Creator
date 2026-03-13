@@ -134,6 +134,159 @@ var _sprint_mult := 2.0
 var _look_sens := 0.0025
 var _framed := false
 var _debug_shader_mode: int = 0 # Debug visualization for the current surface-type preview shader.
+var _event_system_override: Node = null
+var _current_map_data_override: Node = null
+var _editor_state_override: Node = null
+var _preloads_override: Node = null
+var _preloads_override_set := false
+var _refresh_pending := false
+var _refresh_reframe_pending := false
+var _refresh_deferred := false
+var _refresh_requested_at_usec := 0
+var _last_build_metrics: Dictionary = {}
+
+
+func set_event_system_override(event_system: Node) -> void:
+	_event_system_override = event_system
+
+
+func set_current_map_data_override(current_map_data: Node) -> void:
+	_current_map_data_override = current_map_data
+
+
+func set_editor_state_override(editor_state: Node) -> void:
+	_editor_state_override = editor_state
+
+
+func set_preloads_override(preloads: Node) -> void:
+	_preloads_override = preloads
+	_preloads_override_set = true
+
+
+func has_pending_refresh() -> bool:
+	return _refresh_pending
+
+
+func get_last_build_metrics() -> Dictionary:
+	if _last_build_metrics.is_empty():
+		return _make_empty_build_metrics()
+	return _last_build_metrics.duplicate(true)
+
+
+func _make_empty_build_metrics() -> Dictionary:
+	return {
+		"used_textured_preloads": false,
+		"invalid_input": false,
+		"terrain_build_ms": 0.0,
+		"edge_slurp_build_ms": 0.0,
+		"overlay_descriptor_generation_ms": 0.0,
+		"overlay_node_creation_ms": 0.0,
+		"support_height_query_ms": 0.0,
+		"support_height_query_count": 0,
+		"terrain_authored_descriptor_count": 0,
+		"edge_authored_descriptor_count": 0,
+		"overlay_descriptor_count": 0,
+		"build_total_ms": 0.0,
+		"refresh_end_to_end_ms": 0.0,
+	}
+
+
+static func _elapsed_ms_since(started_usec: int) -> float:
+	if started_usec <= 0:
+		return 0.0
+	return maxf(float(Time.get_ticks_usec() - started_usec) / 1000.0, 0.0)
+
+
+static func _profile_add_duration(profile, key: String, duration_ms: float) -> void:
+	if typeof(profile) != TYPE_DICTIONARY:
+		return
+	profile[key] = float(profile.get(key, 0.0)) + maxf(duration_ms, 0.0)
+
+
+static func _profile_increment(profile, key: String, amount: int = 1) -> void:
+	if typeof(profile) != TYPE_DICTIONARY:
+		return
+	profile[key] = int(profile.get(key, 0)) + amount
+
+
+func _finalize_build_metrics(metrics: Dictionary, build_started_usec: int) -> void:
+	metrics["build_total_ms"] = _elapsed_ms_since(build_started_usec)
+	if _refresh_requested_at_usec > 0:
+		metrics["refresh_end_to_end_ms"] = _elapsed_ms_since(_refresh_requested_at_usec)
+		_refresh_requested_at_usec = 0
+	_last_build_metrics = metrics.duplicate(true)
+
+
+func _event_system() -> Node:
+	if _event_system_override != null and is_instance_valid(_event_system_override):
+		return _event_system_override
+	return get_node_or_null("/root/EventSystem")
+
+
+func _current_map_data() -> Node:
+	if _current_map_data_override != null and is_instance_valid(_current_map_data_override):
+		return _current_map_data_override
+	return get_node_or_null("/root/CurrentMapData")
+
+
+func _editor_state() -> Node:
+	if _editor_state_override != null and is_instance_valid(_editor_state_override):
+		return _editor_state_override
+	return get_node_or_null("/root/EditorState")
+
+
+func _preloads() -> Node:
+	if _preloads_override_set:
+		if _preloads_override != null and is_instance_valid(_preloads_override):
+			return _preloads_override
+		return null
+	if is_inside_tree():
+		var tree := get_tree()
+		if tree != null and tree.root != null:
+			return tree.root.get_node_or_null("Preloads")
+	var main_loop := Engine.get_main_loop()
+	if main_loop is SceneTree and main_loop.root != null:
+		return main_loop.root.get_node_or_null("Preloads")
+	return null
+
+
+func _preview_refresh_active() -> bool:
+	var editor_state := _editor_state()
+	if editor_state != null:
+		return bool(editor_state.get("view_mode_3d"))
+	return true
+
+
+func _apply_preview_activity_state() -> void:
+	var active := _preview_refresh_active()
+	set_physics_process(active)
+	set_process_unhandled_input(active)
+
+
+func _request_refresh(reframe_camera: bool) -> void:
+	if not _refresh_pending and _refresh_requested_at_usec <= 0:
+		_refresh_requested_at_usec = Time.get_ticks_usec()
+	_refresh_pending = true
+	_refresh_reframe_pending = _refresh_reframe_pending or reframe_camera
+	if not _preview_refresh_active():
+		return
+	if _refresh_deferred:
+		return
+	_refresh_deferred = true
+	call_deferred("_apply_pending_refresh")
+
+
+func _apply_pending_refresh() -> void:
+	_refresh_deferred = false
+	if not _refresh_pending or not _preview_refresh_active():
+		return
+	var reframe_camera := _refresh_reframe_pending
+	_refresh_pending = false
+	_refresh_reframe_pending = false
+	build_from_current_map()
+	if reframe_camera and is_inside_tree():
+		_framed = false
+		_frame_if_needed()
 
 func _ready() -> void:
 	var test_mesh := get_node_or_null("TestMesh")
@@ -147,33 +300,37 @@ func _ready() -> void:
 		print("[Map3D] _ready: camera active, current=", _camera.current)
 	# Listen for map events (guarded for test environment without autoloads)
 
-	var _es = get_node_or_null("/root/EventSystem")
+	var _es = _event_system()
 	if _es:
 		_es.map_created.connect(_on_map_changed)
 		_es.map_updated.connect(_on_map_changed)
 		_es.level_set_changed.connect(_on_level_set_changed)
 		_es.map_view_updated.connect(_on_map_view_updated)
+	_apply_preview_activity_state()
 	_apply_visibility_range_from_editor_state()
-	var _cmd = get_node_or_null("/root/CurrentMapData")
+	var _cmd = _current_map_data()
 
 	if _cmd:
 		print("[Map3D] _ready: initial dims w=", _cmd.horizontal_sectors, " h=", _cmd.vertical_sectors, " hgt=", _cmd.hgt_map.size())
 		# Initial build if data already present
 		if _cmd.horizontal_sectors > 0 and _cmd.vertical_sectors > 0 and not _cmd.hgt_map.is_empty():
-			print("[Map3D] _ready: building from current map")
-			build_from_current_map()
+			print("[Map3D] _ready: scheduling initial build from current map")
+			_request_refresh(true)
 
 func _apply_visibility_range_from_editor_state() -> void:
 	if _world_environment == null or _world_environment.environment == null:
 		return
-	var editor_state = get_node_or_null("/root/EditorState")
+	var editor_state := _editor_state()
 	var enabled := false
 	if editor_state != null:
 		enabled = bool(editor_state.get("map_3d_visibility_range_enabled"))
 	apply_visibility_range_to_environment(_world_environment.environment, enabled)
 
 func _on_map_view_updated() -> void:
+	_apply_preview_activity_state()
 	_apply_visibility_range_from_editor_state()
+	if _refresh_pending:
+		_request_refresh(_refresh_reframe_pending)
 
 func _apply_debug_mode_to_existing_materials() -> void:
 	if _terrain_mesh == null or _terrain_mesh.mesh == null:
@@ -234,7 +391,7 @@ func _unhandled_input(event: InputEvent) -> void:
 			_apply_debug_mode_to_existing_materials()
 
 func _wheel_step() -> float:
-	var _cmd = get_node_or_null("/root/CurrentMapData")
+	var _cmd = _current_map_data()
 	var max_dim: int = int(max(_cmd.horizontal_sectors, _cmd.vertical_sectors)) if _cmd else 1
 	return max(200.0, float(max_dim) * SECTOR_SIZE * 0.02)
 
@@ -246,7 +403,7 @@ func _update_camera_rotation() -> void:
 func _frame_if_needed() -> void:
 	if _framed:
 		return
-	var _cmd = get_node_or_null("/root/CurrentMapData")
+	var _cmd = _current_map_data()
 	if _cmd == null:
 		return
 	var w: int = int(_cmd.horizontal_sectors)
@@ -293,19 +450,19 @@ func _frame_if_needed() -> void:
 	_framed = true
 
 func _on_map_changed() -> void:
-	var _cmd = get_node_or_null("/root/CurrentMapData")
+	var _cmd = _current_map_data()
 	if _cmd:
 		print("[Map3D] map_changed signal: w=", _cmd.horizontal_sectors, " h=", _cmd.vertical_sectors, " hgt_size=", _cmd.hgt_map.size())
-		build_from_current_map()
-		# Force reframe on each map change to ensure camera is valid for new bounds
-		_framed = false
-		_frame_if_needed()
+		_request_refresh(true)
 
 func build_from_current_map() -> void:
-	var _cmd = get_node_or_null("/root/CurrentMapData")
+	var build_started_usec := Time.get_ticks_usec()
+	var metrics := _make_empty_build_metrics()
+	var _cmd = _current_map_data()
 	if _cmd == null:
 		print("[Map3D] build_from_current_map: no CurrentMapData autoload, clearing mesh")
 		clear()
+		_finalize_build_metrics(metrics, build_started_usec)
 		return
 	var w: int = int(_cmd.horizontal_sectors)
 	var h: int = int(_cmd.vertical_sectors)
@@ -316,7 +473,11 @@ func build_from_current_map() -> void:
 	print("[Map3D] build_from_current_map: w=", w, " h=", h, " hgt_size=", hgt.size(), " expected=", expected)
 	if w <= 0 or h <= 0 or hgt.size() != expected or typ.size() != w * h:
 		print("[Map3D] build_from_current_map: invalid data, clearing mesh")
+		metrics["invalid_input"] = true
+		var clear_started_usec := Time.get_ticks_usec()
 		clear()
+		metrics["overlay_node_creation_ms"] = _elapsed_ms_since(clear_started_usec)
+		_finalize_build_metrics(metrics, build_started_usec)
 		return
 
 	var game_data_type := _current_game_data_type()
@@ -331,18 +492,25 @@ func build_from_current_map() -> void:
 		_cmd.stoudson_bombs
 	)
 
-	var pre = get_node_or_null("/root/Preloads")
+	var pre = _preloads()
 	if pre == null:
+		var fallback_started_usec := Time.get_ticks_usec()
 		var fallback_mesh := build_mesh(hgt, w, h)
+		metrics["terrain_build_ms"] = _elapsed_ms_since(fallback_started_usec)
 		print("[Map3D] build_from_current_map: Preloads unavailable, using untextured mesh with surfaces=", fallback_mesh.get_surface_count())
 		if _terrain_mesh:
 			_terrain_mesh.mesh = fallback_mesh
 			_apply_untextured_materials(fallback_mesh)
+		var fallback_overlay_started_usec := Time.get_ticks_usec()
 		_set_authored_overlay([])
+		metrics["overlay_node_creation_ms"] = _elapsed_ms_since(fallback_overlay_started_usec)
 		if _edge_mesh:
 			_edge_mesh.mesh = null
+		_finalize_build_metrics(metrics, build_started_usec)
 		return
 
+	metrics["used_textured_preloads"] = true
+	var terrain_started_usec := Time.get_ticks_usec()
 	var result := build_mesh_with_textures(
 		hgt,
 		effective_typ,
@@ -356,9 +524,11 @@ func build_from_current_map() -> void:
 		pre.lego_defs,
 		int(_cmd.level_set)
 	)
+	metrics["terrain_build_ms"] = _elapsed_ms_since(terrain_started_usec)
 	var mesh: ArrayMesh = result["mesh"]
 	var surface_to_surface_type: Dictionary = result["surface_to_surface_type"]
 	var authored_piece_descriptors: Array = result.get("authored_piece_descriptors", [])
+	metrics["terrain_authored_descriptor_count"] = authored_piece_descriptors.size()
 	var support_descriptors := authored_piece_descriptors.duplicate()
 	var overlay_descriptors := authored_piece_descriptors.duplicate()
 	print("[Map3D] build_from_current_map: built textured mesh with surfaces=", mesh.get_surface_count())
@@ -369,9 +539,11 @@ func build_from_current_map() -> void:
 
 	# Edge overlay now prefers authored retail slurp pieces (`SxyV` / `SxyH`) and only
 	# falls back to the older blended strip approximation when a slurp asset is unavailable.
+	var edge_started_usec := Time.get_ticks_usec()
 	if _edge_overlay_enabled and effective_typ.size() == w * h:
 		var edge_result := _build_edge_overlay_result(hgt, w, h, effective_typ, pre.surface_type_map, int(_cmd.level_set), pre)
 		var edge_authored_descriptors: Array = edge_result.get("authored_piece_descriptors", [])
+		metrics["edge_authored_descriptor_count"] = edge_authored_descriptors.size()
 		support_descriptors.append_array(edge_authored_descriptors)
 		overlay_descriptors.append_array(edge_authored_descriptors)
 		_ensure_edge_node()
@@ -379,15 +551,22 @@ func build_from_current_map() -> void:
 	else:
 		if _edge_mesh:
 			_edge_mesh.mesh = null
+	metrics["edge_slurp_build_ms"] = _elapsed_ms_since(edge_started_usec)
+	var overlay_descriptor_started_usec := Time.get_ticks_usec()
 	overlay_descriptors.append_array(_build_blg_attachment_descriptors(blg, effective_typ, int(_cmd.level_set), hgt, w, h, support_descriptors, game_data_type))
 	if _cmd.host_stations != null and is_instance_valid(_cmd.host_stations):
-		overlay_descriptors.append_array(_build_host_station_descriptors(_cmd.host_stations.get_children(), int(_cmd.level_set), hgt, w, h, support_descriptors))
+		overlay_descriptors.append_array(_build_host_station_descriptors(_cmd.host_stations.get_children(), int(_cmd.level_set), hgt, w, h, support_descriptors, metrics))
 	if _cmd.squads != null and is_instance_valid(_cmd.squads):
-		overlay_descriptors.append_array(_build_squad_descriptors(_cmd.squads.get_children(), int(_cmd.level_set), hgt, w, h, support_descriptors, game_data_type))
+		overlay_descriptors.append_array(_build_squad_descriptors(_cmd.squads.get_children(), int(_cmd.level_set), hgt, w, h, support_descriptors, game_data_type, metrics))
+	metrics["overlay_descriptor_generation_ms"] = _elapsed_ms_since(overlay_descriptor_started_usec)
+	metrics["overlay_descriptor_count"] = overlay_descriptors.size()
+	var overlay_node_started_usec := Time.get_ticks_usec()
 	_set_authored_overlay(overlay_descriptors)
+	metrics["overlay_node_creation_ms"] = _elapsed_ms_since(overlay_node_started_usec)
+	_finalize_build_metrics(metrics, build_started_usec)
 
 func _current_game_data_type() -> String:
-	var editor_state = get_node_or_null("/root/EditorState")
+	var editor_state := _editor_state()
 	var game_data_type := "original"
 	if editor_state != null:
 		var editor_game_data_type = editor_state.get("game_data_type")
@@ -564,22 +743,25 @@ static func _ground_height_at_world_position(hgt: PackedByteArray, w: int, h: in
 		return 0.0
 	return _sample_hgt_height(hgt, w, h, _world_to_sector_index(world_x), _world_to_sector_index(world_z))
 
-static func _support_height_at_world_position(hgt: PackedByteArray, w: int, h: int, support_descriptors: Array, world_x: float, world_z: float) -> float:
+static func _support_height_at_world_position(hgt: PackedByteArray, w: int, h: int, support_descriptors: Array, world_x: float, world_z: float, profile = null) -> float:
+	var started_usec := Time.get_ticks_usec()
 	var terrain_height := _ground_height_at_world_position(hgt, w, h, world_x, world_z)
 	var authored_support = UATerrainPieceLibraryScript.support_height_at_world_position(support_descriptors, world_x, world_z)
+	_profile_increment(profile, "support_height_query_count")
+	_profile_add_duration(profile, "support_height_query_ms", _elapsed_ms_since(started_usec))
 	if authored_support != null:
 		return max(float(authored_support), terrain_height)
 	return terrain_height
 
-static func _host_station_origin(host_station: Node2D, hgt: PackedByteArray, w: int, h: int, support_descriptors: Array) -> Vector3:
+static func _host_station_origin(host_station: Node2D, hgt: PackedByteArray, w: int, h: int, support_descriptors: Array, profile = null) -> Vector3:
 	var pos_y_value = host_station.get("pos_y")
 	var ua_x := float(host_station.position.x)
 	var world_z := absf(float(host_station.position.y))
 	var ua_y := float(pos_y_value if pos_y_value != null else 0.0)
-	var support_y := _support_height_at_world_position(hgt, w, h, support_descriptors, ua_x, world_z)
+	var support_y := _support_height_at_world_position(hgt, w, h, support_descriptors, ua_x, world_z, profile)
 	return Vector3(ua_x, support_y - ua_y, world_z)
 
-static func _build_host_station_descriptors(host_stations: Array, set_id: int, hgt: PackedByteArray, w: int, h: int, support_descriptors: Array = []) -> Array:
+static func _build_host_station_descriptors(host_stations: Array, set_id: int, hgt: PackedByteArray, w: int, h: int, support_descriptors: Array = [], profile = null) -> Array:
 	var descriptors: Array = []
 	for host_station in host_stations:
 		if host_station == null or not is_instance_valid(host_station):
@@ -594,7 +776,7 @@ static func _build_host_station_descriptors(host_stations: Array, set_id: int, h
 			continue
 		if not UATerrainPieceLibraryScript.has_piece_source(set_id, base_name):
 			continue
-		var origin := _host_station_origin(host_station as Node2D, hgt, w, h, support_descriptors)
+		var origin := _host_station_origin(host_station as Node2D, hgt, w, h, support_descriptors, profile)
 		descriptors.append({
 			"set_id": set_id,
 			"raw_id": -1,
@@ -1160,10 +1342,10 @@ static func _squad_quantity(squad: Object) -> int:
 		return 1
 	return max(1, int(quantity_value))
 
-static func _squad_anchor_origin(squad: Node2D, hgt: PackedByteArray, w: int, h: int, support_descriptors: Array) -> Vector3:
+static func _squad_anchor_origin(squad: Node2D, hgt: PackedByteArray, w: int, h: int, support_descriptors: Array, profile = null) -> Vector3:
 	var world_x := float(squad.position.x)
 	var world_z := absf(float(squad.position.y))
-	return Vector3(world_x, _support_height_at_world_position(hgt, w, h, support_descriptors, world_x, world_z), world_z)
+	return Vector3(world_x, _support_height_at_world_position(hgt, w, h, support_descriptors, world_x, world_z, profile), world_z)
 
 static func _squad_formation_offsets(quantity: int) -> Array:
 	var offsets: Array = []
@@ -1177,7 +1359,7 @@ static func _squad_formation_offsets(quantity: int) -> Array:
 		offsets.append(Vector3(x_offset, 0.0, z_offset))
 	return offsets
 
-static func _build_squad_descriptors(squads: Array, set_id: int, hgt: PackedByteArray, w: int, h: int, support_descriptors: Array, game_data_type: String) -> Array:
+static func _build_squad_descriptors(squads: Array, set_id: int, hgt: PackedByteArray, w: int, h: int, support_descriptors: Array, game_data_type: String, profile = null) -> Array:
 	var descriptors: Array = []
 	for squad in squads:
 		if squad == null or not is_instance_valid(squad):
@@ -1192,7 +1374,7 @@ static func _build_squad_descriptors(squads: Array, set_id: int, hgt: PackedByte
 			continue
 		if not UATerrainPieceLibraryScript.has_piece_source(set_id, base_name):
 			continue
-		var squad_anchor_origin := _squad_anchor_origin(squad as Node2D, hgt, w, h, support_descriptors)
+		var squad_anchor_origin := _squad_anchor_origin(squad as Node2D, hgt, w, h, support_descriptors, profile)
 		for formation_offset in _squad_formation_offsets(_squad_quantity(squad)):
 			descriptors.append({
 				"set_id": set_id,
@@ -1574,7 +1756,7 @@ func _apply_sector_top_materials(mesh: ArrayMesh, preloads, surface_to_surface_t
 # ---- UA edge-based strip rendering ----
 func _on_level_set_changed() -> void:
 	# Rebuild the current preview for the newly selected set.
-	build_from_current_map()
+	_request_refresh(false)
 
 func _ensure_edge_node() -> void:
 	if _edge_mesh == null:
@@ -1584,7 +1766,7 @@ func _ensure_edge_node() -> void:
 		_edge_mesh = mi
 
 func _build_edges_from_current_map() -> void:
-	var cmd = get_node_or_null("/root/CurrentMapData")
+	var cmd = _current_map_data()
 	if cmd == null:
 		return
 	var w: int = int(cmd.horizontal_sectors)
@@ -1595,7 +1777,7 @@ func _build_edges_from_current_map() -> void:
 	if w <= 0 or h <= 0 or hgt.size() != (w + 2) * (h + 2) or typ.size() != w * h:
 		if _edge_mesh: _edge_mesh.mesh = null
 		return
-	var pre = get_node_or_null("/root/Preloads")
+	var pre = _preloads()
 	var mapping: Dictionary = pre.surface_type_map if pre else {}
 	var effective_typ := _effective_typ_map_for_3d(
 		typ,
@@ -1616,7 +1798,7 @@ func _build_edge_overlay_result(hgt: PackedByteArray, w: int, h: int, typ: Packe
 	var fallback_horiz := {}
 	var fallback_vert := {}
 	if preloads == null and is_inside_tree():
-		preloads = get_node_or_null("/root/Preloads")
+		preloads = _preloads()
 
 	for y in range(-1, h + 1):
 		for x in range(-1, w):
@@ -1736,7 +1918,7 @@ func _make_edge_blend_material(bucket_key: String, preloads, use_uv_y_for_blend:
 func _build_edges_mesh(hgt: PackedByteArray, w: int, h: int, typ: PackedByteArray, mapping: Dictionary, preloads = null) -> ArrayMesh:
 	var mesh := ArrayMesh.new()
 	if preloads == null and is_inside_tree():
-		preloads = get_node_or_null("/root/Preloads")
+		preloads = _preloads()
 	# Collect per (surfaceA, surfaceB) pair to minimize materials
 	var horiz := {}
 	var vert := {}
