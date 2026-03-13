@@ -209,7 +209,8 @@ static func _build_piece_node(set_id: int, base_name: String, raw_id: int) -> No
 	var points: Array = piece_source.get("points", [])
 	var polys: Array = piece_source.get("polys", [])
 	var surfaces := _extract_surfaces(bas_data, points, polys, set_id)
-	if surfaces.is_empty():
+	var emitters := _extract_particle_emitters(bas_data, points, set_id)
+	if surfaces.is_empty() and emitters.is_empty():
 		return null
 	var piece := Node3D.new()
 	piece.name = "%s_%d" % [base_name, raw_id]
@@ -219,6 +220,12 @@ static func _build_piece_node(set_id: int, base_name: String, raw_id: int) -> No
 			continue
 		child.name = "Surface_%d" % i
 		piece.add_child(child)
+	for i in emitters.size():
+		var emitter := _particle_node_from_definition(emitters[i])
+		if emitter == null:
+			continue
+		emitter.name = "ParticleEmitter_%d" % i
+		piece.add_child(emitter)
 	return piece if piece.get_child_count() > 0 else null
 
 static func _apply_optional_piece_deform(piece_node: Node3D, desc: Dictionary) -> void:
@@ -301,6 +308,8 @@ static func _extract_surfaces(node, points: Array, polys: Array, set_id: int) ->
 
 static func _collect_surfaces(node, out: Array, points: Array, polys: Array, set_id: int) -> void:
 	if typeof(node) == TYPE_DICTIONARY:
+		if node.has("PTCL"):
+			return
 		if node.has("AREA"):
 			var area_surface := _surface_from_area(node["AREA"], points, polys, set_id)
 			if not area_surface.is_empty():
@@ -315,6 +324,182 @@ static func _collect_surfaces(node, out: Array, points: Array, polys: Array, set
 	elif typeof(node) == TYPE_ARRAY:
 		for item in node:
 			_collect_surfaces(item, out, points, polys, set_id)
+
+static func _extract_particle_emitters(node, points: Array, set_id: int) -> Array:
+	var result: Array = []
+	_collect_particle_emitters(node, result, points, set_id)
+	return result
+
+static func _collect_particle_emitters(node, out: Array, points: Array, set_id: int) -> void:
+	if typeof(node) == TYPE_DICTIONARY:
+		if node.has("PTCL"):
+			var emitter := _particle_emitter_from_ptcl(node["PTCL"], points, set_id)
+			if not emitter.is_empty():
+				out.append(emitter)
+			return
+		for value in node.values():
+			_collect_particle_emitters(value, out, points, set_id)
+	elif typeof(node) == TYPE_ARRAY:
+		for item in node:
+			_collect_particle_emitters(item, out, points, set_id)
+
+static func _particle_emitter_from_ptcl(ptcl_data: Array, points: Array, set_id: int) -> Dictionary:
+	var point_id := _find_first_ade_point(ptcl_data)
+	var anchor = _point_position(points, point_id)
+	if anchor == null:
+		return {}
+	var atts := _find_first_particle_atts(ptcl_data)
+	if atts.is_empty():
+		return {}
+	var stages := _particle_stages_from_ptcl(ptcl_data, set_id)
+	if stages.is_empty():
+		return {}
+	return {
+		"point_id": point_id,
+		"anchor": anchor,
+		"context_life_time_ms": max(int(atts.get("context_life_time", 0)), 1),
+		"context_start_gen_ms": max(int(atts.get("context_start_gen", 0)), 0),
+		"context_stop_gen_ms": max(int(atts.get("context_stop_gen", 0)), 0),
+		"gen_rate": max(int(atts.get("gen_rate", 0)), 0),
+		"lifetime_ms": max(int(atts.get("lifetime", 0)), 1),
+		"start_speed": float(atts.get("start_speed", 0.0)),
+		"start_size": float(atts.get("start_size", 1.0)),
+		"end_size": float(atts.get("end_size", atts.get("start_size", 1.0))),
+		"noise": float(atts.get("noise", 0.0)),
+		"accel_start": _vector3_from_components(atts, "accel_start"),
+		"accel_end": _vector3_from_components(atts, "accel_end"),
+		"magnify_start": _vector3_from_components(atts, "magnify_start"),
+		"magnify_end": _vector3_from_components(atts, "magnify_end"),
+		"stages": stages,
+	}
+
+static func _particle_stages_from_ptcl(ptcl_data: Array, set_id: int) -> Array:
+	var area_stages: Array = []
+	_collect_ptcl_stage_areas(ptcl_data, area_stages)
+	var stages: Array = []
+	for area_data in area_stages:
+		var stage := _particle_stage_from_area(area_data, set_id)
+		if not stage.is_empty():
+			stages.append(stage)
+	return stages
+
+static func _collect_ptcl_stage_areas(node, out: Array) -> void:
+	if typeof(node) == TYPE_DICTIONARY:
+		if node.has("AREA"):
+			out.append(node["AREA"])
+			return
+		for value in node.values():
+			_collect_ptcl_stage_areas(value, out)
+	elif typeof(node) == TYPE_ARRAY:
+		for item in node:
+			_collect_ptcl_stage_areas(item, out)
+
+static func _particle_stage_from_area(area_data: Array, set_id: int) -> Dictionary:
+	var polygon := _unit_billboard_polygon()
+	var render_hints := _render_hints_from_area(area_data)
+	var frames: Array = []
+	var anim_name := _find_first_anim_name(area_data)
+	if not anim_name.is_empty():
+		for frame in _load_anim_frames(set_id, anim_name, polygon):
+			var material := _billboard_material_for_texture(set_id, String(frame.get("texture_name", "")), render_hints)
+			if material == null:
+				continue
+			frames.append({
+				"triangles": frame.get("triangles", []),
+				"material": material,
+				"duration_sec": float(frame.get("duration_sec", 0.04)),
+			})
+	else:
+		var texture_name := _find_first_name(area_data, "NAM2")
+		var material := _billboard_material_for_texture(set_id, texture_name, render_hints)
+		if material == null:
+			return {}
+		frames.append({
+			"triangles": _triangulate(polygon, _coerce_uvs(_find_first_points(area_data, "OTL2"), polygon, set_id, texture_name)),
+			"material": material,
+			"duration_sec": 0.04,
+		})
+	return {"frames": frames} if not frames.is_empty() else {}
+
+static func _particle_node_from_definition(definition: Dictionary) -> Node3D:
+	if definition.is_empty():
+		return null
+	var emitter_script = load("res://map/terrain/ua_authored_particle_emitter.gd")
+	if emitter_script == null:
+		return null
+	var emitter: Node3D = emitter_script.new()
+	emitter.setup_emitter(definition)
+	return emitter if emitter.has_meta("ua_authored_particle_emitter") else null
+
+static func _unit_billboard_polygon() -> Array:
+	return [
+		Vector3(-0.5, -0.5, 0.0),
+		Vector3(0.5, -0.5, 0.0),
+		Vector3(0.5, 0.5, 0.0),
+		Vector3(-0.5, 0.5, 0.0),
+	]
+
+static func _billboard_material_for_texture(set_id: int, texture_name: String, render_hints: Dictionary = {}) -> Material:
+	var base_material := _material_for_texture(set_id, texture_name, render_hints)
+	if base_material == null:
+		return null
+	var duplicated := base_material.duplicate()
+	if duplicated is BaseMaterial3D:
+		var billboarded := duplicated as BaseMaterial3D
+		billboarded.billboard_mode = BaseMaterial3D.BILLBOARD_ENABLED
+		billboarded.billboard_keep_scale = true
+		return billboarded
+	return duplicated
+
+static func _point_position(points: Array, point_id: int):
+	if point_id < 0 or point_id >= points.size():
+		return null
+	var p: Dictionary = points[point_id]
+	return Vector3(float(p.get("x", 0.0)) * MODEL_SCALE, -float(p.get("y", 0.0)) * MODEL_SCALE, -float(p.get("z", 0.0)) * MODEL_SCALE)
+
+static func _find_first_ade_point(node, require_root_flag: bool = true) -> int:
+	if typeof(node) == TYPE_DICTIONARY:
+		if node.has("STRC") and typeof(node["STRC"]) == TYPE_DICTIONARY:
+			var strc: Dictionary = node["STRC"]
+			if String(strc.get("strc_type", "")).begins_with("STRC_ADE"):
+				if not require_root_flag or int(strc.get("flags", -1)) == 0:
+					return int(strc.get("point", -1))
+		for value in node.values():
+			var found := _find_first_ade_point(value, require_root_flag)
+			if found >= 0:
+				return found
+	elif typeof(node) == TYPE_ARRAY:
+		for item in node:
+			var found := _find_first_ade_point(item, require_root_flag)
+			if found >= 0:
+				return found
+	if require_root_flag:
+		return _find_first_ade_point(node, false)
+	return -1
+
+static func _find_first_particle_atts(node) -> Dictionary:
+	if typeof(node) == TYPE_DICTIONARY:
+		if node.has("ATTS") and typeof(node["ATTS"]) == TYPE_DICTIONARY:
+			var atts: Dictionary = node["ATTS"]
+			if bool(atts.get("is_particle_atts", false)):
+				return atts
+		for value in node.values():
+			var found := _find_first_particle_atts(value)
+			if not found.is_empty():
+				return found
+	elif typeof(node) == TYPE_ARRAY:
+		for item in node:
+			var found := _find_first_particle_atts(item)
+			if not found.is_empty():
+				return found
+	return {}
+
+static func _vector3_from_components(values: Dictionary, prefix: String) -> Vector3:
+	return Vector3(
+		float(values.get("%s_x" % prefix, 0.0)),
+		-float(values.get("%s_y" % prefix, 0.0)),
+		-float(values.get("%s_z" % prefix, 0.0))
+	)
 
 static func _surface_from_area(area_data: Array, points: Array, polys: Array, set_id: int) -> Dictionary:
 	var poly_id := _first_poly_id(area_data)
