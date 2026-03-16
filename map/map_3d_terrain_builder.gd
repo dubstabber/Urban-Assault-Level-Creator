@@ -5,6 +5,10 @@ const UATerrainPieceLibraryScript := preload("res://map/terrain/ua_authored_piec
 
 const SECTOR_SIZE := 1200.0
 const HEIGHT_SCALE := 100.0
+
+const CHUNK_SIZE := 4
+const CHUNK_SHIFT := 2
+
 const BORDER_TYP_TOP_LEFT := 248
 const BORDER_TYP_TOP := 252
 const BORDER_TYP_TOP_RIGHT := 249
@@ -366,3 +370,58 @@ static func _authored_origin_for_subsector(sector_x0: float, sector_z0: float, s
 		sector_y,
 		sector_z0 + (float(sub_y) + 0.5) * piece_h
 	)
+
+
+static func sector_to_chunk(sx: int, sy: int) -> Vector2i:
+	return Vector2i(sx >> CHUNK_SHIFT, sy >> CHUNK_SHIFT)
+
+
+static func chunk_sector_range(cx: int, cy: int) -> Rect2i:
+	return Rect2i(cx * CHUNK_SIZE, cy * CHUNK_SIZE, CHUNK_SIZE, CHUNK_SIZE)
+
+
+static func chunk_count_for_map(map_w: int, map_h: int) -> Vector2i:
+	if map_w <= 0 or map_h <= 0:
+		return Vector2i.ZERO
+	var cx := (map_w + CHUNK_SIZE - 1) >> CHUNK_SHIFT
+	var cy := (map_h + CHUNK_SIZE - 1) >> CHUNK_SHIFT
+	return Vector2i(cx, cy)
+
+
+static func chunks_for_hgt_edit(sx: int, sy: int, map_w: int, map_h: int) -> Array[Vector2i]:
+	var result: Array[Vector2i] = []
+	if sx < 0 or sy < 0 or sx >= map_w or sy >= map_h:
+		return result
+	var primary := sector_to_chunk(sx, sy)
+	var chunk_count := chunk_count_for_map(map_w, map_h)
+	result.append(primary)
+	if (sx % CHUNK_SIZE) == 0 and primary.x > 0:
+		result.append(Vector2i(primary.x - 1, primary.y))
+	if (sx % CHUNK_SIZE) == (CHUNK_SIZE - 1) and (primary.x + 1) < chunk_count.x:
+		result.append(Vector2i(primary.x + 1, primary.y))
+	if (sy % CHUNK_SIZE) == 0 and primary.y > 0:
+		result.append(Vector2i(primary.x, primary.y - 1))
+	if (sy % CHUNK_SIZE) == (CHUNK_SIZE - 1) and (primary.y + 1) < chunk_count.y:
+		result.append(Vector2i(primary.x, primary.y + 1))
+	return result
+
+
+static func chunks_for_typ_edit(sx: int, sy: int, map_w: int, map_h: int) -> Array[Vector2i]:
+	return chunks_for_hgt_edit(sx, sy, map_w, map_h)
+
+
+static func chunks_for_blg_edit(sx: int, sy: int, map_w: int, map_h: int) -> Array[Vector2i]:
+	var result: Array[Vector2i] = []
+	if sx < 0 or sy < 0 or sx >= map_w or sy >= map_h:
+		return result
+	result.append(sector_to_chunk(sx, sy))
+	return result
+
+
+static func all_chunks_for_map(map_w: int, map_h: int) -> Array[Vector2i]:
+	var result: Array[Vector2i] = []
+	var chunk_count := chunk_count_for_map(map_w, map_h)
+	for cy in chunk_count.y:
+		for cx in chunk_count.x:
+			result.append(Vector2i(cx, cy))
+	return result
