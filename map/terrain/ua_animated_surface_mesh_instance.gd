@@ -5,7 +5,12 @@ var _frame_index := 0
 var _elapsed := 0.0
 
 func setup_animation(frames: Array) -> void:
-	_frames = frames.duplicate(true)
+	_frames.clear()
+	for frame in frames:
+		var prepared := {}
+		prepared["duration_sec"] = float(frame.get("duration_sec", 0.04))
+		prepared["mesh"] = _mesh_from_triangles(frame.get("triangles", []), frame.get("material", null))
+		_frames.append(prepared)
 	_frame_index = 0
 	_elapsed = 0.0
 	_apply_current_frame()
@@ -32,7 +37,7 @@ func _apply_current_frame() -> void:
 		mesh = null
 		return
 	var frame: Dictionary = _frames[_frame_index]
-	mesh = _mesh_from_triangles(frame.get("triangles", []), frame.get("material", null))
+	mesh = frame.get("mesh", null)
 
 func _mesh_from_triangles(triangles: Array, material: Material) -> ArrayMesh:
 	var built_mesh := ArrayMesh.new()
