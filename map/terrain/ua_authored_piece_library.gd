@@ -32,6 +32,7 @@ static var _anim_cache := {}
 static var _baked_piece_registry_cache := {}
 static var _baked_anim_registry_cache := {}
 static var _baked_particles_registry_cache := {}
+static var _baked_support_registry_cache := {}
 
 static func _baked_set_dir(set_id: int) -> String:
 	return "%s/set%d" % [BAKED_SET_ROOT, max(set_id, 1)]
@@ -53,6 +54,9 @@ static func _baked_anim_registry_path(set_id: int) -> String:
 
 static func _baked_particles_registry_path(set_id: int) -> String:
 	return "%s/metadata/particles.json" % _baked_set_dir(set_id)
+
+static func _baked_support_registry_path(set_id: int) -> String:
+	return "%s/metadata/support_registry.json" % _baked_set_dir(set_id)
 
 static func _load_baked_piece_registry(set_id: int) -> Dictionary:
 	var key: int = maxi(set_id, 1)
@@ -92,6 +96,76 @@ static func _load_baked_particles_registry(set_id: int) -> Dictionary:
 			loaded = parsed
 	_baked_particles_registry_cache[key] = loaded
 	return loaded
+
+static func _load_baked_support_registry(set_id: int) -> Dictionary:
+	var key: int = maxi(set_id, 1)
+	if _baked_support_registry_cache.has(key):
+		return _baked_support_registry_cache[key]
+	var registry_path := _baked_support_registry_path(key)
+	var loaded := {}
+	if not registry_path.is_empty() and FileAccess.file_exists(registry_path):
+		var parsed = JSON.parse_string(FileAccess.get_file_as_string(registry_path))
+		if typeof(parsed) == TYPE_DICTIONARY:
+			loaded = parsed
+	_baked_support_registry_cache[key] = loaded
+	return loaded
+
+static func _baked_support_entry_for_base_name(set_id: int, base_name: String) -> Dictionary:
+	var cleaned := base_name.strip_edges().to_lower()
+	if cleaned.is_empty():
+		return {}
+	var registry := _load_baked_support_registry(set_id)
+	var supports_value = registry.get("supports", {})
+	if typeof(supports_value) != TYPE_DICTIONARY:
+		return {}
+	var entry_value = Dictionary(supports_value).get(cleaned, {})
+	return entry_value if typeof(entry_value) == TYPE_DICTIONARY else {}
+
+static func _vector3_from_json(value) -> Vector3:
+	if typeof(value) == TYPE_VECTOR3:
+		return Vector3(value)
+	if typeof(value) != TYPE_DICTIONARY:
+		return Vector3.ZERO
+	var d := Dictionary(value)
+	return Vector3(float(d.get("x", 0.0)), float(d.get("y", 0.0)), float(d.get("z", 0.0)))
+
+static func _baked_support_height_at_world_position(entry: Dictionary, basis: Basis, origin: Vector3, world_x: float, world_z: float):
+	var surfaces_value = entry.get("surfaces", [])
+	if typeof(surfaces_value) != TYPE_ARRAY:
+		return null
+	var seeded := false
+	var best_y := 0.0
+	for surface_value in Array(surfaces_value):
+		if typeof(surface_value) != TYPE_DICTIONARY:
+			continue
+		var triangles_value = Dictionary(surface_value).get("triangles", [])
+		if typeof(triangles_value) != TYPE_ARRAY:
+			continue
+		for tri_value in Array(triangles_value):
+			if typeof(tri_value) != TYPE_DICTIONARY:
+				continue
+			var verts_value = Dictionary(tri_value).get("verts", [])
+			if typeof(verts_value) != TYPE_ARRAY:
+				continue
+			var verts_arr := Array(verts_value)
+			if verts_arr.size() < 3:
+				continue
+			var a := origin + basis * _vector3_from_json(verts_arr[0])
+			var b := origin + basis * _vector3_from_json(verts_arr[1])
+			var c := origin + basis * _vector3_from_json(verts_arr[2])
+			var sampled = _triangle_support_height_at_world_position(a, b, c, world_x, world_z)
+			if sampled == null:
+				continue
+			var sampled_f := float(sampled)
+			if not seeded or sampled_f > best_y:
+				best_y = sampled_f
+				seeded = true
+	if not seeded:
+		return null
+	return best_y
+
+static func _clear_baked_support_cache_for_tests() -> void:
+	_baked_support_registry_cache.clear()
 
 static func baked_piece_scene_path(set_id: int, base_name: String) -> String:
 	var cleaned := base_name.strip_edges().to_lower()
@@ -265,18 +339,21 @@ static func support_height_at_world_position(descriptors: Array, world_x: float,
 			continue
 		var set_id := int(desc.get("set_id", 1))
 		var base_name := String(desc.get("base_name", ""))
-		var mesh: Mesh = _load_piece_mesh(set_id, base_name)
-		if mesh == null or mesh.get_surface_count() == 0:
-			continue
-		if not String(desc.get("warp_mode", "")).is_empty():
-			mesh = _deformed_slurp_mesh(mesh, desc)
-		var sampled_height = _mesh_support_height_at_world_position(
-			mesh,
-			_piece_basis_from_desc(desc),
-			_piece_position_from_desc(desc),
-			world_x,
-			world_z
-		)
+		var basis := _piece_basis_from_desc(desc)
+		var origin := _piece_position_from_desc(desc)
+		var sampled_height = null
+		var warp_mode := String(desc.get("warp_mode", ""))
+		if warp_mode.is_empty():
+			var baked_entry := _baked_support_entry_for_base_name(set_id, base_name)
+			if not baked_entry.is_empty():
+				sampled_height = _baked_support_height_at_world_position(baked_entry, basis, origin, world_x, world_z)
+		if sampled_height == null:
+			var mesh: Mesh = _load_piece_mesh(set_id, base_name)
+			if mesh == null or mesh.get_surface_count() == 0:
+				continue
+			if not warp_mode.is_empty():
+				mesh = _deformed_slurp_mesh(mesh, desc)
+			sampled_height = _mesh_support_height_at_world_position(mesh, basis, origin, world_x, world_z)
 		if sampled_height == null:
 			continue
 		var sampled_height_float := float(sampled_height)

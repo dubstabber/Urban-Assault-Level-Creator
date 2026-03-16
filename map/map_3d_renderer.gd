@@ -79,6 +79,7 @@ const UA_DATA_JSON = preload("res://resources/UAdata.json")
 static var _squad_vehicle_visuals_cache: Dictionary = {}
 static var _squad_visproto_base_name_cache: Dictionary = {}
 static var _vehicle_visual_entries_cache: Dictionary = {}
+static var _baked_visproto_base_name_cache: Dictionary = {}
 static var _blg_typ_override_cache: Dictionary = {}
 static var _building_definitions_cache: Dictionary = {}
 static var _building_sec_type_override_cache: Dictionary = {}
@@ -832,6 +833,30 @@ static func _visproto_path_for_set(set_id: int, game_data_type: String) -> Strin
 	var pattern := String(SQUAD_VISPROTO_PATH_PATTERNS.get(normalized_game_data_type, SQUAD_VISPROTO_PATH_PATTERNS["original"]))
 	return pattern % max(set_id, 1)
 
+static func _baked_set_dir_for_set(set_id: int, game_data_type: String) -> String:
+	var normalized_game_data_type := _normalized_game_data_type(game_data_type)
+	var suffix := "_xp" if normalized_game_data_type == "metropolisDawn" else ""
+	return "res://resources/ua/sets/set%d%s" % [max(set_id, 1), suffix]
+
+static func _baked_visproto_registry_path_for_set(set_id: int, game_data_type: String) -> String:
+	return "%s/metadata/visproto_base_names.json" % _baked_set_dir_for_set(set_id, game_data_type)
+
+static func _baked_visproto_base_names_for_set(set_id: int, game_data_type: String) -> Array:
+	var normalized_game_data_type := _normalized_game_data_type(game_data_type)
+	var cache_key := "%s:%d" % [normalized_game_data_type, max(set_id, 1)]
+	if _baked_visproto_base_name_cache.has(cache_key):
+		return _baked_visproto_base_name_cache[cache_key]
+	var result: Array = []
+	var registry_path := _baked_visproto_registry_path_for_set(set_id, normalized_game_data_type)
+	if not registry_path.is_empty() and FileAccess.file_exists(registry_path):
+		var parsed = JSON.parse_string(FileAccess.get_file_as_string(registry_path))
+		if typeof(parsed) == TYPE_DICTIONARY:
+			var base_names_value = Dictionary(parsed).get("base_names", [])
+			if typeof(base_names_value) == TYPE_ARRAY:
+				result = Array(base_names_value).duplicate(true)
+	_baked_visproto_base_name_cache[cache_key] = result
+	return result
+
 static func _script_paths_for_game_data_type(game_data_type: String) -> Array:
 	var script_root := _script_root_for_game_data_type(game_data_type)
 	var result: Array = []
@@ -1301,6 +1326,10 @@ static func _visproto_base_names_for_set(set_id: int, game_data_type: String) ->
 	var cache_key := "%s:%d" % [normalized_game_data_type, max(set_id, 1)]
 	if _squad_visproto_base_name_cache.has(cache_key):
 		return _squad_visproto_base_name_cache[cache_key]
+	var baked := _baked_visproto_base_names_for_set(set_id, normalized_game_data_type)
+	if baked.size() > 0:
+		_squad_visproto_base_name_cache[cache_key] = baked
+		return baked
 	var result: Array = []
 	var visproto_path := _visproto_path_for_set(set_id, normalized_game_data_type)
 	if FileAccess.file_exists(visproto_path):
@@ -1318,6 +1347,8 @@ static func _base_name_from_visproto_index(visproto_base_names: Array, visual_in
 	if visual_index < 0 or visual_index >= visproto_base_names.size():
 		return ""
 	var base_name := String(visproto_base_names[visual_index])
+	if base_name.is_empty():
+		return ""
 	if base_name.to_lower().begins_with("dummy"):
 		return ""
 	return base_name
