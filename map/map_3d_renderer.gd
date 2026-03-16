@@ -2,6 +2,11 @@ extends Node3D
 class_name Map3DRenderer
 
 const UATerrainPieceLibraryScript := preload("res://map/terrain/ua_authored_piece_library.gd")
+const VisualLookupService := preload("res://map/map_3d_visual_lookup_service.gd")
+const TerrainBuilder := preload("res://map/map_3d_terrain_builder.gd")
+const SlurpBuilder := preload("res://map/map_3d_slurp_builder.gd")
+const AuthoredOverlayManager := preload("res://map/map_3d_authored_overlay_manager.gd")
+const ViewController := preload("res://map/map_3d_view_controller.gd")
 
 const SECTOR_SIZE := 1200.0
 const HEIGHT_SCALE := 100.0
@@ -16,9 +21,6 @@ const BORDER_TYP_BOTTOM := 254
 const BORDER_TYP_BOTTOM_RIGHT := 250
 const TERRAIN_PREVIEW_COLOR := Color(0.62, 0.66, 0.58, 1.0)
 const EDGE_PREVIEW_COLOR := Color(0.82, 0.48, 0.24, 0.55)
-const UA_NORMAL_VIZ_LIMIT := 2500.0
-const UA_NORMAL_FADE_LENGTH := 1000.0
-const UA_VISIBILITY_FOG_COLOR := Color.BLACK
 const EDGE_BLEND_SHADER_PATH := "res://resources/terrain/shaders/edge_blend.gdshader"
 const HOST_STATION_BASE_NAMES := {
 	56: "VP_ROBO",
@@ -91,33 +93,14 @@ static var _building_sec_type_override_cache: Dictionary = {}
 func _compute_tile_scale() -> float:
 	return 1.0 / SECTOR_SIZE
 
-static func visibility_range_fade_start(viz_limit: float = UA_NORMAL_VIZ_LIMIT, fade_length: float = UA_NORMAL_FADE_LENGTH) -> float:
-	return maxf(maxf(viz_limit, 0.0) - maxf(fade_length, 0.0), 0.0)
+static func visibility_range_fade_start(viz_limit: float = ViewController.UA_NORMAL_VIZ_LIMIT, fade_length: float = ViewController.UA_NORMAL_FADE_LENGTH) -> float:
+	return ViewController.visibility_range_fade_start(viz_limit, fade_length)
 
-static func visibility_range_config(viz_limit: float = UA_NORMAL_VIZ_LIMIT, fade_length: float = UA_NORMAL_FADE_LENGTH) -> Dictionary:
-	var clamped_viz_limit := maxf(viz_limit, 0.0)
-	return {
-		"fade_start": visibility_range_fade_start(clamped_viz_limit, fade_length),
-		"fade_end": clamped_viz_limit,
-	}
+static func visibility_range_config(viz_limit: float = ViewController.UA_NORMAL_VIZ_LIMIT, fade_length: float = ViewController.UA_NORMAL_FADE_LENGTH) -> Dictionary:
+	return ViewController.visibility_range_config(viz_limit, fade_length)
 
-static func apply_visibility_range_to_environment(environment: Environment, enabled: bool, viz_limit: float = UA_NORMAL_VIZ_LIMIT, fade_length: float = UA_NORMAL_FADE_LENGTH) -> bool:
-	if environment == null:
-		return false
-	var config := visibility_range_config(viz_limit, fade_length)
-	environment.fog_mode = Environment.FOG_MODE_DEPTH
-	environment.fog_depth_begin = float(config["fade_start"])
-	environment.fog_depth_end = float(config["fade_end"])
-	environment.fog_depth_curve = 1.0
-	environment.fog_density = 1.0
-	environment.fog_light_color = UA_VISIBILITY_FOG_COLOR
-	environment.fog_light_energy = 1.0
-	environment.fog_aerial_perspective = 0.0
-	environment.fog_height_density = 0.0
-	environment.fog_sky_affect = 0.0
-	environment.fog_sun_scatter = 0.0
-	environment.fog_enabled = enabled
-	return true
+static func apply_visibility_range_to_environment(environment: Environment, enabled: bool, viz_limit: float = ViewController.UA_NORMAL_VIZ_LIMIT, fade_length: float = ViewController.UA_NORMAL_FADE_LENGTH) -> bool:
+	return ViewController.apply_visibility_range_to_environment(environment, enabled, viz_limit, fade_length)
 
 @onready var _terrain_mesh: MeshInstance3D = $TerrainMesh
 @onready var _edge_mesh: MeshInstance3D = $EdgeMesh if has_node("EdgeMesh") else null
@@ -147,7 +130,6 @@ var _refresh_reframe_pending := false
 var _refresh_deferred := false
 var _refresh_requested_at_usec := 0
 var _last_build_metrics: Dictionary = {}
-var _terrain_piece_library: UATerrainPieceLibrary = UATerrainPieceLibrary.new()
 
 
 func set_event_system_override(event_system: Node) -> void:
@@ -395,64 +377,27 @@ func _unhandled_input(event: InputEvent) -> void:
 			_apply_debug_mode_to_existing_materials()
 
 func _wheel_step() -> float:
-	var _cmd = _current_map_data()
-	var max_dim: int = int(max(_cmd.horizontal_sectors, _cmd.vertical_sectors)) if _cmd else 1
-	return max(200.0, float(max_dim) * SECTOR_SIZE * 0.02)
+	return ViewController.wheel_step(_current_map_data(), SECTOR_SIZE)
 
 func _update_camera_rotation() -> void:
-	var rot := Basis()
-	rot = Basis(Vector3.UP, _yaw) * Basis(Vector3.RIGHT, _pitch)
-	_camera.global_transform.basis = rot.orthonormalized()
+	ViewController.apply_camera_rotation(_camera, _yaw, _pitch)
 
 func _frame_if_needed() -> void:
 	if _framed:
 		return
-	var _cmd = _current_map_data()
-	if _cmd == null:
+	var frame_result := ViewController.frame_camera_to_map(_camera, _current_map_data(), SECTOR_SIZE, HEIGHT_SCALE)
+	if frame_result.is_empty():
 		return
-	var w: int = int(_cmd.horizontal_sectors)
-	var h: int = int(_cmd.vertical_sectors)
-	if w <= 0 or h <= 0:
-		return
-	# Compute map center (XZ) over the playable area, but offset by the rendered border ring.
-	# Use +Z downward to match 2D map (0,0) at top-left.
-	# Border sectors occupy [0 .. SECTOR_SIZE] on each side, so playable terrain starts at +1 sector.
-	var center := Vector3((1.0 + w * 0.5) * SECTOR_SIZE, 0.0, (1.0 + h * 0.5) * SECTOR_SIZE)
-	var dist: float = float(max(w + 2, h + 2)) * SECTOR_SIZE * 1.6
-	# Estimate terrain base height from hgt_map (use max for safety)
-	var hgt: PackedByteArray = _cmd.hgt_map
-	var mn: int = 255
-	var mx: int = 0
-	var sum: int = 0
-	var count: int = hgt.size()
-	for i in count:
-		var v: int = int(hgt[i])
-		sum += v
-		if v < mn:
-			mn = v
-		if v > mx:
-			mx = v
-	var avg_h: float = float(sum) / float(count) if count > 0 else 0.0
-	var terrain_base_y: float = float(mx) * HEIGHT_SCALE
-	center.y = terrain_base_y
-	# Camera orientation preset
-	_pitch = deg_to_rad(-35.0)
-	_yaw = deg_to_rad(45.0)
-	_update_camera_rotation()
-	# Place camera above terrain at the map center. Designers can orbit/pan from
-	# a centered start position; avoid auto-offsetting behind the map on load.
-	var y_offset: float = max(dist * 0.35, 300.0)
-	var desired_pos := Vector3(center.x, terrain_base_y + y_offset, center.z)
-	_camera.global_transform.origin = desired_pos
-	# Expand far clip to encompass large maps
-	var far_dist: float = max(dist * 4.0, 50000.0)
-	_camera.near = 0.1
-	_camera.far = min(far_dist, 1.0e7)
-	print("[Map3D] frame_if_needed: w=", w, " h=", h, " dist=", dist,
+	_pitch = float(frame_result.get("pitch", _pitch))
+	_yaw = float(frame_result.get("yaw", _yaw))
+	print("[Map3D] frame_if_needed: dist=", float(frame_result.get("dist", 0.0)),
 		" near=", _camera.near, " far=", _camera.far,
-		" center=", center, " y_offset=", y_offset, " min_h=", mn, " max_h=", mx, " avg_h=", avg_h)
-	_camera.look_at(center, Vector3.UP)
-	_framed = true
+		" center=", frame_result.get("center", Vector3.ZERO),
+		" y_offset=", float(frame_result.get("y_offset", 0.0)),
+		" min_h=", int(frame_result.get("min_h", 0)),
+		" max_h=", int(frame_result.get("max_h", 0)),
+		" avg_h=", float(frame_result.get("avg_h", 0.0)))
+	_framed = bool(frame_result.get("framed", false))
 
 func _on_map_changed() -> void:
 	var _cmd = _current_map_data()
@@ -602,9 +547,7 @@ func _set_authored_overlay(descriptors: Array) -> void:
 		_authored_overlay = Node3D.new()
 		_authored_overlay.name = "AuthoredOverlay"
 		add_child(_authored_overlay)
-	if _terrain_piece_library == null or not is_instance_valid(_terrain_piece_library):
-		_terrain_piece_library = UATerrainPieceLibrary.new()
-	_terrain_piece_library.apply_overlay_node_to(_authored_overlay, descriptors)
+	AuthoredOverlayManager.apply_overlay_node(_authored_overlay, descriptors)
 
 static func _make_preview_material(color: Color) -> StandardMaterial3D:
 	var mat := StandardMaterial3D.new()
@@ -738,6 +681,14 @@ static func _host_station_base_name_for_vehicle(vehicle_id: int) -> String:
 static func _host_station_gun_base_name_for_type(gun_type: int) -> String:
 	return String(HOST_STATION_VISIBLE_GUN_BASE_NAMES.get(gun_type, ""))
 
+static func _vector3_from_variant(value) -> Vector3:
+	if typeof(value) == TYPE_VECTOR3:
+		return Vector3(value)
+	if typeof(value) != TYPE_DICTIONARY:
+		return Vector3.ZERO
+	var dict := Dictionary(value)
+	return Vector3(float(dict.get("x", 0.0)), float(dict.get("y", 0.0)), float(dict.get("z", 0.0)))
+
 static func _host_station_godot_offset_from_ua(ua_offset: Vector3) -> Vector3:
 	return Vector3(ua_offset.x, -ua_offset.y, -ua_offset.z)
 
@@ -793,7 +744,7 @@ static func _build_host_station_descriptors(host_stations: Array, set_id: int, h
 		var station_key_id: int = int(host_station.get_instance_id())
 		descriptors.append({
 			"set_id": set_id,
-			"raw_id": -1,
+			"raw_id": - 1,
 			"base_name": base_name,
 			"instance_key": "host:%d:%d:%s" % [set_id, station_key_id, base_name],
 			"origin": origin,
@@ -809,15 +760,15 @@ static func _build_host_station_descriptors(host_stations: Array, set_id: int, h
 					continue
 				if not UATerrainPieceLibraryScript.has_piece_source(set_id, gun_base_name):
 					continue
-				var ua_offset: Vector3 = attachment.get("ua_offset", Vector3.ZERO)
+				var ua_offset := _vector3_from_variant(attachment.get("ua_offset", Vector3.ZERO))
 				var gun_descriptor := {
 					"set_id": set_id,
-					"raw_id": -1,
+					"raw_id": - 1,
 					"base_name": gun_base_name,
 					"instance_key": "host_gun:%d:%d:%d:%s" % [set_id, station_key_id, gun_type, gun_base_name],
 					"origin": origin + _host_station_godot_offset_from_ua(ua_offset),
 				}
-				var ua_direction: Vector3 = attachment.get("ua_direction", Vector3.ZERO)
+				var ua_direction := _vector3_from_variant(attachment.get("ua_direction", Vector3.ZERO))
 				var godot_direction := _host_station_godot_direction_from_ua(ua_direction)
 				if godot_direction.length_squared() > 0.000001:
 					gun_descriptor["forward"] = godot_direction
@@ -897,6 +848,18 @@ static func _baked_building_definitions_for_set(set_id: int, game_data_type: Str
 	_baked_building_definitions_cache[cache_key] = result
 	return result
 
+static func _clear_runtime_lookup_caches_for_tests() -> void:
+	_squad_vehicle_visuals_cache.clear()
+	_squad_visproto_base_name_cache.clear()
+	_vehicle_visual_entries_cache.clear()
+	_baked_visproto_base_name_cache.clear()
+	_baked_vehicle_visuals_cache.clear()
+	_baked_building_definitions_cache.clear()
+	_blg_typ_override_cache.clear()
+	_building_definitions_cache.clear()
+	_building_sec_type_override_cache.clear()
+	VisualLookupService._clear_runtime_lookup_caches_for_tests()
+
 static func _script_paths_for_game_data_type(game_data_type: String) -> Array:
 	var script_root := _script_root_for_game_data_type(game_data_type)
 	var result: Array = []
@@ -951,10 +914,10 @@ static func _blg_typ_overrides_for_game_data_type(game_data_type: String) -> Dic
 	_blg_typ_override_cache[normalized_game_data_type] = result
 	return result
 
-static func _building_sec_type_overrides_from_script_path(script_path: String) -> Dictionary:
+static func _building_sec_type_overrides_from_definitions(definitions: Array) -> Dictionary:
 	var result := {}
 	var ambiguous_building_ids := {}
-	for definition_value in _parse_building_definitions(script_path):
+	for definition_value in definitions:
 		if typeof(definition_value) != TYPE_DICTIONARY:
 			continue
 		var definition := definition_value as Dictionary
@@ -971,27 +934,31 @@ static func _building_sec_type_overrides_from_script_path(script_path: String) -
 		result[building_id] = sec_type
 	return result
 
-static func _building_sec_type_overrides_for_script_names(game_data_type: String, script_names: Array[String]) -> Dictionary:
+static func _building_sec_type_overrides_for_script_names(set_id: int, game_data_type: String, script_names: Array[String]) -> Dictionary:
 	var normalized_game_data_type := _normalized_game_data_type(game_data_type)
-	var cache_key := normalized_game_data_type
+	var cache_key := "%s:%d" % [normalized_game_data_type, max(set_id, 1)]
 	for script_name in script_names:
 		cache_key += ":%s" % script_name
 	if _building_sec_type_override_cache.has(cache_key):
 		return _building_sec_type_override_cache[cache_key]
 	var result := {}
-	var script_root := _script_root_for_game_data_type(game_data_type)
-	for script_name in script_names:
-		var script_path := script_root.path_join(script_name)
-		var script_overrides := _building_sec_type_overrides_from_script_path(script_path)
-		for building_id in script_overrides.keys():
-			if result.has(building_id):
-				continue
-			result[building_id] = int(script_overrides[building_id])
+	var baked := _baked_building_definitions_for_set(set_id, normalized_game_data_type)
+	if not baked.is_empty():
+		result = _building_sec_type_overrides_from_definitions(baked)
+	else:
+		var script_root := _script_root_for_game_data_type(game_data_type)
+		for script_name in script_names:
+			var script_path := script_root.path_join(script_name)
+			var script_overrides := _building_sec_type_overrides_from_definitions(_parse_building_definitions(script_path))
+			for building_id in script_overrides.keys():
+				if result.has(building_id):
+					continue
+				result[building_id] = int(script_overrides[building_id])
 	_building_sec_type_override_cache[cache_key] = result
 	return result
 
-static func _tech_upgrade_typ_overrides_for_3d(game_data_type: String) -> Dictionary:
-	var overrides := _building_sec_type_overrides_for_script_names(game_data_type, ["NET_BLDG.SCR", "BUILD.SCR"]).duplicate()
+static func _tech_upgrade_typ_overrides_for_3d(set_id: int, game_data_type: String) -> Dictionary:
+	var overrides := _building_sec_type_overrides_for_script_names(set_id, game_data_type, ["NET_BLDG.SCR", "BUILD.SCR"]).duplicate()
 	# Tech upgrades are a special preview case: the editor already applies an
 	# explicit building_id -> visible typ_map mapping for the small finite set of
 	# selectable upgrade buildings, and some of those visuals intentionally differ
@@ -1065,7 +1032,8 @@ static func _effective_typ_map_for_3d(
 		h: int = -1,
 		beam_gates: Array = [],
 		tech_upgrades: Array = [],
-		stoudson_bombs: Array = []
+		stoudson_bombs: Array = [],
+		set_id: int = 1
 	) -> PackedByteArray:
 	var effective: PackedByteArray = typ.duplicate()
 	var blg_overrides := _blg_typ_overrides_for_game_data_type(game_data_type)
@@ -1077,23 +1045,17 @@ static func _effective_typ_map_for_3d(
 			effective[i] = clampi(int(blg_overrides[building_id]), 0, 255)
 	if w <= 0 or h <= 0 or typ.size() != w * h:
 		return effective
-	var build_script_overrides := _building_sec_type_overrides_for_script_names(game_data_type, ["BUILD.SCR"])
-	var tech_upgrade_overrides := _tech_upgrade_typ_overrides_for_3d(game_data_type)
+	var build_script_overrides := _building_sec_type_overrides_for_script_names(set_id, game_data_type, ["BUILD.SCR"])
+	var tech_upgrade_overrides := _tech_upgrade_typ_overrides_for_3d(set_id, game_data_type)
 	_apply_sector_building_overrides_from_entities(effective, w, h, beam_gates, ["closed_bp"], build_script_overrides)
 	_apply_sector_building_overrides_from_entities(effective, w, h, tech_upgrades, ["building_id", "building"], tech_upgrade_overrides)
 	_apply_sector_building_overrides_from_entities(effective, w, h, stoudson_bombs, ["inactive_bp"], build_script_overrides)
 	return effective
 
-static func _script_assignment_text(raw_line: String, prefix: String) -> String:
-	var equals_index := raw_line.find("=")
-	if equals_index >= 0:
-		return raw_line.substr(equals_index + 1).strip_edges()
-	return raw_line.replacen(prefix, "").strip_edges()
-
 static func _empty_building_attachment() -> Dictionary:
 	return {
-		"act": -1,
-		"vehicle_id": -1,
+		"act": - 1,
+		"vehicle_id": - 1,
 		"ua_offset": Vector3.ZERO,
 		"ua_direction": Vector3.ZERO,
 	}
@@ -1111,6 +1073,12 @@ static func _append_building_definition(result: Array, building: Dictionary) -> 
 	if int(building.get("building_id", -1)) < 0 or int(building.get("sec_type", -1)) < 0:
 		return
 	result.append(building.duplicate(true))
+
+static func _script_assignment_text(raw_line: String, prefix: String) -> String:
+	var equals_index := raw_line.find("=")
+	if equals_index >= 0:
+		return raw_line.substr(equals_index + 1).strip_edges()
+	return raw_line.replacen(prefix, "").strip_edges()
 
 static func _parse_building_definitions(script_path: String) -> Array:
 	var result: Array = []
@@ -1130,7 +1098,7 @@ static func _parse_building_definitions(script_path: String) -> Array:
 			_append_building_definition(result, current_building)
 			current_building = {
 				"building_id": int(_script_assignment_text(line, "new_building")),
-				"sec_type": -1,
+				"sec_type": - 1,
 				"attachments": [],
 			}
 			current_attachment = {}
@@ -1156,37 +1124,37 @@ static func _parse_building_definitions(script_path: String) -> Array:
 		elif line.begins_with("sbact_pos_x"):
 			if current_attachment.is_empty():
 				current_attachment = _empty_building_attachment()
-			var ua_offset_x := Vector3(current_attachment.get("ua_offset", Vector3.ZERO))
+			var ua_offset_x := _vector3_from_variant(current_attachment.get("ua_offset", Vector3.ZERO))
 			ua_offset_x.x = float(_script_assignment_text(line, "sbact_pos_x"))
 			current_attachment["ua_offset"] = ua_offset_x
 		elif line.begins_with("sbact_pos_y"):
 			if current_attachment.is_empty():
 				current_attachment = _empty_building_attachment()
-			var ua_offset_y := Vector3(current_attachment.get("ua_offset", Vector3.ZERO))
+			var ua_offset_y := _vector3_from_variant(current_attachment.get("ua_offset", Vector3.ZERO))
 			ua_offset_y.y = float(_script_assignment_text(line, "sbact_pos_y"))
 			current_attachment["ua_offset"] = ua_offset_y
 		elif line.begins_with("sbact_pos_z"):
 			if current_attachment.is_empty():
 				current_attachment = _empty_building_attachment()
-			var ua_offset_z := Vector3(current_attachment.get("ua_offset", Vector3.ZERO))
+			var ua_offset_z := _vector3_from_variant(current_attachment.get("ua_offset", Vector3.ZERO))
 			ua_offset_z.z = float(_script_assignment_text(line, "sbact_pos_z"))
 			current_attachment["ua_offset"] = ua_offset_z
 		elif line.begins_with("sbact_dir_x"):
 			if current_attachment.is_empty():
 				current_attachment = _empty_building_attachment()
-			var ua_direction_x := Vector3(current_attachment.get("ua_direction", Vector3.ZERO))
+			var ua_direction_x := _vector3_from_variant(current_attachment.get("ua_direction", Vector3.ZERO))
 			ua_direction_x.x = float(_script_assignment_text(line, "sbact_dir_x"))
 			current_attachment["ua_direction"] = ua_direction_x
 		elif line.begins_with("sbact_dir_y"):
 			if current_attachment.is_empty():
 				current_attachment = _empty_building_attachment()
-			var ua_direction_y := Vector3(current_attachment.get("ua_direction", Vector3.ZERO))
+			var ua_direction_y := _vector3_from_variant(current_attachment.get("ua_direction", Vector3.ZERO))
 			ua_direction_y.y = float(_script_assignment_text(line, "sbact_dir_y"))
 			current_attachment["ua_direction"] = ua_direction_y
 		elif line.begins_with("sbact_dir_z"):
 			if current_attachment.is_empty():
 				current_attachment = _empty_building_attachment()
-			var ua_direction_z := Vector3(current_attachment.get("ua_direction", Vector3.ZERO))
+			var ua_direction_z := _vector3_from_variant(current_attachment.get("ua_direction", Vector3.ZERO))
 			ua_direction_z.z = float(_script_assignment_text(line, "sbact_dir_z"))
 			current_attachment["ua_direction"] = ua_direction_z
 	_append_building_attachment(current_building, current_attachment)
@@ -1198,18 +1166,21 @@ static func _building_definitions_for_game_data_type(set_id: int, game_data_type
 	var cache_key := "%s:%d" % [normalized_game_data_type, max(set_id, 1)]
 	if _building_definitions_cache.has(cache_key):
 		return _building_definitions_cache[cache_key]
-	var baked := _baked_building_definitions_for_set(set_id, normalized_game_data_type)
-	if not baked.is_empty():
-		_building_definitions_cache[cache_key] = baked
-		return baked
-	var result: Array = []
-	for script_path in _script_paths_for_game_data_type(normalized_game_data_type):
-		result.append_array(_parse_building_definitions(String(script_path)))
+	var result := _baked_building_definitions_for_set(set_id, normalized_game_data_type)
+	if result.is_empty():
+		for script_path in _script_paths_for_game_data_type(normalized_game_data_type):
+			result.append_array(_parse_building_definitions(String(script_path)))
 	_building_definitions_cache[cache_key] = result
 	return result
 
-static func _building_definition_for_id_and_sec_type(building_id: int, sec_type: int, set_id: int, game_data_type: String) -> Dictionary:
-	for definition in _building_definitions_for_game_data_type(set_id, game_data_type):
+static func _building_definition_for_id_and_sec_type(building_id: int, sec_type: int, set_id_or_game_data_type = 1, game_data_type: String = "original") -> Dictionary:
+	var resolved_set_id := 1
+	var resolved_game_data_type := game_data_type
+	if typeof(set_id_or_game_data_type) == TYPE_STRING:
+		resolved_game_data_type = String(set_id_or_game_data_type)
+	else:
+		resolved_set_id = max(int(set_id_or_game_data_type), 1)
+	for definition in _building_definitions_for_game_data_type(resolved_set_id, resolved_game_data_type):
 		if typeof(definition) != TYPE_DICTIONARY:
 			continue
 		var building := definition as Dictionary
@@ -1249,7 +1220,7 @@ static func _build_blg_attachment_descriptors(blg: PackedByteArray, effective_ty
 					continue
 				var descriptor := {
 					"set_id": set_id,
-					"raw_id": -1,
+					"raw_id": - 1,
 					"base_name": base_name,
 					"instance_key": "blg_attach:%d:%d:%d:%d:%d:%s" % [
 						set_id,
@@ -1259,9 +1230,9 @@ static func _build_blg_attachment_descriptors(blg: PackedByteArray, effective_ty
 						int(attachment.get("vehicle_id", -1)),
 						str(attachment_idx)
 					],
-					"origin": sector_origin + _host_station_godot_offset_from_ua(Vector3(attachment.get("ua_offset", Vector3.ZERO))),
+					"origin": sector_origin + _host_station_godot_offset_from_ua(_vector3_from_variant(attachment.get("ua_offset", Vector3.ZERO))),
 				}
-				var godot_direction := _host_station_godot_direction_from_ua(Vector3(attachment.get("ua_direction", Vector3.ZERO)))
+				var godot_direction := _host_station_godot_direction_from_ua(_vector3_from_variant(attachment.get("ua_direction", Vector3.ZERO)))
 				if godot_direction.length_squared() > 0.000001:
 					descriptor["forward"] = godot_direction
 				descriptors.append(descriptor)
@@ -1496,7 +1467,7 @@ static func _squad_formation_offsets(quantity: int) -> Array:
 		# but fills each row left-to-right and advances subsequent rows upward in preview space
 		# while preserving the same shared snapped anchor rules.
 		var x_offset := SQUAD_FORMATION_SPACING * (float(unit_index % columns) - float(columns) / 2.0)
-		var z_offset: float = -SQUAD_FORMATION_SPACING * floor(float(unit_index) / float(columns))
+		var z_offset: float = - SQUAD_FORMATION_SPACING * floor(float(unit_index) / float(columns))
 		offsets.append(Vector3(x_offset, 0.0, z_offset))
 	return offsets
 
@@ -1523,7 +1494,7 @@ static func _build_squad_descriptors(squads: Array, set_id: int, hgt: PackedByte
 			var formation_offset: Vector3 = offsets[unit_index]
 			descriptors.append({
 				"set_id": set_id,
-				"raw_id": -1,
+				"raw_id": - 1,
 				"base_name": base_name,
 				"origin": squad_anchor_origin + Vector3(formation_offset),
 				"instance_key": "squad:%d:%d:%s:%d" % [set_id, squad_key_id, base_name, unit_index],
@@ -1698,7 +1669,7 @@ static func _default_piece_selection_for_subsector(surface_type: int, subsector_
 	var remapped_idx := _remap_subsector_idx(subsector_idx, subsector_idx_remap)
 	var tile_desc := _tile_desc_for_subsector(tile_mapping, remapped_idx)
 	if tile_desc.is_empty():
-		return {"raw_id": -1, "piece": [default_file, (16 if default_file == 4 else 4), 0]}
+		return {"raw_id": - 1, "piece": [default_file, (16 if default_file == 4 else 4), 0]}
 	var raw_val := _selected_raw_id_for_tile_desc(tile_desc)
 	return {"raw_id": raw_val, "piece": _decode_raw_to_fcv_with_remap(raw_val, default_file, tile_remap)}
 
@@ -1978,7 +1949,7 @@ func _build_edge_overlay_result(hgt: PackedByteArray, w: int, h: int, typ: Packe
 			if UATerrainPieceLibraryScript.has_piece_source(set_id, base_name):
 				authored_piece_descriptors.append({
 					"set_id": set_id,
-					"raw_id": -1,
+					"raw_id": - 1,
 					"base_name": base_name,
 					"instance_key": "slurp:v:%d:%d:%d:%d:%d" % [set_id, x, y, sa, sb],
 					"origin": _sector_center_origin(x + 1, y, yR),
@@ -2010,7 +1981,7 @@ func _build_edge_overlay_result(hgt: PackedByteArray, w: int, h: int, typ: Packe
 			if UATerrainPieceLibraryScript.has_piece_source(set_id, base_name_h):
 				authored_piece_descriptors.append({
 					"set_id": set_id,
-					"raw_id": -1,
+					"raw_id": - 1,
 					"base_name": base_name_h,
 					"instance_key": "slurp:h:%d:%d:%d:%d:%d" % [set_id, x2, y2, sa2, sb2],
 					"origin": _sector_center_origin(x2, y2 + 1, yB),

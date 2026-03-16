@@ -4,11 +4,14 @@ const PieceLibraryScript := preload("res://map/terrain/ua_authored_piece_library
 
 const OUT_ROOT := "res://resources/ua/sets"
 const SCHEMA_VERSION := 1
+const LEGACY_SET_ROOT := "res://urban_assault_decompiled-master/assets/sets"
 
 func _init() -> void:
 	var args := OS.get_cmdline_args()
 	var set_id := _int_arg(args, "--set", 1)
 	var base_names := _csv_arg(args, "--base_names")
+	PieceLibraryScript.set_external_source_loading_enabled(true)
+	PieceLibraryScript.set_external_source_root(LEGACY_SET_ROOT)
 	if base_names.is_empty():
 		base_names = _csv_arg(args, "--base")
 	if base_names.is_empty():
@@ -36,7 +39,7 @@ func _init() -> void:
 			continue
 		var desc := {
 			"set_id": set_id,
-			"raw_id": -1,
+			"raw_id": - 1,
 			"base_name": base_name,
 			"origin": Vector3.ZERO,
 		}
@@ -127,4 +130,3 @@ func _save_registry(path: String, registry: Dictionary) -> void:
 func _fail(message: String) -> void:
 	push_error("[BakePieces] " + message)
 	quit(1)
-

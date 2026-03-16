@@ -1,0 +1,192 @@
+extends RefCounted
+class_name Map3DSlurpBuilder
+
+const UATerrainPieceLibraryScript := preload("res://map/terrain/ua_authored_piece_library.gd")
+const TerrainBuilder := preload("res://map/map_3d_terrain_builder.gd")
+
+const SECTOR_SIZE := 1200.0
+const HEIGHT_SCALE := 100.0
+const EDGE_SLOPE := 150.0
+
+
+static func _retail_slurp_bucket_key(surface_a: int, surface_b: int, neighbor_dx: int, neighbor_dy: int) -> String:
+	if neighbor_dx != 0:
+		return "vside_%d_%d" % [surface_a, surface_b]
+	if neighbor_dy != 0:
+		return "hside_%d_%d" % [surface_a, surface_b]
+	return ""
+
+
+static func _surface_pair_from_slurp_bucket_key(bucket_key: String) -> Dictionary:
+	var parts := bucket_key.split("_")
+	if parts.size() != 3:
+		return {}
+	return {
+		"orientation": String(parts[0]),
+		"surface_a": clampi(int(parts[1]), 0, 5),
+		"surface_b": clampi(int(parts[2]), 0, 5),
+	}
+
+
+static func _authored_slurp_base_name(surface_a: int, surface_b: int, vertical: bool) -> String:
+	return "S%d%d%s" % [clampi(surface_a, 0, 5), clampi(surface_b, 0, 5), ("V" if vertical else "H")]
+
+
+static func _sector_center_origin(sx: int, sy: int, sector_y: float) -> Vector3:
+	return Vector3((float(sx) + 1.5) * SECTOR_SIZE, sector_y, (float(sy) + 1.5) * SECTOR_SIZE)
+
+
+static func _should_emit_seam_strip(_surface_a: int, _surface_b: int, _outer_a: float, _outer_b: float, _seam_mid_a: float, _seam_mid_b: float) -> bool:
+	return true
+
+
+static func _append_vertical_seam_strip(st: SurfaceTool, x0: float, seam_x: float, x1: float, z0: float, z1: float, y_left: float, y_right: float, y_top_avg: float, y_bottom_avg: float) -> void:
+	var lt := Vector3(x0, y_left, z0)
+	var lb := Vector3(x0, y_left, z1)
+	var st_top := Vector3(seam_x, y_top_avg, z0)
+	var st_bottom := Vector3(seam_x, y_bottom_avg, z1)
+	var rt := Vector3(x1, y_right, z0)
+	var rb := Vector3(x1, y_right, z1)
+	st.set_uv(Vector2(0.0, 0.0)); st.add_vertex(lt)
+	st.set_uv(Vector2(0.5, 0.0)); st.add_vertex(st_top)
+	st.set_uv(Vector2(0.5, 1.0)); st.add_vertex(st_bottom)
+	st.set_uv(Vector2(0.0, 0.0)); st.add_vertex(lt)
+	st.set_uv(Vector2(0.5, 1.0)); st.add_vertex(st_bottom)
+	st.set_uv(Vector2(0.0, 1.0)); st.add_vertex(lb)
+	st.set_uv(Vector2(0.5, 0.0)); st.add_vertex(st_top)
+	st.set_uv(Vector2(1.0, 0.0)); st.add_vertex(rt)
+	st.set_uv(Vector2(1.0, 1.0)); st.add_vertex(rb)
+	st.set_uv(Vector2(0.5, 0.0)); st.add_vertex(st_top)
+	st.set_uv(Vector2(1.0, 1.0)); st.add_vertex(rb)
+	st.set_uv(Vector2(0.5, 1.0)); st.add_vertex(st_bottom)
+
+
+static func _append_horizontal_seam_strip(st: SurfaceTool, x0: float, x1: float, z0: float, seam_z: float, z1: float, y_top: float, y_bottom: float, y_left_avg: float, y_right_avg: float) -> void:
+	var tl := Vector3(x0, y_top, z0)
+	var top_right := Vector3(x1, y_top, z0)
+	var sl := Vector3(x0, y_left_avg, seam_z)
+	var sr := Vector3(x1, y_right_avg, seam_z)
+	var bl := Vector3(x0, y_bottom, z1)
+	var br := Vector3(x1, y_bottom, z1)
+	st.set_uv(Vector2(0.0, 0.0)); st.add_vertex(tl)
+	st.set_uv(Vector2(1.0, 0.0)); st.add_vertex(top_right)
+	st.set_uv(Vector2(1.0, 0.5)); st.add_vertex(sr)
+	st.set_uv(Vector2(0.0, 0.0)); st.add_vertex(tl)
+	st.set_uv(Vector2(1.0, 0.5)); st.add_vertex(sr)
+	st.set_uv(Vector2(0.0, 0.5)); st.add_vertex(sl)
+	st.set_uv(Vector2(0.0, 0.5)); st.add_vertex(sl)
+	st.set_uv(Vector2(1.0, 0.5)); st.add_vertex(sr)
+	st.set_uv(Vector2(1.0, 1.0)); st.add_vertex(br)
+	st.set_uv(Vector2(0.0, 0.5)); st.add_vertex(sl)
+	st.set_uv(Vector2(1.0, 1.0)); st.add_vertex(br)
+	st.set_uv(Vector2(0.0, 1.0)); st.add_vertex(bl)
+
+
+static func build_edge_overlay_result(hgt: PackedByteArray, w: int, h: int, typ: PackedByteArray, mapping: Dictionary, set_id: int) -> Dictionary:
+	var authored_piece_descriptors: Array = []
+	var fallback_horiz := {}
+	var fallback_vert := {}
+
+	for y in range(-1, h + 1):
+		for x in range(-1, w):
+			var a := TerrainBuilder._typ_value_with_implicit_border(typ, w, h, x, y)
+			var b := TerrainBuilder._typ_value_with_implicit_border(typ, w, h, x + 1, y)
+			if not mapping.has(a) or not mapping.has(b):
+				continue
+			var sa := int(mapping.get(a, 0))
+			var sb := int(mapping.get(b, 0))
+			var yL := TerrainBuilder._center_h(hgt, w, h, x, y)
+			var yR := TerrainBuilder._center_h(hgt, w, h, x + 1, y)
+			var yTopAvg := TerrainBuilder._corner_average_h(hgt, w, h, x + 1, y)
+			var yBottomAvg := TerrainBuilder._corner_average_h(hgt, w, h, x + 1, y + 1)
+			if not _should_emit_seam_strip(sa, sb, yL, yR, yTopAvg, yBottomAvg):
+				continue
+			var base_name := _authored_slurp_base_name(sa, sb, true)
+			if UATerrainPieceLibraryScript.has_piece_source(set_id, base_name):
+				authored_piece_descriptors.append({
+					"set_id": set_id,
+					"raw_id": -1,
+					"base_name": base_name,
+					"instance_key": "slurp:v:%d:%d:%d:%d:%d" % [set_id, x, y, sa, sb],
+					"origin": _sector_center_origin(x + 1, y, yR),
+					"warp_mode": "vside",
+					"anchor_height": yR,
+					"left_height": yL,
+					"right_height": yR,
+					"top_avg": yTopAvg,
+					"bottom_avg": yBottomAvg,
+				})
+				continue
+			_append_vertical_fallback_group(fallback_horiz, _retail_slurp_bucket_key(sa, sb, 1, 0), float(x + 2) * SECTOR_SIZE, float(y + 1) * SECTOR_SIZE, float(y + 2) * SECTOR_SIZE, yL, yR, yTopAvg, yBottomAvg)
+
+	for y2 in range(-1, h):
+		for x2 in range(-1, w + 1):
+			var a2 := TerrainBuilder._typ_value_with_implicit_border(typ, w, h, x2, y2)
+			var b2 := TerrainBuilder._typ_value_with_implicit_border(typ, w, h, x2, y2 + 1)
+			if not mapping.has(a2) or not mapping.has(b2):
+				continue
+			var sa2 := int(mapping.get(a2, 0))
+			var sb2 := int(mapping.get(b2, 0))
+			var yT := TerrainBuilder._center_h(hgt, w, h, x2, y2)
+			var yB := TerrainBuilder._center_h(hgt, w, h, x2, y2 + 1)
+			var yLeftAvg := TerrainBuilder._corner_average_h(hgt, w, h, x2, y2 + 1)
+			var yRightAvg := TerrainBuilder._corner_average_h(hgt, w, h, x2 + 1, y2 + 1)
+			if not _should_emit_seam_strip(sa2, sb2, yT, yB, yLeftAvg, yRightAvg):
+				continue
+			var base_name_h := _authored_slurp_base_name(sa2, sb2, false)
+			if UATerrainPieceLibraryScript.has_piece_source(set_id, base_name_h):
+				authored_piece_descriptors.append({
+					"set_id": set_id,
+					"raw_id": -1,
+					"base_name": base_name_h,
+					"instance_key": "slurp:h:%d:%d:%d:%d:%d" % [set_id, x2, y2, sa2, sb2],
+					"origin": _sector_center_origin(x2, y2 + 1, yB),
+					"warp_mode": "hside",
+					"anchor_height": yB,
+					"top_height": yT,
+					"bottom_height": yB,
+					"left_avg": yLeftAvg,
+					"right_avg": yRightAvg,
+				})
+				continue
+			_append_horizontal_fallback_group(fallback_vert, _retail_slurp_bucket_key(sa2, sb2, 0, 1), float(x2 + 1) * SECTOR_SIZE, float(x2 + 2) * SECTOR_SIZE, float(y2 + 2) * SECTOR_SIZE, yT, yB, yLeftAvg, yRightAvg)
+
+	var fallback_mesh := ArrayMesh.new()
+	for key_h in fallback_horiz.keys():
+		var st_h: SurfaceTool = fallback_horiz[key_h]
+		st_h.index()
+		st_h.generate_normals()
+		st_h.commit(fallback_mesh)
+	for key_v in fallback_vert.keys():
+		var st_v: SurfaceTool = fallback_vert[key_v]
+		st_v.index()
+		st_v.generate_normals()
+		st_v.commit(fallback_mesh)
+	return {
+		"authored_piece_descriptors": authored_piece_descriptors,
+		"mesh": fallback_mesh if fallback_mesh.get_surface_count() > 0 else null,
+		"fallback_horiz_keys": fallback_horiz.keys(),
+		"fallback_vert_keys": fallback_vert.keys(),
+	}
+
+
+static func _append_vertical_fallback_group(groups: Dictionary, bucket_key: String, seam_x: float, z0: float, z1: float, left_height: float, right_height: float, top_avg: float, bottom_avg: float) -> void:
+	if bucket_key.is_empty():
+		return
+	var st: SurfaceTool = groups.get(bucket_key)
+	if st == null:
+		st = SurfaceTool.new()
+		st.begin(Mesh.PRIMITIVE_TRIANGLES)
+		groups[bucket_key] = st
+	_append_vertical_seam_strip(st, seam_x - EDGE_SLOPE, seam_x, seam_x + EDGE_SLOPE, z0, z1, left_height, right_height, top_avg, bottom_avg)
+
+
+static func _append_horizontal_fallback_group(groups: Dictionary, bucket_key: String, x0: float, x1: float, seam_z: float, top_height: float, bottom_height: float, left_avg: float, right_avg: float) -> void:
+	if bucket_key.is_empty():
+		return
+	var st: SurfaceTool = groups.get(bucket_key)
+	if st == null:
+		st = SurfaceTool.new()
+		st.begin(Mesh.PRIMITIVE_TRIANGLES)
+		groups[bucket_key] = st
+	_append_horizontal_seam_strip(st, x0, x1, seam_z - EDGE_SLOPE, seam_z, seam_z + EDGE_SLOPE, top_height, bottom_height, left_avg, right_avg)

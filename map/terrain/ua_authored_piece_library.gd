@@ -1,7 +1,7 @@
 extends RefCounted
 class_name UATerrainPieceLibrary
 
-const ASSET_ROOT := "res://urban_assault_decompiled-master/assets/sets"
+const LEGACY_SET_ROOT := "res://urban_assault_decompiled-master/assets/sets"
 const BAKED_SET_ROOT := "res://resources/ua/sets"
 # Raw BAS/SKLT terrain-piece coordinates already use UA world-space sector units:
 # - 3x3 top pieces are authored as 300x300 footprints
@@ -33,6 +33,8 @@ static var _baked_piece_registry_cache := {}
 static var _baked_anim_registry_cache := {}
 static var _baked_particles_registry_cache := {}
 static var _baked_support_registry_cache := {}
+static var _external_source_loading_enabled := true
+static var _external_source_root := LEGACY_SET_ROOT
 
 static func _baked_set_dir(set_id: int) -> String:
 	return "%s/set%d" % [BAKED_SET_ROOT, max(set_id, 1)]
@@ -110,6 +112,49 @@ static func _load_baked_support_registry(set_id: int) -> Dictionary:
 	_baked_support_registry_cache[key] = loaded
 	return loaded
 
+static func set_external_source_loading_enabled(enabled: bool) -> void:
+	_external_source_loading_enabled = enabled
+
+static func set_external_source_root(path: String) -> void:
+	_external_source_root = path.strip_edges()
+
+static func _clear_runtime_caches_for_tests() -> void:
+	_mesh_cache.clear()
+	_material_cache.clear()
+	_texture_cache.clear()
+	_dir_cache.clear()
+	_anim_cache.clear()
+	_baked_piece_registry_cache.clear()
+	_baked_anim_registry_cache.clear()
+	_baked_particles_registry_cache.clear()
+	_baked_support_registry_cache.clear()
+	_external_source_loading_enabled = true
+	_external_source_root = LEGACY_SET_ROOT
+
+static func _baked_piece_entry(set_id: int, base_name: String) -> Dictionary:
+	var cleaned := base_name.strip_edges().to_lower()
+	if cleaned.is_empty():
+		return {}
+	var registry := _load_baked_piece_registry(set_id)
+	var pieces_value = registry.get("pieces", {})
+	if typeof(pieces_value) != TYPE_DICTIONARY:
+		return {}
+	var entry_value = Dictionary(pieces_value).get(cleaned, {})
+	return entry_value if typeof(entry_value) == TYPE_DICTIONARY else {}
+
+static func _baked_piece_mesh_path(set_id: int, base_name: String) -> String:
+	var entry := _baked_piece_entry(set_id, base_name)
+	if entry.is_empty():
+		return ""
+	return String(entry.get("mesh_path", ""))
+
+static func _has_baked_piece_resource(set_id: int, base_name: String) -> bool:
+	var scene_path := baked_piece_scene_path(set_id, base_name)
+	if not scene_path.is_empty() and ResourceLoader.exists(scene_path):
+		return true
+	var mesh_path := _baked_piece_mesh_path(set_id, base_name)
+	return not mesh_path.is_empty() and ResourceLoader.exists(mesh_path)
+
 static func _baked_support_entry_for_base_name(set_id: int, base_name: String) -> Dictionary:
 	var cleaned := base_name.strip_edges().to_lower()
 	if cleaned.is_empty():
@@ -168,18 +213,10 @@ static func _clear_baked_support_cache_for_tests() -> void:
 	_baked_support_registry_cache.clear()
 
 static func baked_piece_scene_path(set_id: int, base_name: String) -> String:
-	var cleaned := base_name.strip_edges().to_lower()
-	if cleaned.is_empty():
+	var entry := _baked_piece_entry(set_id, base_name)
+	if entry.is_empty():
 		return ""
-	var registry := _load_baked_piece_registry(set_id)
-	var pieces_value = registry.get("pieces", {})
-	if typeof(pieces_value) != TYPE_DICTIONARY:
-		return ""
-	var entry_value = Dictionary(pieces_value).get(cleaned, {})
-	if typeof(entry_value) != TYPE_DICTIONARY:
-		return ""
-	var scene_path := String(Dictionary(entry_value).get("scene_path", ""))
-	return scene_path
+	return String(entry.get("scene_path", ""))
 
 static func resolve_authored_descriptor(set_id: int, raw_id: int, lego_defs: Dictionary, origin: Vector3) -> Dictionary:
 	var lego := _lego_for_raw_id(lego_defs, raw_id)
@@ -192,114 +229,12 @@ static func resolve_authored_descriptor(set_id: int, raw_id: int, lego_defs: Dic
 	return {"set_id": set_id, "raw_id": raw_id, "base_name": base_name, "origin": origin}
 
 static func build_overlay_node(descriptors: Array) -> Node3D:
-	var root := Node3D.new()
-	root.name = "AuthoredOverlay"
-	for desc in descriptors:
-		if typeof(desc) != TYPE_DICTIONARY:
-			continue
-		var set_id := int(desc.get("set_id", 1))
-		var base_name := String(desc.get("base_name", ""))
-		var piece_node := _build_piece_node(set_id, base_name, int(desc.get("raw_id", -1)))
-		if piece_node == null:
-			continue
-		_apply_optional_piece_deform(piece_node, desc)
-		# Keep authored overlay geometry slightly above the flat sector top so large flat
-		# slurp/border surfaces stay stable against terrain depth precision at distance.
-		piece_node.position = _piece_position_from_desc(desc)
-		root.add_child(piece_node)
-		_apply_optional_piece_orientation(piece_node, desc)
-	return root
+	var overlay_manager = load("res://map/map_3d_authored_overlay_manager.gd")
+	return overlay_manager.build_overlay_node(descriptors)
 
 static func apply_overlay_node(root: Node3D, descriptors: Array) -> void:
-	if root == null or not is_instance_valid(root):
-		return
-	if root.name != "AuthoredOverlay":
-		root.name = "AuthoredOverlay"
-
-	var desired: Dictionary = {}
-	for desc in descriptors:
-		if typeof(desc) != TYPE_DICTIONARY:
-			continue
-		var d: Dictionary = desc as Dictionary
-		var key := String(d.get("instance_key", ""))
-		if key.is_empty():
-			key = "%d:%s:%d:%s" % [
-				int(d.get("set_id", 1)),
-				String(d.get("base_name", "")).to_lower(),
-				int(d.get("raw_id", -1)),
-				_str_position_key(Vector3(d.get("origin", Vector3.ZERO)))
-			]
-		desired[key] = d
-
-	var existing: Dictionary = {}
-	for child in root.get_children():
-		if child == null or not is_instance_valid(child):
-			continue
-		var node: Node = child
-		var key := ""
-		if node.has_meta("instance_key"):
-			key = String(node.get_meta("instance_key"))
-		if key.is_empty():
-			key = String(node.name)
-		existing[key] = node
-
-	# Remove nodes no longer desired.
-	var to_remove: Array[String] = []
-	for key_value in existing.keys():
-		var key := String(key_value)
-		if not desired.has(key):
-			to_remove.append(key)
-	for key in to_remove:
-		var node: Node = existing.get(key, null)
-		if node != null and is_instance_valid(node):
-			node.queue_free()
-		existing.erase(key)
-
-	# Create/update desired nodes.
-	for key_value in desired.keys():
-		var key := String(key_value)
-		var desc: Dictionary = desired.get(key, {}) as Dictionary
-		var set_id := int(desc.get("set_id", 1))
-		var base_name := String(desc.get("base_name", ""))
-		var raw_id := int(desc.get("raw_id", -1))
-		var node: Node = existing.get(key, null)
-		var needs_rebuild := false
-		if node == null or not is_instance_valid(node):
-			needs_rebuild = true
-		else:
-			var node_base := String(node.get_meta("base_name", ""))
-			var node_set := int(node.get_meta("set_id", 0))
-			if node_set != set_id or node_base.to_lower() != base_name.to_lower():
-				needs_rebuild = true
-
-		var piece_node: Node3D = null
-		if needs_rebuild:
-			if node != null and is_instance_valid(node):
-				node.queue_free()
-			piece_node = _build_piece_node(set_id, base_name, raw_id)
-			if piece_node == null:
-				continue
-			piece_node.set_meta("instance_key", key)
-			piece_node.set_meta("set_id", set_id)
-			piece_node.set_meta("base_name", base_name)
-			piece_node.set_meta("raw_id", raw_id)
-			piece_node.set_meta("warp_sig", "")
-			root.add_child(piece_node)
-		else:
-			piece_node = node as Node3D
-			if piece_node == null:
-				continue
-
-		# Apply/refresh placement state.
-		piece_node.position = _piece_position_from_desc(desc)
-		_apply_optional_piece_orientation(piece_node, desc)
-
-		# Apply deform only when needed (warp fields changed).
-		var warp_sig := _warp_signature(desc)
-		var prev_warp_sig := String(piece_node.get_meta("warp_sig", ""))
-		if warp_sig != prev_warp_sig:
-			_apply_optional_piece_deform(piece_node, desc)
-			piece_node.set_meta("warp_sig", warp_sig)
+	var overlay_manager = load("res://map/map_3d_authored_overlay_manager.gd")
+	overlay_manager.apply_overlay_node(root, descriptors)
 
 static func _warp_signature(desc: Dictionary) -> String:
 	var warp_mode := String(desc.get("warp_mode", ""))
@@ -326,7 +261,8 @@ static func _str_position_key(pos: Vector3) -> String:
 	return "%.2f,%.2f,%.2f" % [pos.x, pos.y, pos.z]
 
 func apply_overlay_node_to(root: Node3D, descriptors: Array) -> void:
-	UATerrainPieceLibrary.apply_overlay_node(root, descriptors)
+	var overlay_manager = load("res://map/map_3d_authored_overlay_manager.gd")
+	overlay_manager.apply_overlay_node(root, descriptors)
 
 static func _piece_position_from_desc(desc: Dictionary) -> Vector3:
 	return Vector3(desc.get("origin", Vector3.ZERO)) + Vector3(0.0, OVERLAY_Y_BIAS + float(desc.get("y_offset", 0.0)), 0.0)
@@ -440,6 +376,10 @@ static func _triangle_support_height_at_world_position(a: Vector3, b: Vector3, c
 static func has_piece_source(set_id: int, base_name: String) -> bool:
 	if base_name.is_empty():
 		return false
+	if _has_baked_piece_resource(set_id, base_name):
+		return true
+	if not _external_source_loading_enabled:
+		return false
 	var bas_path := _find_piece_bas_path(set_id, base_name)
 	if bas_path.is_empty():
 		return false
@@ -454,12 +394,114 @@ static func _lego_for_raw_id(lego_defs: Dictionary, raw_id: int) -> Dictionary:
 	var key := str(raw_id)
 	return lego_defs.get(key, {})
 
+static func _baked_piece_node_has_runtime_content(node: Node) -> bool:
+	if node == null or not is_instance_valid(node):
+		return false
+	var stack: Array[Node] = [node]
+	while not stack.is_empty():
+		var current: Node = stack.pop_back()
+		if current == null or not is_instance_valid(current):
+			continue
+		if current is MeshInstance3D and (current as MeshInstance3D).mesh != null:
+			return true
+		if current.has_meta("ua_authored_particle_emitter"):
+			return true
+		for child in current.get_children():
+			if child != null:
+				stack.append(child)
+	return false
+
+static func _instantiate_baked_piece_node(set_id: int, base_name: String) -> Node3D:
+	var scene_path := baked_piece_scene_path(set_id, base_name)
+	if not scene_path.is_empty() and ResourceLoader.exists(scene_path):
+		var scene_res = load(scene_path)
+		if scene_res is PackedScene:
+			var scene_root = (scene_res as PackedScene).instantiate()
+			if scene_root is Node3D:
+				var node_root := scene_root as Node3D
+				if node_root.name == "AuthoredOverlay" and node_root.get_child_count() == 1 and node_root.get_child(0) is Node3D:
+					var child := node_root.get_child(0) as Node3D
+					if _baked_piece_node_has_runtime_content(child):
+						node_root.remove_child(child)
+						node_root.queue_free()
+						return child
+				if _baked_piece_node_has_runtime_content(node_root):
+					return node_root
+				node_root.queue_free()
+				return null
+			if scene_root != null and is_instance_valid(scene_root):
+				scene_root.queue_free()
+	var mesh_path := _baked_piece_mesh_path(set_id, base_name)
+	if mesh_path.is_empty() or not ResourceLoader.exists(mesh_path):
+		return null
+	var mesh_res = load(mesh_path)
+	if not (mesh_res is Mesh):
+		return null
+	var root := Node3D.new()
+	var mi := MeshInstance3D.new()
+	mi.mesh = mesh_res as Mesh
+	root.add_child(mi)
+	return root
+
+static func _collect_baked_piece_mesh(root: Node3D) -> ArrayMesh:
+	if root == null or not is_instance_valid(root):
+		return null
+	var combined := ArrayMesh.new()
+	var root_inverse := root.global_transform.affine_inverse()
+	var stack: Array[Node] = [root]
+	while not stack.is_empty():
+		var node: Node = stack.pop_back()
+		if node == null:
+			continue
+		for child in node.get_children():
+			if child != null:
+				stack.append(child)
+		if not (node is MeshInstance3D):
+			continue
+		var mi := node as MeshInstance3D
+		var mesh := mi.mesh
+		if mesh == null:
+			continue
+		var relative_transform := root_inverse * mi.global_transform
+		for surface_idx in mesh.get_surface_count():
+			var arrays := mesh.surface_get_arrays(surface_idx)
+			if arrays.is_empty():
+				continue
+			var verts: PackedVector3Array = arrays[Mesh.ARRAY_VERTEX]
+			if not verts.is_empty():
+				var transformed := PackedVector3Array()
+				transformed.resize(verts.size())
+				for i in verts.size():
+					transformed[i] = relative_transform * verts[i]
+				arrays[Mesh.ARRAY_VERTEX] = transformed
+			var normals: PackedVector3Array = arrays[Mesh.ARRAY_NORMAL]
+			if not normals.is_empty():
+				var transformed_normals := PackedVector3Array()
+				transformed_normals.resize(normals.size())
+				for i in normals.size():
+					transformed_normals[i] = relative_transform.basis * normals[i]
+				arrays[Mesh.ARRAY_NORMAL] = transformed_normals
+			combined.add_surface_from_arrays(mesh.surface_get_primitive_type(surface_idx), arrays)
+			combined.surface_set_material(combined.get_surface_count() - 1, mesh.surface_get_material(surface_idx))
+	if combined.get_surface_count() == 0:
+		return null
+	return combined
+
 static func _load_piece_mesh(set_id: int, base_name: String) -> ArrayMesh:
 	if base_name.is_empty():
 		return null
 	var cache_key := "%d:%s" % [set_id, base_name.to_lower()]
 	if _mesh_cache.has(cache_key):
 		return _mesh_cache[cache_key]
+	var baked_node := _instantiate_baked_piece_node(set_id, base_name)
+	if baked_node != null:
+		var baked_mesh := _collect_baked_piece_mesh(baked_node)
+		baked_node.queue_free()
+		_mesh_cache[cache_key] = baked_mesh
+		return _mesh_cache[cache_key]
+	if not _external_source_loading_enabled:
+		_mesh_cache[cache_key] = null
+		return null
 	var piece_source := _load_piece_source(set_id, base_name)
 	var bas_data: Dictionary = piece_source.get("bas_data", {})
 	var points: Array = piece_source.get("points", [])
@@ -476,6 +518,12 @@ static func _load_piece_mesh(set_id: int, base_name: String) -> ArrayMesh:
 
 static func _build_piece_node(set_id: int, base_name: String, raw_id: int) -> Node3D:
 	if base_name.is_empty():
+		return null
+	var baked_piece := _instantiate_baked_piece_node(set_id, base_name)
+	if baked_piece != null:
+		baked_piece.name = "%s_%d" % [base_name, raw_id]
+		return baked_piece
+	if not _external_source_loading_enabled:
 		return null
 	var piece_source := _load_piece_source(set_id, base_name)
 	var bas_data: Dictionary = piece_source.get("bas_data", {})
@@ -629,6 +677,8 @@ static func _particle_emitter_from_ptcl(ptcl_data: Array, points: Array, set_id:
 			var baked_def = Dictionary(emitters_value).get(sig, {})
 			if typeof(baked_def) == TYPE_DICTIONARY and not baked_def.is_empty():
 				return baked_def
+	if not _external_source_loading_enabled:
+		return {}
 
 	var point_id := _find_first_ade_point(ptcl_data)
 	var anchor = _point_position(points, point_id)
@@ -796,8 +846,8 @@ static func _find_first_particle_atts(node) -> Dictionary:
 static func _vector3_from_components(values: Dictionary, prefix: String) -> Vector3:
 	return Vector3(
 		float(values.get("%s_x" % prefix, 0.0)),
-		-float(values.get("%s_y" % prefix, 0.0)),
-		-float(values.get("%s_z" % prefix, 0.0))
+		- float(values.get("%s_y" % prefix, 0.0)),
+		- float(values.get("%s_z" % prefix, 0.0))
 	)
 
 static func _surface_from_area(area_data: Array, points: Array, polys: Array, set_id: int) -> Dictionary:
@@ -1133,6 +1183,9 @@ static func _texture_for_name(set_id: int, texture_name: String, render_hints: D
 		if baked_tex is Texture2D:
 			_texture_cache[cache_key] = baked_tex
 			return baked_tex
+	if not _external_source_loading_enabled:
+		_texture_cache[cache_key] = null
+		return null
 
 	# 2) Fallback: current source-format path (ILBM decode / ILB.bmp import + color key).
 	var raw_image := _raw_image_for_texture(set_id, texture_name, hints)
@@ -1361,6 +1414,8 @@ static func _load_anim_frames(set_id: int, anim_name: String, polygon: Array) ->
 			var baked_frames: Array = entry_value.get("frames", [])
 			if baked_frames.size() > 0:
 				return baked_frames.duplicate(true)
+	if not _external_source_loading_enabled:
+		return []
 
 	var cache_key := "%d:%s" % [set_id, anim_name.to_lower()]
 	if _anim_cache.has(cache_key):
@@ -1432,6 +1487,8 @@ static func _find_frames_list(node) -> Array:
 	return []
 
 static func _load_piece_source(set_id: int, base_name: String) -> Dictionary:
+	if not _external_source_loading_enabled:
+		return {}
 	var bas_path := _find_piece_bas_path(set_id, base_name)
 	var bas_data := _load_json(bas_path)
 	var skel_ref := _find_first_skeleton_ref(bas_data)
@@ -1540,7 +1597,9 @@ static func _find_file(dir_path: String, filename: String) -> String:
 	return _dir_cache[dir_path].get(filename.to_lower(), "")
 
 static func _set_root(set_id: int) -> String:
-	return "%s/set%d" % [ASSET_ROOT, set_id]
+	if _external_source_root.is_empty():
+		return ""
+	return "%s/set%d" % [_external_source_root, set_id]
 
 static func _find_piece_bas_path(set_id: int, base_name: String) -> String:
 	var filename := "%s.bas.json" % base_name
@@ -1553,19 +1612,25 @@ static func _find_piece_bas_path(set_id: int, base_name: String) -> String:
 	return _find_file(_vehicles_dir(set_id), filename)
 
 static func _buildings_dir(set_id: int) -> String:
-	return "%s/objects/buildings" % _set_root(set_id)
+	var root := _set_root(set_id)
+	return "" if root.is_empty() else "%s/objects/buildings" % root
 
 static func _ground_dir(set_id: int) -> String:
-	return "%s/objects/ground" % _set_root(set_id)
+	var root := _set_root(set_id)
+	return "" if root.is_empty() else "%s/objects/ground" % root
 
 static func _vehicles_dir(set_id: int) -> String:
-	return "%s/objects/vehicles" % _set_root(set_id)
+	var root := _set_root(set_id)
+	return "" if root.is_empty() else "%s/objects/vehicles" % root
 
 static func _hi_alpha_dir(set_id: int) -> String:
-	return "%s/hi/alpha" % _set_root(set_id)
+	var root := _set_root(set_id)
+	return "" if root.is_empty() else "%s/hi/alpha" % root
 
 static func _skeleton_dir(set_id: int) -> String:
-	return "%s/Skeleton" % _set_root(set_id)
+	var root := _set_root(set_id)
+	return "" if root.is_empty() else "%s/Skeleton" % root
 
 static func _rsrcpool_dir(set_id: int) -> String:
-	return "%s/rsrcpool" % _set_root(set_id)
+	var root := _set_root(set_id)
+	return "" if root.is_empty() else "%s/rsrcpool" % root

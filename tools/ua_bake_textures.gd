@@ -3,11 +3,14 @@ extends SceneTree
 const PieceLibraryScript := preload("res://map/terrain/ua_authored_piece_library.gd")
 
 const OUT_ROOT := "res://resources/ua/sets"
+const LEGACY_SET_ROOT := "res://urban_assault_decompiled-master/assets/sets"
 
 func _init() -> void:
 	var args := OS.get_cmdline_args()
 	var set_id := _int_arg(args, "--set", 1)
 	var names := _csv_arg(args, "--textures")
+	PieceLibraryScript.set_external_source_loading_enabled(true)
+	PieceLibraryScript.set_external_source_root(LEGACY_SET_ROOT)
 	if names.is_empty():
 		names = _csv_arg(args, "--texture_names")
 	if names.is_empty():
@@ -82,4 +85,3 @@ func _ensure_dir(path: String) -> void:
 func _fail(message: String) -> void:
 	push_error("[BakeTextures] " + message)
 	quit(1)
-
