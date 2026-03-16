@@ -5,6 +5,7 @@ const MAX_PARTICLES := 96
 
 var _stages: Array = []
 var _particles: Array = []
+var _node_pool: Array = []
 var _global_time_sec := 0.0
 var _emitter_age_ms := 0.0
 var _spawn_accumulator_ms := 0.0
@@ -87,9 +88,14 @@ func _spawn_particle(initial_age_ms: float) -> void:
 	var direction: Vector3 = magnify + _rand_vec()
 	if direction.length_squared() <= 0.000001:
 		direction = Vector3.UP
-	var particle_node := MeshInstance3D.new()
-	particle_node.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
-	add_child(particle_node)
+	var particle_node: MeshInstance3D
+	if not _node_pool.is_empty():
+		particle_node = _node_pool.pop_back()
+		particle_node.visible = true
+	else:
+		particle_node = MeshInstance3D.new()
+		particle_node.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
+		add_child(particle_node)
 	_particles.append({
 		"node": particle_node,
 		"age_ms": initial_age_ms,
@@ -102,9 +108,12 @@ func _update_particles(delta_sec: float, delta_ms: float) -> void:
 		var particle: Dictionary = _particles[idx]
 		var age_ms := float(particle.get("age_ms", 0.0)) + delta_ms
 		if age_ms >= _particle_life_time_ms:
-			var node: Node = particle.get("node", null)
+			var node: MeshInstance3D = particle.get("node", null) as MeshInstance3D
 			if node != null:
-				node.queue_free()
+				node.visible = false
+				node.position = Vector3.ZERO
+				node.mesh = null
+				_node_pool.append(node)
 			_particles.remove_at(idx)
 			continue
 		var velocity := Vector3(particle.get("velocity", Vector3.ZERO))
