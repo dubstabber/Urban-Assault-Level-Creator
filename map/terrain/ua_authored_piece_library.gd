@@ -31,6 +31,7 @@ static var _dir_cache := {}
 static var _anim_cache := {}
 static var _baked_piece_registry_cache := {}
 static var _baked_anim_registry_cache := {}
+static var _baked_particles_registry_cache := {}
 
 static func _baked_set_dir(set_id: int) -> String:
 	return "%s/set%d" % [BAKED_SET_ROOT, max(set_id, 1)]
@@ -49,6 +50,9 @@ static func _baked_piece_registry_path(set_id: int) -> String:
 
 static func _baked_anim_registry_path(set_id: int) -> String:
 	return "%s/metadata/animations.json" % _baked_set_dir(set_id)
+
+static func _baked_particles_registry_path(set_id: int) -> String:
+	return "%s/metadata/particles.json" % _baked_set_dir(set_id)
 
 static func _load_baked_piece_registry(set_id: int) -> Dictionary:
 	var key: int = maxi(set_id, 1)
@@ -74,6 +78,19 @@ static func _load_baked_anim_registry(set_id: int) -> Dictionary:
 		if typeof(parsed) == TYPE_DICTIONARY:
 			loaded = parsed
 	_baked_anim_registry_cache[key] = loaded
+	return loaded
+
+static func _load_baked_particles_registry(set_id: int) -> Dictionary:
+	var key: int = maxi(set_id, 1)
+	if _baked_particles_registry_cache.has(key):
+		return _baked_particles_registry_cache[key]
+	var registry_path := _baked_particles_registry_path(key)
+	var loaded := {}
+	if not registry_path.is_empty() and FileAccess.file_exists(registry_path):
+		var parsed = JSON.parse_string(FileAccess.get_file_as_string(registry_path))
+		if typeof(parsed) == TYPE_DICTIONARY:
+			loaded = parsed
+	_baked_particles_registry_cache[key] = loaded
 	return loaded
 
 static func baked_piece_scene_path(set_id: int, base_name: String) -> String:
@@ -526,6 +543,16 @@ static func _collect_particle_emitters(node, out: Array, points: Array, set_id: 
 			_collect_particle_emitters(item, out, points, set_id)
 
 static func _particle_emitter_from_ptcl(ptcl_data: Array, points: Array, set_id: int) -> Dictionary:
+	# Prefer baked emitter definitions when present.
+	var baked := _load_baked_particles_registry(set_id)
+	var emitters_value = baked.get("emitters", {})
+	if typeof(emitters_value) == TYPE_DICTIONARY:
+		var sig := _ptcl_signature(ptcl_data)
+		if not sig.is_empty():
+			var baked_def = Dictionary(emitters_value).get(sig, {})
+			if typeof(baked_def) == TYPE_DICTIONARY and not baked_def.is_empty():
+				return baked_def
+
 	var point_id := _find_first_ade_point(ptcl_data)
 	var anchor = _point_position(points, point_id)
 	if anchor == null:
@@ -554,6 +581,19 @@ static func _particle_emitter_from_ptcl(ptcl_data: Array, points: Array, set_id:
 		"magnify_end": _vector3_from_components(atts, "magnify_end"),
 		"stages": stages,
 	}
+
+static func _ptcl_signature(ptcl_data: Array) -> String:
+	# Simple stable signature based on first ADE point and basic timing params.
+	var point_id := _find_first_ade_point(ptcl_data)
+	var atts := _find_first_particle_atts(ptcl_data)
+	if point_id < 0 or atts.is_empty():
+		return ""
+	return "%d:%d:%d:%d" % [
+		point_id,
+		int(atts.get("context_life_time", 0)),
+		int(atts.get("context_start_gen", 0)),
+		int(atts.get("gen_rate", 0)),
+	]
 
 static func _particle_stages_from_ptcl(ptcl_data: Array, set_id: int) -> Array:
 	var area_stages: Array = []
