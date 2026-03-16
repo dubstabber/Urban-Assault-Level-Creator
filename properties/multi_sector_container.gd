@@ -13,11 +13,11 @@ func _update_properties() -> void:
 		child.queue_free()
 	if EditorState.selected_sectors.size() > 1:
 		sector_properties_container.hide()
-		show()
+		show.call_deferred()
 		for sector_dict in EditorState.selected_sectors:
 			var sector_label = Label.new()
 			sector_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 			sector_label.text = "Selected sector X:%s Y:%s" % [sector_dict.x, sector_dict.y]
 			add_child(sector_label)
 	else:
-		hide()
+		hide.call_deferred()

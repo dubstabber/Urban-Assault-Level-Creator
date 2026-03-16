@@ -15,16 +15,16 @@ func _ready() -> void:
 func _on_index_pressed(index: int) -> void:
 	match get_item_text(index):
 		"Change level parameters...":
-			%LevelParametersWindow.popup()
+			%LevelParametersWindow.popup.call_deferred()
 		"Squad enabler...":
-			%SquadEnablerWindow.popup()
+			%SquadEnablerWindow.popup.call_deferred()
 		"Change briefing/debriefing maps for this level...":
-			%MissionBriefingMapsWindow.popup()
+			%MissionBriefingMapsWindow.popup.call_deferred()
 		"Select a host station for the player...":
-			%PlayerHostStationWindow.popup()
+			%PlayerHostStationWindow.popup.call_deferred()
 		"Write level description...":
-			%LevelDescriptionWindow.popup()
+			%LevelDescriptionWindow.popup.call_deferred()
 		"Prototype modifications...":
-			%PrototypeModificationsWindow.popup()
+			%PrototypeModificationsWindow.popup.call_deferred()
 		"Additional game content...":
-			%GameContentWindow.popup()
+			%GameContentWindow.popup.call_deferred()

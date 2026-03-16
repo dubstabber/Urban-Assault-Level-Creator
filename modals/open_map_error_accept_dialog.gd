@@ -20,7 +20,7 @@ func _ready() -> void:
 				var total_border_sectors = (CurrentMapData.horizontal_sectors+2) * (CurrentMapData.vertical_sectors+2)
 				dialog_text += "Total sectors: %s\n" % total_sectors
 				dialog_text += "Total sectors with borders: %s" % total_border_sectors
-		popup()
+		popup.call_deferred()
 		CurrentMapData.close_map()
 		EventSystem.map_updated.emit()
 		get_tree().root.size_changed.emit()
@@ -32,5 +32,5 @@ func _ready() -> void:
 		match error_type:
 			"path_inaccessible":
 				dialog_text += "The path is not accessible and cannot be saved."
-		popup()
+		popup.call_deferred()
 		)

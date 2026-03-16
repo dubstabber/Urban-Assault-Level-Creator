@@ -2,6 +2,7 @@ extends RefCounted
 class_name UATerrainPieceLibrary
 
 const ASSET_ROOT := "res://urban_assault_decompiled-master/assets/sets"
+const BAKED_SET_ROOT := "res://resources/ua/sets"
 # Raw BAS/SKLT terrain-piece coordinates already use UA world-space sector units:
 # - 3x3 top pieces are authored as 300x300 footprints
 # - full border-ring pieces are authored around 1200-unit sector spans
@@ -28,6 +29,66 @@ static var _material_cache := {}
 static var _texture_cache := {}
 static var _dir_cache := {}
 static var _anim_cache := {}
+static var _baked_piece_registry_cache := {}
+static var _baked_anim_registry_cache := {}
+
+static func _baked_set_dir(set_id: int) -> String:
+	return "%s/set%d" % [BAKED_SET_ROOT, max(set_id, 1)]
+
+static func _baked_texture_dir(set_id: int) -> String:
+	return "%s/set%d/textures/albedo" % [BAKED_SET_ROOT, max(set_id, 1)]
+
+static func _baked_texture_path(set_id: int, texture_file: String) -> String:
+	var base := texture_file.strip_edges().get_basename().to_lower()
+	if base.is_empty():
+		return ""
+	return "%s/%s.png" % [_baked_texture_dir(set_id), base]
+
+static func _baked_piece_registry_path(set_id: int) -> String:
+	return "%s/metadata/piece_registry.json" % _baked_set_dir(set_id)
+
+static func _baked_anim_registry_path(set_id: int) -> String:
+	return "%s/metadata/animations.json" % _baked_set_dir(set_id)
+
+static func _load_baked_piece_registry(set_id: int) -> Dictionary:
+	var key: int = maxi(set_id, 1)
+	if _baked_piece_registry_cache.has(key):
+		return _baked_piece_registry_cache[key]
+	var registry_path := _baked_piece_registry_path(key)
+	var loaded := {}
+	if not registry_path.is_empty() and FileAccess.file_exists(registry_path):
+		var parsed = JSON.parse_string(FileAccess.get_file_as_string(registry_path))
+		if typeof(parsed) == TYPE_DICTIONARY:
+			loaded = parsed
+	_baked_piece_registry_cache[key] = loaded
+	return loaded
+
+static func _load_baked_anim_registry(set_id: int) -> Dictionary:
+	var key: int = maxi(set_id, 1)
+	if _baked_anim_registry_cache.has(key):
+		return _baked_anim_registry_cache[key]
+	var registry_path := _baked_anim_registry_path(key)
+	var loaded := {}
+	if not registry_path.is_empty() and FileAccess.file_exists(registry_path):
+		var parsed = JSON.parse_string(FileAccess.get_file_as_string(registry_path))
+		if typeof(parsed) == TYPE_DICTIONARY:
+			loaded = parsed
+	_baked_anim_registry_cache[key] = loaded
+	return loaded
+
+static func baked_piece_scene_path(set_id: int, base_name: String) -> String:
+	var cleaned := base_name.strip_edges().to_lower()
+	if cleaned.is_empty():
+		return ""
+	var registry := _load_baked_piece_registry(set_id)
+	var pieces_value = registry.get("pieces", {})
+	if typeof(pieces_value) != TYPE_DICTIONARY:
+		return ""
+	var entry_value = Dictionary(pieces_value).get(cleaned, {})
+	if typeof(entry_value) != TYPE_DICTIONARY:
+		return ""
+	var scene_path := String(Dictionary(entry_value).get("scene_path", ""))
+	return scene_path
 
 static func resolve_authored_descriptor(set_id: int, raw_id: int, lego_defs: Dictionary, origin: Vector3) -> Dictionary:
 	var lego := _lego_for_raw_id(lego_defs, raw_id)
@@ -57,6 +118,124 @@ static func build_overlay_node(descriptors: Array) -> Node3D:
 		root.add_child(piece_node)
 		_apply_optional_piece_orientation(piece_node, desc)
 	return root
+
+static func apply_overlay_node(root: Node3D, descriptors: Array) -> void:
+	if root == null or not is_instance_valid(root):
+		return
+	if root.name != "AuthoredOverlay":
+		root.name = "AuthoredOverlay"
+
+	var desired: Dictionary = {}
+	for desc in descriptors:
+		if typeof(desc) != TYPE_DICTIONARY:
+			continue
+		var d: Dictionary = desc as Dictionary
+		var key := String(d.get("instance_key", ""))
+		if key.is_empty():
+			key = "%d:%s:%d:%s" % [
+				int(d.get("set_id", 1)),
+				String(d.get("base_name", "")).to_lower(),
+				int(d.get("raw_id", -1)),
+				_str_position_key(Vector3(d.get("origin", Vector3.ZERO)))
+			]
+		desired[key] = d
+
+	var existing: Dictionary = {}
+	for child in root.get_children():
+		if child == null or not is_instance_valid(child):
+			continue
+		var node: Node = child
+		var key := ""
+		if node.has_meta("instance_key"):
+			key = String(node.get_meta("instance_key"))
+		if key.is_empty():
+			key = String(node.name)
+		existing[key] = node
+
+	# Remove nodes no longer desired.
+	var to_remove: Array[String] = []
+	for key_value in existing.keys():
+		var key := String(key_value)
+		if not desired.has(key):
+			to_remove.append(key)
+	for key in to_remove:
+		var node: Node = existing.get(key, null)
+		if node != null and is_instance_valid(node):
+			node.queue_free()
+		existing.erase(key)
+
+	# Create/update desired nodes.
+	for key_value in desired.keys():
+		var key := String(key_value)
+		var desc: Dictionary = desired.get(key, {}) as Dictionary
+		var set_id := int(desc.get("set_id", 1))
+		var base_name := String(desc.get("base_name", ""))
+		var raw_id := int(desc.get("raw_id", -1))
+		var node: Node = existing.get(key, null)
+		var needs_rebuild := false
+		if node == null or not is_instance_valid(node):
+			needs_rebuild = true
+		else:
+			var node_base := String(node.get_meta("base_name", ""))
+			var node_set := int(node.get_meta("set_id", 0))
+			if node_set != set_id or node_base.to_lower() != base_name.to_lower():
+				needs_rebuild = true
+
+		var piece_node: Node3D = null
+		if needs_rebuild:
+			if node != null and is_instance_valid(node):
+				node.queue_free()
+			piece_node = _build_piece_node(set_id, base_name, raw_id)
+			if piece_node == null:
+				continue
+			piece_node.set_meta("instance_key", key)
+			piece_node.set_meta("set_id", set_id)
+			piece_node.set_meta("base_name", base_name)
+			piece_node.set_meta("raw_id", raw_id)
+			piece_node.set_meta("warp_sig", "")
+			root.add_child(piece_node)
+		else:
+			piece_node = node as Node3D
+			if piece_node == null:
+				continue
+
+		# Apply/refresh placement state.
+		piece_node.position = _piece_position_from_desc(desc)
+		_apply_optional_piece_orientation(piece_node, desc)
+
+		# Apply deform only when needed (warp fields changed).
+		var warp_sig := _warp_signature(desc)
+		var prev_warp_sig := String(piece_node.get_meta("warp_sig", ""))
+		if warp_sig != prev_warp_sig:
+			_apply_optional_piece_deform(piece_node, desc)
+			piece_node.set_meta("warp_sig", warp_sig)
+
+static func _warp_signature(desc: Dictionary) -> String:
+	var warp_mode := String(desc.get("warp_mode", ""))
+	if warp_mode.is_empty():
+		return ""
+	var parts: Array[String] = [warp_mode]
+	for key in [
+		"anchor_height",
+		"left_height",
+		"right_height",
+		"top_avg",
+		"bottom_avg",
+		"top_height",
+		"bottom_height",
+		"left_avg",
+		"right_avg"
+	]:
+		if desc.has(key):
+			parts.append("%s=%.3f" % [key, float(desc.get(key, 0.0))])
+	return "|".join(parts)
+
+static func _str_position_key(pos: Vector3) -> String:
+	# Coarse quantization is enough to stabilize keys for preview usage.
+	return "%.2f,%.2f,%.2f" % [pos.x, pos.y, pos.z]
+
+func apply_overlay_node_to(root: Node3D, descriptors: Array) -> void:
+	UATerrainPieceLibrary.apply_overlay_node(root, descriptors)
 
 static func _piece_position_from_desc(desc: Dictionary) -> Vector3:
 	return Vector3(desc.get("origin", Vector3.ZERO)) + Vector3(0.0, OVERLAY_Y_BIAS + float(desc.get("y_offset", 0.0)), 0.0)
@@ -227,6 +406,9 @@ static func _build_piece_node(set_id: int, base_name: String, raw_id: int) -> No
 		emitter.name = "ParticleEmitter_%d" % i
 		piece.add_child(emitter)
 	return piece if piece.get_child_count() > 0 else null
+
+static func build_piece_scene_root(set_id: int, base_name: String, raw_id: int = -1) -> Node3D:
+	return _build_piece_node(set_id, base_name, raw_id)
 
 static func _apply_optional_piece_deform(piece_node: Node3D, desc: Dictionary) -> void:
 	var warp_mode := String(desc.get("warp_mode", ""))
@@ -826,11 +1008,22 @@ static func _texture_for_name(set_id: int, texture_name: String, render_hints: D
 	var cache_key := _texture_cache_key(set_id, texture_file, hints)
 	if _texture_cache.has(cache_key):
 		return _texture_cache[cache_key]
+
+	# 1) Prefer baked, fully-imported texture assets when available.
+	var baked_path := _baked_texture_path(set_id, texture_file)
+	if not baked_path.is_empty() and FileAccess.file_exists(baked_path):
+		var baked_tex := load(baked_path)
+		if baked_tex is Texture2D:
+			_texture_cache[cache_key] = baked_tex
+			return baked_tex
+
+	# 2) Fallback: current source-format path (ILBM decode / ILB.bmp import + color key).
 	var raw_image := _raw_image_for_texture(set_id, texture_name, hints)
 	if raw_image != null:
 		var converted_raw := _apply_color_key_transparency(raw_image)
 		_texture_cache[cache_key] = ImageTexture.create_from_image(converted_raw)
 		return _texture_cache[cache_key]
+
 	var texture_path := _find_file(_set_root(set_id), texture_file)
 	if texture_path.is_empty():
 		_texture_cache[cache_key] = null
@@ -939,7 +1132,7 @@ static func _load_ilbm_image(path: String) -> Image:
 			compression = int(data[chunk_start + 10])
 			transparent_color = _read_u16_be(data, chunk_start + 12)
 		elif tag == "CMAP":
-			var color_count := mini(int(chunk_size / 3), 256)
+			var color_count := mini(int(float(chunk_size) / 3.0), 256)
 			for i in color_count:
 				var color_offset := chunk_start + i * 3
 				palette[i] = Color(
@@ -969,7 +1162,7 @@ static func _load_ilbm_image(path: String) -> Image:
 		var row_offset := y * row_bytes
 		var mask_offset := row_offset + plane_row_bytes * nplanes
 		for x in width:
-			var byte_index := int(x / 8)
+			var byte_index := int(x) >> 3
 			var bit_mask := 1 << (7 - (x & 7))
 			var color_index := 0
 			for plane in nplanes:
@@ -1041,6 +1234,17 @@ static func _apply_color_key_transparency(image: Image) -> Image:
 	return converted
 
 static func _load_anim_frames(set_id: int, anim_name: String, polygon: Array) -> Array:
+	# Prefer baked animation registry if present.
+	var baked := _load_baked_anim_registry(set_id)
+	var anims_value = baked.get("animations", {})
+	if typeof(anims_value) == TYPE_DICTIONARY:
+		var key := anim_name.strip_edges().to_lower()
+		var entry_value = Dictionary(anims_value).get(key, {})
+		if typeof(entry_value) == TYPE_DICTIONARY:
+			var baked_frames: Array = entry_value.get("frames", [])
+			if baked_frames.size() > 0:
+				return baked_frames.duplicate(true)
+
 	var cache_key := "%d:%s" % [set_id, anim_name.to_lower()]
 	if _anim_cache.has(cache_key):
 		return _clone_anim_frames(_anim_cache[cache_key], polygon, set_id)
@@ -1061,7 +1265,7 @@ static func _load_anim_frames(set_id: int, anim_name: String, polygon: Array) ->
 	_anim_cache[cache_key] = compiled
 	return _clone_anim_frames(compiled, polygon, set_id)
 
-static func _clone_anim_frames(compiled_frames: Array, polygon: Array, set_id: int) -> Array:
+static func _clone_anim_frames(compiled_frames: Array, polygon: Array, _set_id: int) -> Array:
 	var frames: Array = []
 	for frame in compiled_frames:
 		if typeof(frame) != TYPE_DICTIONARY:

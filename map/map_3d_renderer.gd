@@ -144,6 +144,7 @@ var _refresh_reframe_pending := false
 var _refresh_deferred := false
 var _refresh_requested_at_usec := 0
 var _last_build_metrics: Dictionary = {}
+var _terrain_piece_library: UATerrainPieceLibrary = UATerrainPieceLibrary.new()
 
 
 func set_event_system_override(event_system: Node) -> void:
@@ -302,8 +303,8 @@ func _ready() -> void:
 
 	var _es = _event_system()
 	if _es:
-		_es.map_created.connect(_on_map_changed)
-		_es.map_updated.connect(_on_map_changed)
+		_es.map_created.connect(_on_map_created)
+		_es.map_updated.connect(_on_map_updated)
 		_es.level_set_changed.connect(_on_level_set_changed)
 		_es.map_view_updated.connect(_on_map_view_updated)
 	_apply_preview_activity_state()
@@ -435,9 +436,10 @@ func _frame_if_needed() -> void:
 	_pitch = deg_to_rad(-35.0)
 	_yaw = deg_to_rad(45.0)
 	_update_camera_rotation()
-	# Place camera above terrain and back along +Z
+	# Place camera above terrain at the map center. Designers can orbit/pan from
+	# a centered start position; avoid auto-offsetting behind the map on load.
 	var y_offset: float = max(dist * 0.35, 300.0)
-	var desired_pos := Vector3(center.x, terrain_base_y + y_offset, center.z + dist)
+	var desired_pos := Vector3(center.x, terrain_base_y + y_offset, center.z)
 	_camera.global_transform.origin = desired_pos
 	# Expand far clip to encompass large maps
 	var far_dist: float = max(dist * 4.0, 50000.0)
@@ -453,7 +455,16 @@ func _on_map_changed() -> void:
 	var _cmd = _current_map_data()
 	if _cmd:
 		print("[Map3D] map_changed signal: w=", _cmd.horizontal_sectors, " h=", _cmd.vertical_sectors, " hgt_size=", _cmd.hgt_map.size())
-		_request_refresh(true)
+		_request_refresh(false)
+
+func _on_map_created() -> void:
+	var _cmd = _current_map_data()
+	if _cmd:
+		print("[Map3D] map_created signal: w=", _cmd.horizontal_sectors, " h=", _cmd.vertical_sectors, " hgt_size=", _cmd.hgt_map.size())
+	_request_refresh(true)
+
+func _on_map_updated() -> void:
+	_on_map_changed()
 
 func build_from_current_map() -> void:
 	var build_started_usec := Time.get_ticks_usec()
@@ -584,14 +595,13 @@ func clear() -> void:
 	_set_authored_overlay([])
 
 func _set_authored_overlay(descriptors: Array) -> void:
-	if _authored_overlay:
-		remove_child(_authored_overlay)
-		_authored_overlay.free()
-		_authored_overlay = null
-	if descriptors.is_empty():
-		return
-	_authored_overlay = UATerrainPieceLibraryScript.build_overlay_node(descriptors)
-	add_child(_authored_overlay)
+	if _authored_overlay == null or not is_instance_valid(_authored_overlay):
+		_authored_overlay = Node3D.new()
+		_authored_overlay.name = "AuthoredOverlay"
+		add_child(_authored_overlay)
+	if _terrain_piece_library == null or not is_instance_valid(_terrain_piece_library):
+		_terrain_piece_library = UATerrainPieceLibrary.new()
+	_terrain_piece_library.apply_overlay_node_to(_authored_overlay, descriptors)
 
 static func _make_preview_material(color: Color) -> StandardMaterial3D:
 	var mat := StandardMaterial3D.new()
@@ -777,10 +787,12 @@ static func _build_host_station_descriptors(host_stations: Array, set_id: int, h
 		if not UATerrainPieceLibraryScript.has_piece_source(set_id, base_name):
 			continue
 		var origin := _host_station_origin(host_station as Node2D, hgt, w, h, support_descriptors, profile)
+		var station_key_id: int = int(host_station.get_instance_id())
 		descriptors.append({
 			"set_id": set_id,
 			"raw_id": -1,
 			"base_name": base_name,
+			"instance_key": "host:%d:%d:%s" % [set_id, station_key_id, base_name],
 			"origin": origin,
 		})
 		var gun_attachments_value = HOST_STATION_GUN_ATTACHMENTS.get(int(vehicle_value), [])
@@ -799,6 +811,7 @@ static func _build_host_station_descriptors(host_stations: Array, set_id: int, h
 					"set_id": set_id,
 					"raw_id": -1,
 					"base_name": gun_base_name,
+					"instance_key": "host_gun:%d:%d:%d:%s" % [set_id, station_key_id, gun_type, gun_base_name],
 					"origin": origin + _host_station_godot_offset_from_ua(ua_offset),
 				}
 				var ua_direction: Vector3 = attachment.get("ua_direction", Vector3.ZERO)
@@ -1154,7 +1167,8 @@ static func _build_blg_attachment_descriptors(blg: PackedByteArray, effective_ty
 			var world_z := (float(sy) + 1.5) * SECTOR_SIZE
 			var sector_origin := _sector_center_origin(sx, sy, _ground_height_at_world_position(hgt, w, h, world_x, world_z))
 			var attachments: Array = definition.get("attachments", [])
-			for attachment_value in attachments:
+			for attachment_idx in attachments.size():
+				var attachment_value = attachments[attachment_idx]
 				if typeof(attachment_value) != TYPE_DICTIONARY:
 					continue
 				var attachment := attachment_value as Dictionary
@@ -1167,6 +1181,14 @@ static func _build_blg_attachment_descriptors(blg: PackedByteArray, effective_ty
 					"set_id": set_id,
 					"raw_id": -1,
 					"base_name": base_name,
+					"instance_key": "blg_attach:%d:%d:%d:%d:%d:%s" % [
+						set_id,
+						sx,
+						sy,
+						building_id,
+						int(attachment.get("vehicle_id", -1)),
+						str(attachment_idx)
+					],
 					"origin": sector_origin + _host_station_godot_offset_from_ua(Vector3(attachment.get("ua_offset", Vector3.ZERO))),
 				}
 				var godot_direction := _host_station_godot_direction_from_ua(Vector3(attachment.get("ua_direction", Vector3.ZERO)))
@@ -1375,12 +1397,17 @@ static func _build_squad_descriptors(squads: Array, set_id: int, hgt: PackedByte
 		if not UATerrainPieceLibraryScript.has_piece_source(set_id, base_name):
 			continue
 		var squad_anchor_origin := _squad_anchor_origin(squad as Node2D, hgt, w, h, support_descriptors, profile)
-		for formation_offset in _squad_formation_offsets(_squad_quantity(squad)):
+		var squad_key_id: int = int(squad.get_instance_id())
+		var quantity := _squad_quantity(squad)
+		var offsets := _squad_formation_offsets(quantity)
+		for unit_index in offsets.size():
+			var formation_offset: Vector3 = offsets[unit_index]
 			descriptors.append({
 				"set_id": set_id,
 				"raw_id": -1,
 				"base_name": base_name,
 				"origin": squad_anchor_origin + Vector3(formation_offset),
+				"instance_key": "squad:%d:%d:%s:%d" % [set_id, squad_key_id, base_name, unit_index],
 				"y_offset": SQUAD_EXTRA_Y_OFFSET,
 			})
 	return descriptors
@@ -1606,7 +1633,7 @@ static func _append_horizontal_seam_strip(st: SurfaceTool, x0: float, x1: float,
 	st.set_uv(Vector2(1.0, 1.0)); st.add_vertex(br)
 	st.set_uv(Vector2(0.0, 1.0)); st.add_vertex(bl)
 
-static func _should_emit_seam_strip(surface_a: int, surface_b: int, outer_a: float, outer_b: float, seam_mid_a: float, seam_mid_b: float) -> bool:
+static func _should_emit_seam_strip(_surface_a: int, _surface_b: int, _outer_a: float, _outer_b: float, _seam_mid_a: float, _seam_mid_b: float) -> bool:
 	# Retail slurps are selected from the ordered neighboring SurfaceType pair for every
 	# rendered sector adjacency. The preview also needs that behavior for flat/coplanar
 	# neighbors so sectors stay visually joined instead of leaving seams open.
@@ -1673,6 +1700,14 @@ static func build_mesh_with_textures(hgt: PackedByteArray, typ: PackedByteArray,
 							_authored_origin_for_subsector(x0, z0, sector_y, sub_x, sub_y)
 						)
 						if not authored.is_empty():
+							authored["instance_key"] = "terrain:%d:%d:%d:%d:%d:%d" % [
+								set_id,
+								x,
+								y,
+								sub_x,
+								sub_y,
+								int(authored.get("raw_id", -1))
+							]
 							authored_piece_descriptors.append(authored)
 							continue
 						_draw_quad(
@@ -1701,6 +1736,12 @@ static func build_mesh_with_textures(hgt: PackedByteArray, typ: PackedByteArray,
 				if authored.is_empty():
 					_draw_quad(st, x0, x1, z0, z1, sector_y, int(piece[0]), int(piece[1]), int(piece[2]))
 				else:
+					authored["instance_key"] = "terrain:%d:%d:%d:%d" % [
+						set_id,
+						x,
+						y,
+						int(authored.get("raw_id", -1))
+					]
 					authored_piece_descriptors.append(authored)
 
 	var mesh := ArrayMesh.new()
@@ -1820,6 +1861,7 @@ func _build_edge_overlay_result(hgt: PackedByteArray, w: int, h: int, typ: Packe
 					"set_id": set_id,
 					"raw_id": -1,
 					"base_name": base_name,
+					"instance_key": "slurp:v:%d:%d:%d:%d:%d" % [set_id, x, y, sa, sb],
 					"origin": _sector_center_origin(x + 1, y, yR),
 					"warp_mode": "vside",
 					"anchor_height": yR,
@@ -1851,6 +1893,7 @@ func _build_edge_overlay_result(hgt: PackedByteArray, w: int, h: int, typ: Packe
 					"set_id": set_id,
 					"raw_id": -1,
 					"base_name": base_name_h,
+					"instance_key": "slurp:h:%d:%d:%d:%d:%d" % [set_id, x2, y2, sa2, sb2],
 					"origin": _sector_center_origin(x2, y2 + 1, yB),
 					"warp_mode": "hside",
 					"anchor_height": yB,

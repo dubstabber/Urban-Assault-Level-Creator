@@ -32,7 +32,7 @@ func _on_about_to_popup() -> void:
 
 
 func _on_typ_map_picker_button_pressed() -> void:
-	%TypMapPickerWindow.popup()
+	%TypMapPickerWindow.popup.call_deferred()
 
 
 func _on_typ_map_picker_window_building_selected(index: int) -> void:

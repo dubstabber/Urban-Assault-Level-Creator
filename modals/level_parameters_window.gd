@@ -86,7 +86,7 @@ func _on_music_button_toggled(toggled_on: bool) -> void:
 
 
 func _on_pick_sky_button_pressed() -> void:
-	sky_picker_window.popup()
+	sky_picker_window.popup.call_deferred()
 
 
 func _on_sky_picker_window_sky_selected(sky_name: String) -> void:

@@ -11,10 +11,10 @@ func _ready():
 
 func _update_properties():
 	if EditorState.selected_unit:
-		no_unit_label.hide()
-		if EditorState.selected_unit is HostStation: squad_properties.hide()
-		elif EditorState.selected_unit is Squad: host_station_properties.hide()
+		no_unit_label.hide.call_deferred()
+		if EditorState.selected_unit is HostStation: squad_properties.hide.call_deferred()
+		elif EditorState.selected_unit is Squad: host_station_properties.hide.call_deferred()
 	else:
-		no_unit_label.show()
-		host_station_properties.hide()
-		squad_properties.hide()
+		no_unit_label.show.call_deferred()
+		host_station_properties.hide.call_deferred()
+		squad_properties.hide.call_deferred()

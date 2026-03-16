@@ -174,7 +174,7 @@ func _handle_context_menu():
 
 	if EditorState.selected_sectors.size() > 1:
 		%MultiSectorMapContextMenu.position = Vector2(map.right_clicked_x_global, map.right_clicked_y_global)
-		%MultiSectorMapContextMenu.popup()
+		%MultiSectorMapContextMenu.popup.call_deferred()
 		return
 
 	_handle_single_selection()
@@ -182,10 +182,10 @@ func _handle_context_menu():
 
 	if EditorState.selected_unit:
 		%UnitContextMenu.position = Vector2(map.right_clicked_x_global, map.right_clicked_y_global)
-		%UnitContextMenu.popup()
+		%UnitContextMenu.popup.call_deferred()
 	else:
 		%MapContextMenu.position = Vector2(map.right_clicked_x_global, map.right_clicked_y_global)
-		%MapContextMenu.popup()
+		%MapContextMenu.popup.call_deferred()
 
 func handle_selection(clicked_x: int, clicked_y: int):
 	if not map.is_selection_kept:

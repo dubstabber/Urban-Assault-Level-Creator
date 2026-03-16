@@ -82,11 +82,11 @@ script/source = "extends AcceptDialog
 func _ready() -> void:
 	EventSystem.safe_host_station_limit_exceeded.connect(func():
 		dialog_text = \"Warning: Creating more than eight host stations may cause game instability\"
-		popup()
+		popup.call_deferred()
 	)
 	EventSystem.saved_with_no_hoststation.connect(func():
 		dialog_text = \"Warning: The level was saved with no host station, therefore game will not launch\"
-		popup()
+		popup.call_deferred()
 	)
 	
 "
@@ -98,7 +98,7 @@ script/source = "extends AcceptDialog
 func _ready() -> void:
 	EventSystem.invalid_set_detected.connect(func(level_set: int):
 		dialog_text = \"Error: The loaded level set %s is not supported by the editor. Defaulting to set 1.\" % level_set
-		popup()
+		popup.call_deferred()
 	)
 	confirmed.connect(func():
 		CurrentMapData.is_saved = false

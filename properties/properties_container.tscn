@@ -27,23 +27,23 @@ func _ready() -> void:
 			EditorState.mode = EditorState.States.Select
 		)
 	EventSystem.hoststation_added.connect(func(_owner_id, _vehicle_id): 
-		owner.show()
-		unit.show()
+		owner.show.call_deferred()
+		unit.show.call_deferred()
 	)
-	EventSystem.squad_added.connect(func(_owner_id, _vehicle_id): unit.show())
+	EventSystem.squad_added.connect(func(_owner_id, _vehicle_id): unit.show.call_deferred())
 	EventSystem.item_added.connect(func():
-		owner.show()
+		owner.show.call_deferred()
 	)
 	EventSystem.item_updated.connect(func(): 
-		sector.show()
+		sector.show.call_deferred()
 	)
 	EventSystem.left_double_clicked.connect(func():
 		if EditorState.selected_unit:
-			unit.show()
-			owner.show()
+			unit.show.call_deferred()
+			owner.show.call_deferred()
 		else:
-			sector.show()
-			owner.show()
+			sector.show.call_deferred()
+			owner.show.call_deferred()
 		)
 	EventSystem.editor_mode_changed.connect(func(): 
 		if EditorState.mode == EditorState.States.TypMapDesign:

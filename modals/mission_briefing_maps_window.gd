@@ -87,11 +87,11 @@ func _on_d_bsize_y_spin_box_value_changed(value: float) -> void:
 
 
 func _on_briefing_map_picker_button_pressed() -> void:
-	briefing_map_picker_window.popup()
+	briefing_map_picker_window.popup.call_deferred()
 
 
 func _on_debriefing_map_picker_button_pressed() -> void:
-	debriefing_map_picker_window.popup()
+	debriefing_map_picker_window.popup.call_deferred()
 
 
 func _on_briefing_map_picker_window_briefing_map_selected(full_map_name: String) -> void:

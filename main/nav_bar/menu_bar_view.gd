@@ -30,7 +30,7 @@ func set_default_values() -> void:
 func _on_index_pressed(index: int) -> void:
 	match get_item_text(index):
 		"Show map properties panel":
-			%PropertiesContainer.show()
+			%PropertiesContainer.show.call_deferred()
 		"Show 3D Preview":
 			EditorState.view_mode_3d = not EditorState.view_mode_3d
 			set_item_checked(index, EditorState.view_mode_3d)

@@ -60,7 +60,7 @@ func _ready() -> void:
 
 func _update_properties() -> void:
 	if EditorState.selected_beam_gate:
-		show()
+		show.call_deferred()
 		beam_gate_info_label.text = 'Beam gate %s' % (CurrentMapData.beam_gates.find(EditorState.selected_beam_gate) + 1)
 		if EditorState.selected_beam_gate.closed_bp == 5:
 			bg_building_option_button.selected = 0
