@@ -13,6 +13,7 @@ const OVERLAY_Y_BIAS := 8.0
 const UA_SECTOR_SPAN := 1200.0
 const UA_SECTOR_HALF := UA_SECTOR_SPAN * 0.5
 const UA_SLURP_HALF_WIDTH := 150.0
+const SUPPORT_BUCKET_CELL_SIZE := 300.0
 const AnimatedSurfaceMeshInstanceScript = preload("res://map/terrain/ua_animated_surface_mesh_instance.gd")
 const AREA_POL_FLAG_GRADIENTSHADE := 0x30
 const AREA_POL_FLAG_SHADE_MASK := 0x30
@@ -33,6 +34,7 @@ static var _baked_piece_registry_cache := {}
 static var _baked_anim_registry_cache := {}
 static var _baked_particles_registry_cache := {}
 static var _baked_support_registry_cache := {}
+static var _support_sampler_cache := {}
 static var _external_source_loading_enabled := true
 static var _external_source_root := LEGACY_SET_ROOT
 
@@ -128,6 +130,7 @@ static func _clear_runtime_caches_for_tests() -> void:
 	_baked_anim_registry_cache.clear()
 	_baked_particles_registry_cache.clear()
 	_baked_support_registry_cache.clear()
+	_support_sampler_cache.clear()
 	_external_source_loading_enabled = true
 	_external_source_root = LEGACY_SET_ROOT
 
@@ -175,42 +178,12 @@ static func _vector3_from_json(value) -> Vector3:
 	return Vector3(float(d.get("x", 0.0)), float(d.get("y", 0.0)), float(d.get("z", 0.0)))
 
 static func _baked_support_height_at_world_position(entry: Dictionary, basis: Basis, origin: Vector3, world_x: float, world_z: float):
-	var surfaces_value = entry.get("surfaces", [])
-	if typeof(surfaces_value) != TYPE_ARRAY:
-		return null
-	var seeded := false
-	var best_y := 0.0
-	for surface_value in Array(surfaces_value):
-		if typeof(surface_value) != TYPE_DICTIONARY:
-			continue
-		var triangles_value = Dictionary(surface_value).get("triangles", [])
-		if typeof(triangles_value) != TYPE_ARRAY:
-			continue
-		for tri_value in Array(triangles_value):
-			if typeof(tri_value) != TYPE_DICTIONARY:
-				continue
-			var verts_value = Dictionary(tri_value).get("verts", [])
-			if typeof(verts_value) != TYPE_ARRAY:
-				continue
-			var verts_arr := Array(verts_value)
-			if verts_arr.size() < 3:
-				continue
-			var a := origin + basis * _vector3_from_json(verts_arr[0])
-			var b := origin + basis * _vector3_from_json(verts_arr[1])
-			var c := origin + basis * _vector3_from_json(verts_arr[2])
-			var sampled = _triangle_support_height_at_world_position(a, b, c, world_x, world_z)
-			if sampled == null:
-				continue
-			var sampled_f := float(sampled)
-			if not seeded or sampled_f > best_y:
-				best_y = sampled_f
-				seeded = true
-	if not seeded:
-		return null
-	return best_y
+	var sampler := _support_sampler_from_baked_entry(entry)
+	return _support_sampler_height_at_world_position(sampler, basis, origin, world_x, world_z)
 
 static func _clear_baked_support_cache_for_tests() -> void:
 	_baked_support_registry_cache.clear()
+	_support_sampler_cache.clear()
 
 static func baked_piece_scene_path(set_id: int, base_name: String) -> String:
 	var entry := _baked_piece_entry(set_id, base_name)
@@ -279,17 +252,16 @@ static func support_height_at_world_position(descriptors: Array, world_x: float,
 		var origin := _piece_position_from_desc(desc)
 		var sampled_height = null
 		var warp_mode := String(desc.get("warp_mode", ""))
+		var warp_sig := _warp_signature(desc)
 		if warp_mode.is_empty():
 			var baked_entry := _baked_support_entry_for_base_name(set_id, base_name)
 			if not baked_entry.is_empty():
 				sampled_height = _baked_support_height_at_world_position(baked_entry, basis, origin, world_x, world_z)
 		if sampled_height == null:
-			var mesh: Mesh = _load_piece_mesh(set_id, base_name)
-			if mesh == null or mesh.get_surface_count() == 0:
+			var sampler := _piece_support_sampler(set_id, base_name, warp_sig, desc)
+			if sampler.is_empty():
 				continue
-			if not warp_mode.is_empty():
-				mesh = _deformed_slurp_mesh(mesh, desc)
-			sampled_height = _mesh_support_height_at_world_position(mesh, basis, origin, world_x, world_z)
+			sampled_height = _support_sampler_height_at_world_position(sampler, basis, origin, world_x, world_z)
 		if sampled_height == null:
 			continue
 		var sampled_height_float := float(sampled_height)
@@ -317,8 +289,82 @@ static func _piece_basis_from_desc(desc: Dictionary) -> Basis:
 	return Basis(Vector3.UP, atan2(-horizontal_forward.x, -horizontal_forward.z))
 
 static func _mesh_support_height_at_world_position(mesh: Mesh, basis: Basis, origin: Vector3, world_x: float, world_z: float):
-	var seeded := false
-	var best_y := 0.0
+	var sampler := _support_sampler_from_mesh(mesh)
+	return _support_sampler_height_at_world_position(sampler, basis, origin, world_x, world_z)
+
+static func _piece_support_sampler(set_id: int, base_name: String, warp_sig: String = "", desc: Dictionary = {}) -> Dictionary:
+	var cleaned := base_name.strip_edges().to_lower()
+	if cleaned.is_empty():
+		return {}
+	var cache_key := "piece:%d:%s:%s" % [maxi(set_id, 1), cleaned, warp_sig]
+	if _support_sampler_cache.has(cache_key):
+		var cached = _support_sampler_cache[cache_key]
+		return cached if typeof(cached) == TYPE_DICTIONARY else {}
+	var mesh: Mesh = _load_piece_mesh(set_id, base_name)
+	if mesh == null or mesh.get_surface_count() == 0:
+		_support_sampler_cache[cache_key] = {}
+		return {}
+	if not warp_sig.is_empty():
+		mesh = _deformed_slurp_mesh(mesh, desc)
+	if mesh == null or mesh.get_surface_count() == 0:
+		_support_sampler_cache[cache_key] = {}
+		return {}
+	var sampler := _support_sampler_from_mesh(mesh)
+	_support_sampler_cache[cache_key] = sampler
+	return sampler
+
+static func _support_sampler_from_baked_entry(entry: Dictionary) -> Dictionary:
+	var cache_key := _support_sampler_cache_key_from_baked_entry(entry)
+	if not cache_key.is_empty() and _support_sampler_cache.has(cache_key):
+		var cached = _support_sampler_cache[cache_key]
+		return cached if typeof(cached) == TYPE_DICTIONARY else {}
+	var triangles: Array = []
+	var surfaces_value = entry.get("surfaces", [])
+	if typeof(surfaces_value) == TYPE_ARRAY:
+		for surface_value in Array(surfaces_value):
+			if typeof(surface_value) != TYPE_DICTIONARY:
+				continue
+			var triangles_value = Dictionary(surface_value).get("triangles", [])
+			if typeof(triangles_value) != TYPE_ARRAY:
+				continue
+			for tri_value in Array(triangles_value):
+				if typeof(tri_value) != TYPE_DICTIONARY:
+					continue
+				var verts_value = Dictionary(tri_value).get("verts", [])
+				if typeof(verts_value) != TYPE_ARRAY:
+					continue
+				var verts_arr := Array(verts_value)
+				if verts_arr.size() < 3:
+					continue
+				_append_support_triangle_record(
+					triangles,
+					_vector3_from_json(verts_arr[0]),
+					_vector3_from_json(verts_arr[1]),
+					_vector3_from_json(verts_arr[2])
+				)
+	var sampler := _support_sampler_from_triangle_records(triangles)
+	if not cache_key.is_empty():
+		_support_sampler_cache[cache_key] = sampler
+	return sampler
+
+static func _support_sampler_cache_key_from_baked_entry(entry: Dictionary) -> String:
+	var bounds_value = entry.get("bounds_aabb", {})
+	var max_height := float(entry.get("max_height", 0.0))
+	var triangle_count := int(entry.get("triangle_count", 0))
+	if typeof(bounds_value) != TYPE_DICTIONARY:
+		return ""
+	var bounds := bounds_value as Dictionary
+	return "baked:%s:%s:%.3f:%d" % [
+		JSON.stringify(bounds.get("min", {}), "", false),
+		JSON.stringify(bounds.get("max", {}), "", false),
+		max_height,
+		triangle_count
+	]
+
+static func _support_sampler_from_mesh(mesh: Mesh) -> Dictionary:
+	if mesh == null:
+		return {}
+	var triangles: Array = []
 	for surface_idx in mesh.get_surface_count():
 		var arrays := mesh.surface_get_arrays(surface_idx)
 		var verts: PackedVector3Array = arrays[Mesh.ARRAY_VERTEX]
@@ -329,33 +375,133 @@ static func _mesh_support_height_at_world_position(mesh: Mesh, basis: Basis, ori
 			for i in range(0, verts.size(), 3):
 				if i + 2 >= verts.size():
 					break
-				var direct_height = _triangle_support_height_at_world_position(
-					origin + basis * verts[i],
-					origin + basis * verts[i + 1],
-					origin + basis * verts[i + 2],
-					world_x,
-					world_z
-				)
-				if direct_height != null and (not seeded or float(direct_height) > best_y):
-					best_y = float(direct_height)
-					seeded = true
+				_append_support_triangle_record(triangles, verts[i], verts[i + 1], verts[i + 2])
 			continue
 		for i in range(0, indices.size(), 3):
 			if i + 2 >= indices.size():
 				break
-			var indexed_height = _triangle_support_height_at_world_position(
-				origin + basis * verts[indices[i]],
-				origin + basis * verts[indices[i + 1]],
-				origin + basis * verts[indices[i + 2]],
-				world_x,
-				world_z
-			)
-			if indexed_height != null and (not seeded or float(indexed_height) > best_y):
-				best_y = float(indexed_height)
-				seeded = true
+			_append_support_triangle_record(triangles, verts[indices[i]], verts[indices[i + 1]], verts[indices[i + 2]])
+	return _support_sampler_from_triangle_records(triangles)
+
+static func _append_support_triangle_record(out: Array, a: Vector3, b: Vector3, c: Vector3) -> void:
+	var normal := (b - a).cross(c - a)
+	if normal.length_squared() <= 0.000001:
+		return
+	if absf(normal.normalized().y) <= 0.0001:
+		return
+	var denominator := ((b.z - c.z) * (a.x - c.x)) + ((c.x - b.x) * (a.z - c.z))
+	if absf(denominator) <= 0.000001:
+		return
+	out.append({
+		"a": a,
+		"b": b,
+		"c": c,
+		"denominator": denominator,
+		"min_x": minf(a.x, minf(b.x, c.x)),
+		"max_x": maxf(a.x, maxf(b.x, c.x)),
+		"min_z": minf(a.z, minf(b.z, c.z)),
+		"max_z": maxf(a.z, maxf(b.z, c.z)),
+	})
+
+static func _support_sampler_from_triangle_records(triangles: Array) -> Dictionary:
+	if triangles.is_empty():
+		return {}
+	var min_v := Vector3(INF, INF, INF)
+	var max_v := Vector3(-INF, -INF, -INF)
+	var buckets := {}
+	for tri_index in triangles.size():
+		var tri_value = triangles[tri_index]
+		if typeof(tri_value) != TYPE_DICTIONARY:
+			continue
+		var tri := tri_value as Dictionary
+		var a := Vector3(tri.get("a", Vector3.ZERO))
+		var b := Vector3(tri.get("b", Vector3.ZERO))
+		var c := Vector3(tri.get("c", Vector3.ZERO))
+		min_v = min_v.min(a).min(b).min(c)
+		max_v = max_v.max(a).max(b).max(c)
+		var min_cell_x := _support_bucket_coord(float(tri.get("min_x", 0.0)))
+		var max_cell_x := _support_bucket_coord(float(tri.get("max_x", 0.0)))
+		var min_cell_z := _support_bucket_coord(float(tri.get("min_z", 0.0)))
+		var max_cell_z := _support_bucket_coord(float(tri.get("max_z", 0.0)))
+		for cell_x in range(min_cell_x, max_cell_x + 1):
+			for cell_z in range(min_cell_z, max_cell_z + 1):
+				var bucket_key := _support_bucket_key(cell_x, cell_z)
+				var bucket: Array = buckets.get(bucket_key, [])
+				bucket.append(tri_index)
+				buckets[bucket_key] = bucket
+	if min_v == Vector3(INF, INF, INF) or max_v == Vector3(-INF, -INF, -INF):
+		return {}
+	return {
+		"bounds_min": min_v,
+		"bounds_max": max_v,
+		"buckets": buckets,
+		"triangles": triangles,
+	}
+
+static func _support_sampler_height_at_world_position(sampler: Dictionary, basis: Basis, origin: Vector3, world_x: float, world_z: float):
+	if sampler.is_empty():
+		return null
+	var local := basis.inverse() * Vector3(world_x - origin.x, 0.0, world_z - origin.z)
+	var local_y = _support_sampler_height_at_local_position(sampler, local.x, local.z)
+	if local_y == null:
+		return null
+	return origin.y + float(local_y)
+
+static func _support_sampler_height_at_local_position(sampler: Dictionary, local_x: float, local_z: float):
+	var bounds_min := Vector3(sampler.get("bounds_min", Vector3.ZERO))
+	var bounds_max := Vector3(sampler.get("bounds_max", Vector3.ZERO))
+	if local_x < bounds_min.x - 0.001 or local_x > bounds_max.x + 0.001 or local_z < bounds_min.z - 0.001 or local_z > bounds_max.z + 0.001:
+		return null
+	var bucket_key := _support_bucket_key(_support_bucket_coord(local_x), _support_bucket_coord(local_z))
+	var candidate_indices_value = sampler.get("buckets", {}).get(bucket_key, [])
+	if typeof(candidate_indices_value) != TYPE_ARRAY:
+		return null
+	var triangles_value = sampler.get("triangles", [])
+	if typeof(triangles_value) != TYPE_ARRAY:
+		return null
+	var triangles := Array(triangles_value)
+	var seeded := false
+	var best_y := 0.0
+	for index_value in Array(candidate_indices_value):
+		var tri_index := int(index_value)
+		if tri_index < 0 or tri_index >= triangles.size():
+			continue
+		var tri_value = triangles[tri_index]
+		if typeof(tri_value) != TYPE_DICTIONARY:
+			continue
+		var tri := tri_value as Dictionary
+		if local_x < float(tri.get("min_x", 0.0)) - 0.001 or local_x > float(tri.get("max_x", 0.0)) + 0.001 or local_z < float(tri.get("min_z", 0.0)) - 0.001 or local_z > float(tri.get("max_z", 0.0)) + 0.001:
+			continue
+		var sampled = _triangle_support_height_at_local_position(tri, local_x, local_z)
+		if sampled == null:
+			continue
+		var sampled_f := float(sampled)
+		if not seeded or sampled_f > best_y:
+			best_y = sampled_f
+			seeded = true
 	if not seeded:
 		return null
 	return best_y
+
+static func _support_bucket_coord(value: float) -> int:
+	return int(floor(value / SUPPORT_BUCKET_CELL_SIZE))
+
+static func _support_bucket_key(cell_x: int, cell_z: int) -> String:
+	return "%d:%d" % [cell_x, cell_z]
+
+static func _triangle_support_height_at_local_position(tri: Dictionary, local_x: float, local_z: float):
+	var a := Vector3(tri.get("a", Vector3.ZERO))
+	var b := Vector3(tri.get("b", Vector3.ZERO))
+	var c := Vector3(tri.get("c", Vector3.ZERO))
+	var denominator := float(tri.get("denominator", 0.0))
+	if absf(denominator) <= 0.000001:
+		return null
+	var alpha := (((b.z - c.z) * (local_x - c.x)) + ((c.x - b.x) * (local_z - c.z))) / denominator
+	var beta := (((c.z - a.z) * (local_x - c.x)) + ((a.x - c.x) * (local_z - c.z))) / denominator
+	var gamma := 1.0 - alpha - beta
+	if alpha < -0.001 or beta < -0.001 or gamma < -0.001:
+		return null
+	return (alpha * a.y) + (beta * b.y) + (gamma * c.y)
 
 static func _triangle_support_height_at_world_position(a: Vector3, b: Vector3, c: Vector3, world_x: float, world_z: float):
 	var normal := (b - a).cross(c - a)
