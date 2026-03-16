@@ -105,7 +105,7 @@ static func build_edge_overlay_result(hgt: PackedByteArray, w: int, h: int, typ:
 			if UATerrainPieceLibraryScript.has_piece_source(set_id, base_name):
 				authored_piece_descriptors.append({
 					"set_id": set_id,
-					"raw_id": -1,
+					"raw_id": - 1,
 					"base_name": base_name,
 					"instance_key": "slurp:v:%d:%d:%d:%d:%d" % [set_id, x, y, sa, sb],
 					"origin": _sector_center_origin(x + 1, y, yR),
@@ -137,7 +137,7 @@ static func build_edge_overlay_result(hgt: PackedByteArray, w: int, h: int, typ:
 			if UATerrainPieceLibraryScript.has_piece_source(set_id, base_name_h):
 				authored_piece_descriptors.append({
 					"set_id": set_id,
-					"raw_id": -1,
+					"raw_id": - 1,
 					"base_name": base_name_h,
 					"instance_key": "slurp:h:%d:%d:%d:%d:%d" % [set_id, x2, y2, sa2, sb2],
 					"origin": _sector_center_origin(x2, y2 + 1, yB),
@@ -190,3 +190,109 @@ static func _append_horizontal_fallback_group(groups: Dictionary, bucket_key: St
 		st.begin(Mesh.PRIMITIVE_TRIANGLES)
 		groups[bucket_key] = st
 	_append_horizontal_seam_strip(st, x0, x1, seam_z - EDGE_SLOPE, seam_z, seam_z + EDGE_SLOPE, top_height, bottom_height, left_avg, right_avg)
+
+
+static func build_chunk_edge_overlay_result(
+	chunk_coord: Vector2i,
+	hgt: PackedByteArray,
+	w: int,
+	h: int,
+	typ: PackedByteArray,
+	mapping: Dictionary,
+	set_id: int
+) -> Dictionary:
+	var authored_piece_descriptors: Array = []
+	var fallback_horiz := {}
+	var fallback_vert := {}
+
+	var chunk_range := TerrainBuilder.chunk_sector_range(chunk_coord.x, chunk_coord.y)
+	var sx_min := chunk_range.position.x
+	var sy_min := chunk_range.position.y
+	var sx_max := mini(sx_min + TerrainBuilder.CHUNK_SIZE, w)
+	var sy_max := mini(sy_min + TerrainBuilder.CHUNK_SIZE, h)
+
+	for y in range(sy_min - 1, sy_max + 1):
+		for x in range(sx_min - 1, sx_max):
+			if x < -1 or x >= w or y < -1 or y >= h + 1:
+				continue
+			var a := TerrainBuilder._typ_value_with_implicit_border(typ, w, h, x, y)
+			var b := TerrainBuilder._typ_value_with_implicit_border(typ, w, h, x + 1, y)
+			if not mapping.has(a) or not mapping.has(b):
+				continue
+			var sa := int(mapping.get(a, 0))
+			var sb := int(mapping.get(b, 0))
+			var yL := TerrainBuilder._center_h(hgt, w, h, x, y)
+			var yR := TerrainBuilder._center_h(hgt, w, h, x + 1, y)
+			var yTopAvg := TerrainBuilder._corner_average_h(hgt, w, h, x + 1, y)
+			var yBottomAvg := TerrainBuilder._corner_average_h(hgt, w, h, x + 1, y + 1)
+			if not _should_emit_seam_strip(sa, sb, yL, yR, yTopAvg, yBottomAvg):
+				continue
+			var base_name := _authored_slurp_base_name(sa, sb, true)
+			if UATerrainPieceLibraryScript.has_piece_source(set_id, base_name):
+				authored_piece_descriptors.append({
+					"set_id": set_id,
+					"raw_id": - 1,
+					"base_name": base_name,
+					"instance_key": "slurp:v:%d:%d:%d:%d:%d" % [set_id, x, y, sa, sb],
+					"origin": _sector_center_origin(x + 1, y, yR),
+					"warp_mode": "vside",
+					"anchor_height": yR,
+					"left_height": yL,
+					"right_height": yR,
+					"top_avg": yTopAvg,
+					"bottom_avg": yBottomAvg,
+				})
+				continue
+			_append_vertical_fallback_group(fallback_horiz, _retail_slurp_bucket_key(sa, sb, 1, 0), float(x + 2) * SECTOR_SIZE, float(y + 1) * SECTOR_SIZE, float(y + 2) * SECTOR_SIZE, yL, yR, yTopAvg, yBottomAvg)
+
+	for y2 in range(sy_min - 1, sy_max):
+		for x2 in range(sx_min - 1, sx_max + 1):
+			if x2 < -1 or x2 >= w + 1 or y2 < -1 or y2 >= h:
+				continue
+			var a2 := TerrainBuilder._typ_value_with_implicit_border(typ, w, h, x2, y2)
+			var b2 := TerrainBuilder._typ_value_with_implicit_border(typ, w, h, x2, y2 + 1)
+			if not mapping.has(a2) or not mapping.has(b2):
+				continue
+			var sa2 := int(mapping.get(a2, 0))
+			var sb2 := int(mapping.get(b2, 0))
+			var yT := TerrainBuilder._center_h(hgt, w, h, x2, y2)
+			var yB := TerrainBuilder._center_h(hgt, w, h, x2, y2 + 1)
+			var yLeftAvg := TerrainBuilder._corner_average_h(hgt, w, h, x2, y2 + 1)
+			var yRightAvg := TerrainBuilder._corner_average_h(hgt, w, h, x2 + 1, y2 + 1)
+			if not _should_emit_seam_strip(sa2, sb2, yT, yB, yLeftAvg, yRightAvg):
+				continue
+			var base_name_h := _authored_slurp_base_name(sa2, sb2, false)
+			if UATerrainPieceLibraryScript.has_piece_source(set_id, base_name_h):
+				authored_piece_descriptors.append({
+					"set_id": set_id,
+					"raw_id": - 1,
+					"base_name": base_name_h,
+					"instance_key": "slurp:h:%d:%d:%d:%d:%d" % [set_id, x2, y2, sa2, sb2],
+					"origin": _sector_center_origin(x2, y2 + 1, yB),
+					"warp_mode": "hside",
+					"anchor_height": yB,
+					"top_height": yT,
+					"bottom_height": yB,
+					"left_avg": yLeftAvg,
+					"right_avg": yRightAvg,
+				})
+				continue
+			_append_horizontal_fallback_group(fallback_vert, _retail_slurp_bucket_key(sa2, sb2, 0, 1), float(x2 + 1) * SECTOR_SIZE, float(x2 + 2) * SECTOR_SIZE, float(y2 + 2) * SECTOR_SIZE, yT, yB, yLeftAvg, yRightAvg)
+
+	var fallback_mesh := ArrayMesh.new()
+	for key_h in fallback_horiz.keys():
+		var st_h: SurfaceTool = fallback_horiz[key_h]
+		st_h.index()
+		st_h.generate_normals()
+		st_h.commit(fallback_mesh)
+	for key_v in fallback_vert.keys():
+		var st_v: SurfaceTool = fallback_vert[key_v]
+		st_v.index()
+		st_v.generate_normals()
+		st_v.commit(fallback_mesh)
+	return {
+		"authored_piece_descriptors": authored_piece_descriptors,
+		"mesh": fallback_mesh if fallback_mesh.get_surface_count() > 0 else null,
+		"fallback_horiz_keys": fallback_horiz.keys(),
+		"fallback_vert_keys": fallback_vert.keys(),
+	}

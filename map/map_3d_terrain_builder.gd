@@ -425,3 +425,123 @@ static func all_chunks_for_map(map_w: int, map_h: int) -> Array[Vector2i]:
 		for cx in chunk_count.x:
 			result.append(Vector2i(cx, cy))
 	return result
+
+
+static func build_chunk_mesh_with_textures(
+	chunk_coord: Vector2i,
+	hgt: PackedByteArray,
+	typ: PackedByteArray,
+	w: int,
+	h: int,
+	mapping: Dictionary,
+	subsector_patterns: Dictionary = {},
+	tile_mapping: Dictionary = {},
+	tile_remap: Dictionary = {},
+	subsector_idx_remap: Dictionary = {},
+	lego_defs: Dictionary = {},
+	set_id: int = 1,
+	include_border: bool = true
+) -> Dictionary:
+	var bw := w + 2
+	var bh := h + 2
+	if hgt.size() != bw * bh or typ.size() != w * h or w <= 0 or h <= 0:
+		return {"mesh": ArrayMesh.new(), "surface_to_surface_type": {}, "authored_piece_descriptors": []}
+
+	var chunk_range := chunk_sector_range(chunk_coord.x, chunk_coord.y)
+	var sx_min := chunk_range.position.x
+	var sy_min := chunk_range.position.y
+	var sx_max := mini(sx_min + CHUNK_SIZE, w)
+	var sy_max := mini(sy_min + CHUNK_SIZE, h)
+
+	if include_border:
+		sx_min = maxi(sx_min - 1, -1)
+		sy_min = maxi(sy_min - 1, -1)
+		sx_max = mini(sx_max + 1, w + 1)
+		sy_max = mini(sy_max + 1, h + 1)
+
+	var surface_tools := {}
+	var surface_type_order: Array[int] = []
+	for i in 6:
+		var st := SurfaceTool.new()
+		st.begin(Mesh.PRIMITIVE_TRIANGLES)
+		surface_tools[i] = st
+		surface_type_order.append(i)
+	var st_invalid := SurfaceTool.new()
+	st_invalid.begin(Mesh.PRIMITIVE_TRIANGLES)
+	surface_tools[-1] = st_invalid
+	surface_type_order.append(-1)
+	var authored_piece_descriptors: Array = []
+
+	for y in range(sy_min, sy_max):
+		for x in range(sx_min, sx_max):
+			var typ_value := _typ_value_with_implicit_border(typ, w, h, x, y)
+			var surface_type := _preview_surface_type_for_typ(mapping, typ_value)
+			var st: SurfaceTool = surface_tools[surface_type]
+			var sector_y := _sample_hgt_height(hgt, w, h, x, y)
+			var x0 := float(x + 1) * SECTOR_SIZE
+			var x1 := float(x + 2) * SECTOR_SIZE
+			var z0 := float(y + 1) * SECTOR_SIZE
+			var z1 := float(y + 2) * SECTOR_SIZE
+			if surface_type == -1:
+				_draw_quad(st, x0, x1, z0, z1, sector_y, 0, 1, 0)
+				continue
+
+			var pattern := _sector_pattern_for_typ(subsector_patterns, typ_value, surface_type)
+			var sector_type := int(pattern.get("sector_type", 1))
+			var subsectors: PackedInt32Array = pattern.get("subsectors", PackedInt32Array())
+			if sector_type == 0 and subsectors.size() >= 9:
+				var piece_w := SECTOR_SIZE / 3.0
+				var piece_h := SECTOR_SIZE / 3.0
+				for sub_y in 3:
+					for sub_x in 3:
+						var sub_idx := sub_y * 3 + sub_x
+						var selection := _default_piece_selection_for_subsector(surface_type, int(subsectors[sub_idx]), tile_mapping, tile_remap, subsector_idx_remap)
+						var piece: Array = selection.get("piece", [surface_type, (16 if surface_type == 4 else 4), 0])
+						var piece_x0 := x0 + float(sub_x) * piece_w
+						var piece_x1 := x0 + float(sub_x + 1) * piece_w
+						var piece_z0 := z0 + float(sub_y) * piece_h
+						var piece_z1 := z0 + float(sub_y + 1) * piece_h
+						var authored := UATerrainPieceLibraryScript.resolve_authored_descriptor(
+							set_id,
+							int(selection.get("raw_id", -1)),
+							lego_defs,
+							_authored_origin_for_subsector(x0, z0, sector_y, sub_x, sub_y)
+						)
+						if not authored.is_empty():
+							authored["instance_key"] = "terrain:%d:%d:%d:%d:%d:%d" % [
+								set_id, x, y, sub_x, sub_y, int(authored.get("raw_id", -1))
+							]
+							authored_piece_descriptors.append(authored)
+							continue
+						_draw_quad(st, piece_x0, piece_x1, piece_z0, piece_z1, sector_y, int(piece[0]), int(piece[1]), int(piece[2]))
+			else:
+				var piece := [surface_type, (16 if surface_type == 4 else 4), 0]
+				var authored := {}
+				if subsectors.size() > 0:
+					var selection := _default_piece_selection_for_subsector(surface_type, int(subsectors[0]), tile_mapping, tile_remap, subsector_idx_remap)
+					piece = selection.get("piece", piece)
+					authored = UATerrainPieceLibraryScript.resolve_authored_descriptor(
+						set_id,
+						int(selection.get("raw_id", -1)),
+						lego_defs,
+						Vector3((x0 + x1) * 0.5, sector_y, (z0 + z1) * 0.5)
+					)
+				if authored.is_empty():
+					_draw_quad(st, x0, x1, z0, z1, sector_y, int(piece[0]), int(piece[1]), int(piece[2]))
+				else:
+					authored["instance_key"] = "terrain:%d:%d:%d:%d" % [set_id, x, y, int(authored.get("raw_id", -1))]
+					authored_piece_descriptors.append(authored)
+
+	var mesh := ArrayMesh.new()
+	var surface_to_surface_type := {}
+	for i in surface_type_order.size():
+		var surface_type: int = surface_type_order[i]
+		var st: SurfaceTool = surface_tools[surface_type]
+		var arrays := st.commit_to_arrays()
+		if arrays.size() == 0 or arrays[Mesh.ARRAY_VERTEX] == null or (arrays[Mesh.ARRAY_VERTEX] as PackedVector3Array).size() == 0:
+			continue
+		st.index()
+		st.generate_normals()
+		st.commit(mesh)
+		surface_to_surface_type[mesh.get_surface_count() - 1] = surface_type
+	return {"mesh": mesh, "surface_to_surface_type": surface_to_surface_type, "authored_piece_descriptors": authored_piece_descriptors}

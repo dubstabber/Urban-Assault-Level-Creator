@@ -131,6 +131,13 @@ var _refresh_deferred := false
 var _refresh_requested_at_usec := 0
 var _last_build_metrics: Dictionary = {}
 
+var _chunked_terrain_enabled := true
+var _terrain_chunk_nodes: Dictionary = {}
+var _edge_chunk_nodes: Dictionary = {}
+var _dirty_chunks: Dictionary = {}
+var _last_map_dimensions: Vector2i = Vector2i.ZERO
+var _last_level_set: int = -1
+
 
 func set_event_system_override(event_system: Node) -> void:
 	_event_system_override = event_system
@@ -469,48 +476,77 @@ func build_from_current_map() -> void:
 		return
 
 	metrics["used_textured_preloads"] = true
-	var terrain_started_usec := Time.get_ticks_usec()
-	var result := build_mesh_with_textures(
-		hgt,
-		effective_typ,
-		w,
-		h,
-		pre.surface_type_map,
-		pre.subsector_patterns,
-		pre.tile_mapping,
-		pre.tile_remap,
-		pre.subsector_idx_remap,
-		pre.lego_defs,
-		int(_cmd.level_set)
-	)
-	metrics["terrain_build_ms"] = _elapsed_ms_since(terrain_started_usec)
-	var mesh: ArrayMesh = result["mesh"]
-	var surface_to_surface_type: Dictionary = result["surface_to_surface_type"]
-	var authored_piece_descriptors: Array = result.get("authored_piece_descriptors", [])
-	metrics["terrain_authored_descriptor_count"] = authored_piece_descriptors.size()
-	var support_descriptors := authored_piece_descriptors.duplicate()
-	var overlay_descriptors := authored_piece_descriptors.duplicate()
-	print("[Map3D] build_from_current_map: built textured mesh with surfaces=", mesh.get_surface_count())
-	if _terrain_mesh:
-		_terrain_mesh.mesh = mesh
-		print("[Map3D] build_from_current_map: mesh assigned to TerrainMesh")
-		_apply_sector_top_materials(mesh, pre, surface_to_surface_type)
+	var level_set := int(_cmd.level_set)
+	var use_chunked := _chunked_terrain_enabled and not _needs_full_rebuild(w, h, level_set)
 
-	# Edge overlay now prefers authored retail slurp pieces (`SxyV` / `SxyH`) and only
-	# falls back to the older blended strip approximation when a slurp asset is unavailable.
-	var edge_started_usec := Time.get_ticks_usec()
-	if _edge_overlay_enabled and effective_typ.size() == w * h:
-		var edge_result := _build_edge_overlay_result(hgt, w, h, effective_typ, pre.surface_type_map, int(_cmd.level_set), pre)
-		var edge_authored_descriptors: Array = edge_result.get("authored_piece_descriptors", [])
-		metrics["edge_authored_descriptor_count"] = edge_authored_descriptors.size()
-		support_descriptors.append_array(edge_authored_descriptors)
-		overlay_descriptors.append_array(edge_authored_descriptors)
-		_ensure_edge_node()
-		_edge_mesh.mesh = edge_result.get("mesh", null)
-	else:
+	var terrain_started_usec := Time.get_ticks_usec()
+	var authored_piece_descriptors: Array = []
+	var support_descriptors: Array = []
+	var overlay_descriptors: Array = []
+
+	if use_chunked and not _dirty_chunks.is_empty():
+		# Incremental chunk rebuild
+		if _terrain_mesh:
+			_terrain_mesh.mesh = null
 		if _edge_mesh:
 			_edge_mesh.mesh = null
-	metrics["edge_slurp_build_ms"] = _elapsed_ms_since(edge_started_usec)
+		authored_piece_descriptors = _rebuild_dirty_chunks(hgt, effective_typ, w, h, pre, level_set, metrics)
+		metrics["terrain_build_ms"] = _elapsed_ms_since(terrain_started_usec)
+		metrics["terrain_authored_descriptor_count"] = authored_piece_descriptors.size()
+		metrics["incremental_rebuild"] = true
+		support_descriptors = authored_piece_descriptors.duplicate()
+		overlay_descriptors = authored_piece_descriptors.duplicate()
+		print("[Map3D] build_from_current_map: incremental chunk rebuild, chunks=", metrics.get("chunks_rebuilt", 0))
+	else:
+		# Full rebuild (legacy path or first build)
+		_clear_chunk_nodes()
+		_invalidate_all_chunks(w, h)
+		_last_map_dimensions = Vector2i(w, h)
+		_last_level_set = level_set
+
+		var result := build_mesh_with_textures(
+			hgt,
+			effective_typ,
+			w,
+			h,
+			pre.surface_type_map,
+			pre.subsector_patterns,
+			pre.tile_mapping,
+			pre.tile_remap,
+			pre.subsector_idx_remap,
+			pre.lego_defs,
+			level_set
+		)
+		metrics["terrain_build_ms"] = _elapsed_ms_since(terrain_started_usec)
+		var mesh: ArrayMesh = result["mesh"]
+		var surface_to_surface_type: Dictionary = result["surface_to_surface_type"]
+		authored_piece_descriptors = result.get("authored_piece_descriptors", [])
+		metrics["terrain_authored_descriptor_count"] = authored_piece_descriptors.size()
+		metrics["incremental_rebuild"] = false
+		support_descriptors = authored_piece_descriptors.duplicate()
+		overlay_descriptors = authored_piece_descriptors.duplicate()
+		print("[Map3D] build_from_current_map: full rebuild, textured mesh surfaces=", mesh.get_surface_count())
+		if _terrain_mesh:
+			_terrain_mesh.mesh = mesh
+			print("[Map3D] build_from_current_map: mesh assigned to TerrainMesh")
+			_apply_sector_top_materials(mesh, pre, surface_to_surface_type)
+
+		# Edge overlay now prefers authored retail slurp pieces (`SxyV` / `SxyH`) and only
+		# falls back to the older blended strip approximation when a slurp asset is unavailable.
+		var edge_started_usec := Time.get_ticks_usec()
+		if _edge_overlay_enabled and effective_typ.size() == w * h:
+			var edge_result := _build_edge_overlay_result(hgt, w, h, effective_typ, pre.surface_type_map, level_set, pre)
+			var edge_authored_descriptors: Array = edge_result.get("authored_piece_descriptors", [])
+			metrics["edge_authored_descriptor_count"] = edge_authored_descriptors.size()
+			support_descriptors.append_array(edge_authored_descriptors)
+			overlay_descriptors.append_array(edge_authored_descriptors)
+			_ensure_edge_node()
+			_edge_mesh.mesh = edge_result.get("mesh", null)
+		else:
+			if _edge_mesh:
+				_edge_mesh.mesh = null
+		metrics["edge_slurp_build_ms"] = _elapsed_ms_since(edge_started_usec)
+		_dirty_chunks.clear()
 	var overlay_descriptor_started_usec := Time.get_ticks_usec()
 	overlay_descriptors.append_array(_build_blg_attachment_descriptors(blg, effective_typ, int(_cmd.level_set), hgt, w, h, support_descriptors, game_data_type))
 	if _cmd.host_stations != null and is_instance_valid(_cmd.host_stations):
@@ -540,7 +576,173 @@ func clear() -> void:
 		_terrain_mesh.mesh = null
 	if _edge_mesh:
 		_edge_mesh.mesh = null
+	_clear_chunk_nodes()
 	_set_authored_overlay([])
+
+
+func _clear_chunk_nodes() -> void:
+	for chunk_key in _terrain_chunk_nodes.keys():
+		var node: Node = _terrain_chunk_nodes[chunk_key]
+		if node != null and is_instance_valid(node):
+			node.queue_free()
+	_terrain_chunk_nodes.clear()
+	for chunk_key in _edge_chunk_nodes.keys():
+		var node: Node = _edge_chunk_nodes[chunk_key]
+		if node != null and is_instance_valid(node):
+			node.queue_free()
+	_edge_chunk_nodes.clear()
+	_dirty_chunks.clear()
+
+
+func _invalidate_all_chunks(w: int, h: int) -> void:
+	_dirty_chunks.clear()
+	var all_chunks := TerrainBuilder.all_chunks_for_map(w, h)
+	for chunk_coord in all_chunks:
+		_dirty_chunks[chunk_coord] = true
+
+
+func _invalidate_chunks_for_sector_edit(sx: int, sy: int, w: int, h: int, edit_type: String) -> void:
+	var affected: Array[Vector2i]
+	if edit_type == "hgt" or edit_type == "typ":
+		affected = TerrainBuilder.chunks_for_hgt_edit(sx, sy, w, h)
+	else:
+		affected = TerrainBuilder.chunks_for_blg_edit(sx, sy, w, h)
+	for chunk_coord in affected:
+		_dirty_chunks[chunk_coord] = true
+
+
+func mark_sector_dirty(sx: int, sy: int, edit_type: String = "hgt") -> void:
+	var _cmd = _current_map_data()
+	if _cmd == null:
+		return
+	var w := int(_cmd.horizontal_sectors)
+	var h := int(_cmd.vertical_sectors)
+	if w <= 0 or h <= 0:
+		return
+	_invalidate_chunks_for_sector_edit(sx, sy, w, h, edit_type)
+
+
+func mark_sectors_dirty(sectors: Array, edit_type: String = "hgt") -> void:
+	var _cmd = _current_map_data()
+	if _cmd == null:
+		return
+	var w := int(_cmd.horizontal_sectors)
+	var h := int(_cmd.vertical_sectors)
+	if w <= 0 or h <= 0:
+		return
+	for sector in sectors:
+		if sector is Vector2i:
+			_invalidate_chunks_for_sector_edit(sector.x, sector.y, w, h, edit_type)
+		elif sector is Vector2:
+			_invalidate_chunks_for_sector_edit(int(sector.x), int(sector.y), w, h, edit_type)
+
+
+func get_dirty_chunk_count() -> int:
+	return _dirty_chunks.size()
+
+
+func is_using_chunked_terrain() -> bool:
+	return _chunked_terrain_enabled
+
+
+func set_chunked_terrain_enabled(enabled: bool) -> void:
+	_chunked_terrain_enabled = enabled
+
+
+func _needs_full_rebuild(w: int, h: int, level_set: int) -> bool:
+	var dims := Vector2i(w, h)
+	if dims != _last_map_dimensions:
+		return true
+	if level_set != _last_level_set:
+		return true
+	if _terrain_chunk_nodes.is_empty():
+		return true
+	return false
+
+
+func _get_or_create_terrain_chunk_node(chunk_coord: Vector2i) -> MeshInstance3D:
+	if _terrain_chunk_nodes.has(chunk_coord):
+		var existing = _terrain_chunk_nodes[chunk_coord]
+		if existing != null and is_instance_valid(existing):
+			return existing as MeshInstance3D
+	var node := MeshInstance3D.new()
+	node.name = "TerrainChunk_%d_%d" % [chunk_coord.x, chunk_coord.y]
+	if _terrain_mesh:
+		_terrain_mesh.add_child(node)
+	_terrain_chunk_nodes[chunk_coord] = node
+	return node
+
+
+func _get_or_create_edge_chunk_node(chunk_coord: Vector2i) -> MeshInstance3D:
+	if _edge_chunk_nodes.has(chunk_coord):
+		var existing = _edge_chunk_nodes[chunk_coord]
+		if existing != null and is_instance_valid(existing):
+			return existing as MeshInstance3D
+	var node := MeshInstance3D.new()
+	node.name = "EdgeChunk_%d_%d" % [chunk_coord.x, chunk_coord.y]
+	_ensure_edge_node()
+	if _edge_mesh:
+		_edge_mesh.add_child(node)
+	_edge_chunk_nodes[chunk_coord] = node
+	return node
+
+
+func _rebuild_dirty_chunks(
+	hgt: PackedByteArray,
+	effective_typ: PackedByteArray,
+	w: int,
+	h: int,
+	pre: Node,
+	level_set: int,
+	metrics: Dictionary
+) -> Array:
+	var all_authored_descriptors: Array = []
+	var chunks_rebuilt := 0
+
+	for chunk_coord in _dirty_chunks.keys():
+		var terrain_result := TerrainBuilder.build_chunk_mesh_with_textures(
+			chunk_coord,
+			hgt,
+			effective_typ,
+			w,
+			h,
+			pre.surface_type_map,
+			pre.subsector_patterns,
+			pre.tile_mapping,
+			pre.tile_remap,
+			pre.subsector_idx_remap,
+			pre.lego_defs,
+			level_set,
+			true
+		)
+		var chunk_node := _get_or_create_terrain_chunk_node(chunk_coord)
+		chunk_node.mesh = terrain_result["mesh"]
+		_apply_sector_top_materials(terrain_result["mesh"], pre, terrain_result["surface_to_surface_type"])
+
+		var terrain_descriptors: Array = terrain_result.get("authored_piece_descriptors", [])
+		all_authored_descriptors.append_array(terrain_descriptors)
+
+		if _edge_overlay_enabled:
+			var edge_result := SlurpBuilder.build_chunk_edge_overlay_result(
+				chunk_coord,
+				hgt,
+				w,
+				h,
+				effective_typ,
+				pre.surface_type_map,
+				level_set
+			)
+			var edge_chunk_node := _get_or_create_edge_chunk_node(chunk_coord)
+			edge_chunk_node.mesh = edge_result.get("mesh", null)
+
+			var edge_descriptors: Array = edge_result.get("authored_piece_descriptors", [])
+			all_authored_descriptors.append_array(edge_descriptors)
+
+		chunks_rebuilt += 1
+
+	_dirty_chunks.clear()
+	metrics["chunks_rebuilt"] = chunks_rebuilt
+	return all_authored_descriptors
 
 func _set_authored_overlay(descriptors: Array) -> void:
 	if _authored_overlay == null or not is_instance_valid(_authored_overlay):
