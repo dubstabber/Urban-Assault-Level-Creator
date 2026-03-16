@@ -6,6 +6,7 @@ const MAX_PARTICLES := 96
 var _stages: Array = []
 var _particles: Array = []
 var _node_pool: Array = []
+var _current_stage_meshes: Array = []
 var _global_time_sec := 0.0
 var _emitter_age_ms := 0.0
 var _spawn_accumulator_ms := 0.0
@@ -70,6 +71,9 @@ func _process(delta: float) -> void:
 		return
 	var delta_ms := delta * 1000.0
 	_global_time_sec += delta
+	_current_stage_meshes.resize(_stages.size())
+	for stage_idx in _stages.size():
+		_current_stage_meshes[stage_idx] = _mesh_for_stage(stage_idx)
 	_emitter_age_ms += delta_ms
 	if _emitter_age_ms >= _cycle_length_ms:
 		_emitter_age_ms = fposmod(_emitter_age_ms, _cycle_length_ms)
@@ -96,11 +100,15 @@ func _spawn_particle(initial_age_ms: float) -> void:
 		particle_node = MeshInstance3D.new()
 		particle_node.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
 		add_child(particle_node)
+	var initial_stage := mini(int(floor(initial_age_ms / max(_life_per_stage_ms, 1.0))), _stages.size() - 1) if not _stages.is_empty() else -1
+	if initial_stage >= 0 and initial_stage < _current_stage_meshes.size():
+		particle_node.mesh = _current_stage_meshes[initial_stage]
 	_particles.append({
 		"node": particle_node,
 		"age_ms": initial_age_ms,
 		"position": Vector3.ZERO,
 		"velocity": direction.normalized() * _start_speed,
+		"stage_index": initial_stage,
 	})
 
 func _update_particles(delta_sec: float, delta_ms: float) -> void:
@@ -122,19 +130,22 @@ func _update_particles(delta_sec: float, delta_ms: float) -> void:
 		if not is_zero_approx(_noise):
 			position_local += _rand_vec() * (_noise * delta_sec)
 		var particle_node: MeshInstance3D = particle.get("node", null) as MeshInstance3D
+		var new_stage_index := mini(int(floor(age_ms / max(_life_per_stage_ms, 1.0))), _stages.size() - 1)
+		var old_stage_index: int = int(particle.get("stage_index", -1))
 		if particle_node != null:
 			particle_node.position = position_local
 			particle_node.scale = Vector3.ONE * max(lerpf(_start_size, _end_size, age_ms / _particle_life_time_ms), 0.01)
-			particle_node.mesh = _mesh_for_particle(age_ms)
+			if new_stage_index != old_stage_index:
+				particle_node.mesh = _current_stage_meshes[new_stage_index] if new_stage_index < _current_stage_meshes.size() else null
 		particle["age_ms"] = age_ms
 		particle["velocity"] = velocity
 		particle["position"] = position_local
+		particle["stage_index"] = new_stage_index
 		_particles[idx] = particle
 
-func _mesh_for_particle(age_ms: float) -> ArrayMesh:
-	if _stages.is_empty():
+func _mesh_for_stage(stage_index: int) -> ArrayMesh:
+	if stage_index < 0 or stage_index >= _stages.size():
 		return null
-	var stage_index := mini(int(floor(age_ms / max(_life_per_stage_ms, 1.0))), _stages.size() - 1)
 	var frames: Array = _stages[stage_index]
 	if frames.is_empty():
 		return null
