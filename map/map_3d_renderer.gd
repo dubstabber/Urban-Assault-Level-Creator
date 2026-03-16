@@ -81,6 +81,7 @@ static var _squad_visproto_base_name_cache: Dictionary = {}
 static var _vehicle_visual_entries_cache: Dictionary = {}
 static var _baked_visproto_base_name_cache: Dictionary = {}
 static var _baked_vehicle_visuals_cache: Dictionary = {}
+static var _baked_building_definitions_cache: Dictionary = {}
 static var _blg_typ_override_cache: Dictionary = {}
 static var _building_definitions_cache: Dictionary = {}
 static var _building_sec_type_override_cache: Dictionary = {}
@@ -877,6 +878,25 @@ static func _baked_vehicle_visuals_for_set(set_id: int, game_data_type: String) 
 	_baked_vehicle_visuals_cache[cache_key] = result
 	return result
 
+static func _baked_building_definitions_registry_path_for_set(set_id: int, game_data_type: String) -> String:
+	return "%s/metadata/building_definitions.json" % _baked_set_dir_for_set(set_id, game_data_type)
+
+static func _baked_building_definitions_for_set(set_id: int, game_data_type: String) -> Array:
+	var normalized_game_data_type := _normalized_game_data_type(game_data_type)
+	var cache_key := "%s:%d" % [normalized_game_data_type, max(set_id, 1)]
+	if _baked_building_definitions_cache.has(cache_key):
+		return _baked_building_definitions_cache[cache_key]
+	var result: Array = []
+	var registry_path := _baked_building_definitions_registry_path_for_set(set_id, normalized_game_data_type)
+	if not registry_path.is_empty() and FileAccess.file_exists(registry_path):
+		var parsed = JSON.parse_string(FileAccess.get_file_as_string(registry_path))
+		if typeof(parsed) == TYPE_DICTIONARY:
+			var definitions_value = Dictionary(parsed).get("definitions", [])
+			if typeof(definitions_value) == TYPE_ARRAY:
+				result = Array(definitions_value).duplicate(true)
+	_baked_building_definitions_cache[cache_key] = result
+	return result
+
 static func _script_paths_for_game_data_type(game_data_type: String) -> Array:
 	var script_root := _script_root_for_game_data_type(game_data_type)
 	var result: Array = []
@@ -1173,18 +1193,23 @@ static func _parse_building_definitions(script_path: String) -> Array:
 	_append_building_definition(result, current_building)
 	return result
 
-static func _building_definitions_for_game_data_type(game_data_type: String) -> Array:
+static func _building_definitions_for_game_data_type(set_id: int, game_data_type: String) -> Array:
 	var normalized_game_data_type := _normalized_game_data_type(game_data_type)
-	if _building_definitions_cache.has(normalized_game_data_type):
-		return _building_definitions_cache[normalized_game_data_type]
+	var cache_key := "%s:%d" % [normalized_game_data_type, max(set_id, 1)]
+	if _building_definitions_cache.has(cache_key):
+		return _building_definitions_cache[cache_key]
+	var baked := _baked_building_definitions_for_set(set_id, normalized_game_data_type)
+	if not baked.is_empty():
+		_building_definitions_cache[cache_key] = baked
+		return baked
 	var result: Array = []
 	for script_path in _script_paths_for_game_data_type(normalized_game_data_type):
 		result.append_array(_parse_building_definitions(String(script_path)))
-	_building_definitions_cache[normalized_game_data_type] = result
+	_building_definitions_cache[cache_key] = result
 	return result
 
-static func _building_definition_for_id_and_sec_type(building_id: int, sec_type: int, game_data_type: String) -> Dictionary:
-	for definition in _building_definitions_for_game_data_type(game_data_type):
+static func _building_definition_for_id_and_sec_type(building_id: int, sec_type: int, set_id: int, game_data_type: String) -> Dictionary:
+	for definition in _building_definitions_for_game_data_type(set_id, game_data_type):
 		if typeof(definition) != TYPE_DICTIONARY:
 			continue
 		var building := definition as Dictionary
@@ -1205,7 +1230,7 @@ static func _build_blg_attachment_descriptors(blg: PackedByteArray, effective_ty
 			var building_id := int(blg[idx])
 			if building_id <= 0:
 				continue
-			var definition := _building_definition_for_id_and_sec_type(building_id, int(effective_typ[idx]), game_data_type)
+			var definition := _building_definition_for_id_and_sec_type(building_id, int(effective_typ[idx]), set_id, game_data_type)
 			if definition.is_empty():
 				continue
 			var world_x := (float(sx) + 1.5) * SECTOR_SIZE
