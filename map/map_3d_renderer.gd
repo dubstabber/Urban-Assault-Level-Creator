@@ -80,6 +80,7 @@ static var _squad_vehicle_visuals_cache: Dictionary = {}
 static var _squad_visproto_base_name_cache: Dictionary = {}
 static var _vehicle_visual_entries_cache: Dictionary = {}
 static var _baked_visproto_base_name_cache: Dictionary = {}
+static var _baked_vehicle_visuals_cache: Dictionary = {}
 static var _blg_typ_override_cache: Dictionary = {}
 static var _building_definitions_cache: Dictionary = {}
 static var _building_sec_type_override_cache: Dictionary = {}
@@ -857,6 +858,25 @@ static func _baked_visproto_base_names_for_set(set_id: int, game_data_type: Stri
 	_baked_visproto_base_name_cache[cache_key] = result
 	return result
 
+static func _baked_vehicle_visuals_registry_path_for_set(set_id: int, game_data_type: String) -> String:
+	return "%s/metadata/vehicle_visuals.json" % _baked_set_dir_for_set(set_id, game_data_type)
+
+static func _baked_vehicle_visuals_for_set(set_id: int, game_data_type: String) -> Dictionary:
+	var normalized_game_data_type := _normalized_game_data_type(game_data_type)
+	var cache_key := "%s:%d" % [normalized_game_data_type, max(set_id, 1)]
+	if _baked_vehicle_visuals_cache.has(cache_key):
+		return _baked_vehicle_visuals_cache[cache_key]
+	var result := {}
+	var registry_path := _baked_vehicle_visuals_registry_path_for_set(set_id, normalized_game_data_type)
+	if not registry_path.is_empty() and FileAccess.file_exists(registry_path):
+		var parsed = JSON.parse_string(FileAccess.get_file_as_string(registry_path))
+		if typeof(parsed) == TYPE_DICTIONARY:
+			var vehicles_value = Dictionary(parsed).get("vehicles", {})
+			if typeof(vehicles_value) == TYPE_DICTIONARY:
+				result = Dictionary(vehicles_value).duplicate(true)
+	_baked_vehicle_visuals_cache[cache_key] = result
+	return result
+
 static func _script_paths_for_game_data_type(game_data_type: String) -> Array:
 	var script_root := _script_root_for_game_data_type(game_data_type)
 	var result: Array = []
@@ -1269,10 +1289,31 @@ static func _parse_vehicle_visual_entries(script_path: String) -> Dictionary:
 	_append_vehicle_visual_entry(result, current_vehicle_id, current_entry)
 	return result
 
-static func _vehicle_visual_entries_for_game_data_type(game_data_type: String) -> Dictionary:
+static func _vehicle_visual_entries_for_game_data_type(set_id: int, game_data_type: String) -> Dictionary:
 	var normalized_game_data_type := _normalized_game_data_type(game_data_type)
-	if _vehicle_visual_entries_cache.has(normalized_game_data_type):
-		return _vehicle_visual_entries_cache[normalized_game_data_type]
+	var cache_key := "%s:%d" % [normalized_game_data_type, max(set_id, 1)]
+	if _vehicle_visual_entries_cache.has(cache_key):
+		return _vehicle_visual_entries_cache[cache_key]
+	var baked := _baked_vehicle_visuals_for_set(set_id, normalized_game_data_type)
+	if not baked.is_empty():
+		var merged_baked := {}
+		for vehicle_id_key in baked.keys():
+			var raw_entry_value = baked.get(vehicle_id_key, null)
+			if typeof(raw_entry_value) != TYPE_DICTIONARY:
+				continue
+			var entry := raw_entry_value as Dictionary
+			var slots_value = entry.get("slots", {})
+			if typeof(slots_value) != TYPE_DICTIONARY:
+				continue
+			var out_entry := {"model": String(entry.get("model", ""))}
+			var slots_dict := slots_value as Dictionary
+			if slots_dict.has("wait"):
+				out_entry["wait"] = int(slots_dict.get("wait", -1))
+			if slots_dict.has("normal"):
+				out_entry["normal"] = int(slots_dict.get("normal", -1))
+			_append_vehicle_visual_entry(merged_baked, int(vehicle_id_key), out_entry)
+		_vehicle_visual_entries_cache[cache_key] = merged_baked
+		return merged_baked
 	var merged := {}
 	for script_path in _script_paths_for_game_data_type(normalized_game_data_type):
 		var parsed: Dictionary = _parse_vehicle_visual_entries(String(script_path))
@@ -1280,7 +1321,7 @@ static func _vehicle_visual_entries_for_game_data_type(game_data_type: String) -
 			var entries: Array = merged.get(int(vehicle_id), [])
 			entries.append_array(Array(parsed.get(vehicle_id, [])))
 			merged[int(vehicle_id)] = entries
-	_vehicle_visual_entries_cache[normalized_game_data_type] = merged
+	_vehicle_visual_entries_cache[cache_key] = merged
 	return merged
 
 static func _parse_vehicle_visual_pairs(script_path: String) -> Dictionary:
@@ -1309,16 +1350,38 @@ static func _parse_vehicle_visual_pairs(script_path: String) -> Dictionary:
 				result[current_vehicle_id] = visuals
 	return result
 
-static func _squad_vehicle_visuals_for_game_data_type(game_data_type: String) -> Dictionary:
+static func _squad_vehicle_visuals_for_game_data_type(set_id: int, game_data_type: String) -> Dictionary:
 	var normalized_game_data_type := _normalized_game_data_type(game_data_type)
-	if _squad_vehicle_visuals_cache.has(normalized_game_data_type):
-		return _squad_vehicle_visuals_cache[normalized_game_data_type]
+	var cache_key := "%s:%d" % [normalized_game_data_type, max(set_id, 1)]
+	if _squad_vehicle_visuals_cache.has(cache_key):
+		return _squad_vehicle_visuals_cache[cache_key]
+	var baked := _baked_vehicle_visuals_for_set(set_id, normalized_game_data_type)
+	if not baked.is_empty():
+		var merged_baked := {}
+		for vehicle_id_key in baked.keys():
+			var raw_entry_value = baked.get(vehicle_id_key, null)
+			if typeof(raw_entry_value) != TYPE_DICTIONARY:
+				continue
+			var entry := raw_entry_value as Dictionary
+			var slots_value = entry.get("slots", {})
+			if typeof(slots_value) != TYPE_DICTIONARY:
+				continue
+			var slots_dict := slots_value as Dictionary
+			var out := {}
+			if slots_dict.has("wait"):
+				out["wait"] = int(slots_dict.get("wait", -1))
+			if slots_dict.has("normal"):
+				out["normal"] = int(slots_dict.get("normal", -1))
+			if not out.is_empty():
+				merged_baked[int(vehicle_id_key)] = out
+		_squad_vehicle_visuals_cache[cache_key] = merged_baked
+		return merged_baked
 	var merged := {}
 	for script_path in _script_paths_for_game_data_type(normalized_game_data_type):
 		var parsed: Dictionary = _parse_vehicle_visual_pairs(String(script_path))
 		for vehicle_id in parsed.keys():
 			merged[int(vehicle_id)] = Dictionary(parsed[vehicle_id]).duplicate(true)
-	_squad_vehicle_visuals_cache[normalized_game_data_type] = merged
+	_squad_vehicle_visuals_cache[cache_key] = merged
 	return merged
 
 static func _visproto_base_names_for_set(set_id: int, game_data_type: String) -> Array:
@@ -1363,7 +1426,7 @@ static func _preferred_squad_visual_base_name(vehicle_visuals: Dictionary, vispr
 	return ""
 
 static func _building_attachment_base_name_for_vehicle(vehicle_id: int, set_id: int, game_data_type: String) -> String:
-	var vehicle_entries: Dictionary = _vehicle_visual_entries_for_game_data_type(game_data_type)
+	var vehicle_entries: Dictionary = _vehicle_visual_entries_for_game_data_type(set_id, game_data_type)
 	if not vehicle_entries.has(vehicle_id):
 		return _squad_base_name_for_vehicle(vehicle_id, set_id, game_data_type)
 	var visproto_base_names := _visproto_base_names_for_set(set_id, game_data_type)
@@ -1383,7 +1446,7 @@ static func _building_attachment_base_name_for_vehicle(vehicle_id: int, set_id: 
 	return fallback
 
 static func _squad_base_name_for_vehicle(vehicle_id: int, set_id: int, game_data_type: String) -> String:
-	var vehicle_visuals: Dictionary = _squad_vehicle_visuals_for_game_data_type(game_data_type)
+	var vehicle_visuals: Dictionary = _squad_vehicle_visuals_for_game_data_type(set_id, game_data_type)
 	if not vehicle_visuals.has(vehicle_id):
 		return ""
 	var visproto_base_names := _visproto_base_names_for_set(set_id, game_data_type)
