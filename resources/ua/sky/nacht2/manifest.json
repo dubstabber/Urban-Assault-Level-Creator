@@ -1,0 +1,54 @@
+{
+  "canonical_id": "nacht2",
+  "family": "custom",
+  "aliases": [
+    "nacht2"
+  ],
+  "scene_path": "res://resources/ua/sky/nacht2/sky.tscn",
+  "mesh_paths": [
+    "res://resources/ua/sky/nacht2/mesh/sky.obj"
+  ],
+  "material_paths": [
+    "res://resources/ua/sky/nacht2/mesh/sky.mtl"
+  ],
+  "geometry_path": "res://resources/ua/sky/nacht2/geometry.json",
+  "textures": [
+    {
+      "source_name": "ct1.ILBM",
+      "source_file": "ct1.ILBM.bmp",
+      "bundle_path": "res://resources/ua/sky/nacht2/textures/ct1_ilbm.png",
+      "width": 256,
+      "height": 256
+    }
+  ],
+  "source_files": {
+    "source_dir": "/run/media/ydro/WDC/gamedev-workspace/Urban Assault Level Creator/urban_assault_decompiled-master/assets/sky/nacht2",
+    "bas": "nacht2.bas.json",
+    "skeleton": "ct1.skl.json"
+  },
+  "bounds": {
+    "min": [
+      -4491.0,
+      -0.0,
+      -4284.0
+    ],
+    "max": [
+      4347.0,
+      1089.0,
+      4195.0
+    ]
+  },
+  "flags": {
+    "has_geometry": true,
+    "double_sided": true,
+    "uses_alpha": false,
+    "unshaded": true
+  },
+  "surface_count": 32,
+  "polygon_count": 32,
+  "vertex_count": 25,
+  "notes": [
+    "Converted from development/debug sky references; runtime should load only project-owned bundle files.",
+    "Geometry preserves UA-authored local X, flips source-down Y upward, and mirrors Z into the editor preview space."
+  ]
+}

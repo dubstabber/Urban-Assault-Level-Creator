@@ -1,0 +1,61 @@
+{
+  "canonical_id": "nacht1",
+  "family": "horizon",
+  "aliases": [
+    "nacht1"
+  ],
+  "scene_path": "res://resources/ua/sky/nacht1/sky.tscn",
+  "mesh_paths": [
+    "res://resources/ua/sky/nacht1/mesh/sky.obj"
+  ],
+  "material_paths": [
+    "res://resources/ua/sky/nacht1/mesh/sky.mtl"
+  ],
+  "geometry_path": "res://resources/ua/sky/nacht1/geometry.json",
+  "textures": [
+    {
+      "source_name": "NEWSKY1.ILBM",
+      "source_file": "NEWSKY1.ILBM.bmp",
+      "bundle_path": "res://resources/ua/sky/nacht1/textures/newsky1_ilbm.png",
+      "width": 256,
+      "height": 256
+    },
+    {
+      "source_name": "NEWSKY2.ILBM",
+      "source_file": "NEWSKY2.ILBM.bmp",
+      "bundle_path": "res://resources/ua/sky/nacht1/textures/newsky2_ilbm.png",
+      "width": 256,
+      "height": 256
+    }
+  ],
+  "source_files": {
+    "source_dir": "/run/media/ydro/WDC/gamedev-workspace/Urban Assault Level Creator/urban_assault_decompiled-master/assets/sky/nacht1",
+    "bas": "nacht1.bas.json",
+    "skeleton": "horizon.skl.json"
+  },
+  "bounds": {
+    "min": [
+      -3600.0,
+      -1700.0,
+      -3600.0
+    ],
+    "max": [
+      3600.0,
+      2350.0,
+      3600.0
+    ]
+  },
+  "flags": {
+    "has_geometry": true,
+    "double_sided": true,
+    "uses_alpha": false,
+    "unshaded": true
+  },
+  "surface_count": 50,
+  "polygon_count": 50,
+  "vertex_count": 32,
+  "notes": [
+    "Converted from development/debug sky references; runtime should load only project-owned bundle files.",
+    "Geometry preserves UA-authored local X, flips source-down Y upward, and mirrors Z into the editor preview space."
+  ]
+}

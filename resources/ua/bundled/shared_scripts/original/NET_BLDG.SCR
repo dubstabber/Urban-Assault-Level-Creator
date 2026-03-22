@@ -1,0 +1,600 @@
+;----------------------------------------------------------------------------------------------------------------
+;
+;       -           Y   o   u   r       P   e   r   s   o   n   a   l       A   M   O   K         -
+;
+;       BAUWERKE f¸r Netzwerklevel
+;           Wir reduzieren die Vielfalt, um f¸r jede Netzf‰hige Rasse
+;           ein Gegenst¸ck zu haben. Das heiﬂt f¸r den Anfang:
+;           (Kraftwerk + Flak + Sch¸ssel) * 4 Rassen = 12 Buildings
+;           Es wird alles neu gemacht, da sich auch die Werte ‰ndern
+;           (z.B. bei Kraftwerken, wo die Optik bleiben kann)
+;           Beam-Gates brauchen wir nicht.
+;
+;	50	Gem - Center 4 T¸rme
+;	51	Gem - Center Viereck
+;	52	Gem - Center Kreuz
+;	53	Gem - Center Mauer
+;	58	Stonehenge-Kraftwerk
+;	1	User Kraftwerk klein
+;	54	User Kraftwerk 
+;	61	User Kraftprotz
+;	12	Kyterneser Kraftwerk klein
+;	55	Kyterneser Kraftwerk
+;	62	Kyterneser Kraftprotz
+;	10	Mykonier Kraftwerk klein
+;	56	Mykonier Kraftwerk
+;	63	Mykonier Kraftprotz
+;	17	Taerkasten Kraftwerk klein
+;	57	Taerkasten Kraftwerk
+;	64	Taerkasten Kraftprotz
+;	2	User Flak
+;	25	Kyterneser Flak
+;	26	Mykonier Flak
+;	27	Taerkasten Flak
+
+;	3	User Radar
+;	28	Kyterneser Radar
+;	29	Mykonier Radar
+;	30	Taerkasten Radar
+; 	59	Kleine User AA
+;	60	Bodenflak
+;
+;               ab 50---> Stefans eigene Level  
+;
+;		23-Apr-98	Stefan: Small AA als Netzwerkflak
+;		29-Apr-98	Stefan: schwere Kraftwerke
+;		08-Mai-98	Kyterneser und Mykonier Radar
+;		14-May-98	Taerradar Hˆhe gefixed
+;		08-Jun-98	Taerradar war noch falsch
+;		15-Jun-98	Stefan: mittl. Taer-Kraftwerk zu teuer
+;		22-Jun-98	Bernd: einge falsche Type_Icons korrigiert
+;		23-Jun-98	Bernd: MykoRadr hˆher
+;		24-06-98		Stefan: Preis Taerkraftwerk berichtigt
+;       
+;       (C) 1996        B.Beyreuther / A.Flemming / A.Weissflog
+;
+;-------------------------------------------------------------------------------
+;
+;       GEM-CENTER, Normal
+;
+new_building 4
+        model           =       building
+        name            =       NET_GEM0
+        sec_type        =       100                     ; FIXME! from level to level !!!!!!
+        energy          =       0                       ; irrelevant
+        type_icon       =       I               ; DEBUG da nicht USER !
+end
+
+;       GEM-CENTER, 4 T¸rme
+;
+new_building 50
+        model           =       building
+        name            =       NET_GEM0
+        sec_type        =       102                     
+        energy          =       0                       
+        type_icon       =       I               
+end
+
+;       GEM-CENTER, Viereck
+;
+new_building 51
+        model           =       building
+        name            =       NET_GEM0
+        sec_type        =       103 
+        energy          =       0                       
+        type_icon       =       I               
+end
+
+;       GEM-CENTER, Kreuz
+;
+new_building 52
+        model           =       building
+        name            =       NET_GEM0
+        sec_type        =       104                     
+        energy          =       0                       
+        type_icon       =       I               
+end
+
+;       GEM-CENTER, Mauer
+;
+new_building 53
+        model           =       building
+        name            =       NET_GEM0
+        sec_type        =       101                     
+        energy          =       0                       
+        type_icon       =       I               
+end
+
+;-------------------------------------------------------------------------------
+;                             K R A F T W E R K E
+;-------------------------------------------------------------------------------
+
+;----------------------------------------------------------------------------------------------------------------
+;
+;       USER-KRAFTWERK klein
+;
+new_building 1
+        model           =       kraftwerk
+        name            =       Kraftzwerk
+        sec_type        =       201                     ; Das tolle neue Kraftwerk
+        type_icon       =       T
+        power           =       64
+        energy          =       100000
+end
+;----------------------------------------------------------------------------------------------------------------
+;
+;       USER-KRAFTWERK groﬂ
+;
+new_building 54
+        model           =       kraftwerk
+        name            =       Kraftwerk
+        sec_type        =       201                     ; Das tolle neue Kraftwerk
+        type_icon       =       T
+        power           =       128
+        energy          =       140000
+end
+
+;----------------------------------------------------------------------------------------------------------------
+;
+;	DAS GROSSE USERKRAFTWERK
+;
+new_building 	61
+    	model  		= 	kraftwerk
+    	name   		= 	Kraftprotz
+    	sec_type  	= 	201			; Das Kraftwerk mit Waffen 
+    	type_icon 	= 	T
+    	power  		= 	192
+    	energy 		= 	180000			; Wegen Waffen entwas teurer
+	end
+
+;-------------------------------------------------------------------------
+;
+;       KYTERNESER KRAFTWERK
+;
+new_building    12
+        model           =       kraftwerk
+        name            =       Kraftzwerk
+        sec_type        =       15
+        type_icon       =       T              ; DEBUG da nicht USER
+        power           =       64
+        energy          =       110000
+end
+;-------------------------------------------------------------------------
+;
+;       KYTERNESER KRAFTWERK groﬂ
+;
+new_building    55
+        model           =       kraftwerk
+        name            =       Kraftwerk
+        sec_type        =       15
+        type_icon       =       T               ; DEBUG da nicht USER
+        power           =       128
+        energy          =       150000
+end
+;-------------------------------------------------------------------------
+;
+;       KYTERNESER KRAFTWERK groﬂ groﬂ
+;
+new_building    62
+        model           =       Kraftwerk
+        name            =       Kraftprotz
+        sec_type        =       15
+        type_icon       =       T               ; DEBUG da nicht USER
+        power           =       192
+        energy          =       190000
+end
+
+;-------------------------------------------------------------------------
+;
+;       MYKONIER KRAFTZWERG, halb so stark, aber auch nur halb so teuer
+;
+new_building    10
+        model           =       kraftwerk
+        name            =       Kraftzwerk
+        sec_type        =       229
+        type_icon       =       T               ; DEBUG da nicht USER
+        power           =       64
+        energy          =       103000
+end
+;-------------------------------------------------------------------------
+;
+;       MYKONIER KRAFTWERG
+;
+new_building    56
+        model           =       kraftwerk
+        name            =       Kraftwerk
+        sec_type        =       229
+        type_icon       =       T               ; DEBUG da nicht USER
+        power           =       128
+        energy          =       143000
+end
+;-------------------------------------------------------------------------
+;
+;       MYKONIER KRAFTWERG groﬂ
+;
+new_building    63
+        model           =       Kraftwerk
+        name            =       Kraftprotz
+        sec_type        =       229
+        type_icon       =       T               ; DEBUG da nicht USER
+        power           =       192
+        energy          =       183000
+end
+
+;----------------------------------------------------------------------------------------------------------------
+;
+;       POWER-PLANT TAERKASTEN 
+;
+new_building 17
+        model           =       Kraftwerk
+        name            =       Kraftzwerk               
+        sec_type        =       14                      ; MACHT
+        type_icon       =       T
+        power           =       64
+        energy          =       106000
+end
+;----------------------------------------------------------------------------------------------------------------
+;
+;       POWER-PLANT TAERKASTEN Groﬂ
+;
+new_building 57
+        model           =       kraftwerk
+        name            =       Kraftwerk             
+        sec_type        =       14                      ; MACHT
+        type_icon       =       T
+        power           =       128
+        energy          =       146000
+end
+;----------------------------------------------------------------------------------------------------------------
+;
+;       POWER-PLANT TAERKASTEN Groﬂ
+;
+new_building 64
+        model           =       kraftwerk
+        name            =       Kraftprotz             
+        sec_type        =       14                      ; MACHT
+        type_icon       =       T
+        power           =       192
+        energy          =       186000
+end
+
+;----------------------------------------------------------------------------
+;                         F L A K S
+;----------------------------------------------------------------------------
+
+;----------------------------------------------------------------------------------------------------------------
+;
+;       USER-FLAKSTELLUNG  
+;
+;       Das schuckelige funkelnagelneue De(ath)F-Centre         
+;
+new_building 2
+        model           =       defcenter
+        name            =       FLAK
+        sec_type        =       200
+        type_icon       =       V
+        energy          =       160000
+
+        sbact_act       =       0
+        sbact_vehicle   =       100                     ; siehe FLAK.SCR
+        sbact_pos_x     =       0.0
+        sbact_pos_y     =       -180.0
+        sbact_pos_z     =       +77.0
+        sbact_dir_x     =       -1.0
+        sbact_dir_y     =       0.0
+        sbact_dir_z     =       0.0
+
+        sbact_act       =       1
+        sbact_vehicle   =       101
+        sbact_pos_x     =       0.0
+        sbact_pos_y     =       -180.0
+        sbact_pos_z     =       -77.0
+        sbact_dir_x     =       +1.0
+        sbact_dir_y     =       0.0
+        sbact_dir_z     =       0.0
+
+        sbact_act       =       2
+        sbact_vehicle   =       102
+        sbact_pos_x     =       +60
+        sbact_pos_y     =       -380
+        sbact_pos_z     =       0
+        sbact_dir_x     =       0
+        sbact_dir_y     =       0
+        sbact_dir_z     =       -1
+
+        sbact_act       =       3
+        sbact_vehicle   =       103
+        sbact_pos_x     =       -60
+        sbact_pos_y     =       -380
+        sbact_pos_z     =       0
+        sbact_dir_x     =       0
+        sbact_dir_y     =       0
+        sbact_dir_z     =       +1
+end
+
+;------------------------------------------------------------------------------------------------------------
+;
+;	KYTERNESER FLAK STATION
+;
+;
+new_building 25
+    	model  		= 	defcenter
+    	name   		= 	KYTFLAK
+    	sec_type  	= 	207
+	type_icon	=	V
+    	energy 		= 	166000
+
+    	sbact_act     	= 	0
+   	sbact_vehicle 	= 	111    
+   	sbact_pos_x   	=       	-300
+    	sbact_pos_y   	= 	-320
+    	sbact_pos_z   	= 	300
+    	sbact_dir_x   	=   	1.0
+    	sbact_dir_y   	=    	0.0
+    	sbact_dir_z   	=     	0.0
+
+    	sbact_act     	= 	1
+    	sbact_vehicle 	= 	111   
+    	sbact_pos_x   	=       	-300
+    	sbact_pos_y   	= 	-320
+    	sbact_pos_z   	= 	-300
+    	sbact_dir_x   	=   	0.9
+    	sbact_dir_y   	=    	0.0
+     	sbact_dir_z   	=     	0.0
+
+
+    	sbact_act     	= 	2
+    	sbact_vehicle 	= 	111   
+    	sbact_pos_x   	=       	300
+    	sbact_pos_y   	= 	-320
+    	sbact_pos_z   	= 	-300
+    	sbact_dir_x   	=   	0.9
+    	sbact_dir_y   	=    	0.0
+     	sbact_dir_z   	=     	0.0
+
+
+    	sbact_act     	= 	3
+    	sbact_vehicle 	= 	111   
+    	sbact_pos_x   	=       	300
+    	sbact_pos_y   	= 	-320
+    	sbact_pos_z   	= 	300
+    	sbact_dir_x   	=   	0.9
+    	sbact_dir_y   	=    	0.0
+     	sbact_dir_z   	=     	0.0
+
+end
+
+;----------------------------------------------------------------------------------------------------------------
+;
+;       MYKONIER-FLAKSTELLUNG
+;
+new_building	26
+    	model  		= 	defcenter
+    	name   		= 	MYKOFLAK	
+	type_icon	=	V
+    	sec_type  	= 	228
+    	energy 		= 	170000
+
+    	sbact_act     	= 	0   
+ 	sbact_vehicle 	= 	113
+    	sbact_pos_x   	= 	0
+    	sbact_pos_y   	= 	-450
+    	sbact_pos_z   	= 	0
+    	sbact_dir_x   	=   	1.0
+    	sbact_dir_y   	=    	0
+    	sbact_dir_z   	=    	0
+end
+;------------------------------------------------------------------------------------------------------------
+;
+;	TAERKASTEN FLAK STATION
+;
+;
+new_building 27
+    	model  		= 	defcenter
+    	name   		= 	TAERFLAK
+    	sec_type  	= 	208
+	type_icon	=	V
+    	energy 		= 	163000
+
+    	sbact_act     	= 	0
+   	sbact_vehicle 	= 	108    
+   	sbact_pos_x   	=       	-300
+    	sbact_pos_y   	= 	-310
+    	sbact_pos_z   	= 	300
+    	sbact_dir_x   	=   	1.0
+    	sbact_dir_y   	=    	0.0
+    	sbact_dir_z   	=     	0.0
+
+    	sbact_act     	= 	1
+    	sbact_vehicle 	= 	108   
+    	sbact_pos_x   	=       	-300
+    	sbact_pos_y   	= 	-310
+    	sbact_pos_z   	= 	-300
+    	sbact_dir_x   	=   	0.9
+    	sbact_dir_y   	=    	0.0
+     	sbact_dir_z   	=     	0.0
+
+
+    	sbact_act     	= 	2
+    	sbact_vehicle 	= 	108   
+    	sbact_pos_x   	=       	300
+    	sbact_pos_y   	= 	-310
+    	sbact_pos_z   	= 	-300
+    	sbact_dir_x   	=   	0.9
+    	sbact_dir_y   	=    	0.0
+     	sbact_dir_z   	=     	0.0
+
+
+    	sbact_act     	= 	3
+    	sbact_vehicle 	= 	108   
+    	sbact_pos_x   	=       	300
+    	sbact_pos_y   	= 	-310
+    	sbact_pos_z   	= 	300
+    	sbact_dir_x   	=   	0.9
+    	sbact_dir_y   	=    	0.0
+     	sbact_dir_z   	=     	0.0
+
+end
+
+;-------------------------------------------------------------------------------
+;                       R A D A R S C H U E S S E L N
+;-------------------------------------------------------------------------------
+
+;----------------------------------------------------------------------------------------------------------------
+;
+;       USER-RADARSTELLUNG
+;
+;       SCHNUCKELIGESTERNENGEFUNKELHAGELNEUESPIELERRADARSTATION         
+;
+new_building 3                        
+    model               =       radar
+    name                =       RADAR
+    sec_type            =       204
+    type_icon           =       U
+    power               =       10
+    energy              =       90000           ; Wie der PICO.
+
+    sbact_act           =       0
+    sbact_vehicle       =       109             ; siehe FLAKS.SCR 
+    sbact_pos_x         =       30
+    sbact_pos_y         =       -530
+    sbact_pos_z         =       0
+    sbact_dir_x         =       -1
+    sbact_dir_y         =       0
+    sbact_dir_z         =       0
+end
+
+
+;----------------------------------------------------------------------------------------------------------------
+;
+;       KYTERNESER-RADARSTELLUNG
+;
+;      
+;
+new_building 28
+    model  	= 	radar
+    name   	= 	Radar_Station
+    sec_type  	= 	240
+    type_icon 	= 	U
+    power  	= 	10
+    energy      	=       	93000
+
+    sbact_act     	= 	0
+    sbact_vehicle 	=  	139
+    sbact_pos_x   	=    	0
+    sbact_pos_y   	= 	-330
+    sbact_pos_z   	=    	0
+    sbact_dir_x   	=   	-1
+    sbact_dir_y   	=    	0
+    sbact_dir_z   	=    	0
+end
+
+
+;----------------------------------------------------------------------------------------------------------------
+;
+;       MYKONIER-RADARSTELLUNG
+;
+;
+new_building 29
+    model  	= 	radar
+    name   	= 	Myk_Radar_Station
+    sec_type  	= 	241
+    type_icon 	= 	U
+    power  	= 	10
+    energy      	=       	96000
+    sbact_act     	= 	0
+    sbact_vehicle 	=  	140		; siehe FLAKS.SCR 
+    sbact_pos_x   	=    	0
+    sbact_pos_y   	= 	-560
+    sbact_pos_z   	=    	0
+    sbact_dir_x   	=   	-1
+    sbact_dir_y   	=    	0
+    sbact_dir_z   	=    	0
+end
+
+;----------------------------------------------------------------------------------------------------------------
+;
+;       TAERKASTEN-RADARSTELLUNG
+;
+;       derzeit nur Kopie
+;
+new_building 30
+    model  	= 	radar
+    name   	= 	Taer_Radar_Station
+    sec_type  	= 	239
+    type_icon 	= 	U
+    power  	= 	10
+    energy      	=       	100000
+
+    sbact_act     	= 	0
+    sbact_vehicle 	=  	141		; siehe FLAKS.SCR 
+    sbact_pos_x   	=    	0
+    sbact_pos_y   	= 	-500
+    sbact_pos_z   	=    	0
+    sbact_dir_x   	=   	-1
+    sbact_dir_y   	=    	0
+    sbact_dir_z   	=    	0
+
+
+end
+
+;----------------------------------------------------------------------------------------------------------------
+;
+;	Power plant Stonehenge
+;
+new_building 58
+    	model  		= 	kraftwerk
+    	name   		= 	STONEHENGE
+    	sec_type  	= 	96			; Das tolle neue Kraftwerk
+    	type_icon 	= 	T
+    	power  		= 	60
+    	energy 		= 	100000
+end
+;----------------------------------------------------------------------------------------------------------------
+
+;
+;	KLEINE USER AA FLAK
+;
+new_building 59
+    	model  		= 	defcenter
+    	name   		= 	SmallAA
+    	sec_type  	= 	205
+    	type_icon 	= 	V
+    	energy 		= 	130000		; FIXME!
+
+    	sbact_act     	= 	0
+    	sbact_vehicle 	= 	96
+    	sbact_pos_x   	= 	0
+    	sbact_pos_y   	= 	-425		; -410
+    	sbact_pos_z   	= 	0
+    	sbact_dir_x   	=    	1
+    	sbact_dir_y   	=    	0
+    	sbact_dir_z   	=   	0
+end
+
+;----------------------------------------------------------------------------------------------------------------
+;
+;	ALTERNATIVE FLAKSTELLUNG  
+;
+;	BodenFlak
+;
+new_building 60
+    	model  		= 	defcenter
+    	name   		= 	Bodenflak
+    	sec_type  	= 	1
+    	type_icon 	= 	V
+    	energy 		= 	100000
+
+    	sbact_act     	= 	0
+    	sbact_vehicle 	= 	106
+    	sbact_pos_x   	= 	0
+    	sbact_pos_y   	= 	-30
+    	sbact_pos_z   	= 	0
+    	sbact_dir_x   	=    	1
+    	sbact_dir_y   	=    	0
+    	sbact_dir_z   	=   	0
+end
+
+
+
+

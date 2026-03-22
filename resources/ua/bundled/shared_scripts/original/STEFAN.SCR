@@ -1,0 +1,401 @@
+;----------------------------------------------------------------------------------------------------------------
+;
+;   	-           Y   o   u   r       P   e   r   s   o   n   a   l       A   M   O   K         -
+;
+;	STEFANS EIGENE BAUWERKE ab 50	
+;
+;		50	GEM CENTRE 4 TÜRME (SHIELD)
+;		51	GEM CENTRE MAUER (HEVY WEAPON)
+;		52	KYTERNESER KRAFTZWERK
+;		53	TAERKASTEN KRAFTZWERK
+;		54	NEUES GROSSES RADAR
+;		55	FLAKS KREUZUNG
+;		56	FLAKS DIE ICH NICH BAUN KANN
+;		57	FLAKS DIE ICH NICH BAUN KANN 2
+;		58	FUCK GEM SECTORS
+;		59	FUCK BEAMGATE
+;		60	GEM ECKE (Enemyvehicle)
+;		61	GEM ECKE2 (POWER ROBOFLAK)
+;		62	Power Plant Stonehenge
+;		63	DAS KLEINE USERKRAFTWERK
+;		64	DAS GROSSE USERKRAFTWERK
+;		65	GEM FÜR SULOGS DÜNNES GARN
+;		66	TOR ENDLEVEL AUS
+;		67	TOR ENDLEVEL AN
+;		68	SUPERITEM BOMBE ENDLEVEL AUS
+;		69	SUPERITEM BOMBE ENDLEVEL TICKT
+;		70	SUPERITEM BOMBE ENDLEVEL ZERSTÖRT
+;		71	KYTERNESER RADAR
+;		72	MYKONIER RADAR
+;		73	TAERKASTEN RADAR
+;
+;		15-May-98	Bernd	Radar Taer Korr
+;		28-May-98	TAERKASTEN Radar hatte noch falsche Visproto Nummer
+;		16-Jun-98	Bernd	Da haben noch Icons fürs Menü gefehlt
+;		23-JUn-98	Bernd	MykoRadr höher
+;
+;	(C) 1996-1998 	B.Beyreuther / A.Flemming / A.Weissflog
+;
+;----------------------------------------------------------------------------------------------------------------
+;
+;	GEM-CENTRE	
+;
+new_building 50
+    	model     		= 	building
+    	name      		= 	GEM_MORE_SHIELD
+    	sec_type  	=  	102       		; FIXME! from level to level !!!!!!
+    	energy    	= 	0        		; irrelevant
+    	type_icon	=	I		; DEBUG da nicht USER !
+end
+
+;----------------------------------------------------------------------------------------------------------------
+;
+;	GEM-CENTRE	
+;
+new_building 51
+    	model     		= 	building
+    	name      		= 	GEM_HEAVY_WEAPON
+    	sec_type  	=  	101       		; FIXME! from level to level !!!!!!
+    	energy    	= 	0        		; irrelevant
+    	type_icon	=	I		; DEBUG da nicht USER !
+end
+
+;-------------------------------------------------------------------------
+;
+;	KYTERNESER KRAFTWERG
+;
+new_building 52
+    	model  		= 	kraftwerk
+    	name   		= 	KYTPOWER
+    	sec_type  	= 	15
+	type_icon	=	T
+    	power  		= 	50
+    	energy 		= 	110000
+end
+
+;----------------------------------------------------------------------------------------------------------------
+;
+;	POWER-PLANT TAERKASTEN 
+;
+new_building 53
+    	model  		= 	kraftwerk
+    	name   		= 	TAER_POWR		; TAERKASTEN
+    	sec_type  	= 	14			; MIT MACHT
+    	type_icon 	= 	T
+    	power  		= 	50
+    	energy 		= 	106000
+end
+
+;----------------------------------------------------------------------------------------------------------------
+;
+;	USER-RADARSTELLUNG
+;
+;	SCHNUCKELIGESTERNENGEFUNKELHAGELNEUESPIELERRADARSTATION 	
+;
+new_building 54                        
+    model  	= 	radar
+    name   	= 	Radar_Station_2
+    sec_type  	= 	204
+    type_icon 	= 	U
+    power  	= 	15
+    energy      	=       	150000		; Wie der PICO.
+
+    sbact_act     	= 	0
+    sbact_vehicle 	=  	98		; siehe FLAKS.SCR 
+    sbact_pos_x   	=    	30
+    sbact_pos_y   	= 	-530
+    sbact_pos_z   	=    	0
+    sbact_dir_x   	=   	-1
+    sbact_dir_y   	=    	0
+    sbact_dir_z   	=    	0
+end
+
+
+
+;----------------------------------------------------------------------
+
+new_building 55
+    	model  		= 	defcenter
+    	name   		= 	STEFANS_FLAKS_KREUZUNG
+    	sec_type  	= 	140
+    	type_icon 	= 	V
+    	energy 		= 	100000
+
+    	sbact_act     	= 	0
+    	sbact_vehicle 	= 	106
+    	sbact_pos_x   	= 	300
+    	sbact_pos_y   	= 	-30
+    	sbact_pos_z   	= 	0
+    	sbact_dir_x   	=    	1
+    	sbact_dir_y   	=    	0
+    	sbact_dir_z   	=   	0
+
+    	sbact_act     	= 	1
+    	sbact_vehicle 	= 	106
+    	sbact_pos_x   	= 	-300
+    	sbact_pos_y   	= 	-30
+    	sbact_pos_z   	= 	0
+    	sbact_dir_x   	=    	1
+    	sbact_dir_y   	=    	0
+    	sbact_dir_z   	=   	0
+end
+
+;----------------------------------------------------------------------
+
+new_building 56
+    	model  		= 	defcenter
+    	name   		= 	STEFANS_FALKS_STRASSE
+    	sec_type  	= 	6
+    	type_icon 	= 	V
+    	energy 		= 	300000
+
+    	sbact_act     	= 	0
+    	sbact_vehicle 	= 	106
+    	sbact_pos_x   	= 	300
+    	sbact_pos_y   	= 	-30
+    	sbact_pos_z   	= 	0
+    	sbact_dir_x   	=    	1
+    	sbact_dir_y   	=    	0
+    	sbact_dir_z   	=   	0
+end
+
+;-----------------------------------------------------------------------
+;
+;	GEM-CENTRE	
+;
+new_building 58
+    	model     		= 	building
+    	name      		= 	FUCK_GEM_SECTORS
+    	sec_type  	=  	203       		; FIXME! from level to level !!!!!!
+    	energy    	= 	0        		; irrelevant
+    	type_icon	=	I		; DEBUG da nicht USER !
+end
+;--------------------------------------------------------------------------------------------------------------
+;
+;   "BEAMGATE CLOSED"			NICHT ÄNDERN !
+;
+new_building	59
+    	model     		= 	building
+    	name      		= 	GATE_CL
+    	sec_type  	=  	203
+	type_icon	=	I		; DEBUG da nicht USER
+end
+
+;----------------------------------------------------------------------------------------------------------------
+;
+;	GEM-CENTRE	
+;
+new_building 60
+    	model     		= 	building
+    	name      		= 	GEM_MORE_ROBOFLAK
+    	sec_type  	=  	106       		; FIXME! from level to level !!!!!!
+    	energy    	= 	0        		; irrelevant
+    	type_icon	=	I		; DEBUG da nicht USER !
+end
+;----------------------------------------------------------------------------------------------------------------
+;
+;	GEM-CENTRE	
+;
+new_building 61
+    	model     		= 	building
+    	name      		= 	GEM_POWER_ROBOFLAK
+    	sec_type  	=  	113       		; FIXME! from level to level !!!!!!
+    	energy    	= 	0        		; irrelevant
+    	type_icon	=	I		; DEBUG da nicht USER !
+end
+;----------------------------------------------------------------------------------------------------------------
+;
+;	Power plant Stonehenge
+;
+new_building 62
+    	model  		= 	kraftwerk
+    	name   		= 	STONEHENGE
+    	sec_type  	= 	96			; Das tolle neue Kraftwerk
+    	type_icon 	= 	T
+    	power  		= 	60
+    	energy 		= 	100000
+end
+;----------------------------------------------------------------------------------------------------------------
+;
+;	DAS KLEINE USERKRAFTWERK
+;
+new_building 63
+    	model  		= 	kraftwerk
+    	name   		= 	Kraftzwerg
+    	sec_type  	= 	201			; Das tolle neue Kraftwerk
+    	type_icon 	= 	T
+    	power  		= 	50
+    	energy 		= 	100000
+end
+;----------------------------------------------------------------------------------------------------------------
+;
+;	DAS GROSSE USERKRAFTWERK
+;	WEAPONS !
+;
+new_building 	64
+    	model  		= 	kraftwerk
+    	name   		= 	Kraftprotz
+    	sec_type  	= 	201			; Das Kraftwerk mit Waffen 
+    	type_icon 	= 	T
+    	power  		= 	192
+    	energy 		= 	190000			; Wegen Waffen entwas teurer
+	
+	sbact_act     	= 	0
+    	sbact_vehicle 	= 	104
+    	sbact_pos_x   	= 	200
+    	sbact_pos_y   	= 	-200
+    	sbact_pos_z   	= 	200
+    	sbact_dir_x   	=    	0
+    	sbact_dir_y   	=    	0
+    	sbact_dir_z   	=   	-1
+
+    	sbact_act     	= 	1
+    	sbact_vehicle 	= 	105
+    	sbact_pos_x   	= 	-200
+    	sbact_pos_y   	= 	-200
+    	sbact_pos_z   	= 	-200
+    	sbact_dir_x   	=    	0
+    	sbact_dir_y   	=    	0
+    	sbact_dir_z   	=   	+1
+end
+;----------------------------------------------------------------------------------------------------------------
+;
+;	GEM-CENTRE	
+;
+new_building 65
+    	model     		= 	building
+    	name      		= 	GEM_MORE_SHIELD
+    	sec_type  	=  	110       		; FIXME! from level to level !!!!!!
+    	energy    	= 	0        		; irrelevant
+    	type_icon	=	I		; DEBUG da nicht USER !
+end
+
+;--------------------------------------------------------------------------------------------------------------
+;
+;   "BEAMGATE Endlevel geschlossen"			NICHT ÄNDERN !
+;
+new_building	66
+    	model     		= 	building
+    	name      		= 	GATE_CL
+    	sec_type  	=  	235
+	type_icon	=	I		; DEBUG da nicht USER
+end
+
+;--------------------------------------------------------------------------------------------------------------
+;
+;   "BEAMGATE Endlevel offen"			NICHT ÄNDERN !
+;
+new_building	67
+    	model     		= 	building
+    	name      		= 	GATE_CL
+    	sec_type  	=  	235
+	type_icon	=	I		; DEBUG da nicht USER
+end
+;--------------------------------------------------------------------------------------------------------------
+;
+;		SUPERBOMBE normal Endlevel
+;
+new_building	68
+    	model     		= 	building
+    	name      		= 	Superbomb_N_E
+    	sec_type  	=  	235
+	type_icon	=	I
+end
+
+
+;--------------------------------------------------------------------------------------------------------------
+;
+;		SUPERBOMBE activated Endlevel
+;
+new_building	69
+    	model     		= 	building
+    	name      		= 	Superbomb_A_E
+    	sec_type  	=  	235
+	type_icon	=	I
+end
+
+;--------------------------------------------------------------------------------------------------------------
+;
+;		SUPERBOMBE destroyed Endlevel
+;
+new_building	70
+    	model     		= 	building
+    	name      		= 	Superbomb_D_E
+    	sec_type  	=  	235
+	type_icon	=	I
+end
+;--------------------------------------------------------------------------------------------------------------
+;
+;	KYTERNESER -RADARSTELLUNG
+;
+;	SCHNUCKELIGESTERNENGEFUNKELHAGELNEUESPIELERRADARSTATION 	
+;
+new_building  71                        
+    model  	= 	radar
+    name   	= 	Kyt_Radar_Station
+    sec_type  	= 	240
+    type_icon 	= 	U
+    power  	= 	10
+    energy      	=       	93000
+
+    sbact_act     	= 	0
+    sbact_vehicle 	=  	139
+    sbact_pos_x   	=    	0
+    sbact_pos_y   	= 	-330
+    sbact_pos_z   	=    	0
+    sbact_dir_x   	=   	-1
+    sbact_dir_y   	=    	0
+    sbact_dir_z   	=    	0
+end
+
+;--------------------------------------------------------------------------------------------------------------
+;
+;	MYKONIER -RADARSTELLUNG
+;
+;	SCHNUCKELIGESTERNENGEFUNKELHAGELNEUESPIELERRADARSTATION 	
+;
+new_building  72                        
+    model  	= 	radar
+    name   	= 	Myk_Radar_Station
+    sec_type  	= 	241
+    type_icon 	= 	U
+    power  	= 	10
+    energy      	=       	96000
+
+    sbact_act     	= 	0
+    sbact_vehicle 	=  	140		; siehe FLAKS.SCR 
+    sbact_pos_x   	=    	0
+    sbact_pos_y   	= 	-560
+    sbact_pos_z   	=    	0
+    sbact_dir_x   	=   	-1
+    sbact_dir_y   	=    	0
+    sbact_dir_z   	=    	0
+end
+;--------------------------------------------------------------------------------------------------------------
+;
+;	TAERKASTEN -RADARSTELLUNG
+;
+;	SCHNUCKELIGESTERNENGEFUNKELHAGELNEUESPIELERRADARSTATION 	
+;
+new_building  73                        
+    model  	= 	radar
+    name   	= 	Taer_Radar_Station
+    sec_type  	= 	239
+    type_icon 	= 	U
+    power  	= 	10
+    energy      	=       	100000
+
+    sbact_act     	= 	0
+    sbact_vehicle 	=  	141		; siehe FLAKS.SCR 
+    sbact_pos_x   	=    	0
+    sbact_pos_y   	= 	-500
+    sbact_pos_z   	=    	0
+    sbact_dir_x   	=   	-1
+    sbact_dir_y   	=    	0
+    sbact_dir_z   	=    	0
+end
+
+
+;----------------------------------------------------------------------------------------------------------------
+;  Ende Stefans Buildings
+;-----------------------------------------------------------------------

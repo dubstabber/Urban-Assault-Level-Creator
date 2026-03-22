@@ -12,6 +12,7 @@ const DEFAULT_MIN_SKY_TOP_EXTENT := 12000.0
 const MAP_SECTOR_WORLD_SIZE := 1200.0
 const DEFAULT_SKY_VIZ_LIMIT := 4200.0
 const DEFAULT_SKY_FADE_LENGTH := 1100.0
+const _UALegacyText = preload("res://map/ua_legacy_text.gd")
 
 @export var registry_path := DEFAULT_REGISTRY_PATH
 @export var sky_vertical_offset := DEFAULT_SKY_VERTICAL_OFFSET
@@ -33,6 +34,10 @@ var _editor_state_override: Node = null
 var _queued_request_kind := ""
 var _queued_request_sky_name := ""
 var _sky_request_deferred := false
+
+var _last_camera_for_sky: Transform3D = Transform3D.IDENTITY
+var _last_cam_far_for_sky: float = -1.0
+var _last_map_sectors_for_sky: Vector2i = Vector2i(-999, -999)
 
 @onready var _sky_container: Node3D = $SkyContainer if has_node("SkyContainer") else null
 
@@ -197,6 +202,7 @@ func clear_active_sky() -> bool:
 		_destroy_node(_active_sky_instance)
 	_active_sky_instance = null
 	_set_sky_container_transform(Vector3.ZERO)
+	_invalidate_sky_camera_cache()
 	return false
 
 
@@ -674,9 +680,26 @@ func get_active_effective_vertical_offset() -> float:
 	return sky_vertical_offset * _sky_offset_scale_factor()
 
 
+func _invalidate_sky_camera_cache() -> void:
+	_last_cam_far_for_sky = -1.0
+	_last_map_sectors_for_sky = Vector2i(-999, -999)
+
+
 func update_active_sky_transform() -> void:
 	if _sky_container == null or not is_instance_valid(_active_sky_instance):
 		return
+	var cam := _current_camera()
+	if cam == null:
+		return
+	var cmd := _current_map_data()
+	var mw := int(cmd.horizontal_sectors) if cmd != null else 0
+	var mh := int(cmd.vertical_sectors) if cmd != null else 0
+	var sectors := Vector2i(mw, mh)
+	if cam.global_transform.is_equal_approx(_last_camera_for_sky) and is_equal_approx(_last_cam_far_for_sky, cam.far) and sectors == _last_map_sectors_for_sky:
+		return
+	_last_camera_for_sky = cam.global_transform
+	_last_cam_far_for_sky = cam.far
+	_last_map_sectors_for_sky = sectors
 	_apply_active_sky_scale()
 	_set_sky_container_transform(_sky_anchor_position())
 
@@ -684,7 +707,10 @@ func update_active_sky_transform() -> void:
 static func load_json_file(json_path: String) -> Dictionary:
 	if json_path.is_empty() or not FileAccess.file_exists(json_path):
 		return {}
-	var parsed = JSON.parse_string(FileAccess.get_file_as_string(json_path))
+	var txt := _UALegacyText.read_file(json_path)
+	if txt.is_empty():
+		return {}
+	var parsed = JSON.parse_string(txt)
 	return parsed if typeof(parsed) == TYPE_DICTIONARY else {}
 
 

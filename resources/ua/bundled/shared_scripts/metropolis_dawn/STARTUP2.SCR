@@ -1,0 +1,20 @@
+;--------------------------------------------------------------------------------------------------------------------------------------
+;
+;   	-           Y   o   u   r       P   e   r   s   o   n   a   l       A   M   O   K         -
+;
+;          	S T A R T U P S C R I P T        für                 J E D E N  L E V E L
+;
+;	Setzt die Werte zurück, die möglicherweise pro Level umgestellt wurden.
+;	AndersRum: Die Einstellungen der Feinde, deren Waffen und der diversen
+;	Flaks kann pro Level modifiziert werden, um die Schwierigkeit zu regeln.
+;
+;	created:		31-JUL-97
+;	upd:		06-AUG-97
+;			31-Mar-98	neue Directory Struktur		
+;
+;	(C) 1996-1998 	B.Beyreuther / A.Flemming / A.Weissflog
+;
+include data:scripts/feinde.scr      		; die Feind-Fahrzeuge
+include data:scripts/weap_F.scr         	; alle Feind-Waffen
+include data:scripts/flaks.scr		; stationäre FLAKS und Radar-Schüssel
+include data:scripts/ssnd.scr		; und alle Geräusche wieder ran

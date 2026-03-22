@@ -1,8 +1,9 @@
 extends RefCounted
 class_name UATerrainPieceLibrary
 
-const LEGACY_SET_ROOT := "res://urban_assault_decompiled-master/assets/sets"
-const BAKED_SET_ROOT := "res://resources/ua/sets"
+const _UAProjectDataRoots = preload("res://map/ua_project_data_roots.gd")
+const _UALegacyText = preload("res://map/ua_legacy_text.gd")
+## Optional override for tests/tools (`set_external_source_root`); runtime uses UAProjectDataRoots when unset.
 # Raw BAS/SKLT terrain-piece coordinates already use UA world-space sector units:
 # - 3x3 top pieces are authored as 300x300 footprints
 # - full border-ring pieces are authored around 1200-unit sector spans
@@ -26,93 +27,49 @@ const ILBM_MASK_TRANSPARENT_COLOR := 2
 const BMPANIM_UV_SCALE := 256.0
 
 static var _mesh_cache := {}
+static var _animated_overlay_cache := {}
+static var _piece_overlay_emitters_cache := {}
+static var _json_cache := {}
+static var _piece_overlay_fast_path_count := 0
+static var _piece_overlay_slow_path_count := 0
 static var _material_cache := {}
 static var _texture_cache := {}
 static var _dir_cache := {}
 static var _anim_cache := {}
-static var _baked_piece_registry_cache := {}
-static var _baked_anim_registry_cache := {}
-static var _baked_particles_registry_cache := {}
-static var _baked_support_registry_cache := {}
 static var _support_sampler_cache := {}
 static var _external_source_loading_enabled := true
-static var _external_source_root := LEGACY_SET_ROOT
+static var _external_source_root: String = ""
+static var _piece_game_data_type := "original"
 
-static func _baked_set_dir(set_id: int) -> String:
-	return "%s/set%d" % [BAKED_SET_ROOT, max(set_id, 1)]
+static func set_piece_game_data_type(game_data_type: String) -> void:
+	var n := game_data_type.strip_edges()
+	if n.is_empty():
+		n = "original"
+	if n == _piece_game_data_type:
+		return
+	_piece_game_data_type = n
+	_mesh_cache.clear()
+	_animated_overlay_cache.clear()
+	_piece_overlay_emitters_cache.clear()
+	_json_cache.clear()
+	_material_cache.clear()
+	_texture_cache.clear()
+	_dir_cache.clear()
+	_anim_cache.clear()
+	_support_sampler_cache.clear()
 
-static func _baked_texture_dir(set_id: int) -> String:
-	return "%s/set%d/textures/albedo" % [BAKED_SET_ROOT, max(set_id, 1)]
 
-static func _baked_texture_path(set_id: int, texture_file: String) -> String:
-	var base := texture_file.strip_edges().get_basename().to_lower()
-	if base.is_empty():
-		return ""
-	return "%s/%s.png" % [_baked_texture_dir(set_id), base]
+static func reset_piece_overlay_build_counters() -> void:
+	_piece_overlay_fast_path_count = 0
+	_piece_overlay_slow_path_count = 0
 
-static func _baked_piece_registry_path(set_id: int) -> String:
-	return "%s/metadata/piece_registry.json" % _baked_set_dir(set_id)
 
-static func _baked_anim_registry_path(set_id: int) -> String:
-	return "%s/metadata/animations.json" % _baked_set_dir(set_id)
+static func get_piece_overlay_build_counters() -> Dictionary:
+	return {
+		"piece_overlay_fast_path": _piece_overlay_fast_path_count,
+		"piece_overlay_slow_path": _piece_overlay_slow_path_count,
+	}
 
-static func _baked_particles_registry_path(set_id: int) -> String:
-	return "%s/metadata/particles.json" % _baked_set_dir(set_id)
-
-static func _baked_support_registry_path(set_id: int) -> String:
-	return "%s/metadata/support_registry.json" % _baked_set_dir(set_id)
-
-static func _load_baked_piece_registry(set_id: int) -> Dictionary:
-	var key: int = maxi(set_id, 1)
-	if _baked_piece_registry_cache.has(key):
-		return _baked_piece_registry_cache[key]
-	var registry_path := _baked_piece_registry_path(key)
-	var loaded := {}
-	if not registry_path.is_empty() and FileAccess.file_exists(registry_path):
-		var parsed = JSON.parse_string(FileAccess.get_file_as_string(registry_path))
-		if typeof(parsed) == TYPE_DICTIONARY:
-			loaded = parsed
-	_baked_piece_registry_cache[key] = loaded
-	return loaded
-
-static func _load_baked_anim_registry(set_id: int) -> Dictionary:
-	var key: int = maxi(set_id, 1)
-	if _baked_anim_registry_cache.has(key):
-		return _baked_anim_registry_cache[key]
-	var registry_path := _baked_anim_registry_path(key)
-	var loaded := {}
-	if not registry_path.is_empty() and FileAccess.file_exists(registry_path):
-		var parsed = JSON.parse_string(FileAccess.get_file_as_string(registry_path))
-		if typeof(parsed) == TYPE_DICTIONARY:
-			loaded = parsed
-	_baked_anim_registry_cache[key] = loaded
-	return loaded
-
-static func _load_baked_particles_registry(set_id: int) -> Dictionary:
-	var key: int = maxi(set_id, 1)
-	if _baked_particles_registry_cache.has(key):
-		return _baked_particles_registry_cache[key]
-	var registry_path := _baked_particles_registry_path(key)
-	var loaded := {}
-	if not registry_path.is_empty() and FileAccess.file_exists(registry_path):
-		var parsed = JSON.parse_string(FileAccess.get_file_as_string(registry_path))
-		if typeof(parsed) == TYPE_DICTIONARY:
-			loaded = parsed
-	_baked_particles_registry_cache[key] = loaded
-	return loaded
-
-static func _load_baked_support_registry(set_id: int) -> Dictionary:
-	var key: int = maxi(set_id, 1)
-	if _baked_support_registry_cache.has(key):
-		return _baked_support_registry_cache[key]
-	var registry_path := _baked_support_registry_path(key)
-	var loaded := {}
-	if not registry_path.is_empty() and FileAccess.file_exists(registry_path):
-		var parsed = JSON.parse_string(FileAccess.get_file_as_string(registry_path))
-		if typeof(parsed) == TYPE_DICTIONARY:
-			loaded = parsed
-	_baked_support_registry_cache[key] = loaded
-	return loaded
 
 static func set_external_source_loading_enabled(enabled: bool) -> void:
 	_external_source_loading_enabled = enabled
@@ -122,52 +79,17 @@ static func set_external_source_root(path: String) -> void:
 
 static func _clear_runtime_caches_for_tests() -> void:
 	_mesh_cache.clear()
+	_animated_overlay_cache.clear()
+	_piece_overlay_emitters_cache.clear()
+	_json_cache.clear()
 	_material_cache.clear()
 	_texture_cache.clear()
 	_dir_cache.clear()
 	_anim_cache.clear()
-	_baked_piece_registry_cache.clear()
-	_baked_anim_registry_cache.clear()
-	_baked_particles_registry_cache.clear()
-	_baked_support_registry_cache.clear()
 	_support_sampler_cache.clear()
 	_external_source_loading_enabled = true
-	_external_source_root = LEGACY_SET_ROOT
-
-static func _baked_piece_entry(set_id: int, base_name: String) -> Dictionary:
-	var cleaned := base_name.strip_edges().to_lower()
-	if cleaned.is_empty():
-		return {}
-	var registry := _load_baked_piece_registry(set_id)
-	var pieces_value = registry.get("pieces", {})
-	if typeof(pieces_value) != TYPE_DICTIONARY:
-		return {}
-	var entry_value = Dictionary(pieces_value).get(cleaned, {})
-	return entry_value if typeof(entry_value) == TYPE_DICTIONARY else {}
-
-static func _baked_piece_mesh_path(set_id: int, base_name: String) -> String:
-	var entry := _baked_piece_entry(set_id, base_name)
-	if entry.is_empty():
-		return ""
-	return String(entry.get("mesh_path", ""))
-
-static func _has_baked_piece_resource(set_id: int, base_name: String) -> bool:
-	var scene_path := baked_piece_scene_path(set_id, base_name)
-	if not scene_path.is_empty() and ResourceLoader.exists(scene_path):
-		return true
-	var mesh_path := _baked_piece_mesh_path(set_id, base_name)
-	return not mesh_path.is_empty() and ResourceLoader.exists(mesh_path)
-
-static func _baked_support_entry_for_base_name(set_id: int, base_name: String) -> Dictionary:
-	var cleaned := base_name.strip_edges().to_lower()
-	if cleaned.is_empty():
-		return {}
-	var registry := _load_baked_support_registry(set_id)
-	var supports_value = registry.get("supports", {})
-	if typeof(supports_value) != TYPE_DICTIONARY:
-		return {}
-	var entry_value = Dictionary(supports_value).get(cleaned, {})
-	return entry_value if typeof(entry_value) == TYPE_DICTIONARY else {}
+	_external_source_root = ""
+	_piece_game_data_type = "original"
 
 static func _vector3_from_json(value) -> Vector3:
 	if typeof(value) == TYPE_VECTOR3:
@@ -176,20 +98,6 @@ static func _vector3_from_json(value) -> Vector3:
 		return Vector3.ZERO
 	var d := Dictionary(value)
 	return Vector3(float(d.get("x", 0.0)), float(d.get("y", 0.0)), float(d.get("z", 0.0)))
-
-static func _baked_support_height_at_world_position(entry: Dictionary, basis: Basis, origin: Vector3, world_x: float, world_z: float):
-	var sampler := _support_sampler_from_baked_entry(entry)
-	return _support_sampler_height_at_world_position(sampler, basis, origin, world_x, world_z)
-
-static func _clear_baked_support_cache_for_tests() -> void:
-	_baked_support_registry_cache.clear()
-	_support_sampler_cache.clear()
-
-static func baked_piece_scene_path(set_id: int, base_name: String) -> String:
-	var entry := _baked_piece_entry(set_id, base_name)
-	if entry.is_empty():
-		return ""
-	return String(entry.get("scene_path", ""))
 
 static func resolve_authored_descriptor(set_id: int, raw_id: int, lego_defs: Dictionary, origin: Vector3) -> Dictionary:
 	var lego := _lego_for_raw_id(lego_defs, raw_id)
@@ -251,16 +159,9 @@ static func support_height_at_world_position(descriptors: Array, world_x: float,
 		var basis := _piece_basis_from_desc(desc)
 		var origin := _piece_position_from_desc(desc)
 		var sampled_height = null
-		var warp_mode := String(desc.get("warp_mode", ""))
 		var warp_sig := _warp_signature(desc)
-		if warp_mode.is_empty():
-			var baked_entry := _baked_support_entry_for_base_name(set_id, base_name)
-			if not baked_entry.is_empty():
-				sampled_height = _baked_support_height_at_world_position(baked_entry, basis, origin, world_x, world_z)
-		if sampled_height == null:
-			var sampler := _piece_support_sampler(set_id, base_name, warp_sig, desc)
-			if sampler.is_empty():
-				continue
+		var sampler := _piece_support_sampler(set_id, base_name, warp_sig, desc)
+		if not sampler.is_empty():
 			sampled_height = _support_sampler_height_at_world_position(sampler, basis, origin, world_x, world_z)
 		if sampled_height == null:
 			continue
@@ -296,7 +197,7 @@ static func _piece_support_sampler(set_id: int, base_name: String, warp_sig: Str
 	var cleaned := base_name.strip_edges().to_lower()
 	if cleaned.is_empty():
 		return {}
-	var cache_key := "piece:%d:%s:%s" % [maxi(set_id, 1), cleaned, warp_sig]
+	var cache_key := "piece:%d:%s:%s:%s" % [maxi(set_id, 1), cleaned, warp_sig, _piece_game_data_type.to_lower()]
 	if _support_sampler_cache.has(cache_key):
 		var cached = _support_sampler_cache[cache_key]
 		return cached if typeof(cached) == TYPE_DICTIONARY else {}
@@ -312,54 +213,6 @@ static func _piece_support_sampler(set_id: int, base_name: String, warp_sig: Str
 	var sampler := _support_sampler_from_mesh(mesh)
 	_support_sampler_cache[cache_key] = sampler
 	return sampler
-
-static func _support_sampler_from_baked_entry(entry: Dictionary) -> Dictionary:
-	var cache_key := _support_sampler_cache_key_from_baked_entry(entry)
-	if not cache_key.is_empty() and _support_sampler_cache.has(cache_key):
-		var cached = _support_sampler_cache[cache_key]
-		return cached if typeof(cached) == TYPE_DICTIONARY else {}
-	var triangles: Array = []
-	var surfaces_value = entry.get("surfaces", [])
-	if typeof(surfaces_value) == TYPE_ARRAY:
-		for surface_value in Array(surfaces_value):
-			if typeof(surface_value) != TYPE_DICTIONARY:
-				continue
-			var triangles_value = Dictionary(surface_value).get("triangles", [])
-			if typeof(triangles_value) != TYPE_ARRAY:
-				continue
-			for tri_value in Array(triangles_value):
-				if typeof(tri_value) != TYPE_DICTIONARY:
-					continue
-				var verts_value = Dictionary(tri_value).get("verts", [])
-				if typeof(verts_value) != TYPE_ARRAY:
-					continue
-				var verts_arr := Array(verts_value)
-				if verts_arr.size() < 3:
-					continue
-				_append_support_triangle_record(
-					triangles,
-					_vector3_from_json(verts_arr[0]),
-					_vector3_from_json(verts_arr[1]),
-					_vector3_from_json(verts_arr[2])
-				)
-	var sampler := _support_sampler_from_triangle_records(triangles)
-	if not cache_key.is_empty():
-		_support_sampler_cache[cache_key] = sampler
-	return sampler
-
-static func _support_sampler_cache_key_from_baked_entry(entry: Dictionary) -> String:
-	var bounds_value = entry.get("bounds_aabb", {})
-	var max_height := float(entry.get("max_height", 0.0))
-	var triangle_count := int(entry.get("triangle_count", 0))
-	if typeof(bounds_value) != TYPE_DICTIONARY:
-		return ""
-	var bounds := bounds_value as Dictionary
-	return "baked:%s:%s:%.3f:%d" % [
-		JSON.stringify(bounds.get("min", {}), "", false),
-		JSON.stringify(bounds.get("max", {}), "", false),
-		max_height,
-		triangle_count
-	]
 
 static func _support_sampler_from_mesh(mesh: Mesh) -> Dictionary:
 	if mesh == null:
@@ -522,8 +375,6 @@ static func _triangle_support_height_at_world_position(a: Vector3, b: Vector3, c
 static func has_piece_source(set_id: int, base_name: String) -> bool:
 	if base_name.is_empty():
 		return false
-	if _has_baked_piece_resource(set_id, base_name):
-		return true
 	if not _external_source_loading_enabled:
 		return false
 	var bas_path := _find_piece_bas_path(set_id, base_name)
@@ -540,162 +391,90 @@ static func _lego_for_raw_id(lego_defs: Dictionary, raw_id: int) -> Dictionary:
 	var key := str(raw_id)
 	return lego_defs.get(key, {})
 
-static func _baked_piece_node_has_runtime_content(node: Node) -> bool:
-	if node == null or not is_instance_valid(node):
-		return false
-	var stack: Array[Node] = [node]
-	while not stack.is_empty():
-		var current: Node = stack.pop_back()
-		if current == null or not is_instance_valid(current):
-			continue
-		if current is MeshInstance3D and (current as MeshInstance3D).mesh != null:
-			return true
-		if current.has_meta("ua_authored_particle_emitter"):
-			return true
-		for child in current.get_children():
-			if child != null:
-				stack.append(child)
-	return false
-
-static func _instantiate_baked_piece_node(set_id: int, base_name: String) -> Node3D:
-	var scene_path := baked_piece_scene_path(set_id, base_name)
-	if not scene_path.is_empty() and ResourceLoader.exists(scene_path):
-		var scene_res = load(scene_path)
-		if scene_res is PackedScene:
-			var scene_root = (scene_res as PackedScene).instantiate()
-			if scene_root is Node3D:
-				var node_root := scene_root as Node3D
-				if node_root.name == "AuthoredOverlay" and node_root.get_child_count() == 1 and node_root.get_child(0) is Node3D:
-					var child := node_root.get_child(0) as Node3D
-					if _baked_piece_node_has_runtime_content(child):
-						node_root.remove_child(child)
-						node_root.queue_free()
-						return child
-				if _baked_piece_node_has_runtime_content(node_root):
-					return node_root
-				node_root.queue_free()
-				return null
-			if scene_root != null and is_instance_valid(scene_root):
-				scene_root.queue_free()
-	var mesh_path := _baked_piece_mesh_path(set_id, base_name)
-	if mesh_path.is_empty() or not ResourceLoader.exists(mesh_path):
-		return null
-	var mesh_res = load(mesh_path)
-	if not (mesh_res is Mesh):
-		return null
-	var root := Node3D.new()
-	var mi := MeshInstance3D.new()
-	mi.mesh = mesh_res as Mesh
-	root.add_child(mi)
-	return root
-
-static func _collect_baked_piece_mesh(root: Node3D) -> ArrayMesh:
-	if root == null or not is_instance_valid(root):
-		return null
-	var combined := ArrayMesh.new()
-	var root_inverse := root.global_transform.affine_inverse()
-	var stack: Array[Node] = [root]
-	while not stack.is_empty():
-		var node: Node = stack.pop_back()
-		if node == null:
-			continue
-		for child in node.get_children():
-			if child != null:
-				stack.append(child)
-		if not (node is MeshInstance3D):
-			continue
-		var mi := node as MeshInstance3D
-		var mesh := mi.mesh
-		if mesh == null:
-			continue
-		var relative_transform := root_inverse * mi.global_transform
-		for surface_idx in mesh.get_surface_count():
-			var arrays := mesh.surface_get_arrays(surface_idx)
-			if arrays.is_empty():
-				continue
-			var verts: PackedVector3Array = arrays[Mesh.ARRAY_VERTEX]
-			if not verts.is_empty():
-				var transformed := PackedVector3Array()
-				transformed.resize(verts.size())
-				for i in verts.size():
-					transformed[i] = relative_transform * verts[i]
-				arrays[Mesh.ARRAY_VERTEX] = transformed
-			var normals: PackedVector3Array = arrays[Mesh.ARRAY_NORMAL]
-			if not normals.is_empty():
-				var transformed_normals := PackedVector3Array()
-				transformed_normals.resize(normals.size())
-				for i in normals.size():
-					transformed_normals[i] = relative_transform.basis * normals[i]
-				arrays[Mesh.ARRAY_NORMAL] = transformed_normals
-			combined.add_surface_from_arrays(mesh.surface_get_primitive_type(surface_idx), arrays)
-			combined.surface_set_material(combined.get_surface_count() - 1, mesh.surface_get_material(surface_idx))
-	if combined.get_surface_count() == 0:
-		return null
-	return combined
-
 static func _load_piece_mesh(set_id: int, base_name: String) -> ArrayMesh:
 	if base_name.is_empty():
 		return null
-	var cache_key := "%d:%s" % [set_id, base_name.to_lower()]
+	var cache_key := "%d:%s:%s" % [set_id, base_name.to_lower(), _piece_game_data_type.to_lower()]
 	if _mesh_cache.has(cache_key):
-		return _mesh_cache[cache_key]
-	var baked_node := _instantiate_baked_piece_node(set_id, base_name)
-	if baked_node != null:
-		var baked_mesh := _collect_baked_piece_mesh(baked_node)
-		baked_node.queue_free()
-		_mesh_cache[cache_key] = baked_mesh
 		return _mesh_cache[cache_key]
 	if not _external_source_loading_enabled:
 		_mesh_cache[cache_key] = null
+		_animated_overlay_cache[cache_key] = false
+		_piece_overlay_emitters_cache[cache_key] = false
 		return null
 	var piece_source := _load_piece_source(set_id, base_name)
 	var bas_data: Dictionary = piece_source.get("bas_data", {})
 	var points: Array = piece_source.get("points", [])
 	var polys: Array = piece_source.get("polys", [])
+	var emitters := _extract_particle_emitters(bas_data, points, set_id)
+	var has_emitters := emitters.size() > 0
 	var mesh := ArrayMesh.new()
+	var has_animated_surfaces := false
 	for surface in _extract_surfaces(bas_data, points, polys, set_id):
+		var anim_frames: Array = surface.get("animation_frames", [])
+		if anim_frames.size() > 0:
+			has_animated_surfaces = true
 		var mesh_surface := _mesh_surface_from_surface(surface, set_id)
 		var triangles: Array = mesh_surface.get("triangles", [])
 		if triangles.is_empty() or mesh_surface.get("material", null) == null:
 			continue
 		_append_surface_to_mesh(mesh, triangles, mesh_surface.get("material", null))
-	_mesh_cache[cache_key] = mesh if mesh.get_surface_count() > 0 else null
+	_animated_overlay_cache[cache_key] = has_animated_surfaces
+	_piece_overlay_emitters_cache[cache_key] = has_emitters
+	if mesh.get_surface_count() > 0:
+		_mesh_cache[cache_key] = mesh
+		return _mesh_cache[cache_key]
+	_mesh_cache[cache_key] = null
 	return _mesh_cache[cache_key]
 
 static func _build_piece_node(set_id: int, base_name: String, raw_id: int) -> Node3D:
 	if base_name.is_empty():
 		return null
-	var baked_piece := _instantiate_baked_piece_node(set_id, base_name)
-	if baked_piece != null:
-		baked_piece.name = "%s_%d" % [base_name, raw_id]
-		return baked_piece
-	if not _external_source_loading_enabled:
-		return null
-	var piece_source := _load_piece_source(set_id, base_name)
-	var bas_data: Dictionary = piece_source.get("bas_data", {})
-	var points: Array = piece_source.get("points", [])
-	var polys: Array = piece_source.get("polys", [])
-	var surfaces := _extract_surfaces(bas_data, points, polys, set_id)
-	var emitters := _extract_particle_emitters(bas_data, points, set_id)
-	if surfaces.is_empty() and emitters.is_empty():
-		return null
-	var piece := Node3D.new()
-	piece.name = "%s_%d" % [base_name, raw_id]
-	for i in surfaces.size():
-		var child := _surface_node_from_surface(surfaces[i], set_id)
-		if child == null:
-			continue
-		child.name = "Surface_%d" % i
-		piece.add_child(child)
-	for i in emitters.size():
-		var emitter := _particle_node_from_definition(emitters[i])
-		if emitter == null:
-			continue
-		emitter.name = "ParticleEmitter_%d" % i
-		piece.add_child(emitter)
-	return piece if piece.get_child_count() > 0 else null
+	if _external_source_loading_enabled:
+		var piece_source := _load_piece_source(set_id, base_name)
+		var bas_data: Dictionary = piece_source.get("bas_data", {})
+		var points: Array = piece_source.get("points", [])
+		var polys: Array = piece_source.get("polys", [])
+		var surfaces := _extract_surfaces(bas_data, points, polys, set_id)
+		var emitters := _extract_particle_emitters(bas_data, points, set_id)
+		if not surfaces.is_empty() or not emitters.is_empty():
+			var piece := Node3D.new()
+			piece.name = "%s_%d" % [base_name, raw_id]
+			for i in surfaces.size():
+				var child := _surface_node_from_surface(surfaces[i], set_id)
+				if child == null:
+					continue
+				child.name = "Surface_%d" % i
+				piece.add_child(child)
+			for i in emitters.size():
+				var emitter := _particle_node_from_definition(emitters[i])
+				if emitter == null:
+					continue
+				emitter.name = "ParticleEmitter_%d" % i
+				piece.add_child(emitter)
+			if piece.get_child_count() > 0:
+				return piece
+	return null
 
 static func build_piece_scene_root(set_id: int, base_name: String, raw_id: int = -1) -> Node3D:
+	if base_name.is_empty():
+		return null
+	if not _external_source_loading_enabled:
+		return _build_piece_node(set_id, base_name, raw_id)
+	var mesh: ArrayMesh = _load_piece_mesh(set_id, base_name)
+	var cache_key := "%d:%s:%s" % [set_id, base_name.to_lower(), _piece_game_data_type.to_lower()]
+	var use_animated := bool(_animated_overlay_cache.get(cache_key, false))
+	var has_emitters := bool(_piece_overlay_emitters_cache.get(cache_key, false))
+	if mesh != null and mesh.get_surface_count() > 0 and not use_animated and not has_emitters:
+		_piece_overlay_fast_path_count += 1
+		var root := Node3D.new()
+		root.name = "%s_%d" % [base_name, raw_id]
+		var mi := MeshInstance3D.new()
+		mi.name = "Mesh"
+		mi.mesh = mesh
+		root.add_child(mi)
+		return root
+	_piece_overlay_slow_path_count += 1
 	return _build_piece_node(set_id, base_name, raw_id)
 
 static func _apply_optional_piece_deform(piece_node: Node3D, desc: Dictionary) -> void:
@@ -814,15 +593,6 @@ static func _collect_particle_emitters(node, out: Array, points: Array, set_id: 
 			_collect_particle_emitters(item, out, points, set_id)
 
 static func _particle_emitter_from_ptcl(ptcl_data: Array, points: Array, set_id: int) -> Dictionary:
-	# Prefer baked emitter definitions when present.
-	var baked := _load_baked_particles_registry(set_id)
-	var emitters_value = baked.get("emitters", {})
-	if typeof(emitters_value) == TYPE_DICTIONARY:
-		var sig := _ptcl_signature(ptcl_data)
-		if not sig.is_empty():
-			var baked_def = Dictionary(emitters_value).get(sig, {})
-			if typeof(baked_def) == TYPE_DICTIONARY and not baked_def.is_empty():
-				return baked_def
 	if not _external_source_loading_enabled:
 		return {}
 
@@ -854,19 +624,6 @@ static func _particle_emitter_from_ptcl(ptcl_data: Array, points: Array, set_id:
 		"magnify_end": _vector3_from_components(atts, "magnify_end"),
 		"stages": stages,
 	}
-
-static func _ptcl_signature(ptcl_data: Array) -> String:
-	# Simple stable signature based on first ADE point and basic timing params.
-	var point_id := _find_first_ade_point(ptcl_data)
-	var atts := _find_first_particle_atts(ptcl_data)
-	if point_id < 0 or atts.is_empty():
-		return ""
-	return "%d:%d:%d:%d" % [
-		point_id,
-		int(atts.get("context_life_time", 0)),
-		int(atts.get("context_start_gen", 0)),
-		int(atts.get("gen_rate", 0)),
-	]
 
 static func _particle_stages_from_ptcl(ptcl_data: Array, set_id: int) -> Array:
 	var area_stages: Array = []
@@ -1321,37 +1078,34 @@ static func _texture_for_name(set_id: int, texture_name: String, render_hints: D
 	var cache_key := _texture_cache_key(set_id, texture_file, hints)
 	if _texture_cache.has(cache_key):
 		return _texture_cache[cache_key]
-
-	# 1) Prefer baked, fully-imported texture assets when available.
-	var baked_path := _baked_texture_path(set_id, texture_file)
-	if not baked_path.is_empty() and FileAccess.file_exists(baked_path):
-		var baked_tex := load(baked_path)
-		if baked_tex is Texture2D:
-			_texture_cache[cache_key] = baked_tex
-			return baked_tex
-	if not _external_source_loading_enabled:
-		_texture_cache[cache_key] = null
-		return null
-
-	# 2) Fallback: current source-format path (ILBM decode / ILB.bmp import + color key).
-	var raw_image := _raw_image_for_texture(set_id, texture_name, hints)
-	if raw_image != null:
-		var converted_raw := _apply_color_key_transparency(raw_image)
-		_texture_cache[cache_key] = ImageTexture.create_from_image(converted_raw)
-		return _texture_cache[cache_key]
-
-	var texture_path := _find_file(_set_root(set_id), texture_file)
-	if texture_path.is_empty():
-		_texture_cache[cache_key] = null
-		return null
-	var tex := load(texture_path)
-	if tex is Texture2D:
-		var image: Image = tex.get_image()
-		if image != null:
-			var converted := _apply_color_key_transparency(image)
-			_texture_cache[cache_key] = ImageTexture.create_from_image(converted)
+	if _external_source_loading_enabled:
+		var raw_image := _raw_image_for_texture(set_id, texture_name, hints)
+		if raw_image != null:
+			var converted_raw := _apply_color_key_transparency(raw_image)
+			_texture_cache[cache_key] = ImageTexture.create_from_image(converted_raw)
 			return _texture_cache[cache_key]
-	_texture_cache[cache_key] = tex if tex is Texture2D else null
+
+		var texture_path := _find_file(_set_root(set_id), texture_file)
+		if not texture_path.is_empty():
+			var tex = load(texture_path)
+			if tex is Texture2D:
+				var image: Image = tex.get_image()
+				if image != null:
+					var converted := _apply_color_key_transparency(image)
+					_texture_cache[cache_key] = ImageTexture.create_from_image(converted)
+					return _texture_cache[cache_key]
+				_texture_cache[cache_key] = tex
+				if _texture_cache[cache_key] != null:
+					return _texture_cache[cache_key]
+			# Filenames like BODEN1.ILB.bmp confuse ResourceLoader (no bmp importer match);
+			# Image.load_from_file still decodes standard PC bitmaps.
+			var img_fallback := Image.load_from_file(texture_path)
+			if img_fallback != null:
+				var converted_fb := _apply_color_key_transparency(img_fallback)
+				_texture_cache[cache_key] = ImageTexture.create_from_image(converted_fb)
+				return _texture_cache[cache_key]
+
+	_texture_cache[cache_key] = null
 	return _texture_cache[cache_key]
 
 static func _normalized_render_hints(render_hints: Dictionary) -> Dictionary:
@@ -1365,19 +1119,21 @@ static func _normalized_render_hints(render_hints: Dictionary) -> Dictionary:
 	}
 
 static func _render_cache_key(set_id: int, texture_file: String, render_hints: Dictionary) -> String:
-	return "%d:%s:%s:%d:%d" % [
+	return "%d:%s:%s:%d:%d:%s" % [
 		set_id,
 		texture_file.to_lower(),
 		String(render_hints.get("transparency_mode", "auto")),
 		int(render_hints.get("tracy_val", 0)),
 		int(render_hints.get("shade_value", 0)),
+		_piece_game_data_type.to_lower(),
 	]
 
 static func _texture_cache_key(set_id: int, texture_file: String, render_hints: Dictionary) -> String:
-	return "%d:%s:%s" % [
+	return "%d:%s:%s:%s" % [
 		set_id,
 		texture_file.to_lower(),
 		String(render_hints.get("transparency_mode", "auto")),
+		_piece_game_data_type.to_lower(),
 	]
 
 static func _surface_group_key(texture_name: String, render_hints: Dictionary) -> String:
@@ -1550,38 +1306,28 @@ static func _apply_color_key_transparency(image: Image) -> Image:
 	return converted
 
 static func _load_anim_frames(set_id: int, anim_name: String, polygon: Array) -> Array:
-	# Prefer baked animation registry if present.
-	var baked := _load_baked_anim_registry(set_id)
-	var anims_value = baked.get("animations", {})
-	if typeof(anims_value) == TYPE_DICTIONARY:
-		var key := anim_name.strip_edges().to_lower()
-		var entry_value = Dictionary(anims_value).get(key, {})
-		if typeof(entry_value) == TYPE_DICTIONARY:
-			var baked_frames: Array = entry_value.get("frames", [])
-			if baked_frames.size() > 0:
-				return baked_frames.duplicate(true)
-	if not _external_source_loading_enabled:
-		return []
-
-	var cache_key := "%d:%s" % [set_id, anim_name.to_lower()]
-	if _anim_cache.has(cache_key):
-		return _clone_anim_frames(_anim_cache[cache_key], polygon, set_id)
-	var anim_path := _find_anim_json_path(set_id, anim_name)
-	var anim_data := _load_json(anim_path)
-	var raw_frames := _find_frames_list(anim_data)
-	var compiled: Array = []
-	for frame in raw_frames:
-		if typeof(frame) != TYPE_DICTIONARY:
-			continue
-		var texture_name := String(frame.get("vbmp_name", ""))
-		var uv_points: Array = frame.get("vbmp_coords", [])
-		compiled.append({
-			"texture_name": texture_name,
-			"raw_uv_points": uv_points.duplicate(true),
-			"duration_sec": max(float(frame.get("frame_time", 40.0)) / 1000.0, 0.01),
-		})
-	_anim_cache[cache_key] = compiled
-	return _clone_anim_frames(compiled, polygon, set_id)
+	if _external_source_loading_enabled:
+		var cache_key := "%d:%s:%s" % [set_id, anim_name.to_lower(), _piece_game_data_type.to_lower()]
+		if _anim_cache.has(cache_key):
+			return _clone_anim_frames(_anim_cache[cache_key], polygon, set_id)
+		var anim_path := _find_anim_json_path(set_id, anim_name)
+		var anim_data := _load_json(anim_path)
+		var raw_frames := _find_frames_list(anim_data)
+		var compiled: Array = []
+		for frame in raw_frames:
+			if typeof(frame) != TYPE_DICTIONARY:
+				continue
+			var texture_name := String(frame.get("vbmp_name", ""))
+			var uv_points: Array = frame.get("vbmp_coords", [])
+			compiled.append({
+				"texture_name": texture_name,
+				"raw_uv_points": uv_points.duplicate(true),
+				"duration_sec": max(float(frame.get("frame_time", 40.0)) / 1000.0, 0.01),
+			})
+		_anim_cache[cache_key] = compiled
+		if compiled.size() > 0:
+			return _clone_anim_frames(compiled, polygon, set_id)
+	return []
 
 static func _clone_anim_frames(compiled_frames: Array, polygon: Array, _set_id: int) -> Array:
 	var frames: Array = []
@@ -1725,12 +1471,16 @@ static func _normalize_texture_name(texture_name: String) -> String:
 static func _load_json(path: String) -> Dictionary:
 	if path.is_empty() or not FileAccess.file_exists(path):
 		return {}
-	var f := FileAccess.open(path, FileAccess.READ)
-	if f == null:
+	if _json_cache.has(path):
+		var cached = _json_cache[path]
+		return cached if typeof(cached) == TYPE_DICTIONARY else {}
+	var txt := _UALegacyText.read_file(path)
+	if txt.is_empty():
 		return {}
-	var parsed = JSON.parse_string(f.get_as_text())
-	f.close()
-	return parsed if typeof(parsed) == TYPE_DICTIONARY else {}
+	var parsed = JSON.parse_string(txt)
+	var out: Dictionary = parsed if typeof(parsed) == TYPE_DICTIONARY else {}
+	_json_cache[path] = out
+	return out
 
 static func _find_file(dir_path: String, filename: String) -> String:
 	if dir_path.is_empty() or filename.is_empty():
@@ -1742,10 +1492,24 @@ static func _find_file(dir_path: String, filename: String) -> String:
 		_dir_cache[dir_path] = index
 	return _dir_cache[dir_path].get(filename.to_lower(), "")
 
+static func _first_existing_set_under_base(base: String, resolved_set_id: int, game_data_type: String) -> String:
+	var norm := _UAProjectDataRoots.normalized_game_data_type(game_data_type)
+	var suffix := "_xp" if norm == "metropolisDawn" else ""
+	var candidate := "%s/set%d%s" % [base, resolved_set_id, suffix]
+	if DirAccess.dir_exists_absolute(candidate):
+		return candidate
+	if suffix == "_xp":
+		var retail := "%s/set%d" % [base, resolved_set_id]
+		if DirAccess.dir_exists_absolute(retail):
+			return retail
+	return candidate
+
+
 static func _set_root(set_id: int) -> String:
-	if _external_source_root.is_empty():
-		return ""
-	return "%s/set%d" % [_external_source_root, set_id]
+	var resolved_set_id: int = max(set_id, 1)
+	if not _external_source_root.is_empty():
+		return _first_existing_set_under_base(_external_source_root, resolved_set_id, _piece_game_data_type)
+	return _UAProjectDataRoots.first_existing_set_directory(set_id, _piece_game_data_type)
 
 static func _find_piece_bas_path(set_id: int, base_name: String) -> String:
 	var filename := "%s.bas.json" % base_name

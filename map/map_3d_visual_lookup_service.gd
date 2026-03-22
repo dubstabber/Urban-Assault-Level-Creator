@@ -1,6 +1,8 @@
 extends RefCounted
 class_name Map3DVisualLookupService
 
+const _UAProjectDataRoots = preload("res://map/ua_project_data_roots.gd")
+const _UALegacyText = preload("res://map/ua_legacy_text.gd")
 const HOST_STATION_BASE_NAMES := {
 	56: "VP_ROBO",
 	57: "VP_KROBO",
@@ -47,14 +49,6 @@ const HOST_STATION_GUN_ATTACHMENTS := {
 		{"gun_type": 94, "ua_offset": Vector3(0.0, -230.0, -100.0), "ua_direction": Vector3(0.0, 0.0, -1.0)},
 	],
 }
-const SQUAD_VEHICLE_SCRIPT_ROOTS := {
-	"original": "res://.usor/openua/DATA/SCRIPTS",
-	"metropolisDawn": "res://.usor/openua/dataxp/Scripts",
-}
-const SQUAD_VISPROTO_PATH_PATTERNS := {
-	"original": "res://urban_assault_decompiled-master/assets/sets/set%d/scripts/visproto.lst",
-	"metropolisDawn": "res://urban_assault_decompiled-master/assets/sets/set%d_xp/scripts/visproto.lst",
-}
 const TECH_UPGRADE_EDITOR_TYP_OVERRIDES := {
 	4: 100,
 	7: 73,
@@ -71,9 +65,6 @@ const UA_DATA_JSON = preload("res://resources/UAdata.json")
 static var _squad_vehicle_visuals_cache: Dictionary = {}
 static var _squad_visproto_base_name_cache: Dictionary = {}
 static var _vehicle_visual_entries_cache: Dictionary = {}
-static var _baked_visproto_base_name_cache: Dictionary = {}
-static var _baked_vehicle_visuals_cache: Dictionary = {}
-static var _baked_building_definitions_cache: Dictionary = {}
 static var _blg_typ_override_cache: Dictionary = {}
 static var _building_definitions_cache: Dictionary = {}
 static var _building_sec_type_override_cache: Dictionary = {}
@@ -83,9 +74,6 @@ static func _clear_runtime_lookup_caches_for_tests() -> void:
 	_squad_vehicle_visuals_cache.clear()
 	_squad_visproto_base_name_cache.clear()
 	_vehicle_visual_entries_cache.clear()
-	_baked_visproto_base_name_cache.clear()
-	_baked_vehicle_visuals_cache.clear()
-	_baked_building_definitions_cache.clear()
 	_blg_typ_override_cache.clear()
 	_building_definitions_cache.clear()
 	_building_sec_type_override_cache.clear()
@@ -107,87 +95,52 @@ static func _normalized_game_data_type(game_data_type: String) -> String:
 	return "metropolisDawn" if game_data_type.to_lower() == "metropolisdawn" else "original"
 
 
-static func _script_root_for_game_data_type(game_data_type: String) -> String:
-	return String(SQUAD_VEHICLE_SCRIPT_ROOTS.get(_normalized_game_data_type(game_data_type), SQUAD_VEHICLE_SCRIPT_ROOTS["original"]))
+static func _source_set_dir_for_set(set_id: int, game_data_type: String) -> String:
+	return _UAProjectDataRoots.first_existing_set_directory(set_id, game_data_type)
+
+
+static func _first_existing_file(candidates: Array) -> String:
+	for candidate_value in candidates:
+		var candidate := String(candidate_value)
+		if not candidate.is_empty() and FileAccess.file_exists(candidate):
+			return candidate
+	return String(candidates[0]) if not candidates.is_empty() else ""
+
+
+static func _script_root_for_game_data_type(set_id_or_game_data_type = 1, game_data_type: String = "original") -> String:
+	var resolved_set_id := 1
+	var resolved_game_data_type := game_data_type
+	if typeof(set_id_or_game_data_type) == TYPE_STRING:
+		resolved_game_data_type = String(set_id_or_game_data_type)
+	else:
+		resolved_set_id = int(set_id_or_game_data_type)
+	var shared_root := _UAProjectDataRoots.shared_script_root_for_game_data_type(resolved_game_data_type)
+	var candidates: Array = []
+	if not shared_root.is_empty():
+		candidates.append(shared_root)
+	candidates.append("%s/script_sources" % _source_set_dir_for_set(resolved_set_id, resolved_game_data_type))
+	candidates.append("%s/scripts" % _source_set_dir_for_set(resolved_set_id, resolved_game_data_type))
+	for candidate_value in candidates:
+		var candidate := String(candidate_value)
+		if not candidate.is_empty() and DirAccess.dir_exists_absolute(candidate):
+			return candidate
+	return String(candidates[0]) if not candidates.is_empty() else ""
 
 
 static func _visproto_path_for_set(set_id: int, game_data_type: String) -> String:
-	var normalized_game_data_type := _normalized_game_data_type(game_data_type)
-	var pattern := String(SQUAD_VISPROTO_PATH_PATTERNS.get(normalized_game_data_type, SQUAD_VISPROTO_PATH_PATTERNS["original"]))
-	return pattern % max(set_id, 1)
+	var set_dir := _source_set_dir_for_set(set_id, game_data_type)
+	return _first_existing_file([
+		"%s/lookup/visproto.lst" % set_dir,
+		"%s/script_sources/visproto.lst" % set_dir,
+		"%s/scripts/visproto.lst" % set_dir,
+		"%s/lookup/VISPROTO.LST" % set_dir,
+		"%s/script_sources/VISPROTO.LST" % set_dir,
+		"%s/scripts/VISPROTO.LST" % set_dir,
+	])
 
 
-static func _baked_set_dir_for_set(set_id: int, game_data_type: String) -> String:
-	var normalized_game_data_type := _normalized_game_data_type(game_data_type)
-	var suffix := "_xp" if normalized_game_data_type == "metropolisDawn" else ""
-	return "res://resources/ua/sets/set%d%s" % [max(set_id, 1), suffix]
-
-
-static func _baked_visproto_registry_path_for_set(set_id: int, game_data_type: String) -> String:
-	return "%s/metadata/visproto_base_names.json" % _baked_set_dir_for_set(set_id, game_data_type)
-
-
-static func _baked_visproto_base_names_for_set(set_id: int, game_data_type: String) -> Array:
-	var normalized_game_data_type := _normalized_game_data_type(game_data_type)
-	var cache_key := "%s:%d" % [normalized_game_data_type, max(set_id, 1)]
-	if _baked_visproto_base_name_cache.has(cache_key):
-		return _baked_visproto_base_name_cache[cache_key]
-	var result: Array = []
-	var registry_path := _baked_visproto_registry_path_for_set(set_id, normalized_game_data_type)
-	if not registry_path.is_empty() and FileAccess.file_exists(registry_path):
-		var parsed = JSON.parse_string(FileAccess.get_file_as_string(registry_path))
-		if typeof(parsed) == TYPE_DICTIONARY:
-			var base_names_value = Dictionary(parsed).get("base_names", [])
-			if typeof(base_names_value) == TYPE_ARRAY:
-				result = Array(base_names_value).duplicate(true)
-	_baked_visproto_base_name_cache[cache_key] = result
-	return result
-
-
-static func _baked_vehicle_visuals_registry_path_for_set(set_id: int, game_data_type: String) -> String:
-	return "%s/metadata/vehicle_visuals.json" % _baked_set_dir_for_set(set_id, game_data_type)
-
-
-static func _baked_vehicle_visuals_for_set(set_id: int, game_data_type: String) -> Dictionary:
-	var normalized_game_data_type := _normalized_game_data_type(game_data_type)
-	var cache_key := "%s:%d" % [normalized_game_data_type, max(set_id, 1)]
-	if _baked_vehicle_visuals_cache.has(cache_key):
-		return _baked_vehicle_visuals_cache[cache_key]
-	var result := {}
-	var registry_path := _baked_vehicle_visuals_registry_path_for_set(set_id, normalized_game_data_type)
-	if not registry_path.is_empty() and FileAccess.file_exists(registry_path):
-		var parsed = JSON.parse_string(FileAccess.get_file_as_string(registry_path))
-		if typeof(parsed) == TYPE_DICTIONARY:
-			var vehicles_value = Dictionary(parsed).get("vehicles", {})
-			if typeof(vehicles_value) == TYPE_DICTIONARY:
-				result = Dictionary(vehicles_value).duplicate(true)
-	_baked_vehicle_visuals_cache[cache_key] = result
-	return result
-
-
-static func _baked_building_definitions_registry_path_for_set(set_id: int, game_data_type: String) -> String:
-	return "%s/metadata/building_definitions.json" % _baked_set_dir_for_set(set_id, game_data_type)
-
-
-static func _baked_building_definitions_for_set(set_id: int, game_data_type: String) -> Array:
-	var normalized_game_data_type := _normalized_game_data_type(game_data_type)
-	var cache_key := "%s:%d" % [normalized_game_data_type, max(set_id, 1)]
-	if _baked_building_definitions_cache.has(cache_key):
-		return _baked_building_definitions_cache[cache_key]
-	var result: Array = []
-	var registry_path := _baked_building_definitions_registry_path_for_set(set_id, normalized_game_data_type)
-	if not registry_path.is_empty() and FileAccess.file_exists(registry_path):
-		var parsed = JSON.parse_string(FileAccess.get_file_as_string(registry_path))
-		if typeof(parsed) == TYPE_DICTIONARY:
-			var definitions_value = Dictionary(parsed).get("definitions", [])
-			if typeof(definitions_value) == TYPE_ARRAY:
-				result = Array(definitions_value).duplicate(true)
-	_baked_building_definitions_cache[cache_key] = result
-	return result
-
-
-static func _script_paths_for_game_data_type(game_data_type: String) -> Array:
-	var script_root := _script_root_for_game_data_type(game_data_type)
+static func _script_paths_for_game_data_type(set_id: int, game_data_type: String) -> Array:
+	var script_root := _script_root_for_game_data_type(set_id, game_data_type)
 	var result: Array = []
 	var dir := DirAccess.open(script_root)
 	if dir == null:
@@ -248,20 +201,15 @@ static func _visproto_base_names_for_set(set_id: int, game_data_type: String) ->
 	var cache_key := "%s:%d" % [normalized_game_data_type, max(set_id, 1)]
 	if _squad_visproto_base_name_cache.has(cache_key):
 		return _squad_visproto_base_name_cache[cache_key]
-	var baked := _baked_visproto_base_names_for_set(set_id, normalized_game_data_type)
-	if baked.size() > 0:
-		_squad_visproto_base_name_cache[cache_key] = baked
-		return baked
 	var result: Array = []
 	var visproto_path := _visproto_path_for_set(set_id, normalized_game_data_type)
 	if FileAccess.file_exists(visproto_path):
-		var file := FileAccess.open(visproto_path, FileAccess.READ)
-		if file != null:
-			while not file.eof_reached():
-				var line := file.get_line().get_slice(";", 0).strip_edges()
-				if line.is_empty():
-					continue
-				result.append(line.get_basename())
+		var full := _UALegacyText.read_file(visproto_path)
+		for line_raw in full.split("\n"):
+			var line := line_raw.get_slice(";", 0).strip_edges()
+			if line.is_empty():
+				continue
+			result.append(line.get_basename())
 	_squad_visproto_base_name_cache[cache_key] = result
 	return result
 
@@ -291,13 +239,13 @@ static func _parse_vehicle_visual_pairs(script_path: String) -> Dictionary:
 	var result := {}
 	if script_path.is_empty() or not FileAccess.file_exists(script_path):
 		return result
-	var file := FileAccess.open(script_path, FileAccess.READ)
-	if file == null:
+	var full := _UALegacyText.read_file(script_path)
+	if full.is_empty():
 		return result
 	var current_vehicle_id := -1
 	var current_visuals := {}
-	while not file.eof_reached():
-		var line := file.get_line().get_slice(";", 0).strip_edges().to_lower()
+	for line_raw in full.split("\n"):
+		var line := line_raw.get_slice(";", 0).strip_edges().to_lower()
 		if line.is_empty():
 			continue
 		if line.begins_with("new_vehicle"):
@@ -327,14 +275,14 @@ static func _parse_vehicle_visual_entries(script_path: String) -> Dictionary:
 	var result := {}
 	if script_path.is_empty() or not FileAccess.file_exists(script_path):
 		return result
-	var file := FileAccess.open(script_path, FileAccess.READ)
-	if file == null:
+	var full := _UALegacyText.read_file(script_path)
+	if full.is_empty():
 		return result
 	var current_vehicle_id := -1
 	var current_entries: Array = []
 	var current_entry := {}
-	while not file.eof_reached():
-		var line := file.get_line().get_slice(";", 0).strip_edges().to_lower()
+	for line_raw in full.split("\n"):
+		var line := line_raw.get_slice(";", 0).strip_edges().to_lower()
 		if line.is_empty():
 			continue
 		if line.begins_with("new_vehicle"):
@@ -382,29 +330,8 @@ static func _squad_vehicle_visuals_for_game_data_type(set_id: int, game_data_typ
 	var cache_key := "%s:%d" % [normalized_game_data_type, max(set_id, 1)]
 	if _squad_vehicle_visuals_cache.has(cache_key):
 		return _squad_vehicle_visuals_cache[cache_key]
-	var baked := _baked_vehicle_visuals_for_set(set_id, normalized_game_data_type)
-	if not baked.is_empty():
-		var merged_baked := {}
-		for vehicle_id_key in baked.keys():
-			var raw_entry_value = baked.get(vehicle_id_key, null)
-			if typeof(raw_entry_value) != TYPE_DICTIONARY:
-				continue
-			var entry := raw_entry_value as Dictionary
-			var slots_value = entry.get("slots", {})
-			if typeof(slots_value) != TYPE_DICTIONARY:
-				continue
-			var slots_dict := slots_value as Dictionary
-			var out := {}
-			if slots_dict.has("wait"):
-				out["wait"] = int(slots_dict.get("wait", -1))
-			if slots_dict.has("normal"):
-				out["normal"] = int(slots_dict.get("normal", -1))
-			if not out.is_empty():
-				merged_baked[int(vehicle_id_key)] = out
-		_squad_vehicle_visuals_cache[cache_key] = merged_baked
-		return merged_baked
 	var merged := {}
-	for script_path in _script_paths_for_game_data_type(normalized_game_data_type):
+	for script_path in _script_paths_for_game_data_type(set_id, normalized_game_data_type):
 		var parsed: Dictionary = _parse_vehicle_visual_pairs(String(script_path))
 		for vehicle_id in parsed.keys():
 			merged[int(vehicle_id)] = Dictionary(parsed[vehicle_id]).duplicate(true)
@@ -417,29 +344,8 @@ static func _vehicle_visual_entries_for_game_data_type(set_id: int, game_data_ty
 	var cache_key := "%s:%d" % [normalized_game_data_type, max(set_id, 1)]
 	if _vehicle_visual_entries_cache.has(cache_key):
 		return _vehicle_visual_entries_cache[cache_key]
-	var baked := _baked_vehicle_visuals_for_set(set_id, normalized_game_data_type)
-	if not baked.is_empty():
-		var baked_merged := {}
-		for vehicle_id_key in baked.keys():
-			var raw_entry_value = baked.get(vehicle_id_key, null)
-			if typeof(raw_entry_value) != TYPE_DICTIONARY:
-				continue
-			var entry := raw_entry_value as Dictionary
-			var model_name := String(entry.get("model", ""))
-			var slots_value = entry.get("slots", {})
-			if typeof(slots_value) != TYPE_DICTIONARY:
-				continue
-			var slots_dict := slots_value as Dictionary
-			var out := {"model": model_name}
-			if slots_dict.has("wait"):
-				out["wait"] = int(slots_dict.get("wait", -1))
-			if slots_dict.has("normal"):
-				out["normal"] = int(slots_dict.get("normal", -1))
-			baked_merged[int(vehicle_id_key)] = [out]
-		_vehicle_visual_entries_cache[cache_key] = baked_merged
-		return baked_merged
 	var merged := {}
-	for script_path in _script_paths_for_game_data_type(normalized_game_data_type):
+	for script_path in _script_paths_for_game_data_type(set_id, normalized_game_data_type):
 		var parsed: Dictionary = _parse_vehicle_visual_entries(String(script_path))
 		for vehicle_id in parsed.keys():
 			merged[int(vehicle_id)] = Array(parsed[vehicle_id]).duplicate(true)
@@ -505,13 +411,13 @@ static func _parse_building_definitions(script_path: String) -> Array:
 	var result: Array = []
 	if script_path.is_empty() or not FileAccess.file_exists(script_path):
 		return result
-	var file := FileAccess.open(script_path, FileAccess.READ)
-	if file == null:
+	var full := _UALegacyText.read_file(script_path)
+	if full.is_empty():
 		return result
 	var current_building := {}
 	var current_attachment := {}
-	while not file.eof_reached():
-		var line := file.get_line().get_slice(";", 0).strip_edges().to_lower()
+	for line_raw in full.split("\n"):
+		var line := line_raw.get_slice(";", 0).strip_edges().to_lower()
 		if line.is_empty():
 			continue
 		if line.begins_with("new_building"):
@@ -576,10 +482,9 @@ static func _building_definitions_for_game_data_type(set_id: int, game_data_type
 	var cache_key := "%s:%d" % [normalized_game_data_type, max(set_id, 1)]
 	if _building_definitions_cache.has(cache_key):
 		return _building_definitions_cache[cache_key]
-	var result := _baked_building_definitions_for_set(set_id, normalized_game_data_type)
-	if result.is_empty():
-		for script_path in _script_paths_for_game_data_type(normalized_game_data_type):
-			result.append_array(_parse_building_definitions(String(script_path)))
+	var result: Array = []
+	for script_path in _script_paths_for_game_data_type(set_id, normalized_game_data_type):
+		result.append_array(_parse_building_definitions(String(script_path)))
 	_building_definitions_cache[cache_key] = result
 	return result
 
@@ -633,18 +538,14 @@ static func _building_sec_type_overrides_for_script_names(set_id: int, game_data
 	if _building_sec_type_override_cache.has(cache_key):
 		return _building_sec_type_override_cache[cache_key]
 	var result := {}
-	var baked := _baked_building_definitions_for_set(set_id, normalized_game_data_type)
-	if not baked.is_empty():
-		result = _building_sec_type_overrides_from_definitions(baked)
-	else:
-		var script_root := _script_root_for_game_data_type(game_data_type)
-		for script_name in script_names:
-			var script_path := script_root.path_join(script_name)
-			var script_overrides := _building_sec_type_overrides_from_definitions(_parse_building_definitions(script_path))
-			for building_id in script_overrides.keys():
-				if result.has(building_id):
-					continue
-				result[building_id] = int(script_overrides[building_id])
+	var script_root := _script_root_for_game_data_type(set_id, game_data_type)
+	for script_name in script_names:
+		var script_path := script_root.path_join(script_name)
+		var script_overrides := _building_sec_type_overrides_from_definitions(_parse_building_definitions(script_path))
+		for building_id in script_overrides.keys():
+			if result.has(building_id):
+				continue
+			result[building_id] = int(script_overrides[building_id])
 	_building_sec_type_override_cache[cache_key] = result
 	return result
 

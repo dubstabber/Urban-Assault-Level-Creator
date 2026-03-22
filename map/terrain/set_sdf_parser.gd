@@ -1,8 +1,11 @@
 extends Resource
 class_name SetSdfParser
 
+const _UAProjectDataRoots = preload("res://map/ua_project_data_roots.gd")
+const _UALegacyText = preload("res://map/ua_legacy_text.gd")
+
 # Parses UA set.sdf and returns authoring metadata keyed by typ_id.
-# Expected path per set: res://resources/ua/sets/set{N}/scripts/set.sdf
+# Path: UAProjectDataRoots.set_sdf_path_for_set (bundled sets, then optional in-project UA trees).
 #
 # Confirmed high-level layout:
 # 1. Lego/building definitions (before first '>')
@@ -23,16 +26,23 @@ class_name SetSdfParser
 # - subsector_patterns: typ_id -> {surface_type, sector_type, subsectors: PackedInt32Array}
 # - tile_mapping: subsector_index -> {val0, val1, val2, val3, flag}
 # - lego_defs: raw selected tile id -> {raw_id, base_name, base_file, skeleton_ref}
-static func parse_full_typ_data(set_id: int) -> Dictionary:
+static func parse_full_typ_data(set_id: int, game_data_type: String = "original") -> Dictionary:
 	if set_id < 1 or set_id > 6:
 		push_warning("SetSdfParser: invalid set_id %d; defaulting to 1" % set_id)
 		set_id = 1
-	var path := "res://resources/ua/sets/set%d/scripts/set.sdf" % set_id
+	var path := _UAProjectDataRoots.set_sdf_path_for_set(set_id, game_data_type)
 	var res := parse_full_typ_data_at(path)
 	var subs: Dictionary = res.get("subsector_patterns", {})
 	var tiles: Dictionary = res.get("tile_mapping", {})
 	if subs.is_empty() and tiles.is_empty():
-		var alt := "res://resources/ua/sets/set%d/scripts/set.sdf.bak_pre_strip" % set_id
+		var alt := ""
+		if not path.is_empty():
+			var dir := path.get_base_dir()
+			var fn := path.get_file().to_lower()
+			if fn == "set.sdf":
+				alt = "%s/set.sdf.bak_pre_strip" % dir
+			elif fn == "set.sdf.bak_pre_strip":
+				alt = "%s/set.sdf" % dir
 		var res2 := parse_full_typ_data_at(alt)
 		var subs2: Dictionary = res2.get("subsector_patterns", {})
 		var tiles2: Dictionary = res2.get("tile_mapping", {})
@@ -45,12 +55,12 @@ static func parse_lego_defs(path: String) -> Dictionary:
 	var lego_defs := {}
 	if path.is_empty() or not FileAccess.file_exists(path):
 		return lego_defs
-	var f := FileAccess.open(path, FileAccess.READ)
-	if f == null:
+	var full := _UALegacyText.read_file(path)
+	if full.is_empty():
 		return lego_defs
 	var raw_id := 0
-	while not f.eof_reached():
-		var line := _strip_comments(f.get_line()).strip_edges()
+	for line_raw in full.split("\n"):
+		var line := _strip_comments(line_raw).strip_edges()
 		if line.is_empty():
 			continue
 		if line.begins_with(">"):
@@ -72,17 +82,23 @@ static func parse_lego_defs(path: String) -> Dictionary:
 			"skeleton_ref": skeleton_ref
 		}
 		raw_id += 1
-	f.close()
 	return lego_defs
 
-static func parse_surface_type_map(set_id: int) -> Dictionary:
+static func parse_surface_type_map(set_id: int, game_data_type: String = "original") -> Dictionary:
 	if set_id < 1 or set_id > 6:
 		push_warning("SetSdfParser: invalid set_id %d; defaulting to 1" % set_id)
 		set_id = 1
-	var path := "res://resources/ua/sets/set%d/scripts/set.sdf" % set_id
+	var path := _UAProjectDataRoots.set_sdf_path_for_set(set_id, game_data_type)
 	var mapping := parse_surface_type_map_at(path)
 	if mapping.is_empty():
-		var alt := "res://resources/ua/sets/set%d/scripts/set.sdf.bak_pre_strip" % set_id
+		var alt := ""
+		if not path.is_empty():
+			var dir := path.get_base_dir()
+			var fn := path.get_file().to_lower()
+			if fn == "set.sdf":
+				alt = "%s/set.sdf.bak_pre_strip" % dir
+			elif fn == "set.sdf.bak_pre_strip":
+				alt = "%s/set.sdf" % dir
 		var mapping2 := parse_surface_type_map_at(alt)
 		if not mapping2.is_empty():
 			return mapping2

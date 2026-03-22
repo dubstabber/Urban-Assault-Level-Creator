@@ -32,13 +32,16 @@ Thumbs.db
 *.temp
 *.bak
 
-tests/
+
 ua_source_code_prototype/
-scripts/
-resources/ua/
-resources/terrain/
 .usor/
 docs/
 UA_source/
 urban_assault_decompiled-master/
+# Legacy Godot bake output (removed from tooling; safe to delete locally)
+resources/ua/sets/
+# Accidental editor/sync backups under bundled UA assets
+resources/ua/bundled/shared_scripts/**/*.bak
+resources/ua/bundled/shared_scripts/**/*.bak.*
 .augmentignore
+GODOT_EXECUTABLE_PATH.md

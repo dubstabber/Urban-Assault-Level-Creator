@@ -7,6 +7,7 @@ const TerrainBuilder := preload("res://map/map_3d_terrain_builder.gd")
 const SlurpBuilder := preload("res://map/map_3d_slurp_builder.gd")
 const AuthoredOverlayManager := preload("res://map/map_3d_authored_overlay_manager.gd")
 const ViewController := preload("res://map/map_3d_view_controller.gd")
+const UALegacyText := preload("res://map/ua_legacy_text.gd")
 
 const SECTOR_SIZE := 1200.0
 const HEIGHT_SCALE := 100.0
@@ -55,14 +56,6 @@ const HOST_STATION_GUN_ATTACHMENTS := {
 		{"gun_type": 94, "ua_offset": Vector3(0.0, -120.0, -380.0), "ua_direction": Vector3(0.0, 0.0, -1.0)},
 	],
 }
-const SQUAD_VEHICLE_SCRIPT_ROOTS := {
-	"original": "res://.usor/openua/DATA/SCRIPTS",
-	"metropolisDawn": "res://.usor/openua/dataxp/Scripts",
-}
-const SQUAD_VISPROTO_PATH_PATTERNS := {
-	"original": "res://urban_assault_decompiled-master/assets/sets/set%d/scripts/visproto.lst",
-	"metropolisDawn": "res://urban_assault_decompiled-master/assets/sets/set%d_xp/scripts/visproto.lst",
-}
 const TECH_UPGRADE_EDITOR_TYP_OVERRIDES := {
 	4: 100,
 	7: 73,
@@ -78,15 +71,7 @@ const SQUAD_FORMATION_SPACING := 100.0
 const SQUAD_EXTRA_Y_OFFSET := 8.0
 const UA_DATA_JSON = preload("res://resources/UAdata.json")
 
-static var _squad_vehicle_visuals_cache: Dictionary = {}
-static var _squad_visproto_base_name_cache: Dictionary = {}
-static var _vehicle_visual_entries_cache: Dictionary = {}
-static var _baked_visproto_base_name_cache: Dictionary = {}
-static var _baked_vehicle_visuals_cache: Dictionary = {}
-static var _baked_building_definitions_cache: Dictionary = {}
 static var _blg_typ_override_cache: Dictionary = {}
-static var _building_definitions_cache: Dictionary = {}
-static var _building_sec_type_override_cache: Dictionary = {}
 
 
 # Preview top surfaces use world-space tiling with one repeat per sector.
@@ -179,6 +164,8 @@ func _make_empty_build_metrics() -> Dictionary:
 		"terrain_authored_descriptor_count": 0,
 		"edge_authored_descriptor_count": 0,
 		"overlay_descriptor_count": 0,
+		"piece_overlay_fast_path": 0,
+		"piece_overlay_slow_path": 0,
 		"build_total_ms": 0.0,
 		"refresh_end_to_end_ms": 0.0,
 	}
@@ -277,6 +264,7 @@ func _apply_pending_refresh() -> void:
 	_refresh_pending = false
 	_refresh_reframe_pending = false
 	build_from_current_map()
+	_bump_3d_viewport_rendering()
 	if reframe_camera and is_inside_tree():
 		_framed = false
 		_frame_if_needed()
@@ -322,6 +310,8 @@ func _apply_visibility_range_from_editor_state() -> void:
 func _on_map_view_updated() -> void:
 	_apply_preview_activity_state()
 	_apply_visibility_range_from_editor_state()
+	if _preview_refresh_active():
+		_bump_3d_viewport_rendering()
 	if _refresh_pending:
 		_request_refresh(_refresh_reframe_pending)
 
@@ -339,6 +329,28 @@ func _process(_delta: float) -> void:
 	# Keep mouse mode sane if window focus changes
 	if not _mouselook and Input.get_mouse_mode() == Input.MOUSE_MODE_CAPTURED:
 		Input.set_mouse_mode(Input.MOUSE_MODE_VISIBLE)
+
+
+func _notification(what: int) -> void:
+	if what == NOTIFICATION_VISIBILITY_CHANGED and is_visible_in_tree() and _preview_refresh_active():
+		_bump_3d_viewport_rendering()
+
+
+func _get_map_subviewport() -> SubViewport:
+	var vp := get_viewport()
+	if vp is SubViewport:
+		return vp as SubViewport
+	return null
+
+
+func _bump_3d_viewport_rendering() -> void:
+	if not _preview_refresh_active():
+		return
+	var vp := _get_map_subviewport()
+	if vp == null:
+		return
+	vp.render_target_update_mode = SubViewport.UPDATE_ALWAYS
+
 
 func _physics_process(delta: float) -> void:
 	# Simple spectator-style movement (WASD + QE), raw keys to avoid changing project InputMap
@@ -382,6 +394,7 @@ func _unhandled_input(event: InputEvent) -> void:
 			_debug_shader_mode = (_debug_shader_mode + 1) % 3
 			print("[Map3D] shader debug_mode=", _debug_shader_mode, " (0=normal,1=file,2=variant)")
 			_apply_debug_mode_to_existing_materials()
+			_bump_3d_viewport_rendering()
 
 func _wheel_step() -> float:
 	return ViewController.wheel_step(_current_map_data(), SECTOR_SIZE)
@@ -447,6 +460,7 @@ func build_from_current_map() -> void:
 		return
 
 	var game_data_type := _current_game_data_type()
+	UATerrainPieceLibraryScript.set_piece_game_data_type(game_data_type)
 	var effective_typ := _effective_typ_map_for_3d(
 		typ,
 		blg,
@@ -469,6 +483,9 @@ func build_from_current_map() -> void:
 			_apply_untextured_materials(fallback_mesh)
 		var fallback_overlay_started_usec := Time.get_ticks_usec()
 		_set_authored_overlay([])
+		var pc_fb: Dictionary = UATerrainPieceLibraryScript.get_piece_overlay_build_counters()
+		metrics["piece_overlay_fast_path"] = int(pc_fb.get("piece_overlay_fast_path", 0))
+		metrics["piece_overlay_slow_path"] = int(pc_fb.get("piece_overlay_slow_path", 0))
 		metrics["overlay_node_creation_ms"] = _elapsed_ms_since(fallback_overlay_started_usec)
 		if _edge_mesh:
 			_edge_mesh.mesh = null
@@ -557,6 +574,9 @@ func build_from_current_map() -> void:
 	metrics["overlay_descriptor_count"] = overlay_descriptors.size()
 	var overlay_node_started_usec := Time.get_ticks_usec()
 	_set_authored_overlay(overlay_descriptors)
+	var pc: Dictionary = UATerrainPieceLibraryScript.get_piece_overlay_build_counters()
+	metrics["piece_overlay_fast_path"] = int(pc.get("piece_overlay_fast_path", 0))
+	metrics["piece_overlay_slow_path"] = int(pc.get("piece_overlay_slow_path", 0))
 	metrics["overlay_node_creation_ms"] = _elapsed_ms_since(overlay_node_started_usec)
 	_finalize_build_metrics(metrics, build_started_usec)
 
@@ -749,6 +769,7 @@ func _set_authored_overlay(descriptors: Array) -> void:
 		_authored_overlay = Node3D.new()
 		_authored_overlay.name = "AuthoredOverlay"
 		add_child(_authored_overlay)
+	UATerrainPieceLibraryScript.reset_piece_overlay_build_counters()
 	AuthoredOverlayManager.apply_overlay_node(_authored_overlay, descriptors)
 
 static func _make_preview_material(color: Color) -> StandardMaterial3D:
@@ -980,103 +1001,9 @@ static func _build_host_station_descriptors(host_stations: Array, set_id: int, h
 static func _normalized_game_data_type(game_data_type: String) -> String:
 	return "metropolisDawn" if game_data_type.to_lower() == "metropolisdawn" else "original"
 
-static func _script_root_for_game_data_type(game_data_type: String) -> String:
-	return String(SQUAD_VEHICLE_SCRIPT_ROOTS.get(_normalized_game_data_type(game_data_type), SQUAD_VEHICLE_SCRIPT_ROOTS["original"]))
-
-static func _visproto_path_for_set(set_id: int, game_data_type: String) -> String:
-	var normalized_game_data_type := _normalized_game_data_type(game_data_type)
-	var pattern := String(SQUAD_VISPROTO_PATH_PATTERNS.get(normalized_game_data_type, SQUAD_VISPROTO_PATH_PATTERNS["original"]))
-	return pattern % max(set_id, 1)
-
-static func _baked_set_dir_for_set(set_id: int, game_data_type: String) -> String:
-	var normalized_game_data_type := _normalized_game_data_type(game_data_type)
-	var suffix := "_xp" if normalized_game_data_type == "metropolisDawn" else ""
-	return "res://resources/ua/sets/set%d%s" % [max(set_id, 1), suffix]
-
-static func _baked_visproto_registry_path_for_set(set_id: int, game_data_type: String) -> String:
-	return "%s/metadata/visproto_base_names.json" % _baked_set_dir_for_set(set_id, game_data_type)
-
-static func _baked_visproto_base_names_for_set(set_id: int, game_data_type: String) -> Array:
-	var normalized_game_data_type := _normalized_game_data_type(game_data_type)
-	var cache_key := "%s:%d" % [normalized_game_data_type, max(set_id, 1)]
-	if _baked_visproto_base_name_cache.has(cache_key):
-		return _baked_visproto_base_name_cache[cache_key]
-	var result: Array = []
-	var registry_path := _baked_visproto_registry_path_for_set(set_id, normalized_game_data_type)
-	if not registry_path.is_empty() and FileAccess.file_exists(registry_path):
-		var parsed = JSON.parse_string(FileAccess.get_file_as_string(registry_path))
-		if typeof(parsed) == TYPE_DICTIONARY:
-			var base_names_value = Dictionary(parsed).get("base_names", [])
-			if typeof(base_names_value) == TYPE_ARRAY:
-				result = Array(base_names_value).duplicate(true)
-	_baked_visproto_base_name_cache[cache_key] = result
-	return result
-
-static func _baked_vehicle_visuals_registry_path_for_set(set_id: int, game_data_type: String) -> String:
-	return "%s/metadata/vehicle_visuals.json" % _baked_set_dir_for_set(set_id, game_data_type)
-
-static func _baked_vehicle_visuals_for_set(set_id: int, game_data_type: String) -> Dictionary:
-	var normalized_game_data_type := _normalized_game_data_type(game_data_type)
-	var cache_key := "%s:%d" % [normalized_game_data_type, max(set_id, 1)]
-	if _baked_vehicle_visuals_cache.has(cache_key):
-		return _baked_vehicle_visuals_cache[cache_key]
-	var result := {}
-	var registry_path := _baked_vehicle_visuals_registry_path_for_set(set_id, normalized_game_data_type)
-	if not registry_path.is_empty() and FileAccess.file_exists(registry_path):
-		var parsed = JSON.parse_string(FileAccess.get_file_as_string(registry_path))
-		if typeof(parsed) == TYPE_DICTIONARY:
-			var vehicles_value = Dictionary(parsed).get("vehicles", {})
-			if typeof(vehicles_value) == TYPE_DICTIONARY:
-				result = Dictionary(vehicles_value).duplicate(true)
-	_baked_vehicle_visuals_cache[cache_key] = result
-	return result
-
-static func _baked_building_definitions_registry_path_for_set(set_id: int, game_data_type: String) -> String:
-	return "%s/metadata/building_definitions.json" % _baked_set_dir_for_set(set_id, game_data_type)
-
-static func _baked_building_definitions_for_set(set_id: int, game_data_type: String) -> Array:
-	var normalized_game_data_type := _normalized_game_data_type(game_data_type)
-	var cache_key := "%s:%d" % [normalized_game_data_type, max(set_id, 1)]
-	if _baked_building_definitions_cache.has(cache_key):
-		return _baked_building_definitions_cache[cache_key]
-	var result: Array = []
-	var registry_path := _baked_building_definitions_registry_path_for_set(set_id, normalized_game_data_type)
-	if not registry_path.is_empty() and FileAccess.file_exists(registry_path):
-		var parsed = JSON.parse_string(FileAccess.get_file_as_string(registry_path))
-		if typeof(parsed) == TYPE_DICTIONARY:
-			var definitions_value = Dictionary(parsed).get("definitions", [])
-			if typeof(definitions_value) == TYPE_ARRAY:
-				result = Array(definitions_value).duplicate(true)
-	_baked_building_definitions_cache[cache_key] = result
-	return result
-
 static func _clear_runtime_lookup_caches_for_tests() -> void:
-	_squad_vehicle_visuals_cache.clear()
-	_squad_visproto_base_name_cache.clear()
-	_vehicle_visual_entries_cache.clear()
-	_baked_visproto_base_name_cache.clear()
-	_baked_vehicle_visuals_cache.clear()
-	_baked_building_definitions_cache.clear()
 	_blg_typ_override_cache.clear()
-	_building_definitions_cache.clear()
-	_building_sec_type_override_cache.clear()
 	VisualLookupService._clear_runtime_lookup_caches_for_tests()
-
-static func _script_paths_for_game_data_type(game_data_type: String) -> Array:
-	var script_root := _script_root_for_game_data_type(game_data_type)
-	var result: Array = []
-	var dir := DirAccess.open(script_root)
-	if dir == null:
-		return result
-	dir.list_dir_begin()
-	var entry := dir.get_next()
-	while not entry.is_empty():
-		if not dir.current_is_dir() and entry.get_extension().to_lower() == "scr":
-			result.append("%s/%s" % [script_root, entry])
-		entry = dir.get_next()
-	dir.list_dir_end()
-	result.sort()
-	return result
 
 static func _append_blg_typ_entries_from_building_list(target: Dictionary, buildings_value: Variant) -> void:
 	if not (buildings_value is Array):
@@ -1137,39 +1064,10 @@ static func _building_sec_type_overrides_from_definitions(definitions: Array) ->
 	return result
 
 static func _building_sec_type_overrides_for_script_names(set_id: int, game_data_type: String, script_names: Array[String]) -> Dictionary:
-	var normalized_game_data_type := _normalized_game_data_type(game_data_type)
-	var cache_key := "%s:%d" % [normalized_game_data_type, max(set_id, 1)]
-	for script_name in script_names:
-		cache_key += ":%s" % script_name
-	if _building_sec_type_override_cache.has(cache_key):
-		return _building_sec_type_override_cache[cache_key]
-	var result := {}
-	var baked := _baked_building_definitions_for_set(set_id, normalized_game_data_type)
-	if not baked.is_empty():
-		result = _building_sec_type_overrides_from_definitions(baked)
-	else:
-		var script_root := _script_root_for_game_data_type(game_data_type)
-		for script_name in script_names:
-			var script_path := script_root.path_join(script_name)
-			var script_overrides := _building_sec_type_overrides_from_definitions(_parse_building_definitions(script_path))
-			for building_id in script_overrides.keys():
-				if result.has(building_id):
-					continue
-				result[building_id] = int(script_overrides[building_id])
-	_building_sec_type_override_cache[cache_key] = result
-	return result
+	return VisualLookupService._building_sec_type_overrides_for_script_names(set_id, game_data_type, script_names)
 
 static func _tech_upgrade_typ_overrides_for_3d(set_id: int, game_data_type: String) -> Dictionary:
-	var overrides := _building_sec_type_overrides_for_script_names(set_id, game_data_type, ["NET_BLDG.SCR", "BUILD.SCR"]).duplicate()
-	# Tech upgrades are a special preview case: the editor already applies an
-	# explicit building_id -> visible typ_map mapping for the small finite set of
-	# selectable upgrade buildings, and some of those visuals intentionally differ
-	# from the raw script sec_type (for example 60 -> typ 106, not sec_type 1).
-	# Mirror that editor-facing visual contract first, then keep the script data as
-	# fallback for anything else.
-	for building_id in TECH_UPGRADE_EDITOR_TYP_OVERRIDES.keys():
-		overrides[int(building_id)] = int(TECH_UPGRADE_EDITOR_TYP_OVERRIDES[building_id])
-	return overrides
+	return VisualLookupService._tech_upgrade_typ_overrides_for_3d(set_id, game_data_type)
 
 static func _entity_property(entity: Variant, property_names: Array[String], default_value: Variant = null) -> Variant:
 	if typeof(entity) == TYPE_DICTIONARY:
@@ -1286,13 +1184,13 @@ static func _parse_building_definitions(script_path: String) -> Array:
 	var result: Array = []
 	if script_path.is_empty() or not FileAccess.file_exists(script_path):
 		return result
-	var file := FileAccess.open(script_path, FileAccess.READ)
-	if file == null:
+	var full := UALegacyText.read_file(script_path)
+	if full.is_empty():
 		return result
 	var current_building := {}
 	var current_attachment := {}
-	while not file.eof_reached():
-		var line := file.get_line().get_slice(";", 0).strip_edges().to_lower()
+	for line_raw in full.split("\n"):
+		var line := line_raw.get_slice(";", 0).strip_edges().to_lower()
 		if line.is_empty():
 			continue
 		if line.begins_with("new_building"):
@@ -1364,16 +1262,7 @@ static func _parse_building_definitions(script_path: String) -> Array:
 	return result
 
 static func _building_definitions_for_game_data_type(set_id: int, game_data_type: String) -> Array:
-	var normalized_game_data_type := _normalized_game_data_type(game_data_type)
-	var cache_key := "%s:%d" % [normalized_game_data_type, max(set_id, 1)]
-	if _building_definitions_cache.has(cache_key):
-		return _building_definitions_cache[cache_key]
-	var result := _baked_building_definitions_for_set(set_id, normalized_game_data_type)
-	if result.is_empty():
-		for script_path in _script_paths_for_game_data_type(normalized_game_data_type):
-			result.append_array(_parse_building_definitions(String(script_path)))
-	_building_definitions_cache[cache_key] = result
-	return result
+	return VisualLookupService._building_definitions_for_game_data_type(set_id, game_data_type)
 
 static func _building_definition_for_id_and_sec_type(building_id: int, sec_type: int, set_id_or_game_data_type = 1, game_data_type: String = "original") -> Dictionary:
 	var resolved_set_id := 1
@@ -1382,13 +1271,7 @@ static func _building_definition_for_id_and_sec_type(building_id: int, sec_type:
 		resolved_game_data_type = String(set_id_or_game_data_type)
 	else:
 		resolved_set_id = max(int(set_id_or_game_data_type), 1)
-	for definition in _building_definitions_for_game_data_type(resolved_set_id, resolved_game_data_type):
-		if typeof(definition) != TYPE_DICTIONARY:
-			continue
-		var building := definition as Dictionary
-		if int(building.get("building_id", -1)) == building_id and int(building.get("sec_type", -1)) == sec_type:
-			return building
-	return {}
+	return VisualLookupService._building_definition_for_id_and_sec_type(building_id, sec_type, resolved_set_id, resolved_game_data_type)
 
 static func _build_blg_attachment_descriptors(blg: PackedByteArray, effective_typ: PackedByteArray, set_id: int, hgt: PackedByteArray, w: int, h: int, _support_descriptors: Array, game_data_type: String) -> Array:
 	var descriptors: Array = []
@@ -1453,13 +1336,13 @@ static func _parse_vehicle_visual_entries(script_path: String) -> Dictionary:
 	var result := {}
 	if script_path.is_empty() or not FileAccess.file_exists(script_path):
 		return result
-	var file := FileAccess.open(script_path, FileAccess.READ)
-	if file == null:
+	var full := UALegacyText.read_file(script_path)
+	if full.is_empty():
 		return result
 	var current_vehicle_id := -1
 	var current_entry: Dictionary = {}
-	while not file.eof_reached():
-		var line := file.get_line().get_slice(";", 0).strip_edges().to_lower()
+	for line_raw in full.split("\n"):
+		var line := line_raw.get_slice(";", 0).strip_edges().to_lower()
 		if line.is_empty():
 			continue
 		if line.begins_with("new_vehicle"):
@@ -1488,50 +1371,18 @@ static func _parse_vehicle_visual_entries(script_path: String) -> Dictionary:
 	return result
 
 static func _vehicle_visual_entries_for_game_data_type(set_id: int, game_data_type: String) -> Dictionary:
-	var normalized_game_data_type := _normalized_game_data_type(game_data_type)
-	var cache_key := "%s:%d" % [normalized_game_data_type, max(set_id, 1)]
-	if _vehicle_visual_entries_cache.has(cache_key):
-		return _vehicle_visual_entries_cache[cache_key]
-	var baked := _baked_vehicle_visuals_for_set(set_id, normalized_game_data_type)
-	if not baked.is_empty():
-		var merged_baked := {}
-		for vehicle_id_key in baked.keys():
-			var raw_entry_value = baked.get(vehicle_id_key, null)
-			if typeof(raw_entry_value) != TYPE_DICTIONARY:
-				continue
-			var entry := raw_entry_value as Dictionary
-			var slots_value = entry.get("slots", {})
-			if typeof(slots_value) != TYPE_DICTIONARY:
-				continue
-			var out_entry := {"model": String(entry.get("model", ""))}
-			var slots_dict := slots_value as Dictionary
-			if slots_dict.has("wait"):
-				out_entry["wait"] = int(slots_dict.get("wait", -1))
-			if slots_dict.has("normal"):
-				out_entry["normal"] = int(slots_dict.get("normal", -1))
-			_append_vehicle_visual_entry(merged_baked, int(vehicle_id_key), out_entry)
-		_vehicle_visual_entries_cache[cache_key] = merged_baked
-		return merged_baked
-	var merged := {}
-	for script_path in _script_paths_for_game_data_type(normalized_game_data_type):
-		var parsed: Dictionary = _parse_vehicle_visual_entries(String(script_path))
-		for vehicle_id in parsed.keys():
-			var entries: Array = merged.get(int(vehicle_id), [])
-			entries.append_array(Array(parsed.get(vehicle_id, [])))
-			merged[int(vehicle_id)] = entries
-	_vehicle_visual_entries_cache[cache_key] = merged
-	return merged
+	return VisualLookupService._vehicle_visual_entries_for_game_data_type(set_id, game_data_type)
 
 static func _parse_vehicle_visual_pairs(script_path: String) -> Dictionary:
 	var result := {}
 	if script_path.is_empty() or not FileAccess.file_exists(script_path):
 		return result
-	var file := FileAccess.open(script_path, FileAccess.READ)
-	if file == null:
+	var full := UALegacyText.read_file(script_path)
+	if full.is_empty():
 		return result
 	var current_vehicle_id := -1
-	while not file.eof_reached():
-		var line := file.get_line().get_slice(";", 0).strip_edges().to_lower()
+	for line_raw in full.split("\n"):
+		var line := line_raw.get_slice(";", 0).strip_edges().to_lower()
 		if line.is_empty():
 			continue
 		if line.begins_with("new_vehicle"):
@@ -1549,60 +1400,10 @@ static func _parse_vehicle_visual_pairs(script_path: String) -> Dictionary:
 	return result
 
 static func _squad_vehicle_visuals_for_game_data_type(set_id: int, game_data_type: String) -> Dictionary:
-	var normalized_game_data_type := _normalized_game_data_type(game_data_type)
-	var cache_key := "%s:%d" % [normalized_game_data_type, max(set_id, 1)]
-	if _squad_vehicle_visuals_cache.has(cache_key):
-		return _squad_vehicle_visuals_cache[cache_key]
-	var baked := _baked_vehicle_visuals_for_set(set_id, normalized_game_data_type)
-	if not baked.is_empty():
-		var merged_baked := {}
-		for vehicle_id_key in baked.keys():
-			var raw_entry_value = baked.get(vehicle_id_key, null)
-			if typeof(raw_entry_value) != TYPE_DICTIONARY:
-				continue
-			var entry := raw_entry_value as Dictionary
-			var slots_value = entry.get("slots", {})
-			if typeof(slots_value) != TYPE_DICTIONARY:
-				continue
-			var slots_dict := slots_value as Dictionary
-			var out := {}
-			if slots_dict.has("wait"):
-				out["wait"] = int(slots_dict.get("wait", -1))
-			if slots_dict.has("normal"):
-				out["normal"] = int(slots_dict.get("normal", -1))
-			if not out.is_empty():
-				merged_baked[int(vehicle_id_key)] = out
-		_squad_vehicle_visuals_cache[cache_key] = merged_baked
-		return merged_baked
-	var merged := {}
-	for script_path in _script_paths_for_game_data_type(normalized_game_data_type):
-		var parsed: Dictionary = _parse_vehicle_visual_pairs(String(script_path))
-		for vehicle_id in parsed.keys():
-			merged[int(vehicle_id)] = Dictionary(parsed[vehicle_id]).duplicate(true)
-	_squad_vehicle_visuals_cache[cache_key] = merged
-	return merged
+	return VisualLookupService._squad_vehicle_visuals_for_game_data_type(set_id, game_data_type)
 
 static func _visproto_base_names_for_set(set_id: int, game_data_type: String) -> Array:
-	var normalized_game_data_type := _normalized_game_data_type(game_data_type)
-	var cache_key := "%s:%d" % [normalized_game_data_type, max(set_id, 1)]
-	if _squad_visproto_base_name_cache.has(cache_key):
-		return _squad_visproto_base_name_cache[cache_key]
-	var baked := _baked_visproto_base_names_for_set(set_id, normalized_game_data_type)
-	if baked.size() > 0:
-		_squad_visproto_base_name_cache[cache_key] = baked
-		return baked
-	var result: Array = []
-	var visproto_path := _visproto_path_for_set(set_id, normalized_game_data_type)
-	if FileAccess.file_exists(visproto_path):
-		var file := FileAccess.open(visproto_path, FileAccess.READ)
-		if file != null:
-			while not file.eof_reached():
-				var line := file.get_line().get_slice(";", 0).strip_edges()
-				if line.is_empty():
-					continue
-				result.append(line.get_basename())
-	_squad_visproto_base_name_cache[cache_key] = result
-	return result
+	return VisualLookupService._visproto_base_names_for_set(set_id, game_data_type)
 
 static func _base_name_from_visproto_index(visproto_base_names: Array, visual_index: int) -> String:
 	if visual_index < 0 or visual_index >= visproto_base_names.size():
@@ -1624,31 +1425,10 @@ static func _preferred_squad_visual_base_name(vehicle_visuals: Dictionary, vispr
 	return ""
 
 static func _building_attachment_base_name_for_vehicle(vehicle_id: int, set_id: int, game_data_type: String) -> String:
-	var vehicle_entries: Dictionary = _vehicle_visual_entries_for_game_data_type(set_id, game_data_type)
-	if not vehicle_entries.has(vehicle_id):
-		return _squad_base_name_for_vehicle(vehicle_id, set_id, game_data_type)
-	var visproto_base_names := _visproto_base_names_for_set(set_id, game_data_type)
-	var fallback := ""
-	for entry_value in Array(vehicle_entries[vehicle_id]):
-		if typeof(entry_value) != TYPE_DICTIONARY:
-			continue
-		var vehicle_visuals := entry_value as Dictionary
-		var base_name := _preferred_squad_visual_base_name(vehicle_visuals, visproto_base_names)
-		if base_name.is_empty():
-			continue
-		var model_name := String(vehicle_visuals.get("model", "")).to_lower()
-		if model_name != "plane" and model_name != "heli":
-			return base_name
-		if fallback.is_empty():
-			fallback = base_name
-	return fallback
+	return VisualLookupService._building_attachment_base_name_for_vehicle(vehicle_id, set_id, game_data_type)
 
 static func _squad_base_name_for_vehicle(vehicle_id: int, set_id: int, game_data_type: String) -> String:
-	var vehicle_visuals: Dictionary = _squad_vehicle_visuals_for_game_data_type(set_id, game_data_type)
-	if not vehicle_visuals.has(vehicle_id):
-		return ""
-	var visproto_base_names := _visproto_base_names_for_set(set_id, game_data_type)
-	return _preferred_squad_visual_base_name(Dictionary(vehicle_visuals[vehicle_id]), visproto_base_names)
+	return VisualLookupService._squad_base_name_for_vehicle(vehicle_id, set_id, game_data_type)
 
 static func _squad_quantity(squad: Object) -> int:
 	var quantity_value = squad.get("quantity")

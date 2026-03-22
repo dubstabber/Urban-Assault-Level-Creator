@@ -1,0 +1,1570 @@
+;--------------------------------------------------------------------------------------------------------------
+;
+;       -           Y   o   u   r       P   e   r   s   o   n   a   l       A   M   O   K         -
+;               
+;       FLAKS und RADDASCHUESSELN
+;                               
+;       BEACHTE ! FLAKS SIND EIGENTLICH VEHIKEL !!!
+;
+;       upd.:   	14-MAY-97
+;		16-AUG-97	FLAKS stärker gepanzert und mehr Energie
+;		27-AUG-97	GRASFLAK auf 116
+;		10-SEP-97	Der USR-ROBO hat keine MG-FLAKs mehr
+;		12-SEP-97
+;		22-OCT-97	GIGANTENBODENFLAK
+;		23-Nov-97	TAERFLAK
+;		14-Jan-98	Mykonier auf neue Flak umgemodelt
+;		11-Feb-98	Kyterneser-Robo-Flak hat jetzt Shield 100
+;		10-Mar-98	Fixes an der MykonierFlak
+;		16-Mar-98	Neue Icons für FeindFlaks
+;				Die 111 bleibt als generic-Flak dafür eine spezielle Kyterneser-FlakTurm
+;				Flak 137 angelegt.
+;				Die Small AA Flak etwas in der BEwegung eingeschränkt
+;		19-Mar-98	Die RADAR-Wirkung der Radar-Stellung muß jetzt ins Vehikel codiert
+;				werden, deshalb hat das starke Radar jetzt radar=15 und das kleine radar=10
+;		08-May-98	BS Flax jetzt nicht mehr zum runterschießen
+;		13-Mai-98	Myko Radar Vehicle anders
+;		25-Mai-98	Stefan: Schild von 108 und 137 runter
+;		27-May-98	Bernd: Taerkasten Radar lag fälschlicherweise auf der 142 statt auf der 141
+;		29-May-98	Bernd: Mykonier-Flak für Netzwerk hatte falscherdinx die Waffe 82 geschaltet (das ist die
+;				30000er Waffe aus dem SinglePlayer.... korrigiert auf 80 - das ist die schwächere Multiplayer
+;				Waffe !!!
+;				Genesis Zustände für alle Flaks
+;		03-jun-98	Neue internetRobo Flaks und Sulgogaren Robo dreht jetzt etwas langsamer
+;		09-06-98		Stefan: neue Internet-Robo-Flak für User
+;		17-Jun-98	inet flax richtig begrenzt
+;		06-07-98		Stefan: INetroboflak von Taer schiesst nach oben
+;       (C) 1996-1998        B.Beyreuther / A.Flemming / A.Weissflog
+;
+;-------------------------------------------------------------------------------------------------------------
+;
+;       ROBOFLAK        GROSSER KYTERNESER
+;
+new_vehicle     75
+        model                   =       gun
+        name            =       BIGKYTFLAKFLAK
+        type_icon       =       I               ; DEBUG da nicht USER
+        gun_type        =       flak
+        energy          =       4000
+        maxrot          =       3
+        shield          =       100
+
+        vp_normal       =       22              ; alles DUMMIES
+        vp_fire         =       34
+        vp_megadeth     =       38
+        vp_wait         =       93
+        vp_dead         =       100
+        vp_genesis      =       97
+
+        weapon          =       84
+
+        gun_side_angle          =       3200            ; 360 grad
+        gun_up_angle            =       1500
+        gun_down_angle  =       1300
+end
+
+;----------------------------------------------------------------------------------------
+;
+;       ROBOFLAK        MYKONIERROBO
+;
+new_vehicle     76
+        model                   =       gun
+        name            =       MykoFlak
+        type_icon       =       I               ; DEBUG, weil roboflax nicht angezeigt werden
+        gun_type        =       flak
+        energy          =       4000
+        shield          =       100
+        mass            =       400
+        maxrot          =       3.5
+        radius          =       30.0
+        overeof         =       30.0
+        vwr_radius      =       30.0
+        vwr_overeof     =       30.0
+
+        vp_normal       =       22                      ; alles DUMMIES
+        vp_fire         =       34
+        vp_megadeth     =       22
+        vp_wait         =       38
+        vp_dead         =       93
+        vp_genesis      =       97
+
+        weapon          =       82              ; NEU: LASERFLAK
+
+        gun_side_angle          =       3200            ; 360 grad
+        gun_up_angle            =       1500
+        gun_down_angle  =       1500
+end
+
+;----------------------------------------------------------------------------------------
+;
+;       ROBOFLAK        MINI-KYTERNESER-ROBO
+;
+new_vehicle     77
+        model                   =       gun
+        name            =       KYT1_FLAK
+        type_icon       =       I             ; DEBUG, weil roboflax nicht angezeigt werden
+        gun_type        =       flak
+        energy          =       4000
+        shield          =       	100
+        mass            =       400
+        maxrot          =       3.4
+        radius          =       10
+        overeof         =       30
+        vwr_radius      =       30
+        vwr_overeof     =       30
+
+        vp_normal       =       22                      ; siehe visproto.lst
+        vp_fire         =       34              ; DIE FLAKS SIND UNSICHTBAR
+        vp_megadeth     =       38
+        vp_wait         =       93
+        vp_dead         =       100
+        vp_genesis      =       97              ; alles dummies
+        weapon          =       83
+
+        gun_side_angle          =       3200            ; 360 grad
+        gun_up_angle            =       1500
+        gun_down_angle  =       1500
+end
+
+;----------------------------------------------------------------------------------------
+;
+;       ROBOFLAK        TAERKASTENROBO
+;
+new_vehicle     78
+        model                   =       gun
+        name            =       Zermalmer
+        type_icon       =       I             ; DEBUG, weil roboflax nicht angezeigt werden
+        gun_type        =       flak
+        energy          =       4000
+        shield          =       100
+        mass            =       400
+        maxrot          =       3
+        radius          =       30
+        overeof         =       30
+        vwr_radius      =       30
+        vwr_overeof     =       30
+
+        vp_normal       =       34              ; unsichtbar
+        vp_fire         =       130             ; Rauchwolke
+        vp_megadeth     =       100             ; dummy
+        vp_wait         =       38              ; dummy
+        vp_dead         =       93              ; dummy
+        vp_genesis      =      97              ; dummy
+
+        weapon          =       81
+
+        gun_side_angle          =       1450
+        gun_up_angle            =       1300
+        gun_down_angle  =       1300
+end
+
+;------------------------------------------------------------------------------------------
+;
+;       SULGOGARENROBO-FLAK 
+;       Lichtrahl, der nur wenn´s schießt sichtbar is... 
+;
+new_vehicle 79
+        model                   =       gun
+        name            =       SULGROBOMG
+        type_icon       =       I              ; DEBUG, weil roboflax nicht angezeigt werden
+        gun_type        =       flak
+        energy          =       4000
+        shield          =       100
+        mass            =       400
+        maxrot          =       1		; 3.5
+        radius          =       30
+        overeof         =       30
+        vwr_radius      =       30
+        vwr_overeof     =       30
+
+        vp_normal       =       22                      ; siehe visproto.lst
+        vp_fire         =       183
+        vp_megadeth     =       22
+        vp_wait         =       22
+        vp_dead         =       22
+        vp_genesis      =       22              ;dummy
+        weapon          =       72
+        ; mgun = 112    
+        ; gun_angle                     DEFAULT ???
+        ; gun_radius            DEFAULT
+        gun_power       =       20000                   ; DEFAULT: 4000 funkzjoniert dat ?
+        gun_side_angle  =       3200
+        gun_up_angle    =       1500
+        gun_down_angle  =       1000
+end
+
+;----------------------------------------------------------------------------------------
+;
+;	 Modified Myko-Robo-flak für Netzwerk
+;	NETZWERKMYKONIER !!!
+;
+new_vehicle     80
+        model                   =       gun
+        name            =       MYKOFLAK
+        type_icon       =       I               ; DEBUG, weil roboflax nicht angezeigt werden
+        gun_type        =       flak
+        energy          =       4000
+        shield          =       100
+        mass            =       400
+        maxrot          =       3.5
+        radius          =       30.0
+        overeof         =       30.0
+        vwr_radius      =       30.0
+        vwr_overeof     =       30.0
+
+        vp_normal       =       22                      ; alles DUMMIES
+        vp_fire         =       34
+        vp_megadeth     =       22
+        vp_wait         =       38
+        vp_dead         =       93
+        vp_genesis      =       97
+
+        weapon          =       80		; DAS WAR EIN BUG ! Der NetzMykonier hat die ganze Zeit die 30000 Waffe aus dem Single
+				; Player verwendet !!!!!  falsch---> 82           
+
+        gun_side_angle          =       2200            ; 360 grad
+        gun_up_angle            =       1500
+        gun_down_angle  =       1500
+end
+
+;------------------------------------------------------------------------------------------
+;
+;       USER-ROBO FLAK VORN
+;
+new_vehicle 90
+        	model		=	gun
+        	name		=	1
+
+        	wireframe       	=       	wireless/otlflak.sklt
+        	gun_type        	=       	flak
+        	type_icon       	=       	R               	; richtige Knarre
+        	weapon          	=       	90
+
+        energy          =       4000
+        shield          =       100
+        mass            =       400
+        maxrot          =       1.5
+        radius          =       30
+        overeof         =       30
+        vwr_radius      =       30
+        vwr_overeof     =       30
+
+        vp_normal       =       135                     ; siehe visproto.lst
+        vp_fire         =       136
+        vp_megadeth     =       137
+        vp_wait         =       135
+        vp_dead         =       137
+        vp_genesis      =       97              ; dummy
+
+        gun_side_angle          =       2550
+        gun_up_angle            =       1500
+        gun_down_angle  =       1000
+
+        fire_y                  =       -20
+end
+
+;------------------------------------------------------------------------------------------
+;
+;       USER-ROBO FLAK
+;
+;       hinten
+;
+new_vehicle 91
+        model                   =       gun
+        name            =         2
+
+        wireframe       =       wireless/otlflak.sklt
+        gun_type        =       flak
+        type_icon       =       R               ; richtige Knarre
+        weapon          =       91
+
+        energy          =       4000 
+        shield          =       100
+        mass            =       400
+        maxrot          =       1.5
+        radius          =       30
+        overeof         =       30
+        vwr_radius      =       30
+        vwr_overeof     =       30
+
+        vp_normal       =       135                     ; siehe visproto.lst
+        vp_fire         =       136
+        vp_megadeth     =       137
+        vp_wait         =       135
+        vp_dead         =       137
+        vp_genesis      =       97             ; dummy
+
+        gun_side_angle          =       2750            
+        gun_up_angle            =       1500
+        gun_down_angle  =       400
+end
+
+;------------------------------------------------------------------------------------------
+;
+;       USER-ROBO
+;
+;       obendruff
+;
+new_vehicle 92
+        model                   =       gun
+        name            =       3
+
+        wireframe       =       wireless/otlflak.sklt
+        gun_type        =       flak
+        type_icon       =       R               ; richtige Knarre
+        weapon          =       92
+
+        energy          =       4000 
+        shield          =       100
+        mass            =       400
+        maxrot          =       1.5
+        radius          =       30
+        overeof         =       30
+        vwr_radius      =       30
+        vwr_overeof     =       30
+
+        vp_normal       =       135                     ; siehe visproto.lst
+        vp_fire         =       136
+        vp_megadeth     =       137
+        vp_wait         =       135
+        vp_dead         =       137
+        vp_genesis      =       97              ; dummy
+
+        gun_side_angle          =       3200            
+        gun_up_angle            =       1500
+        gun_down_angle  =       920
+end
+
+;------------------------------------------------------------------------------------------
+;
+;       USER-ROBO FLAK UNTENDRAN
+;
+;       (GrundBewaffnung / unzerstörbar)
+;       unten
+;
+new_vehicle 93
+        model                   =       gun
+        name            =       4
+
+        wireframe       =       wireless/otlflak.sklt
+        gun_type        =       flak
+        type_icon       =       R               ; richtige Knarre
+        weapon          =       93
+
+        energy          =       4000
+        shield          =       100
+        mass            =       400
+        maxrot          =       1.5
+        radius          =       30
+        overeof         =       30
+        vwr_radius      =       30
+        vwr_overeof     =       30
+
+        vp_normal       =       40
+        vp_fire         =       41
+        vp_megadeth     =       137
+        vp_wait         =       40
+        vp_dead         =       137
+        vp_genesis      =       97              ; dummy
+
+        gun_side_angle          =       3200
+        gun_up_angle            =       0
+        gun_down_angle  =       1300
+end
+
+;----------------------------------------------------------------------------------------
+;
+;       BLACK SECT SUBMARINE FLAK 1
+;       (mit LichtStrahl)
+;
+new_vehicle 94
+        model                   =       gun
+        name            =       	BSC_FLAK1
+        type_icon       =       	I	; DEBUG, weil roboflax nicht angezeigt werden	
+        gun_type        =       flak
+        energy          =       8000
+        shield          =       100
+        mass            =       400
+        maxrot          =       1.2
+        radius          =       50
+        overeof         =       30
+        vwr_radius      =       50
+        vwr_overeof     =       30
+
+        vp_normal       =         40                    ; siehe visproto.lst
+        vp_fire         =       133             ; LICHT NUR AN WENN SCHIESST    
+        vp_megadeth     =       137
+        vp_wait         =         40
+        vp_dead         =       137
+        vp_genesis      =       97
+        weapon          =       94                      ; siehe weap.scr
+
+        pal_explode_slot                =       1                               ; ROT
+        pal_explode_mag0        =       0
+        pal_explode_mag1        =       1
+        pal_explode_time                =       120
+
+        ;   mgun        KEIN
+        ;   gun_angle           DEFAULT
+        ;   gun_radius          DEFAULT
+        fire_x                  =       0.0
+        fire_y          =       -15.0
+        fire_z                  =       0.0
+; zusätzliche  Gun-Flags
+        gun_side_angle          =       3200            ; FIXME !
+        gun_up_angle            =       1500
+        gun_down_angle  =       500
+end
+
+;----------------------------------------------------------------------------------------
+;
+;       BLACK SECT SUBMARINE FLAK 2
+;       (mit LichtStrahl)
+;
+new_vehicle 95
+        model                   =       gun
+        name            =       BSC_FLAK2
+        type_icon       =       I               ; DEBUG, weil roboflax nicht angezeigt werden
+        gun_type        =       flak
+        energy          =       8000
+        shield          =       100
+        mass            =       400
+        maxrot          =       1.2
+        radius          =       50
+        overeof         =       30
+        vwr_radius      =       50
+        vwr_overeof     =       30
+
+        vp_normal       =         40                    ; siehe visproto.lst
+        vp_fire         =       133             ; LICHT NUR AN WENN SCHIESST    
+        vp_megadeth     =       137
+        vp_wait         =         40
+        vp_dead         =       137
+        vp_genesis      =       97
+        weapon          =       95                      ; siehe weap.scr
+
+        pal_explode_slot                =       1                               ; ROT
+        pal_explode_mag0        =       0
+        pal_explode_mag1        =       1
+        pal_explode_time                =       120
+
+        ;   mgun        KEIN
+        ;   gun_angle           DEFAULT
+        ;   gun_radius          DEFAULT
+        fire_x                  =       0.0
+        fire_y          =       -15.0
+        fire_z                  =       0.0
+; zusätzliche  Gun-Flags
+        gun_side_angle          =       3200            ; FIXME!
+        gun_up_angle            =       1500
+        gun_down_angle  =       500     
+end
+
+;------------------------------------------------------------------------------------------
+;
+;       SMALL USER FLAK
+;
+new_vehicle 96
+        	model                   	=       	gun
+        	name            	=       	SMALL
+
+        	wireframe       	=       	wireless/otlflak.sklt
+        	gun_type        	=       	flak
+        	type_icon       	=       	R 
+        	weapon          	=       	96
+
+	num_weapons	=	2
+	fire_x		=	60
+
+        	energy          	=       	9200		; 25000		
+        	shield          	=       	92
+        	mass            	=       	400
+        	maxrot          	=       	2.5
+        	radius          	=       	80
+        	overeof         	=       	30		; 200
+        	vwr_radius      	=       	80
+        	vwr_overeof     	=       	30
+	
+        	vp_normal       	=       	300
+        	vp_fire         	=       	301
+        	vp_megadeth     	=       	137
+        	vp_wait         	=       	300
+        	vp_dead         	=       	137
+        	vp_genesis      	=       	307
+	
+        	gun_side_angle	=       	3200
+        	gun_up_angle	=       	1300
+        	gun_down_angle	=       	1200
+
+        dest_fx = death_88_0_-20_0      
+        dest_fx = death_46_-20_0_20
+        dest_fx = death_46_20_0_20
+        dest_fx = death_46_0_0_0        
+        dest_fx = death_46_-20_0_-20 
+        dest_fx = death_81_-20_-20_-20
+end
+
+;----------------------------------------------------------------------------------------
+;
+;       MYKONISCHE STIMMGABEL
+;
+new_vehicle 	97
+        	model		=       gun
+        	name            	=       MYKOSTIMMGABL
+        	type_icon       	=       *			; Extra Icon für die Map
+        	gun_type        	=       flak
+        	energy          	=       30000
+        	shield          	=       85		; 50
+        	mass            	=       400
+        	maxrot          	=       4
+        	radius        	=       50
+        	overeof         	=       30
+        	vwr_radius      	=       50
+        	vwr_overeof     	=       30
+
+        	vp_normal       	=       302 	                    ; siehe visproto.lst
+        	vp_fire         	=       303
+        	vp_megadeth     	=       137
+        	vp_wait         	=       302
+        	vp_dead         	=       137
+        	vp_genesis      	=       22
+        	weapon          	=       97
+
+        	pal_explode_slot		=       1                               ; ROT
+        	pal_explode_mag0        	=       0
+        	pal_explode_mag1       	=       1.2
+        	pal_explode_time             	=       150
+
+        	dest_fx 		= 	death_88_0_-20_0      
+        	dest_fx 		= 	death_46_-20_0_20
+        	dest_fx 		= 	death_46_20_0_20
+        	dest_fx 		= 	death_46_0_0_0        
+        	dest_fx 		= 	death_46_-20_0_-20 
+        	dest_fx 		= 	death_81_-20_-20_-20
+        	dest_fx 		= 	death_86_+20_-20_-20
+        	dest_fx 		= 	death_43_25_-50_0
+
+        	;   mgun        KEIN
+        	;   gun_angle           DEFAULT
+        	;   gun_radius          DEFAULT
+        	fire_x                  	=       	0
+        	fire_y         	=       	-30
+        	fire_z                  	=       	0
+	; zusätzliche  Gun-Flags
+        	gun_side_angle	=       	3200
+        	gun_up_angle	=       	100
+        	gun_down_angle	=       	100
+end
+
+;----------------------------------------------------------------------------------------------------------
+;
+;       Radar gross
+;
+new_vehicle     98
+        	model                   =       gun
+        	name            =       RADDASCHUESSL
+        	wireframe       =       wireless/otlrada.skl    
+	radar	=	15			; muß jetzt ins Fahrzeug eingetragen werden !
+
+        type_icon       =       W               ; RADDASCHUESSL
+        gun_type        =       dummy           ; Also nur Radda
+        energy          =       40000
+        shield          =       98			;90
+        mass            =       400
+        maxrot          =       1.2
+        radius          =      30.0
+        overeof         =       30.0
+        vwr_radius      =       30.0
+        vwr_overeof     =      30.0
+        vp_normal       =       151  
+        vp_fire         =       151
+        vp_megadeth     =       139
+        vp_wait         =       151
+        vp_dead         =       139
+        vp_genesis      =       152
+; zusätzliche Gun-Flags
+        gun_side_angle          =       3200
+        gun_up_angle            =       2000
+        gun_down_angle  =       0
+end
+
+
+
+;----------------------------------------------------------------------------------------
+;
+;       STATIONÄRE FLAK USER    Nord-West
+;       USER-FLAKSTELLUNG UNTEN 1
+;       
+new_vehicle 100 
+        model                   =       gun
+        name            =       USR_FLAK1
+        wireframe       =       wireless/otlflak.sklt
+
+        type_icon       =       R               ; FLAK
+        gun_type        =       flak
+        energy          =       16000	; 8000	13-Aug-97
+        shield          =       85		; 50         16-Aug-97
+        mass            =       400
+        maxrot          =       2.5		; 1.2	13-Aug-97
+        radius          =       50
+        overeof         =       5		; 30
+        vwr_radius      =       50
+        vwr_overeof     =       30
+
+        vp_normal       	=       95                      ; siehe visproto.lst
+        vp_fire         		=       96
+        vp_megadeth     	=       70
+        vp_wait         		=       95
+        vp_dead         	=       69
+        vp_genesis      	=       97
+        weapon          	=       100                     ; siehe weap.scr
+
+        pal_explode_slot                =       1                               ; ROT
+        pal_explode_mag0        =       0
+        pal_explode_mag1        =       1.5
+        pal_explode_time                =       150
+
+        ;   mgun        KEIN
+        ;   gun_angle           DEFAULT
+        ;   gun_radius          DEFAULT
+        fire_x                  =       0.0
+        fire_y          =       -15.0
+        fire_z                  =       0.0
+; zusätzliche  Gun-Flags
+        gun_side_angle          =       3200
+        gun_up_angle            =       1500
+        gun_down_angle  =       500
+end
+
+;----------------------------------------------------------------------------------------
+;
+;       STATIONÄRE FLAK USER
+;       USER-FLAKSTELLUNG UNTEN 2
+;
+new_vehicle 101 
+        model                   =       gun
+        name            =       USR_FLAK2
+        wireframe       =       wireless/otlflak.sklt
+
+        type_icon       =       R               ; FLAK  
+        gun_type        =       flak
+        energy          =       16000	; 8000
+        shield          =       85		; 50
+        mass            =       400
+        maxrot          =       2.5		; 1.2
+        radius          =       50
+        overeof         =       5		; 30
+        vwr_radius      =       50
+        vwr_overeof     =       30
+
+        vp_normal       =       95                      ; siehe visproto.lst
+        vp_fire         =       96
+        vp_megadeth     =       70
+        vp_wait         =       95
+        vp_dead         =       69
+        vp_genesis      =       97
+        weapon          =       100 ; 101                     ; siehe weap.scr
+
+        pal_explode_slot                =       1                               ; ROT
+        pal_explode_mag0        =       0
+        pal_explode_mag1        =       1
+        pal_explode_time                =       120
+
+        ;   mgun        KEIN
+        ;   gun_angle           DEFAULT
+        ;   gun_radius          DEFAULT
+        fire_x                  =       0.0
+        fire_y          =       -15.0
+        fire_z                  =       0.0
+; zusätzliche  Gun-Flags
+        gun_side_angle          =       3200
+        gun_up_angle            =       1500
+        gun_down_angle  =       1000
+end
+
+;----------------------------------------------------------------------------------------
+;
+;       STATIONÄRE FLAK USER
+;       USER-FLAKSTELLUNG OBEN 1 (mit LichtStrahl)
+;
+new_vehicle 102 
+        model                   =       gun
+        name            =       USR_FLAK3
+        wireframe       =       wireless/otlflak.sklt
+
+        type_icon       =       R               ; FLAK  
+        gun_type        =       flak
+        energy          =       16000	; 8000
+        shield          =       85		; 50
+        mass            =       400
+        maxrot          =       2.5		; 1.2
+        radius          =       50
+        overeof         =       30
+        vwr_radius      =       50
+        vwr_overeof     =       30
+
+        vp_normal       =         40                    ; siehe visproto.lst
+        vp_fire         =       133             ; LICHT NUR AN WENN SCHIESST    
+        vp_megadeth     =       137
+        vp_wait         =         40
+        vp_dead         =       137
+        vp_genesis      =       97
+        weapon          =       100	; 102                     ; siehe weap.scr
+
+        pal_explode_slot                =       1                               ; ROT
+        pal_explode_mag0        =       0
+        pal_explode_mag1        =       1
+        pal_explode_time                =       120
+
+        ;   mgun        KEIN
+        ;   gun_angle           DEFAULT
+        ;   gun_radius          DEFAULT
+        fire_x                  =       0.0
+        fire_y          =       -15.0
+        fire_z                  =       0.0
+; zusätzliche  Gun-Flags
+        gun_side_angle          =       3200
+        gun_up_angle            =       1500
+        gun_down_angle  =       1000
+end
+
+;----------------------------------------------------------------------------------------
+;
+;       STATIONÄRE FLAK USER
+;       USER-FLAKSTELLUNG OBEN 2
+;
+new_vehicle 103 
+        model                   =       gun
+        name            =       USR_FLAK4
+        wireframe       =       wireless/otlflak.sklt
+
+        type_icon       =       R               ; FLAK
+        gun_type        =       flak
+        energy          =       16000	; 8000
+        shield          =       85		; 50
+        mass            =       400
+        maxrot          =       2.5		; 1.2
+        radius          =       50
+        overeof         =       30
+        vwr_radius      =       50
+        vwr_overeof     =       30
+
+        vp_normal       =         40                    ; siehe visproto.lst
+        vp_fire         =       133             ; LICHT NUR AN WENN SCHIESST    
+        vp_megadeth     =       137
+        vp_wait         =         40
+        vp_dead         =       137
+        vp_genesis      =       97
+        weapon          =       100 ; 103                ; siehe weapon.lst
+
+        pal_explode_slot                =       1                               ; ROT
+        pal_explode_mag0        =       0
+        pal_explode_mag1        =       1.2
+        pal_explode_time                =       150
+
+        ;   mgun        KEIN
+        ;   gun_angle           DEFAULT
+        ;   gun_radius          DEFAULT
+        fire_x                  =       0.0
+        fire_y          =       -15.0
+        fire_z                  =       0.0
+; zusätzliche  Gun-Flags
+        gun_side_angle          =       3200
+        gun_up_angle            =       1500
+        gun_down_angle  =       1000
+end
+
+;----------------------------------------------------------------------------------------
+;
+;       STATIONÄRE FLAK USER
+;       Kraftwerks-Flak 1
+;
+new_vehicle 104 
+        model                   =       gun
+        name            =       USR_FLAK5
+        wireframe       =       wireless/otlflak.sklt
+
+        type_icon       =       R               ; FLAK
+        gun_type        =       flak
+        energy          =       16000	; 8000
+        shield          =       85		; 50
+        mass            =       400
+        maxrot          =       2.5		; 1.2
+        radius          =       50
+        overeof         =       30
+        vwr_radius      =       50
+        vwr_overeof     =       30
+
+        vp_normal       =         40                    ; siehe visproto.lst
+        vp_fire         =       133             ; LICHT NUR AN WENN SCHIESST    
+        vp_megadeth     =       137
+        vp_wait         =         40
+        vp_dead         =       137
+        vp_genesis      =       97
+        weapon          =       100		; 104                ; siehe weapon.lst
+
+        pal_explode_slot                =       1                               ; ROT
+        pal_explode_mag0        =       0
+        pal_explode_mag1        =       1.2
+        pal_explode_time                =       150
+
+        ;   mgun        KEIN
+        ;   gun_angle           DEFAULT
+        ;   gun_radius          DEFAULT
+        fire_x                  =       0.0
+        fire_y          =       -15.0
+        fire_z                  =       0.0
+; zusätzliche  Gun-Flags
+        gun_side_angle          =       3200
+        gun_up_angle            =       1500
+        gun_down_angle  =       1000
+end
+
+;----------------------------------------------------------------------------------------
+;
+;       STATIONÄRE FLAK USER
+;       KraftwerksFlak 2
+;
+new_vehicle 105
+        model                   =       gun
+        name            =       USR_FLAK6
+        wireframe       =       wireless/otlflak.sklt
+
+        type_icon       =       R               ; FLAK  
+        gun_type        =       flak
+        energy          =       16000	; 8000
+        shield          =       85		; 50
+        mass            =       400
+        maxrot          =       2.5		; 1.2
+        radius          =       50
+        overeof         =       30
+        vwr_radius      =       50
+        vwr_overeof     =       30
+
+        vp_normal       =         40                    ; siehe visproto.lst
+        vp_fire         =       133             ; LICHT NUR AN WENN SCHIESST    
+        vp_megadeth     =       137
+        vp_wait         =         40
+        vp_dead         =       137
+        vp_genesis      =       97
+        weapon          =       100		; 105                     ; siehe weap.scr
+
+        pal_explode_slot                =       1                               ; ROT
+        pal_explode_mag0        =       0
+        pal_explode_mag1        =       1.2
+        pal_explode_time                =       150
+
+        ;   mgun        KEIN
+        ;   gun_angle           DEFAULT
+        ;   gun_radius          DEFAULT
+        fire_x                  =       0.0
+        fire_y          =       -15.0
+        fire_z                  =       0.0
+; zusätzliche  Gun-Flags
+        gun_side_angle          =       3200
+        gun_up_angle            =       1500
+        gun_down_angle  =       1000
+end
+
+;----------------------------------------------------------------------------------------
+;
+;       BODENFLAK
+;
+new_vehicle 106
+        model                   =       gun
+        name            =       BODENFLAK
+        type_icon       =       R               ; FLAK  
+        gun_type        =       flak
+        energy          =       30000
+        shield          =       85		; 50
+        mass            =       400
+        maxrot          =       2
+        radius          =       150
+        overeof         =       30
+        vwr_radius      =       150
+        vwr_overeof     =       30
+
+        vp_normal       =       207                     ; siehe visproto.lst
+        vp_fire         =       208
+        vp_megadeth     =       137
+        vp_wait         =       207
+        vp_dead         =       137
+        vp_genesis      =       22
+        weapon          =       106                     ; siehe weap.scr
+
+        pal_explode_slot                =       1                               ; ROT
+        pal_explode_mag0        =       0
+        pal_explode_mag1        =       1.2
+        pal_explode_time                =       150
+
+        dest_fx = death_88_0_-20_0      
+        dest_fx = death_46_-20_0_20
+        dest_fx = death_46_20_0_20
+        dest_fx = death_46_0_0_0        
+        dest_fx = death_46_-20_0_-20 
+        dest_fx = death_81_-20_-20_-20
+        dest_fx = death_86_+20_-20_-20
+        dest_fx = death_43_25_-50_0
+
+        ;   mgun        KEIN
+        ;   gun_angle           DEFAULT
+        ;   gun_radius          DEFAULT
+        fire_x                  =       0
+        fire_y          =       -30
+        fire_z                  =       0
+; zusätzliche  Gun-Flags
+        gun_side_angle          =       3200
+        gun_up_angle            =       100
+        gun_down_angle  =       100
+end
+
+;--------------------------------------------------------------------------------------------- OK. DOKI.
+;
+;       GITTERTURM-FLAK
+;
+;------------------------------------------------------------------------------------------------------------
+new_vehicle 107
+        model                   =       gun
+        name            =       GITTR-T-FLAK
+        type_icon       =       R
+        gun_type        =       flak
+        energy          =       8000
+        shield          =       50
+        mass            =       400
+        maxrot          =       2.2
+        radius          =       30
+        overeof         =       30
+        vwr_radius      =       30
+        vwr_overeof     =       30
+        height          =       100             ; <--- das ist entscheident !           
+
+        vp_normal       =       22              ; alle außer den explosionen: unsichtbar
+        vp_fire         =       34
+        vp_megadeth     =       70
+        vp_wait         =       38
+        vp_dead         =       69
+        vp_genesis      =       93
+        weapon          =       107                     ; siehe weap.scr
+        ; mgun                  =       49
+        ;   gun_angle           DEFAULT
+        ;   gun_radius          DEFAULT
+        fire_x                  =       0.0
+        fire_y          =       -15.0
+        fire_z                  =       0.0
+; zusätzliche  Gun-Flags
+        gun_side_angle          =       3200
+        gun_up_angle            =       900
+        gun_down_angle  =       500
+end
+
+;-----------------------------------------------------------------------------------------------------------------
+;
+;       	FEINDFLAK   TAERKASTENFLAK
+;
+new_vehicle 108
+        	model                   	=       	gun
+        	name     		=       	TFL
+        	wireframe       	=       	wireless/otlflak.sklt
+
+        	type_icon       	=       	,
+        	gun_type        	=       	flak
+        	energy          	=       	17000		; Die von der user-Flak hatte 16000
+        	shield          	=       	77		; 90 Die vier vonder User-Flak hatte 85
+        	mass            	=       	400
+        	maxrot          	=       	2.5		; 1.2
+        	radius          	=       	50
+        	overeof       	=       	30
+        	vwr_radius      	=       	50
+        	vwr_overeof     	=       	30
+
+        	vp_normal       	=       	311             ; siehe visproto.lst
+        	vp_fire         	=       	309
+        	vp_megadeth     	=       	70
+        	vp_wait         	=       	311
+        	vp_dead         	=       	69
+        	vp_genesis      	=       	310
+        	weapon          	=       	108
+        	;   mgun        KEIN
+        	;   gun_angle           DEFAULT
+        	;   gun_radius          DEFAULT
+        	fire_x                  	=       	0
+        	fire_y          	=       	-15
+        	fire_z                  	=       	0
+	; zusätzliche  Gun-Flags
+        	gun_side_angle	=       	3200
+        	gun_up_angle	=       	1500
+        	gun_down_angle	=       	1000
+end
+
+
+;----------------------------------------------------------------------------------------------------------
+;
+;       	Radar
+;	
+;
+new_vehicle     109
+        	model                  	=       	gun
+        	name            	=       	RADAR
+        	wireframe       	=       	wireless/otlrada.skl    
+	radar		=	10
+
+        	type_icon       	=       	W               	; RADDASCHUESSL
+        	gun_type        	=       	dummy           	; Also nur Radda
+        	energy          	=       	40000
+        	shield          	=       	90
+        	mass            	=       	400
+        	maxrot          	=       	1.2
+        	radius          	=       	30
+        	overeof         	=       	30
+        	vwr_radius      	=       	30
+        	vwr_overeof     	=       	30
+        	vp_normal       	=       	151  
+        	vp_fire         	=       	151
+        	vp_megadeth     	=       	139
+        	vp_wait         	=       	151
+        	vp_dead         	=       	139
+        	vp_genesis      	=       	152
+; zusätzliche Gun-Flags
+        	gun_side_angle	=       	3200
+        	gun_up_angle      =       	2000
+        	gun_down_angle	=       	0
+end
+
+
+;----------------------------------------------------------------------------------------
+;
+;       	MYKONISCHE STIMMGABEL
+;
+new_vehicle 110
+        	model        	=	gun
+        	name            	=	STIMMGABEL
+        	type_icon       	=	*		; Extra Icon für die Map
+        	gun_type        	=       	flak
+        	energy          	=       	30000
+        	shield          	=       	85		; 50
+        	mass            	=       	400
+        	maxrot          	=       	2
+        	radius          	=       	50
+        	overeof         	=       	30
+        	vwr_radius      	=       	50
+        	vwr_overeof     	=       	30
+	
+        	vp_normal       	=       	302                	; siehe visproto.lst
+        	vp_fire         	=       	303
+        	vp_megadeth     	=       	22		; FIXME!
+        	vp_wait         	=       	302
+        	vp_dead         	=       	22		; FIXME!
+        	vp_genesis     	=       	22
+        	weapon          	=       	108
+
+        	pal_explode_slot		=       	1      	; ROT
+        	pal_explode_mag0        	=       	0
+        	pal_explode_mag1        	=       	1.2
+        	pal_explode_time                	=       	150
+
+        	dest_fx 		= 	death_88_0_-20_0      
+        	dest_fx 		= 	death_46_-20_0_20
+        	dest_fx 		= 	death_46_20_0_20
+        	dest_fx 		= 	death_46_0_0_0        
+        	dest_fx 		= 	death_46_-20_0_-20 
+        	dest_fx 		= 	death_81_-20_-20_-20
+        	dest_fx 		= 	death_86_+20_-20_-20
+        	dest_fx 		= 	death_43_25_-50_0
+
+        	;   mgun        KEIN
+        	;   gun_angle           DEFAULT
+        	;   gun_radius          DEFAULT
+        	fire_x                  	=       	0
+        	fire_y          	=       	-30
+        	fire_z                  	=       	0
+
+        	gun_side_angle	=       3200	
+        	gun_up_angle  	=       100
+        	gun_down_angle	=       100
+end
+
+;-----------------------------------------------------------------------------------------------------------------
+;
+;       	GENERIC FEIND FLAK    
+;
+new_vehicle 111
+        	model                   	=       	gun
+        	name     		=       	FLUCK
+        	wireframe       	=       	wireless/otlflak.sklt
+
+        	type_icon       	=       	R		; Oa Floackn hoalt.
+        	gun_type        	=       	flak
+        	energy          	=       	17000		; Die von der user-Flak hatte 16000
+        	shield          	=       	90		; Die vier vonder User-Flak hatte 85
+        	mass            	=       	400
+        	maxrot          	=       	2.5		; 1.2
+        	radius          	=       	50
+        	overeof       	=       	30
+        	vwr_radius      	=       	50
+        	vwr_overeof     	=       	30
+
+        	vp_normal       	=       	40             ; siehe visproto.lst
+        	vp_fire         	=       	41
+        	vp_megadeth     	=       	70
+        	vp_wait         	=       	40
+        	vp_dead         	=       	69
+        	vp_genesis      	=       	97
+        	weapon          	=       	111                ; siehe weapon.lst
+        	;   mgun        KEIN
+        	;   gun_angle           DEFAULT
+        	;   gun_radius          DEFAULT
+        	fire_x                  	=       	0
+        	fire_y          	=       	-15
+        	fire_z                  	=       	0
+	; zusätzliche  Gun-Flags
+        	gun_side_angle	=       	3200
+        	gun_up_angle	=       	1500
+        	gun_down_angle	=       	1000
+end
+
+;------------------------------------------------------------------------------------------
+;
+;       MYKONIER-FLAK   (FLAKSTELLUNG BUILDING: 13)
+;
+new_vehicle 113
+	model                   		=       	gun
+      	name            		=       	MykoFlak
+        	type_icon       		=   	:		; Extra Icon für die Map
+        	gun_type        		=       	flak
+        	energy          		=       	20000
+        	shield          		=       	90		; 25
+        	mass            		=       	400
+        	maxrot          		=       	2
+        	radius          		=       	170
+        	overeof         		=       	30
+        	vwr_radius      		=       	170
+        	vwr_overeof     		=       	30
+
+        	vp_normal       		=       	325		; siehe visproto.lst
+        	vp_fire         		=       	326
+        	vp_megadeth     		=       	22
+        	vp_wait         		=       	325
+        	vp_dead         		=       	22
+        	vp_genesis      		=       	11
+
+	weapon			=	117
+
+        	; mgun            		=       	112    
+	; gun_power       		=       	20000                   ; DEFAULT: 4000 funkzjoniert dat ? ehem. MG-Flak
+
+        	gun_side_angle          	=       	3200
+        	gun_up_angle            	=       	1500
+        	gun_down_angle  	=       	900
+
+        	dest_fx                 		=       	death_48_26_-10_2               
+        	dest_fx                 		=       	death_41_-20_-37_10
+        	dest_fx                 		=       	death_46_14_-46_20
+        	dest_fx                 		=       	death_48_11_-41_7       
+        	dest_fx                 		=       	death_46_-30_-24_-30 
+       	dest_fx                 		=       	death_85_-11_-23_-40
+       	dest_fx                 		=       	death_46_+20_-24_-25
+        	dest_fx                 		=       	death_84_21_-26_1
+
+        	dest_fx                 		=       	megadeth_48_26_-10_2               
+        	dest_fx                 		=       	megadeth_41_-20_-37_10
+        	dest_fx                 		=       	megadeth_46_14_-46_20
+        	dest_fx                 		=       	megadeth_48_11_-41_7       
+        	dest_fx                 		=       	megadeth_46_-30_-24_-30 
+       	dest_fx                 		=       	megadeth_85_-11_-23_-40
+       	dest_fx                 		=       	megadeth_46_+20_-24_-25
+        	dest_fx                 		=       	megadeth_84_21_-26_1
+
+end
+
+;----------------------------------------------------------------------------------------
+;
+;       SULGOGAREN-ROBOFLAK 2
+;
+;
+new_vehicle 114
+        model                   =       gun
+        name            =       FEINDFLAK1
+        type_icon       =       I               ; DEBUG da nicht USER
+        gun_type        =       flak
+        energy          =       8000
+        shield          =       50
+        mass            =       400
+        maxrot          =       1.2
+        radius          =       30
+        overeof         =       30
+        vwr_radius      =       30
+        vwr_overeof     =       30
+
+        vp_normal       =       22                      ; siehe visproto.lst
+        vp_fire         =       183
+        vp_megadeth     =       22
+        vp_wait         =       22
+        vp_dead         =       22
+        vp_genesis      =       22              ;dummy
+
+        weapon          =       72                ; siehe weapon.lst
+        ;   mgun        KEIN
+        ;   gun_angle           DEFAULT
+        ;   gun_radius          DEFAULT
+        fire_x                  =       0.0
+        fire_y          =       -15.0
+        fire_z                  =       0.0
+; zusätzliche  Gun-Flags
+        gun_side_angle          =       3200
+        gun_up_angle            =       1500
+        gun_down_angle  =       1000
+end
+
+;----------------------------------------------------------------------------------------
+;
+;       ALTERNATIVE FEINDFLAKBEWAFFUNG 15
+;       1 statt 4
+;       ACHTUNG! NICHT FÜR USER FREISCHALTEN !!!
+;       DIE FLAK WURDE NICHT USER-TAUGLICH 
+;       PLATZIERT !!!!!!!!!
+;	Wird von der Schwarzen Sekte verwendet.
+;
+new_vehicle 115
+        model                   =       gun
+        name            =       NOT_FOR_USR
+        type_icon       =       -		; Extra Icon für die Map (schwarzes Gegrissel)
+        gun_type        =       flak
+        energy          =       8000
+        shield          =       50
+        mass            =       400
+        maxrot          =       2
+        radius          =       30
+        overeof         =       20
+        vwr_radius      =       30
+        vwr_overeof     =       15
+        
+        vp_normal       =       22                      ; siehe visproto.lst
+        vp_fire         =       183
+        vp_megadeth     =       22
+        vp_wait         =       22
+        vp_dead         =       22
+        vp_genesis      =       22              ;dummy
+
+        weapon          =       115                ; siehe weapon.lst
+        ;   mgun        KEIN
+        ;   gun_angle           DEFAULT
+        ;   gun_radius          DEFAULT
+        fire_x                  =       0.0
+        fire_y          =       -15.0
+        fire_z                  =       0.0
+; zusätzliche  Gun-Flags
+        gun_side_angle          =       3200
+        gun_up_angle            =       1500
+        gun_down_angle  =       1000
+end
+
+;----------------------------------------------------------------------------------------
+;
+;	FLAK FÜR DIE KLEINEN GRASGITTERFLAKTUERME
+;
+new_vehicle 116
+        model                   =       gun
+        name            =       GRASFLAK
+        type_icon       =       R		; StandardFlakIcon
+        gun_type        =       flak
+        energy          =       8000
+        shield          =       50
+        mass            =       400
+        maxrot          =       1.2
+        radius          =       30
+        overeof         =       30
+        vwr_radius      =       30
+        vwr_overeof     =       30
+	height	=	30
+
+        vp_normal       =       40             ; siehe visproto.lst
+        vp_fire         =       41
+        vp_megadeth     =       70
+        vp_wait         =       40
+        vp_dead         =       69
+        vp_genesis      =       97
+        weapon          =       111                ; siehe weapon.lst
+        ;   mgun        KEIN
+        ;   gun_angle           DEFAULT
+        ;   gun_radius          DEFAULT
+        fire_x                  =       0.0
+        fire_y          =       -15.0
+        fire_z                  =       0.0
+; zusätzliche  Gun-Flags
+        gun_side_angle          =       3200
+        gun_up_angle            =       1500
+        gun_down_angle  =       1000
+end
+
+;-----------------------------------------------------------------------------------------------------------------
+;
+;       	KYTERNESER FLAK FLAK    
+;
+new_vehicle 137
+        	model                   	=       	gun
+        	name     		=       	KFL
+        	wireframe       	=       	wireless/otlflak.sklt
+
+        	type_icon       	=       	+		; spezielles Kyterneser farbenes Icon
+        	gun_type        	=       	flak
+        	energy          	=       	17000		; Die von der user-Flak hatte 16000
+        	shield          	=       	70		; Die vier vonder User-Flak hatte 85
+        	mass            	=       	400
+        	maxrot          	=       	2.5		; 1.2
+        	radius          	=       	50
+        	overeof       	=       	30
+        	vwr_radius      	=       	50
+        	vwr_overeof     	=       	30
+
+        	vp_normal       	=       	40             ; siehe visproto.lst
+        	vp_fire         	=       	41
+        	vp_megadeth     	=       	70
+        	vp_wait         	=       	40
+        	vp_dead         	=       	69
+        	vp_genesis      	=       	97
+        	weapon          	=       	111                ; siehe weapon.lst
+        	;   mgun        KEIN
+        	;   gun_angle           DEFAULT
+        	;   gun_radius          DEFAULT
+        	fire_x                  	=       	0
+        	fire_y          	=       	-15
+        	fire_z                  	=       	0
+	; zusätzliche  Gun-Flags
+        	gun_side_angle	=       	3200
+        	gun_up_angle	=       	1500
+        	gun_down_angle	=       	1000
+end
+
+;----------------------------------------------------------------------------------------------------------
+;
+;       	Radar Kyterneser	
+;
+new_vehicle     139
+        	model                  	=       	gun
+        	name            	=       	RADAR
+	radar		=	10
+
+        	type_icon       	=       	W               	; RADDASCHUESSL
+        	gun_type        	=       	dummy           	; Also nur Radda
+        	energy          	=       	40000
+        	shield          	=       	90
+        	mass            	=       	400
+        	maxrot          	=       	1.2
+        	radius          	=       	30
+        	overeof         	=       	30
+        	vwr_radius      	=       	30
+        	vwr_overeof     	=       	30
+        	vp_normal       	=       	151  
+        	vp_fire         	=       	151
+        	vp_megadeth     	=       	139
+        	vp_wait         	=       	151
+        	vp_dead         	=       	139
+        	vp_genesis      	=       	152
+; zusätzliche Gun-Flags
+        	gun_side_angle	=       	3200
+        	gun_up_angle      =       	2000
+        	gun_down_angle	=       	0
+end
+
+
+;----------------------------------------------------------------------------------------------------------
+;
+;       	Radar Mykonier
+;	
+;
+new_vehicle     140
+        	model                  	=       	gun
+        	name            	=       	RADAR
+	radar		=	10
+
+        	type_icon       	=       	W               	; RADDASCHUESSL
+        	gun_type        	=       	dummy           	; Also nur Radda
+        	energy          	=       	40000
+        	shield          	=       	90
+        	mass            	=       	400
+        	maxrot          	=       	1.2
+        	radius          	=       	30
+        	overeof         	=       	30
+        	vwr_radius      	=       	30
+        	vwr_overeof     	=       	30
+    	vp_normal   	= 	200    
+    	vp_fire     	= 	200
+    	vp_wait     	= 	200
+
+    	vp_megadeth 	= 	8	
+    	vp_dead     	= 	274
+    	vp_genesis  	= 	274
+        	gun_side_angle	=       	3200
+        	gun_up_angle      =       	2000
+        	gun_down_angle	=       	0
+end
+
+;----------------------------------------------------------------------------------------------------------
+;
+;       	Radar Taerkasten	
+;
+new_vehicle     141
+        	model                  	=       	gun
+        	name            	=       	RADAR
+	radar		=	10
+
+        	type_icon       	=       	W               	; RADDASCHUESSL
+        	gun_type        	=       	dummy           	; Also nur Radda
+        	energy          	=       	40000
+        	shield          	=       	90
+        	mass            	=       	400
+        	maxrot          	=       	1.2
+        	radius          	=       	30
+        	overeof         	=       	30
+        	vwr_radius      	=       	30
+        	vwr_overeof     	=       	30
+        	vp_normal       	=       	151  
+        	vp_fire         	=       	151
+        	vp_megadeth     	=       	139
+        	vp_wait         	=       	151
+        	vp_dead         	=       	139
+        	vp_genesis      	=       	152
+; zusätzliche Gun-Flags
+        	gun_side_angle	=       	3200
+        	gun_up_angle      =       	2000
+        	gun_down_angle	=       	0
+end
+
+
+;-------------------------- internet host station flaks -------------------------------------------------------
+;------------------------------------------------------------------------------------------
+;
+;       USER-ROBO FLAK UNTENDRAN (INTERNET)
+;
+;       (GrundBewaffnung / unzerstörbar)
+;       unten
+;
+new_vehicle 159
+        model                   =       gun
+        name            =       4
+
+        wireframe       =       wireless/otlflak.sklt
+        gun_type        =       flak
+        type_icon       =       R               ; richtige Knarre
+        weapon          =       120
+
+        energy          =       4000
+        shield          =       100
+        mass            =       400
+        maxrot          =       1.5
+        radius          =       30
+        overeof         =       30
+        vwr_radius      =       30
+        vwr_overeof     =       30
+
+        vp_normal       =       40
+        vp_fire         =       41
+        vp_megadeth     =       137
+        vp_wait         =       40
+        vp_dead         =       137
+        vp_genesis      =       97              ; dummy
+
+        gun_side_angle          =       3200
+        gun_up_angle            =       1300
+        gun_down_angle  =       1000
+end
+
+
+
+;----------------------------------------------------------------------------------------
+;
+;       ROBOFLAK        TAERKASTENROBO internetmulti
+;
+new_vehicle     160
+        model                   =       gun
+        name            =       inTaerFlak
+        type_icon       =       I             ; DEBUG, weil roboflax nicht angezeigt werden
+        gun_type        =       flak
+        energy          =       4000
+        shield          =       100
+        mass            =       400
+        maxrot          =       3
+        radius          =       30
+        overeof         =       30
+        vwr_radius      =       30
+        vwr_overeof     =       30
+
+        vp_normal       =       34              ; unsichtbar
+        vp_fire         =       130             ; Rauchwolke
+        vp_megadeth     =       100             ; dummy
+        vp_wait         =       38              ; dummy
+        vp_dead         =       93              ; dummy
+        vp_genesis      =      97 
+
+        weapon          =       123
+
+        gun_side_angle          =      3200
+        gun_up_angle            =      1500 			; 600
+        gun_down_angle  =       1300
+end
+
+
+;-------------------------------------------------------------------------------------------------------------
+;
+;       ROBOFLAK        GROSSER KYTERNESER internetmulti
+;
+new_vehicle     161
+        model                   =       gun
+        name            =       inGORFlak
+        type_icon       =       I               ; DEBUG da nicht USER
+        gun_type        =       flak
+        energy          =       4000
+        maxrot          =       3
+        shield          =       100
+
+        vp_normal       =       22              ; alles DUMMIES
+        vp_fire         =       34
+        vp_megadeth     =       38
+        vp_wait         =       93
+        vp_dead         =       100
+        vp_genesis      =       97
+
+        weapon          =       121
+
+        gun_side_angle          =       3200            ; 360 grad
+        gun_up_angle            =       1300
+        gun_down_angle  =       1300
+end
+
+
+;----------------------------------------------------------------------------------------
+;
+;	 Modified Myko-Robo-flak für interNetzwerk
+;	NETZWERKMYKONIER !!!
+;
+new_vehicle     162
+        model                   =       gun
+        name            =       iMykFLAK
+        type_icon       =       I               ; DEBUG, weil roboflax nicht angezeigt werden
+        gun_type        =       flak
+        energy          =       4000
+        shield          =       100
+        mass            =       400
+        maxrot          =       3.5
+        radius          =       30.0
+        overeof         =       30.0
+        vwr_radius      =       30.0
+        vwr_overeof     =       30.0
+
+        vp_normal       =       22                      ; alles DUMMIES
+        vp_fire         =       34
+        vp_megadeth     =       22
+        vp_wait         =       38
+        vp_dead         =       93
+        vp_genesis      =       97
+
+        weapon          =       122
+
+        gun_side_angle          =       3200
+        gun_up_angle            =       1300
+        gun_down_angle  =       1300
+end
+
+;-----------------------------------------------------------------------------------------------------------------------------------------
+;                               Ende         FLAX
+;-----------------------------------------------------------------------------------------------------------------------------------------

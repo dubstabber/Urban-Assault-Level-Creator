@@ -3,6 +3,17 @@ extends MeshInstance3D
 var _frames: Array = []
 var _frame_index := 0
 var _elapsed := 0.0
+@export var serialized_frame_meshes: Array[Mesh] = []
+@export var serialized_frame_durations := PackedFloat32Array()
+@export var serialized_frame_payload := ""
+@export var serialized_anim_name := ""
+@export var serialized_transparency_mode := ""
+@export var serialized_tracy_val := 0
+@export var serialized_shade_value := 0
+
+func _ready() -> void:
+	if _frames.is_empty() and not serialized_frame_meshes.is_empty():
+		_restore_serialized_animation()
 
 func setup_animation(frames: Array) -> void:
 	_frames.clear()
@@ -14,6 +25,25 @@ func setup_animation(frames: Array) -> void:
 	_frame_index = 0
 	_elapsed = 0.0
 	_apply_current_frame()
+	set_process(_frames.size() > 1)
+
+func _restore_serialized_animation() -> void:
+	_frames.clear()
+	for i in serialized_frame_meshes.size():
+		var mesh_resource := serialized_frame_meshes[i]
+		if mesh_resource == null:
+			continue
+		var duration_sec := 0.04
+		if i < serialized_frame_durations.size():
+			duration_sec = max(float(serialized_frame_durations[i]), 0.01)
+		_frames.append({
+			"duration_sec": duration_sec,
+			"mesh": mesh_resource,
+		})
+	_frame_index = 0
+	_elapsed = 0.0
+	_apply_current_frame()
+	set_meta("ua_authored_animated", true)
 	set_process(_frames.size() > 1)
 
 func _process(delta: float) -> void:

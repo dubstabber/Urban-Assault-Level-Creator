@@ -1,0 +1,17 @@
+;--------------------------------------------------------------------------------------------------------------------------------------
+;
+;   	-           Y   o   u   r       P   e   r   s   o   n   a   l       A   M   O   K         -
+;
+;          	S T A R T U P S C R I P T        für                 Internetlevel
+;
+;	(C) 1996-1998 	B.Beyreuther / A.Flemming / A.Weissflog
+;
+include data:scripts/user.scr      		; die User-Vehikel
+include data:scripts/feinde.scr      		; die Feind-Fahrzeuge
+include data:scripts/weap_u.scr         	; User-Waffen
+include data:scripts/weap_f.scr         	; Feind-Waffen
+include data:scripts/net_bldg.scr        	; alle Buildings
+include data:scripts/inetrobo.scr       	; ROBOS 
+include data:scripts/bruch.scr       		; Gebäude-Bruch / Brocken / Rauch
+include data:scripts/flaks.scr		; stationäre FLAKS und Radar-Schüssel
+include data:scripts/ssnd.scr		; das MODIFY-Script zum Eintragen aller FINALEN SOUNDS von SILVIUS

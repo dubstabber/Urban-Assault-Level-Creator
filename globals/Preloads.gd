@@ -1,5 +1,8 @@
 extends Node
 
+const _UAProjectDataRoots = preload("res://map/ua_project_data_roots.gd")
+const _UALegacyText = preload("res://map/ua_legacy_text.gd")
+
 var ua_data: JSON = preload("res://resources/UAdata.json")
 
 const HOSTSTATION = preload("res://map/ua_structures/host_station.tscn")
@@ -422,36 +425,43 @@ func reload_surface_type_map() -> void:
 	if cmd:
 		set_id = int(cmd.level_set)
 	
+	var game_data_type := "original"
+	var es := get_node_or_null("/root/EditorState")
+	if es:
+		game_data_type = es.game_data_type
 	# Load full typ data including subsector patterns and tile mapping
-	var full_data := SetSdfParser.parse_full_typ_data(set_id)
+	var full_data := SetSdfParser.parse_full_typ_data(set_id, game_data_type)
 	surface_type_map = full_data.get("surface_types", {})
 	subsector_patterns = full_data.get("subsector_patterns", {})
 	tile_mapping = full_data.get("tile_mapping", {})
 	lego_defs = full_data.get("lego_defs", {})
 
-	# Optional per-set remap file: res://resources/ua/sets/set{set_id}/scripts/tile_remap.json
+	# Optional per-set remap file (editor overrides first, then bundled set scripts).
 	# Format: { "0": {"file": 2, "variant": 0}, "1": {"file": 0, "variant": 1}, ... }
 	tile_remap = {}
-	var remap_path := "res://resources/ua/sets/set%d/scripts/tile_remap.json" % set_id
+	var remap_path := "%s/set%d/tile_remap.json" % [_UAProjectDataRoots.EDITOR_OVERRIDES_ROOT, set_id]
+	if not FileAccess.file_exists(remap_path):
+		remap_path = UAProjectDataRoots.first_existing_path_under_set_roots(
+			set_id, game_data_type, "scripts/tile_remap.json"
+		)
 	if FileAccess.file_exists(remap_path):
-		var f := FileAccess.open(remap_path, FileAccess.READ)
-		if f:
-			var txt := f.get_as_text()
-			f.close()
+		var txt := _UALegacyText.read_file(remap_path)
+		if not txt.is_empty():
 			var tmp = JSON.parse_string(txt)
 			var parsed_map: Dictionary = {}
 			if typeof(tmp) == TYPE_DICTIONARY:
 				parsed_map = tmp
 			tile_remap = parsed_map
 
-	# Optional per-set subsector index remap: res://resources/ua/sets/set{set_id}/scripts/subsector_idx_remap.json
 	subsector_idx_remap = {}
-	var subremap_path := "res://resources/ua/sets/set%d/scripts/subsector_idx_remap.json" % set_id
+	var subremap_path := "%s/set%d/subsector_idx_remap.json" % [_UAProjectDataRoots.EDITOR_OVERRIDES_ROOT, set_id]
+	if not FileAccess.file_exists(subremap_path):
+		subremap_path = UAProjectDataRoots.first_existing_path_under_set_roots(
+			set_id, game_data_type, "scripts/subsector_idx_remap.json"
+		)
 	if FileAccess.file_exists(subremap_path):
-		var f2 := FileAccess.open(subremap_path, FileAccess.READ)
-		if f2:
-			var txt2 := f2.get_as_text()
-			f2.close()
+		var txt2 := _UALegacyText.read_file(subremap_path)
+		if not txt2.is_empty():
 			var tmp2 = JSON.parse_string(txt2)
 			var parsed_map2: Dictionary = {}
 			if typeof(tmp2) == TYPE_DICTIONARY:

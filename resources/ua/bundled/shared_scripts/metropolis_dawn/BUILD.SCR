@@ -1,0 +1,868 @@
+;----------------------------------------------------------------------------------------------------------------
+;
+;   	-           Y   o   u   r       P   e   r   s   o   n   a   l       A   M   O   K         -
+;
+;	BAUWERKE	
+;
+;		1	USER-KRAFTWERK
+;		2	USER-FLAKSTATION
+;		3	USER-RADARSTATION
+;		4	GEM-CENTRE	no weapons
+;		5	BEAMGATE 	closed
+;		6	BEAMGATE 	opened	
+;		7	GEM-CENTRE	light
+;		8	KYTERNESERFLAK in Wiese 1
+;		9	KYTERNESERFLAK in Wiese 2
+;		10	MYKONIER-KRAFTWERK
+;		11	USER-KRAFTWERK MIT FLAKS
+;		12 	KYTERNESER-KRAFTWERK
+;		13	MYKONIER-FLAK
+;		14	USER-KRAFTWERK 2 (fÃ¼r andere Energie-Werte)
+;		15	GEM-CENTER	KREUZ			(stefan)
+;		16	GEM-CENTER	VIERECK		(stefan)
+;		17	POWER-PLANT TAERKASTEN		(stefan)
+;		18	SCHWARZE SEKTE FLAKTURM 		
+;		19	BODENFLAK 				experimentell		
+;		20	GITTERTURM-FLAK Ost-West
+;		21	GITTERTURM-FLAK Nord-SÃ¼d
+;		22	KREUZUNG mit 2 Bodenflaks
+;		23    	KREUZUNG mit 1 BodenFlak
+;		24	DORF mit 1 BodenFlak
+;		25	BEAMGATE 	closed ohne StraÃŸe
+;		26	BEAMGATE 	opened ohne StraÃŸe
+;		28	USER FLAK SMALL AA
+;		29	HORT DER MYKONISCHEN STIMMGABELN (eine)
+;		30	KYTERNESER FLAK
+;		31	TAERKASTENFLAK
+;		32	
+;		33	HORT DER MYKONISCHEN STIMMGABELN (zwei)
+;		34	HORT DER MYKONISCHEN STIMMGABELN (drei)
+;		35	SUPERBOMBE Normal
+;		36	SUPERBOMBE Activated
+;		37	SUPERBOMBE Destroyed
+;
+;		ab 50---> Stefans eigene Sektoren
+;
+;
+;		changes:	16-Mar-98	Bernd	Die groÃŸe 4tÃ¼rmige KytFlak hat jetzt ihre eigene Flak
+;						Bernd  	SmallAA etwas hÃ¶her gesetzt, damit bessere Sicht
+;				04-Mai-98	Stefan	Small AA teurer						
+;				03-Jun-98	Bernd     Die eine Stimmgabel stak im Haus.
+;				22-Jun-98	Bernd	Einge Feindflaks hatten noch falsche Icons
+;
+;	
+;	(C) 1996-1998 	B.Beyreuther / A.Flemming / A.Weissflog
+;
+;----------------------------------------------------------------------------------------------------------------
+;
+;	USER-KRAFTWERK 
+;
+new_building 1
+    	model  		= 	kraftwerk
+    	name   		= 	Kraftwerk
+    	sec_type  	= 	201			; Das tolle neue Kraftwerk
+    	type_icon 	= 	T
+    	power  		= 	128
+    	energy 		= 	140000
+end
+
+;----------------------------------------------------------------------------------------------------------------
+;
+;	USER-FLAKSTELLUNG  
+;
+;	Das schuckelige funkelnagelneue De(ath)F-Centre 	
+;
+new_building 2
+    	model  		= 	defcenter
+    	name   		= 	Flak_Station
+    	sec_type  	= 	200
+    	type_icon 	= 	V
+    	energy 		= 	160000
+
+    	sbact_act     	= 	0
+    	sbact_vehicle 	= 	100      		; siehe FLAK.SCR
+    	sbact_pos_x   	= 	0.0
+    	sbact_pos_y   	= 	-190	; -180.0
+    	sbact_pos_z   	= 	+77.0
+    	sbact_dir_x   	=  	-1.0
+    	sbact_dir_y   	=    	0.0
+    	sbact_dir_z   	=    	0.0
+
+    	sbact_act     	= 	1
+    	sbact_vehicle 	= 	101
+    	sbact_pos_x   	= 	0.0
+    	sbact_pos_y   	= 	-190	; -180.0	negativ geht hoch ... cool he?
+    	sbact_pos_z   	= 	-77.0
+    	sbact_dir_x   	=   	+1.0
+    	sbact_dir_y   	=    	0.0
+    	sbact_dir_z   	=    	0.0
+
+    	sbact_act     	= 	2
+    	sbact_vehicle 	= 	102
+    	sbact_pos_x   	= 	+60
+    	sbact_pos_y   	= 	-380
+    	sbact_pos_z   	= 	0
+    	sbact_dir_x   	=    	0
+    	sbact_dir_y   	=    	0
+    	sbact_dir_z   	=   	-1
+
+    	sbact_act     	= 	3
+    	sbact_vehicle 	= 	103
+    	sbact_pos_x   	= 	-60
+    	sbact_pos_y   	= 	-380
+    	sbact_pos_z   	= 	0
+    	sbact_dir_x   	=    	0
+    	sbact_dir_y   	=    	0
+    	sbact_dir_z   	=   	+1
+end
+
+;----------------------------------------------------------------------------------------------------------------
+;
+;	USER-RADARSTELLUNG
+;
+;	SCHNUCKELIGESTERNENGEFUNKELHAGELNEUESPIELERRADARSTATION 	
+;
+new_building 3                        
+    model  	= 	radar
+    name   	= 	Radar_Station
+    sec_type  	= 	204
+    type_icon 	= 	U
+    power  	= 	10
+    energy      	=       	90000		; Wie der PICO.
+
+    sbact_act     	= 	0
+    sbact_vehicle 	=  	109		; siehe FLAKS.SCR 
+    sbact_pos_x   	=    	30
+    sbact_pos_y   	= 	-530
+    sbact_pos_z   	=    	0
+    sbact_dir_x   	=   	-1
+    sbact_dir_y   	=    	0
+    sbact_dir_z   	=    	0
+end
+
+
+;----------------------------------------------------------------------------------------------------------------
+;
+;	GEM-CENTRE	LEVEL1
+;
+new_building 4
+    	model     		= 	building
+    	name      		= 	GEM0
+    	sec_type  	=  	100       		; FIXME! from level to level !!!!!!
+    	energy    	= 	0        		; irrelevant
+    	type_icon	=	I		; DEBUG da nicht USER !
+end
+
+;--------------------------------------------------------------------------------------------------------------
+;
+;   "BEAMGATE CLOSED"			NICHT Ã„NDERN !
+;
+new_building	5
+    	model     		= 	building
+    	name      		= 	GATE_CL
+    	sec_type  	=  	202
+	type_icon	=	I		; DEBUG da nicht USER
+end
+
+;--------------------------------------------------------------------------------------------------------------
+;
+;   "BEAMGATE OPEN"				NICHT Ã„NDERN !
+;
+new_building	6
+    	model     		= 	building
+    	name      		= 	GATE_O
+    	sec_type  	=  	203
+	type_icon	=	I		; DEBUG da nicht USER
+end
+
+
+;------------------------------------------------------------------------------------------------------------
+;
+;	GEM-CENTRE	LEVEL2 
+;
+;	Gedacht als GEM-CENTRE in feindlicher Hand
+;	einfach geschÃ¼tzt
+;
+
+new_building 7
+    	model  		= 	defcenter
+    	name   		= 	GEM_WITH_FLAK1
+    	sec_type  	= 	73
+	type_icon	=	I		; DEBUG da nicht USER
+    	energy 		= 	100000
+
+    	sbact_act     	= 	0
+   	sbact_vehicle 	= 	111    
+   	sbact_pos_x   	=       	0.0
+    	sbact_pos_y   	= 	-205.0
+    	sbact_pos_z   	= 	-300.0
+    	sbact_dir_x   	=   	1.0
+    	sbact_dir_y   	=    	0.0
+    	sbact_dir_z   	=     	0.0
+
+    	sbact_act     	= 	1
+    	sbact_vehicle 	= 	111   
+    	sbact_pos_x   	=       	300.0
+    	sbact_pos_y   	= 	-265.0
+    	sbact_pos_z   	= 	-300.0
+    	sbact_dir_x   	=   	0.9
+    	sbact_dir_y   	=    	0.0
+     	sbact_dir_z   	=     	0.0
+end
+
+
+;-----------------------------------------------------------------------
+;
+;  	KYTERNESER FLAKSTATION GRAS
+;
+; 	nicht zum autonomen BAUEN gedacht 
+;	sondern als Landschafts-Element
+;
+;-----------------------------------------------------------------------
+
+new_building	8
+    	model  		= 	defcenter
+    	name   		= 	GRASFLAK2
+	type_icon	=	I		; DEBUG da nicht USER
+    	sec_type  	= 	79
+    	energy 		= 	50000
+
+    	sbact_act     	= 	0
+    	sbact_vehicle 	= 	116
+    	sbact_pos_x   	= 	-300
+    	sbact_pos_y   	= 	-90
+    	sbact_pos_z   	= 	0
+    	sbact_dir_x   	=   	-1.0
+    	sbact_dir_y   	=    	0
+    	sbact_dir_z   	=    	0
+
+    	sbact_act     	= 	1
+    	sbact_vehicle 	= 	116
+    	sbact_pos_x   	= 	300
+    	sbact_pos_y   	= 	-90
+    	sbact_pos_z   	= 	0
+    	sbact_dir_x   	=   	1.0
+    	sbact_dir_y   	=    	0
+    	sbact_dir_z   	=    	0
+end
+
+;----------------------------------------------------------------------------------------
+;
+;  	KYTERNESER FLAKSTATION / GEMSTATION
+;
+; 	nicht zum autonomen BAUEN gedacht 
+;	sondern als Landschafts-Element
+;	somit bei BEDARF modify-en !
+;
+;-------------------------------------------------------------------------------------
+new_building	9
+    	model  		= 	defcenter
+	type_icon	=	I		; DEBUG da nicht USER
+    	name   		= 	GEM_WITH_FLAK2
+    	sec_type  	= 	101
+    	energy 		= 	50000
+
+    	sbact_act     	= 	0
+    	sbact_vehicle 	= 	111      ; siehe flaks.scr
+    	sbact_pos_x   	= 	    0
+    	sbact_pos_y   	= 	-185
+    	sbact_pos_z   	=  	300
+    	sbact_dir_x   	=   	-1.0
+    	sbact_dir_y   	=    	0
+    	sbact_dir_z   	=    	0
+end
+
+
+;-------------------------------------------------------------------------
+;
+;	MYKONIER KRAFTZWERG
+;
+new_building	10
+    	model  		= 	kraftwerk
+    	name   		= 	MykoPower
+    	sec_type  	= 	229
+	type_icon	=	T		; DEBUG da nicht USER
+	power		=	68	
+    	energy 		= 	103000
+end
+
+;----------------------------------------------------------------------------------------------------------------
+;
+;	USER-KRAFTWERK 
+;	WEAPONS !
+;
+new_building 	11
+    	model  		= 	kraftwerk
+    	name   		= 	Kraftwerk2
+    	sec_type  	= 	201			; Das Kraftwerk mit Waffen 
+    	type_icon 	= 	T
+    	power  		= 	128
+    	energy 		= 	175000			; Wegen Waffen entwas teurer
+	
+	sbact_act     	= 	0
+    	sbact_vehicle 	= 	104
+    	sbact_pos_x   	= 	200
+    	sbact_pos_y   	= 	-200
+    	sbact_pos_z   	= 	200
+    	sbact_dir_x   	=    	0
+    	sbact_dir_y   	=    	0
+    	sbact_dir_z   	=   	-1
+
+    	sbact_act     	= 	1
+    	sbact_vehicle 	= 	105
+    	sbact_pos_x   	= 	-200
+    	sbact_pos_y   	= 	-200
+    	sbact_pos_z   	= 	-200
+    	sbact_dir_x   	=    	0
+    	sbact_dir_y   	=    	0
+    	sbact_dir_z   	=   	+1
+end
+
+;-------------------------------------------------------------------------
+;
+;	KYTERNESER KRAFTWERG
+;
+new_building	12
+    	model  		= 	kraftwerk
+    	name   		= 	KytPower
+    	sec_type  	= 	15
+	type_icon	=	T		; DEBUG da nicht USER
+    	power  		= 	128
+    	energy 		= 	150000
+end
+
+
+;-----------------------------------------------------------------------
+;
+;  	MYKONIER FLAKSTELLUNG
+;
+;-----------------------------------------------------------------------
+
+new_building	13
+    	model  		= 	defcenter
+    	name   		= 	MykoFlak
+	type_icon	=	V		; DEBUG da nicht USER
+    	sec_type  	= 	228
+    	energy 		= 	170000
+
+    	sbact_act     	= 	0   
+ 	sbact_vehicle 	= 	113
+    	sbact_pos_x   	= 	0
+    	sbact_pos_y   	= 	-450
+    	sbact_pos_z   	= 	0
+    	sbact_dir_x   	=   	1.0
+    	sbact_dir_y   	=    	0
+    	sbact_dir_z   	=    	0
+end
+
+;----------------------------------------------------------------------------------------------------------------
+;
+;	USER-KRAFTWERK 	stÃ¤rker
+;
+new_building 14
+    	model  		= 	kraftwerk
+    	name   		= 	KraftwerkDBL
+    	sec_type  	= 	201			
+    	type_icon 	= 	T
+    	power  		= 	192
+    	energy 		= 	250000
+end
+
+;----------------------------------------------------------------------------------------------------------------
+;
+;	GEM-CENTRE	
+;
+new_building 15
+    	model     		= 	building
+    	name      		= 	GEM_WEAPON_POWER
+    	sec_type  	=  	104       		; FIXME! from level to level !!!!!!
+    	energy    	= 	0        		; irrelevant
+    	type_icon	=	I		; DEBUG da nicht USER !
+end
+
+;----------------------------------------------------------------------------------------------------------------
+;
+;	GEM-CENTRE
+;
+new_building 16
+    	model     		= 	building
+    	name      		= 	GEM_NEW_BUILDING
+    	sec_type  	=  	103       		; FIXME! from level to level !!!!!!
+    	energy    	= 	0        		; irrelevant
+    	type_icon	=	I		; DEBUG da nicht USER !
+end
+
+;----------------------------------------------------------------------------------------------------------------
+;
+;	POWER-PLANT TAERKASTEN 
+;
+new_building 17
+    	model  		= 	kraftwerk
+    	name   		= 	TaerPower		; TAERKASTEN
+    	sec_type  	= 	14			; MACHT
+    	type_icon 	= 	T
+    	power  		= 	128
+    	energy 		= 	146000
+end
+
+;----------------------------------------------------------------------------------------------------------------
+;
+;	ALTERNATIVE FLAKSTELLUNG  
+;	Was machen wir damit ?
+;
+;	NUR EINE STARKE LASERFLAK- ANSTELLE 4 EINZELNER 
+;
+new_building 18
+    	model  		= 	defcenter
+    	name   		= 	Flakstation
+    	sec_type  	= 	200
+    	type_icon 	= 	V
+    	energy 		= 	170000
+
+    	sbact_act     	= 	0
+    	sbact_vehicle 	= 	115
+    	sbact_pos_x   	= 	0
+    	sbact_pos_y   	= 	-590
+    	sbact_pos_z   	= 	0
+    	sbact_dir_x   	=    	1
+    	sbact_dir_y   	=    	0
+    	sbact_dir_z   	=   	0
+end
+
+;----------------------------------------------------------------------------------------------------------------
+;
+;	ALTERNATIVE FLAKSTELLUNG  
+;
+;	BodenFlak
+;
+new_building 19
+    	model  		= 	defcenter
+    	name   		= 	Bodenflak
+    	sec_type  	= 	1
+    	type_icon 	= 	V
+    	energy 		= 	100000
+
+    	sbact_act     	= 	0
+    	sbact_vehicle 	= 	106
+    	sbact_pos_x   	= 	0
+    	sbact_pos_y   	= 	-30
+    	sbact_pos_z   	= 	0
+    	sbact_dir_x   	=    	1
+    	sbact_dir_y   	=    	0
+    	sbact_dir_z   	=   	0
+end
+
+
+;------------------------------------------------------------------------------------------------------------
+;
+;	GITTERTURM-FLAKS OST-WEST
+;
+;------------------------------------------------------------------------------------------------------------
+new_building	20
+    	model  		= 	defcenter
+    	name   		= 	GFLAK-OW
+	type_icon	=	I		; DEBUG da nicht USER
+    	sec_type  	= 	199
+    	energy 		= 	10000
+
+    	sbact_act     	= 	0
+    	sbact_vehicle 	= 	107	; siehe FLAKS.SCR
+    	sbact_pos_x   	= 	-300
+    	sbact_pos_y   	= 	-240
+    	sbact_pos_z   	= 	-300
+    	sbact_dir_x   	=   	-1.0
+    	sbact_dir_y   	=    	0
+    	sbact_dir_z   	=    	0
+
+    	sbact_act     	= 	1
+    	sbact_vehicle 	= 	107	; siehe FLAKS.SCR
+    	sbact_pos_x   	= 	300
+    	sbact_pos_y   	= 	-240
+    	sbact_pos_z   	= 	-300
+    	sbact_dir_x   	=   	1.0
+    	sbact_dir_y   	=    	0
+    	sbact_dir_z   	=    	0
+end
+
+;------------------------------------------------------------------------------------------------------------
+;
+;	GITTERTURM-FLAKS NORD-SÃœD
+;
+;------------------------------------------------------------------------------------------------------------
+new_building	21
+    	model  		= 	defcenter
+    	name   		= 	GFLAK-NS
+	type_icon	=	I		; DEBUG da nicht USER
+    	sec_type  	= 	198
+    	energy 		= 	10000
+
+    	sbact_act     	= 	0
+    	sbact_vehicle 	= 	107		; siehe FLAKS.SCR
+    	sbact_pos_x   	= 	-300
+    	sbact_pos_y   	= 	-240
+    	sbact_pos_z   	= 	-300
+    	sbact_dir_x   	=   	-1.0
+    	sbact_dir_y   	=    	0
+    	sbact_dir_z   	=    	0
+
+    	sbact_act     	= 	1
+    	sbact_vehicle 	= 	107		; siehe FLAKS.SCR
+    	sbact_pos_x   	= 	-300
+    	sbact_pos_y   	= 	-240
+    	sbact_pos_z   	= 	300
+    	sbact_dir_x   	=   	1.0
+    	sbact_dir_y   	=    	0
+    	sbact_dir_z   	=    	0
+end
+
+;----------------------------------------------------------------------------------------------------------------
+;
+;	ALTERNATIVE FLAKSTELLUNG  
+;
+;	Doppelte BodenFlak auf Kreuzung
+;
+new_building 22
+    	model  		= 	defcenter
+    	name   		= 	BODENFLAK2
+    	sec_type  	= 	12
+    	type_icon 	= 	I
+    	energy 		= 	100000
+
+    	sbact_act     	= 	0
+    	sbact_vehicle 	= 	106
+    	sbact_pos_x   	= 	300
+    	sbact_pos_y   	= 	-30
+    	sbact_pos_z   	= 	0
+    	sbact_dir_x   	=    	1
+    	sbact_dir_y   	=    	0
+    	sbact_dir_z   	=   	0
+
+    	sbact_act     	= 	1
+    	sbact_vehicle 	= 	106
+    	sbact_pos_x   	= 	-300
+    	sbact_pos_y   	= 	-30
+    	sbact_pos_z   	= 	0
+    	sbact_dir_x   	=    	1
+    	sbact_dir_y   	=    	0
+    	sbact_dir_z   	=   	0
+end
+
+;----------------------------------------------------------------------------------------------------------------
+;
+;	ALTERNATIVE FLAKSTELLUNG  
+;
+;	BodenFlak auf Kreuzung
+;
+new_building 23
+    	model  		= 	defcenter
+    	name   		= 	BODENFLAK3
+    	sec_type  	= 	13
+    	type_icon 	= 	I
+    	energy 		= 	100000
+
+    	sbact_act     	= 	0
+    	sbact_vehicle 	= 	106
+    	sbact_pos_x   	= 	0
+    	sbact_pos_y   	= 	-30
+    	sbact_pos_z   	= 	0
+    	sbact_dir_x   	=    	1
+    	sbact_dir_y   	=    	0
+    	sbact_dir_z   	=   	0
+end
+
+;----------------------------------------------------------------------------------------------------------------
+;
+;	ALTERNATIVE FLAKSTELLUNG  
+;
+;	BodenFlak auf Kreuzung
+;
+new_building 24
+    	model  		= 	defcenter
+    	name   		= 	BODENFLAK4
+    	sec_type  	= 	32
+    	type_icon 	= 	I
+    	energy 		= 	100000
+
+    	sbact_act     	= 	0
+    	sbact_vehicle 	= 	106
+    	sbact_pos_x   	= 	350
+    	sbact_pos_y   	= 	-30
+    	sbact_pos_z   	= 	0
+    	sbact_dir_x   	=    	1
+    	sbact_dir_y   	=    	0
+    	sbact_dir_z   	=   	0
+end
+
+;--------------------------------------------------------------------------------------------------------------
+;
+;	BEAMGATE CLOSED OHNE STRASSE
+;
+new_building	25
+    	model     		= 	building
+    	name      		= 	GATE2_CL
+    	sec_type  	=  	3
+	type_icon	=	I		; DEBUG da nicht USER
+end
+
+;--------------------------------------------------------------------------------------------------------------
+;
+;	BEAMGATE OPENED OHNE STRASSE
+;
+new_building	26
+    	model     		= 	building
+    	name      		= 	GATE2_O
+    	sec_type  	=  	4
+	type_icon	=	I		; DEBUG da nicht USER
+end
+
+
+
+;----------------------------------------------------------------------------------------------------------------
+;
+;	KLEINE USER AA FLAK
+;
+new_building 28
+    	model  		= 	defcenter
+    	name   		= 	SmallAA
+    	sec_type  	= 	205
+    	type_icon 	= 	V
+    	energy 		= 	130000		; FIXME!
+
+    	sbact_act     	= 	0
+    	sbact_vehicle 	= 	96
+    	sbact_pos_x   	= 	0
+    	sbact_pos_y   	= 	-425		; -410
+    	sbact_pos_z   	= 	0
+    	sbact_dir_x   	=    	1
+    	sbact_dir_y   	=    	0
+    	sbact_dir_z   	=   	0
+end
+
+;----------------------------------------------------------------------------------------------------------------
+;
+;	HORT DER STIMMGABELEN
+;	Mykonische BodenFLax ....
+;
+new_building 29
+    	model  		= 	defcenter
+    	name   		= 	STIMMG1
+    	sec_type  	= 	5
+    	type_icon 	= 	I
+    	energy 		= 	100000
+
+    	sbact_act     	= 	0
+    	sbact_vehicle 	= 	97
+    	sbact_pos_x   	= 	0
+    	sbact_pos_y   	= 	-30
+    	sbact_pos_z   	= 	0
+    	sbact_dir_x   	=    	1
+    	sbact_dir_y   	=    	0
+    	sbact_dir_z   	=   	0
+end
+
+
+;------------------------------------------------------------------------------------------------------------
+;
+;	KYTERNESER FLAK STATION
+;
+;
+new_building 30
+    	model  		= 	defcenter
+    	name   		= 	KYTFLAK
+    	sec_type  	= 	207
+	type_icon	=	V		; DEBUG da nicht USER
+    	energy 		= 	166000
+
+    	sbact_act     	= 	0
+   	sbact_vehicle 	= 	137
+   	sbact_pos_x   	=       	-300
+    	sbact_pos_y   	= 	-320
+    	sbact_pos_z   	= 	300
+    	sbact_dir_x   	=   	1.0
+    	sbact_dir_y   	=    	0.0
+    	sbact_dir_z   	=     	0.0
+
+    	sbact_act     	= 	1
+    	sbact_vehicle 	= 	137   
+    	sbact_pos_x   	=       	-300
+    	sbact_pos_y   	= 	-320
+    	sbact_pos_z   	= 	-300
+    	sbact_dir_x   	=   	0.9
+    	sbact_dir_y   	=    	0.0
+     	sbact_dir_z   	=     	0.0
+
+
+    	sbact_act     	= 	2
+    	sbact_vehicle 	= 	137   
+    	sbact_pos_x   	=       	300
+    	sbact_pos_y   	= 	-320
+    	sbact_pos_z   	= 	-300
+    	sbact_dir_x   	=   	0.9
+    	sbact_dir_y   	=    	0.0
+     	sbact_dir_z   	=     	0.0
+
+
+    	sbact_act     	= 	3
+    	sbact_vehicle 	= 	137   
+    	sbact_pos_x   	=       	300
+    	sbact_pos_y   	= 	-320
+    	sbact_pos_z   	= 	300
+    	sbact_dir_x   	=   	0.9
+    	sbact_dir_y   	=    	0.0
+     	sbact_dir_z   	=     	0.0
+
+end
+
+
+;------------------------------------------------------------------------------------------------------------
+;
+;	TAERKASTEN FLAK STATION
+;
+;
+new_building 31
+    	model  		= 	defcenter
+    	name   		= 	TAERFLAK
+    	sec_type  	= 	208
+	type_icon	=	V		; DEBUG da nicht USER
+    	energy 		= 	163000
+
+    	sbact_act     	= 	0
+   	sbact_vehicle 	= 	108    
+   	sbact_pos_x   	=       	-300
+    	sbact_pos_y   	= 	-310
+    	sbact_pos_z   	= 	300
+    	sbact_dir_x   	=   	1.0
+    	sbact_dir_y   	=    	0.0
+    	sbact_dir_z   	=     	0.0
+
+    	sbact_act     	= 	1
+    	sbact_vehicle 	= 	108   
+    	sbact_pos_x   	=       	-300
+    	sbact_pos_y   	= 	-310
+    	sbact_pos_z   	= 	-300
+    	sbact_dir_x   	=   	0.9
+    	sbact_dir_y   	=    	0.0
+     	sbact_dir_z   	=     	0.0
+
+
+    	sbact_act     	= 	2
+    	sbact_vehicle 	= 	108   
+    	sbact_pos_x   	=       	300
+    	sbact_pos_y   	= 	-310
+    	sbact_pos_z   	= 	-300
+    	sbact_dir_x   	=   	0.9
+    	sbact_dir_y   	=    	0.0
+     	sbact_dir_z   	=     	0.0
+
+
+    	sbact_act     	= 	3
+    	sbact_vehicle 	= 	108   
+    	sbact_pos_x   	=       	300
+    	sbact_pos_y   	= 	-310
+    	sbact_pos_z   	= 	300
+    	sbact_dir_x   	=   	0.9
+    	sbact_dir_y   	=    	0.0
+     	sbact_dir_z   	=     	0.0
+
+end
+
+
+;----------------------------------------------------------------------------------------------------------------
+;
+;	HORT DER STIMMGABELEN	(zwei)
+;	Mykonische BodenFLax ....
+;
+new_building 33
+    	model  		= 	defcenter
+    	name   		= 	STIMMG2
+    	sec_type  	= 	7
+    	type_icon 	= 	I
+    	energy 		= 	100000
+
+    	sbact_act     	= 	0
+    	sbact_vehicle 	= 	97
+    	sbact_pos_x   	= 	0
+    	sbact_pos_y   	= 	-30
+    	sbact_pos_z   	= 	350
+    	sbact_dir_x   	=    	1
+    	sbact_dir_y   	=    	0
+    	sbact_dir_z   	=   	0
+end
+
+;----------------------------------------------------------------------------------------------------------------
+;
+;	HORT DER STIMMGABELEN	(drei)
+;	Mykonische BodenFLax ....
+;
+new_building 34
+    	model  		= 	defcenter
+    	name   		= 	STIMMG3
+    	sec_type  	= 	17
+    	type_icon 	= 	I
+    	energy 		= 	100000
+
+    	sbact_act     	= 	0
+    	sbact_vehicle 	= 	97
+    	sbact_pos_x   	= 	0
+    	sbact_pos_y   	= 	-30
+    	sbact_pos_z   	= 	0
+    	sbact_dir_x   	=    	1
+    	sbact_dir_y   	=    	0
+    	sbact_dir_z   	=   	0
+
+    	sbact_act     	= 	1
+    	sbact_vehicle 	= 	97
+    	sbact_pos_x   	= 	0
+    	sbact_pos_y   	= 	-30
+    	sbact_pos_z   	= 	350
+    	sbact_dir_x   	=    	1
+    	sbact_dir_y   	=    	0
+    	sbact_dir_z   	=   	0
+
+	sbact_act     	= 	2
+    	sbact_vehicle 	= 	97
+    	sbact_pos_x   	= 	350
+    	sbact_pos_y   	= 	-30
+    	sbact_pos_z   	= 	0
+    	sbact_dir_x   	=    	1
+    	sbact_dir_y   	=    	0
+    	sbact_dir_z   	=   	0
+
+end
+
+;--------------------------------------------------------------------------------------------------------------
+;
+;		SUPERBOMBE normal
+;
+new_building	35
+    	model     		= 	building
+    	name      		= 	Superbomb_N
+    	sec_type  	=  	245
+	type_icon	=	I
+end
+
+;--------------------------------------------------------------------------------------------------------------
+;
+;		SUPERBOMBE activated
+;
+new_building	36
+    	model     		= 	building
+    	name      		= 	Superbomb_A
+    	sec_type  	=  	246
+	type_icon	=	I
+end
+
+;--------------------------------------------------------------------------------------------------------------
+;
+;		SUPERBOMBE destroyed
+;
+new_building	37
+    	model     		= 	building
+    	name      		= 	Superbomb_D
+    	sec_type  	=  	247
+	type_icon	=	I
+end
+
+;----------------------------------------------------------------------
+;   Ende Buildings
+;-----------------------------------------------------------------------

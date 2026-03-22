@@ -79,7 +79,12 @@ static func frame_camera_to_map(camera: Camera3D, current_map_data: Node, sector
 	apply_camera_rotation(camera, yaw, pitch)
 	var y_offset: float = max(dist * 0.35, 300.0)
 	var desired_pos := Vector3(center.x, terrain_base_y + y_offset, center.z)
-	camera.global_transform.origin = desired_pos
+	# When eye shares X/Z with target, view axis is parallel to Vector3.UP and look_at's up is degenerate.
+	var eye := desired_pos
+	var fwd := center - eye
+	if Vector2(fwd.x, fwd.z).length_squared() < 1e-8:
+		eye.x += 1.0
+	camera.global_transform.origin = eye
 	var far_dist: float = max(dist * 4.0, 50000.0)
 	camera.near = 0.1
 	camera.far = min(far_dist, 1.0e7)
