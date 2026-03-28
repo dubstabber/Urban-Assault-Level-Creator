@@ -182,9 +182,6 @@ var _terrain_chunk_authored_cache_keys: Dictionary = {}
 var _initial_build_in_progress := false
 var _initial_build_batch_size := 4
 var _initial_build_accumulated_authored_descriptors: Array = []
-const _STATIC_OVERLAY_MEDIUM_MAP_THRESHOLD := 500
-const _STATIC_OVERLAY_SET6_MIN_AREA := 36
-
 # When the renderer fell back to a full rebuild (e.g. because dirty chunk tracking
 # didn't get signaled), the incremental cache bookkeeping may not be exact for
 # border-inclusive chunk meshes.
@@ -476,6 +473,7 @@ func _ready() -> void:
 		_es.map_updated.connect(_on_map_updated)
 		_es.level_set_changed.connect(_on_level_set_changed)
 		_es.map_view_updated.connect(_on_map_view_updated)
+		_es.map_3d_overlay_animations_changed.connect(_on_map_3d_overlay_animations_changed)
 		if _es.has_signal("hgt_map_cells_edited"):
 			_es.hgt_map_cells_edited.connect(_on_hgt_map_cells_edited)
 		if _es.has_signal("typ_map_cells_edited"):
@@ -507,6 +505,22 @@ func _on_map_view_updated() -> void:
 		_bump_3d_viewport_rendering()
 	if _refresh_pending:
 		_request_refresh(_refresh_reframe_pending)
+
+
+func _on_map_3d_overlay_animations_changed() -> void:
+	if _preview_refresh_active():
+		_request_refresh(false)
+
+
+func _sync_terrain_overlay_animation_mode_from_editor() -> void:
+	var es := _editor_state()
+	var anims_on := true
+	if es != null:
+		var raw: Variant = es.get("map_3d_terrain_overlay_animations_enabled")
+		if typeof(raw) == TYPE_BOOL:
+			anims_on = raw
+	UATerrainPieceLibraryScript.set_force_static_terrain_overlays(not anims_on)
+
 
 func _apply_debug_mode_to_existing_materials() -> void:
 	if _terrain_mesh == null or _terrain_mesh.mesh == null:
@@ -713,6 +727,7 @@ func _on_typ_map_cells_edited(typ_indices: Array) -> void:
 func build_from_current_map() -> void:
 	var build_started_usec := Time.get_ticks_usec()
 	var metrics := _make_empty_build_metrics()
+	_sync_terrain_overlay_animation_mode_from_editor()
 	var _cmd = _current_map_data()
 	if _cmd == null:
 		print("[Map3D] build_from_current_map: no CurrentMapData autoload, clearing mesh")
@@ -785,14 +800,6 @@ func build_from_current_map() -> void:
 
 	metrics["used_textured_preloads"] = true
 	var level_set := int(_cmd.level_set)
-	var map_area := w * h
-	var prefer_static_overlay := map_area >= _STATIC_OVERLAY_MEDIUM_MAP_THRESHOLD
-	if not prefer_static_overlay and level_set == 6 and map_area >= _STATIC_OVERLAY_SET6_MIN_AREA:
-		# Set6 authored pieces are PTCL/animation heavy; static fallback avoids severe
-		# frame drops on dense maps while preserving source-backed descriptor parsing.
-		prefer_static_overlay = true
-	UATerrainPieceLibraryScript.set_overlay_performance_hint(prefer_static_overlay)
-	metrics["overlay_perf_static_mode"] = prefer_static_overlay
 	var use_chunked := _chunked_terrain_enabled and not _needs_full_rebuild(w, h, level_set) and not _DEBUG_DISABLE_CHUNKED_EXPERIMENT
 	#region agent log
 	_ndjson_log_once(

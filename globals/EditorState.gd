@@ -27,6 +27,15 @@ var map_3d_visibility_range_enabled := false:
 		map_3d_visibility_range_enabled = value
 		EventSystem.map_view_updated.emit()
 
+# When false, 3D authored terrain overlays use static meshes only (no BMP anim / particles) for better FPS.
+var map_3d_terrain_overlay_animations_enabled := true:
+	set(v):
+		if map_3d_terrain_overlay_animations_enabled == v:
+			return
+		map_3d_terrain_overlay_animations_enabled = v
+		EventSystem.map_3d_overlay_animations_changed.emit()
+		EventSystem.map_view_updated.emit()
+
 var selected_typ_map: int
 
 var typ_map_images_visible := true:

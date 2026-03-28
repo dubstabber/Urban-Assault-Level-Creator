@@ -76,6 +76,10 @@ static func apply_overlay_node(root: Node3D, descriptors: Array) -> void:
 			var node_set := int(node.get_meta("set_id", 0))
 			if node_set != set_id or node_base.to_lower() != base_name.to_lower():
 				needs_rebuild = true
+			else:
+				var wants_static: bool = UATerrainPieceLibrary.is_force_static_terrain_overlays()
+				if not node.has_meta("overlay_force_static") or bool(node.get_meta("overlay_force_static")) != wants_static:
+					needs_rebuild = true
 
 		var piece_node: Node3D = null
 		if needs_rebuild:
@@ -88,6 +92,7 @@ static func apply_overlay_node(root: Node3D, descriptors: Array) -> void:
 			piece_node.set_meta("set_id", set_id)
 			piece_node.set_meta("base_name", base_name)
 			piece_node.set_meta("raw_id", raw_id)
+			piece_node.set_meta("overlay_force_static", UATerrainPieceLibrary.is_force_static_terrain_overlays())
 			piece_node.set_meta("warp_sig", "")
 			root.add_child(piece_node)
 			rebuilt_count += 1

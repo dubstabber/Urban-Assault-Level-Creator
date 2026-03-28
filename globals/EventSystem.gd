@@ -26,6 +26,7 @@ signal hoststation_added(owner_id: int, vehicle_id: int)
 signal squad_added(owner_id: int, vehicle_id: int)
 signal map_updated
 signal map_view_updated
+signal map_3d_overlay_animations_changed
 signal sky_preview_requested(sky_name: String)
 signal sky_preview_reset_requested
 signal item_added

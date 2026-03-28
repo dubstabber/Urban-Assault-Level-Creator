@@ -42,7 +42,14 @@ static var _printed_piece_uv_diagnostics := {}
 static var _external_source_loading_enabled := true
 static var _external_source_root: String = ""
 static var _piece_game_data_type := "original"
-static var _prefer_static_overlay_for_perf := false
+## When true, overlay pieces always use the static mesh fast path (skips BMP anim + PTCL).
+static var _force_static_terrain_overlays := false
+
+static func set_force_static_terrain_overlays(force: bool) -> void:
+	_force_static_terrain_overlays = force
+
+static func is_force_static_terrain_overlays() -> bool:
+	return _force_static_terrain_overlays
 
 static func set_piece_game_data_type(game_data_type: String) -> void:
 	var n := game_data_type.strip_edges()
@@ -61,10 +68,6 @@ static func set_piece_game_data_type(game_data_type: String) -> void:
 	_anim_cache.clear()
 	_support_sampler_cache.clear()
 	_deformed_slurp_mesh_cache.clear()
-
-
-static func set_overlay_performance_hint(prefer_static_overlay: bool) -> void:
-	_prefer_static_overlay_for_perf = prefer_static_overlay
 
 
 static func reset_piece_overlay_build_counters() -> void:
@@ -99,7 +102,7 @@ static func _clear_runtime_caches_for_tests() -> void:
 	_external_source_loading_enabled = true
 	_external_source_root = ""
 	_piece_game_data_type = "original"
-	_prefer_static_overlay_for_perf = false
+	_force_static_terrain_overlays = false
 
 static func _vector3_from_json(value) -> Vector3:
 	if typeof(value) == TYPE_VECTOR3:
@@ -503,7 +506,9 @@ static func build_piece_scene_root(set_id: int, base_name: String, raw_id: int =
 	var cache_key := "%d:%s:%s" % [set_id, base_name.to_lower(), _piece_game_data_type.to_lower()]
 	var use_animated := bool(_animated_overlay_cache.get(cache_key, false))
 	var has_emitters := bool(_piece_overlay_emitters_cache.get(cache_key, false))
-	if mesh != null and mesh.get_surface_count() > 0 and (_prefer_static_overlay_for_perf or (not use_animated and not has_emitters)):
+	# Animated surfaces and particle emitters need the full piece node unless the editor
+	# explicitly requests static overlays for performance (`set_force_static_terrain_overlays`).
+	if mesh != null and mesh.get_surface_count() > 0 and (_force_static_terrain_overlays or (not use_animated and not has_emitters)):
 		_piece_overlay_fast_path_count += 1
 		var root := Node3D.new()
 		root.name = "%s_%d" % [base_name, raw_id]
