@@ -38,8 +38,18 @@ static func build_overlay_node(descriptors: Array) -> Node3D:
 
 
 static func apply_overlay_node(root: Node3D, descriptors: Array) -> void:
-	if root == null or not is_instance_valid(root):
+	var manager := Map3DAuthoredOverlayManager.new()
+	var state := manager.begin_apply_overlay_node(root, descriptors)
+	if state.is_empty():
 		return
+	while not manager.apply_overlay_node_step(root, state, 256):
+		pass
+	manager.finalize_apply_overlay_node(root, state)
+
+
+func begin_apply_overlay_node(root: Node3D, descriptors: Array) -> Dictionary:
+	if root == null or not is_instance_valid(root):
+		return {}
 	if root.name != "AuthoredOverlay":
 		root.name = "AuthoredOverlay"
 
@@ -53,16 +63,48 @@ static func apply_overlay_node(root: Node3D, descriptors: Array) -> void:
 		var key := String(key_value)
 		if not desired.has(key):
 			to_remove.append(key)
-	for key in to_remove:
+	var upsert_keys: Array[String] = []
+	for key_value in desired.keys():
+		upsert_keys.append(String(key_value))
+
+	return {
+		"desired": desired,
+		"existing": existing,
+		"to_remove": to_remove,
+		"upsert_keys": upsert_keys,
+		"remove_index": 0,
+		"upsert_index": 0,
+		"rebuilt_count": 0,
+		"reused_count": 0,
+		"descriptor_count": descriptors.size(),
+		"desired_count": desired.size(),
+		"existing_count_before": existing_count_before,
+		"root_children_before": root_children_before,
+	}
+
+
+func apply_overlay_node_step(root: Node3D, state: Dictionary, max_ops: int = 64) -> bool:
+	if root == null or not is_instance_valid(root) or state.is_empty():
+		return true
+	var ops_done := 0
+	var desired: Dictionary = state.get("desired", {})
+	var existing: Dictionary = state.get("existing", {})
+	var to_remove: Array[String] = state.get("to_remove", [])
+	var upsert_keys: Array[String] = state.get("upsert_keys", [])
+	var remove_index := int(state.get("remove_index", 0))
+	var upsert_index := int(state.get("upsert_index", 0))
+
+	while remove_index < to_remove.size() and ops_done < max_ops:
+		var key := String(to_remove[remove_index])
 		var node: Node = existing.get(key, null)
 		if node != null and is_instance_valid(node):
 			node.queue_free()
 		existing.erase(key)
+		remove_index += 1
+		ops_done += 1
 
-	var rebuilt_count := 0
-	var reused_count := 0
-	for key_value in desired.keys():
-		var key := String(key_value)
+	while remove_index >= to_remove.size() and upsert_index < upsert_keys.size() and ops_done < max_ops:
+		var key := String(upsert_keys[upsert_index])
 		var desc: Dictionary = desired.get(key, {}) as Dictionary
 		var set_id := int(desc.get("set_id", 1))
 		var base_name := String(desc.get("base_name", ""))
@@ -86,31 +128,41 @@ static func apply_overlay_node(root: Node3D, descriptors: Array) -> void:
 			if node != null and is_instance_valid(node):
 				node.queue_free()
 			piece_node = PieceLibraryScript.build_piece_scene_root(set_id, base_name, raw_id)
-			if piece_node == null:
-				continue
-			piece_node.set_meta("instance_key", key)
-			piece_node.set_meta("set_id", set_id)
-			piece_node.set_meta("base_name", base_name)
-			piece_node.set_meta("raw_id", raw_id)
-			piece_node.set_meta("overlay_force_static", UATerrainPieceLibrary.is_force_static_terrain_overlays())
-			piece_node.set_meta("warp_sig", "")
-			root.add_child(piece_node)
-			rebuilt_count += 1
+			if piece_node != null:
+				piece_node.set_meta("instance_key", key)
+				piece_node.set_meta("set_id", set_id)
+				piece_node.set_meta("base_name", base_name)
+				piece_node.set_meta("raw_id", raw_id)
+				piece_node.set_meta("overlay_force_static", UATerrainPieceLibrary.is_force_static_terrain_overlays())
+				piece_node.set_meta("warp_sig", "")
+				root.add_child(piece_node)
+				state["rebuilt_count"] = int(state.get("rebuilt_count", 0)) + 1
 		else:
 			piece_node = node as Node3D
-			if piece_node == null:
-				continue
-			reused_count += 1
+			if piece_node != null:
+				state["reused_count"] = int(state.get("reused_count", 0)) + 1
 
-		piece_node.position = _piece_position_from_desc(desc)
-		PieceLibraryScript._apply_optional_piece_orientation(piece_node, desc)
+		if piece_node != null:
+			piece_node.position = _piece_position_from_desc(desc)
+			PieceLibraryScript._apply_optional_piece_orientation(piece_node, desc)
+			var warp_sig := _warp_signature(desc)
+			var prev_warp_sig := String(piece_node.get_meta("warp_sig", ""))
+			if warp_sig != prev_warp_sig:
+				PieceLibraryScript._apply_optional_piece_deform(piece_node, desc)
+				piece_node.set_meta("warp_sig", warp_sig)
 
-		var warp_sig := _warp_signature(desc)
-		var prev_warp_sig := String(piece_node.get_meta("warp_sig", ""))
-		if warp_sig != prev_warp_sig:
-			PieceLibraryScript._apply_optional_piece_deform(piece_node, desc)
-			piece_node.set_meta("warp_sig", warp_sig)
+		upsert_index += 1
+		ops_done += 1
 
+	state["remove_index"] = remove_index
+	state["upsert_index"] = upsert_index
+	state["existing"] = existing
+	return remove_index >= to_remove.size() and upsert_index >= upsert_keys.size()
+
+
+func finalize_apply_overlay_node(root: Node3D, state: Dictionary) -> void:
+	if root == null or not is_instance_valid(root) or state.is_empty():
+		return
 	#region agent log
 	_agent_debug_log_once(
 		"pre_fix",
@@ -118,17 +170,27 @@ static func apply_overlay_node(root: Node3D, descriptors: Array) -> void:
 		"Map3DAuthoredOverlayManager.apply_overlay_node",
 		"Collected overlay node apply lifecycle stats",
 		{
-			"input_descriptor_count": descriptors.size(),
-			"desired_key_count": desired.size(),
-			"existing_key_count_before": existing_count_before,
-			"scheduled_remove_count": to_remove.size(),
-			"rebuilt_count": rebuilt_count,
-			"reused_count": reused_count,
-			"root_children_before": root_children_before,
+			"input_descriptor_count": int(state.get("descriptor_count", 0)),
+			"desired_key_count": int(state.get("desired_count", 0)),
+			"existing_key_count_before": int(state.get("existing_count_before", 0)),
+			"scheduled_remove_count": (state.get("to_remove", []) as Array).size(),
+			"rebuilt_count": int(state.get("rebuilt_count", 0)),
+			"reused_count": int(state.get("reused_count", 0)),
+			"root_children_before": int(state.get("root_children_before", 0)),
 			"root_children_after": root.get_child_count()
 		}
 	)
 	#endregion
+
+
+func overlay_apply_progress(state: Dictionary) -> Dictionary:
+	if state.is_empty():
+		return {"done": 0, "total": 0}
+	var to_remove: Array = state.get("to_remove", [])
+	var upsert_keys: Array = state.get("upsert_keys", [])
+	var total := to_remove.size() + upsert_keys.size()
+	var done := int(state.get("remove_index", 0)) + int(state.get("upsert_index", 0))
+	return {"done": done, "total": total}
 
 
 static func _desired_descriptors_by_key(descriptors: Array) -> Dictionary:

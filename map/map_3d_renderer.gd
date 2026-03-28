@@ -1,6 +1,9 @@
 extends Node3D
 class_name Map3DRenderer
 
+signal build_state_changed(is_building: bool, completed: int, total: int, status: String)
+signal build_finished(success: bool)
+
 const UATerrainPieceLibraryScript := preload("res://map/terrain/ua_authored_piece_library.gd")
 const VisualLookupService := preload("res://map/map_3d_visual_lookup_service.gd")
 const TerrainBuilder := preload("res://map/map_3d_terrain_builder.gd")
@@ -31,6 +34,8 @@ const SUBQUAD_UV_INSET := 0.002 # Prevent internal 1/3 and 2/3 seam sampling ble
 const _DEBUG_DISABLE_CHUNKED_EXPERIMENT := false
 const UA_NORMAL_RENDER_SECTORS := 5
 const UA_NORMAL_GEOMETRY_CULL_DISTANCE := float(UA_NORMAL_RENDER_SECTORS) * SECTOR_SIZE + SECTOR_SIZE * 0.5
+const _ASYNC_APPLY_RESULTS_PER_FRAME := 1
+const _ASYNC_OVERLAY_APPLY_OPS_PER_FRAME := 20
 
 #region debug NDJSON logging (runtime evidence)
 const _NDJSON_DEBUG_LOG_PATH := "/run/media/ydro/WDC/gamedev-workspace/Urban Assault Level Creator/.cursor/debug-324b35.log"
@@ -194,6 +199,45 @@ var _force_full_rebuild_was_applied := false
 var _geometry_distance_culling_enabled := false
 var _geometry_cull_distance := UA_NORMAL_GEOMETRY_CULL_DISTANCE
 
+# Async initial-build state (exposed for UI loading indicator and cancellation).
+var build_generation_id := 0
+var active_build_generation_id := 0
+var cancel_requested_generation_id := 0
+var is_building_3d := false
+var total_chunks := 0
+var completed_chunks := 0
+var status_text := ""
+
+var _async_initial_thread: Thread = null
+var _async_state_mutex: Mutex = Mutex.new()
+var _async_queue_mutex: Mutex = Mutex.new()
+var _async_chunk_results: Array = []
+var _async_worker_done := false
+var _async_worker_failed := false
+var _async_worker_error := ""
+var _async_pending_reframe_camera := false
+var _async_effective_typ: PackedByteArray = PackedByteArray()
+var _async_blg: PackedByteArray = PackedByteArray()
+var _async_w := 0
+var _async_h := 0
+var _async_level_set := 0
+var _async_game_data_type := "original"
+var _async_cancel_requested := false
+var _async_requested_restart := false
+var _async_requested_reframe := false
+var _async_overlay_descriptor_thread: Thread = null
+var _async_overlay_descriptor_done := false
+var _async_overlay_descriptor_failed := false
+var _async_overlay_descriptor_result: Array = []
+var _async_overlay_descriptor_metrics: Dictionary = {}
+var _async_overlay_descriptor_mutex: Mutex = Mutex.new()
+var _async_overlay_apply_active := false
+var _async_overlay_apply_state: Dictionary = {}
+var _async_overlay_descriptors: Array = []
+var _async_overlay_metrics: Dictionary = {}
+var _async_overlay_apply_started_usec := 0
+var _overlay_apply_manager := Map3DAuthoredOverlayManager.new()
+
 
 func set_event_system_override(event_system: Node) -> void:
 	_event_system_override = event_system
@@ -240,6 +284,154 @@ func _make_empty_build_metrics() -> Dictionary:
 		"build_total_ms": 0.0,
 		"refresh_end_to_end_ms": 0.0,
 	}
+
+
+func _emit_build_state(building: bool, completed: int, total: int, status: String) -> void:
+	is_building_3d = building
+	completed_chunks = maxi(completed, 0)
+	total_chunks = maxi(total, 0)
+	status_text = status
+	build_state_changed.emit(is_building_3d, completed_chunks, total_chunks, status_text)
+
+
+func _begin_build_state(total_chunk_count: int, status: String) -> void:
+	_emit_build_state(true, 0, total_chunk_count, status)
+
+
+func _update_build_progress(completed: int, total: int, status: String = "") -> void:
+	var text := status_text if status.is_empty() else status
+	_emit_build_state(true, completed, total, text)
+
+
+func _end_build_state(success: bool, status: String = "") -> void:
+	_emit_build_state(false, completed_chunks, total_chunks, status)
+	build_finished.emit(success)
+
+
+func _is_async_build_active() -> bool:
+	_async_state_mutex.lock()
+	var active := _async_initial_thread != null
+	_async_state_mutex.unlock()
+	return active
+
+
+func _is_async_pipeline_active() -> bool:
+	return _is_async_build_active() or _is_async_overlay_descriptor_active() or _async_overlay_apply_active
+
+
+func _is_async_overlay_descriptor_active() -> bool:
+	_async_overlay_descriptor_mutex.lock()
+	var active := _async_overlay_descriptor_thread != null
+	_async_overlay_descriptor_mutex.unlock()
+	return active
+
+
+func _set_async_overlay_descriptor_state(done: bool, failed: bool, result: Array, metrics: Dictionary) -> void:
+	_async_overlay_descriptor_mutex.lock()
+	_async_overlay_descriptor_done = done
+	_async_overlay_descriptor_failed = failed
+	_async_overlay_descriptor_result = result
+	_async_overlay_descriptor_metrics = metrics
+	_async_overlay_descriptor_mutex.unlock()
+
+
+func _get_async_overlay_descriptor_state() -> Dictionary:
+	_async_overlay_descriptor_mutex.lock()
+	var state := {
+		"done": _async_overlay_descriptor_done,
+		"failed": _async_overlay_descriptor_failed,
+		"result": _async_overlay_descriptor_result,
+		"metrics": _async_overlay_descriptor_metrics,
+	}
+	_async_overlay_descriptor_mutex.unlock()
+	return state
+
+
+func _set_async_worker_state(done: bool, failed: bool, message: String) -> void:
+	_async_state_mutex.lock()
+	_async_worker_done = done
+	_async_worker_failed = failed
+	_async_worker_error = message
+	_async_state_mutex.unlock()
+
+
+func _get_async_worker_state() -> Dictionary:
+	_async_state_mutex.lock()
+	var state := {
+		"done": _async_worker_done,
+		"failed": _async_worker_failed,
+		"error": _async_worker_error,
+	}
+	_async_state_mutex.unlock()
+	return state
+
+
+func _is_async_cancel_requested(generation_id: int) -> bool:
+	_async_state_mutex.lock()
+	var cancelled := _async_cancel_requested and generation_id == active_build_generation_id
+	_async_state_mutex.unlock()
+	return cancelled
+
+
+func _push_async_chunk_payload(payload: Dictionary) -> void:
+	_async_queue_mutex.lock()
+	_async_chunk_results.append(payload)
+	_async_queue_mutex.unlock()
+
+
+func _pop_async_chunk_payload() -> Dictionary:
+	_async_queue_mutex.lock()
+	var payload := {}
+	if not _async_chunk_results.is_empty():
+		payload = _async_chunk_results.pop_front()
+	_async_queue_mutex.unlock()
+	return payload
+
+
+func _clear_async_chunk_payloads() -> void:
+	_async_queue_mutex.lock()
+	_async_chunk_results.clear()
+	_async_queue_mutex.unlock()
+
+
+func _async_chunk_payload_count() -> int:
+	_async_queue_mutex.lock()
+	var count := _async_chunk_results.size()
+	_async_queue_mutex.unlock()
+	return count
+
+
+func _compute_effective_typ_for_map(
+	cmd: Node,
+	w: int,
+	h: int,
+	typ: PackedByteArray,
+	blg: PackedByteArray,
+	game_data_type: String
+) -> PackedByteArray:
+	var typ_checksum := _checksum_packed_byte_array(typ)
+	var blg_checksum := _checksum_packed_byte_array(blg)
+	var can_reuse_effective_typ := _effective_typ_cache_valid and (not _effective_typ_dirty) and _effective_typ_cache_dims == Vector2i(w, h) and _effective_typ_cache_game_data_type == game_data_type and _effective_typ_cache_typ_checksum == typ_checksum and _effective_typ_cache_blg_checksum == blg_checksum
+	if can_reuse_effective_typ:
+		return _effective_typ_cache
+	var effective_typ := _effective_typ_map_for_3d(
+		typ,
+		blg,
+		game_data_type,
+		w,
+		h,
+		cmd.beam_gates,
+		cmd.tech_upgrades,
+		cmd.stoudson_bombs
+	)
+	_effective_typ_cache = effective_typ
+	_effective_typ_cache_valid = true
+	_effective_typ_cache_game_data_type = game_data_type
+	_effective_typ_cache_dims = Vector2i(w, h)
+	_effective_typ_cache_typ_checksum = typ_checksum
+	_effective_typ_cache_blg_checksum = blg_checksum
+	_effective_typ_dirty = false
+	return effective_typ
 
 
 static func _elapsed_ms_since(started_usec: int) -> float:
@@ -453,6 +645,13 @@ func _apply_pending_refresh() -> void:
 	var reframe_camera := _refresh_reframe_pending
 	_refresh_pending = false
 	_refresh_reframe_pending = false
+	if _is_async_pipeline_active():
+		_async_requested_restart = true
+		_async_requested_reframe = _async_requested_reframe or reframe_camera
+		_cancel_async_initial_build()
+		return
+	if _try_start_async_initial_build(reframe_camera):
+		return
 	build_from_current_map()
 	_bump_3d_viewport_rendering()
 	if reframe_camera and is_inside_tree():
@@ -516,6 +715,416 @@ func _on_map_3d_overlay_animations_changed() -> void:
 		_request_refresh(false)
 
 
+func _try_start_async_initial_build(reframe_camera: bool) -> bool:
+	if not _initial_build_in_progress:
+		return false
+	if _dirty_chunks.is_empty():
+		return false
+	var cmd := _current_map_data()
+	if cmd == null:
+		return false
+	var w := int(cmd.horizontal_sectors)
+	var h := int(cmd.vertical_sectors)
+	var hgt: PackedByteArray = cmd.hgt_map
+	var typ: PackedByteArray = cmd.typ_map
+	var blg: PackedByteArray = cmd.blg_map
+	if w <= 0 or h <= 0 or hgt.size() != (w + 2) * (h + 2) or typ.size() != w * h:
+		return false
+	var pre := _preloads()
+	if pre == null:
+		return false
+	if _terrain_chunk_nodes.is_empty():
+		_invalidate_all_chunks(w, h)
+	var chunk_list := _dirty_chunks_sorted_by_priority(w, h)
+	if chunk_list.is_empty():
+		return false
+	var game_data_type := _current_game_data_type()
+	UATerrainPieceLibraryScript.set_piece_game_data_type(game_data_type)
+	var effective_typ := _compute_effective_typ_for_map(cmd, w, h, typ, blg, game_data_type)
+	var level_set := int(cmd.level_set)
+	var snapshot := {
+		"w": w,
+		"h": h,
+		"hgt": hgt,
+		"effective_typ": effective_typ,
+		"level_set": level_set,
+		"chunk_list": chunk_list,
+		"edge_overlay_enabled": _edge_overlay_enabled,
+		"surface_type_map": pre.surface_type_map,
+		"subsector_patterns": pre.subsector_patterns,
+		"tile_mapping": pre.tile_mapping,
+		"tile_remap": pre.tile_remap,
+		"subsector_idx_remap": pre.subsector_idx_remap,
+		"lego_defs": pre.lego_defs,
+	}
+	build_generation_id += 1
+	active_build_generation_id = build_generation_id
+	cancel_requested_generation_id = 0
+	_async_pending_reframe_camera = reframe_camera
+	_async_effective_typ = effective_typ
+	_async_blg = blg
+	_async_w = w
+	_async_h = h
+	_async_level_set = level_set
+	_async_game_data_type = game_data_type
+	_async_cancel_requested = false
+	_async_requested_restart = false
+	_async_requested_reframe = false
+	_clear_async_chunk_payloads()
+	_set_async_worker_state(false, false, "")
+	var total := chunk_list.size()
+	_begin_build_state(total, "Rendering map...")
+	var thread := Thread.new()
+	var err := thread.start(Callable(self, "_async_initial_build_worker").bind(snapshot, active_build_generation_id))
+	if err != OK:
+		_end_build_state(false, "3D render worker could not start")
+		return false
+	_async_state_mutex.lock()
+	_async_initial_thread = thread
+	_async_state_mutex.unlock()
+	return true
+
+
+func _async_initial_build_worker(snapshot: Dictionary, generation_id: int) -> void:
+	var w := int(snapshot.get("w", 0))
+	var h := int(snapshot.get("h", 0))
+	var hgt: PackedByteArray = snapshot.get("hgt", PackedByteArray())
+	var effective_typ: PackedByteArray = snapshot.get("effective_typ", PackedByteArray())
+	var level_set := int(snapshot.get("level_set", 0))
+	var edge_overlay_enabled := bool(snapshot.get("edge_overlay_enabled", true))
+	var surface_type_map = snapshot.get("surface_type_map", {})
+	var subsector_patterns = snapshot.get("subsector_patterns", {})
+	var tile_mapping = snapshot.get("tile_mapping", {})
+	var tile_remap = snapshot.get("tile_remap", {})
+	var subsector_idx_remap = snapshot.get("subsector_idx_remap", {})
+	var lego_defs = snapshot.get("lego_defs", {})
+	var chunk_list: Array = snapshot.get("chunk_list", [])
+	for chunk_entry in chunk_list:
+		if _is_async_cancel_requested(generation_id):
+			break
+		var chunk_coord := Vector2i(chunk_entry)
+		var terrain_result := TerrainBuilder.build_chunk_mesh_with_textures(
+			chunk_coord,
+			hgt,
+			effective_typ,
+			w,
+			h,
+			surface_type_map,
+			subsector_patterns,
+			tile_mapping,
+			tile_remap,
+			subsector_idx_remap,
+			lego_defs,
+			level_set,
+			true
+		)
+		var edge_result := {}
+		if edge_overlay_enabled:
+			edge_result = SlurpBuilder.build_chunk_edge_overlay_result(
+				chunk_coord,
+				hgt,
+				w,
+				h,
+				effective_typ,
+				surface_type_map,
+				level_set
+			)
+		_push_async_chunk_payload({
+			"generation_id": generation_id,
+			"chunk_coord": chunk_coord,
+			"terrain_result": terrain_result,
+			"edge_result": edge_result,
+			"has_edge_result": edge_overlay_enabled,
+		})
+	_set_async_worker_state(true, false, "")
+
+
+func _pump_async_initial_build() -> void:
+	if not _is_async_build_active():
+		return
+	for _i in _ASYNC_APPLY_RESULTS_PER_FRAME:
+		var payload := _pop_async_chunk_payload()
+		if payload.is_empty():
+			break
+		if int(payload.get("generation_id", -1)) != active_build_generation_id:
+			continue
+		if _async_cancel_requested:
+			continue
+		_apply_async_chunk_payload(payload)
+	var state := _get_async_worker_state()
+	if bool(state.get("done", false)):
+		if _async_chunk_payload_count() == 0:
+			_finish_async_initial_build()
+
+
+func _apply_async_chunk_payload(payload: Dictionary) -> void:
+	var chunk_coord := Vector2i(payload.get("chunk_coord", Vector2i.ZERO))
+	var terrain_result: Dictionary = payload.get("terrain_result", {})
+	var chunk_node := _get_or_create_terrain_chunk_node(chunk_coord)
+	chunk_node.mesh = terrain_result.get("mesh", null)
+	var pre := _preloads()
+	if pre != null and chunk_node.mesh != null:
+		_apply_sector_top_materials(chunk_node.mesh, pre, terrain_result.get("surface_to_surface_type", {}))
+	var chunk_authored_descriptors: Array = terrain_result.get("authored_piece_descriptors", []).duplicate()
+	if bool(payload.get("has_edge_result", false)):
+		var edge_result: Dictionary = payload.get("edge_result", {})
+		var edge_chunk_node := _get_or_create_edge_chunk_node(chunk_coord)
+		edge_chunk_node.mesh = edge_result.get("mesh", null)
+		if pre != null and edge_chunk_node.mesh != null:
+			_apply_edge_surface_materials(
+				edge_chunk_node.mesh,
+				pre,
+				edge_result.get("fallback_horiz_keys", []),
+				edge_result.get("fallback_vert_keys", [])
+			)
+		chunk_authored_descriptors.append_array(edge_result.get("authored_piece_descriptors", []))
+	_update_terrain_authored_cache_for_chunk(chunk_coord, chunk_authored_descriptors)
+	_dirty_chunks.erase(chunk_coord)
+	var done := completed_chunks + 1
+	_update_build_progress(done, total_chunks, "Rendering map... %d / %d" % [done, total_chunks])
+	_bump_3d_viewport_rendering()
+
+
+func _finish_async_initial_build() -> void:
+	_join_async_thread()
+	var cancelled := _async_cancel_requested
+	var failed := bool(_get_async_worker_state().get("failed", false))
+	var should_restart := _async_requested_restart
+	var restart_reframe := _async_requested_reframe
+	if cancelled:
+		_end_build_state(false, "3D render cancelled")
+		_reset_async_build_state()
+		if should_restart:
+			_request_refresh(restart_reframe)
+		return
+	if failed:
+		_end_build_state(false, "3D render failed")
+		_reset_async_build_state()
+		_request_refresh(restart_reframe)
+		return
+	_start_async_overlay_descriptor_build()
+
+
+func _start_async_overlay_descriptor_build() -> void:
+	_update_build_progress(total_chunks, total_chunks, "Preparing overlays...")
+	var support_descriptors: Array = _terrain_authored_cache_by_key.values().duplicate()
+	var cmd := _current_map_data()
+	if cmd == null:
+		_start_async_overlay_apply(support_descriptors, _make_empty_build_metrics())
+		return
+	var host_station_snapshot: Array = []
+	var squad_snapshot: Array = []
+	if cmd.host_stations != null and is_instance_valid(cmd.host_stations):
+		host_station_snapshot = _snapshot_host_station_nodes(cmd.host_stations.get_children())
+	if cmd.squads != null and is_instance_valid(cmd.squads):
+		squad_snapshot = _snapshot_squad_nodes(cmd.squads.get_children())
+	var payload := {
+		"generation_id": active_build_generation_id,
+		"support_descriptors": support_descriptors,
+		"blg": _async_blg,
+		"effective_typ": _async_effective_typ,
+		"set_id": _async_level_set,
+		"hgt": cmd.hgt_map,
+		"w": _async_w,
+		"h": _async_h,
+		"game_data_type": _async_game_data_type,
+		"host_station_snapshot": host_station_snapshot,
+		"squad_snapshot": squad_snapshot,
+	}
+	_set_async_overlay_descriptor_state(false, false, [], {})
+	var thread := Thread.new()
+	var err := thread.start(Callable(self, "_async_overlay_descriptor_worker").bind(payload))
+	if err != OK:
+		# Fallback to immediate apply of terrain-only descriptors if descriptor worker cannot start.
+		_start_async_overlay_apply(support_descriptors, _make_empty_build_metrics())
+		return
+	_async_overlay_descriptor_mutex.lock()
+	_async_overlay_descriptor_thread = thread
+	_async_overlay_descriptor_mutex.unlock()
+
+
+func _async_overlay_descriptor_worker(payload: Dictionary) -> void:
+	var generation_id := int(payload.get("generation_id", -1))
+	if _is_async_cancel_requested(generation_id):
+		_set_async_overlay_descriptor_state(true, false, [], {})
+		return
+	var metrics := _make_empty_build_metrics()
+	var started_usec := Time.get_ticks_usec()
+	var support_descriptors: Array = payload.get("support_descriptors", []).duplicate()
+	var overlay_descriptors: Array = support_descriptors.duplicate()
+	var blg: PackedByteArray = payload.get("blg", PackedByteArray())
+	var effective_typ: PackedByteArray = payload.get("effective_typ", PackedByteArray())
+	var set_id := int(payload.get("set_id", 1))
+	var hgt: PackedByteArray = payload.get("hgt", PackedByteArray())
+	var w := int(payload.get("w", 0))
+	var h := int(payload.get("h", 0))
+	var game_data_type := String(payload.get("game_data_type", "original"))
+	var host_station_snapshot: Array = payload.get("host_station_snapshot", [])
+	var squad_snapshot: Array = payload.get("squad_snapshot", [])
+	overlay_descriptors.append_array(_build_blg_attachment_descriptors(blg, effective_typ, set_id, hgt, w, h, support_descriptors, game_data_type))
+	if _is_async_cancel_requested(generation_id):
+		_set_async_overlay_descriptor_state(true, false, [], {})
+		return
+	overlay_descriptors.append_array(_build_host_station_descriptors_from_snapshot(host_station_snapshot, set_id, hgt, w, h, support_descriptors, metrics))
+	if _is_async_cancel_requested(generation_id):
+		_set_async_overlay_descriptor_state(true, false, [], {})
+		return
+	overlay_descriptors.append_array(_build_squad_descriptors_from_snapshot(squad_snapshot, set_id, hgt, w, h, support_descriptors, game_data_type, metrics))
+	metrics["overlay_descriptor_generation_ms"] = _elapsed_ms_since(started_usec)
+	metrics["overlay_descriptor_count"] = overlay_descriptors.size()
+	_set_async_overlay_descriptor_state(true, false, overlay_descriptors, metrics)
+
+
+func _pump_async_overlay_descriptor_build() -> void:
+	if not _is_async_overlay_descriptor_active():
+		return
+	if _async_cancel_requested:
+		_join_async_overlay_descriptor_thread()
+		var should_restart := _async_requested_restart
+		var restart_reframe := _async_requested_reframe
+		_end_build_state(false, "3D render cancelled")
+		_reset_async_build_state()
+		if should_restart:
+			_request_refresh(restart_reframe)
+		return
+	var state := _get_async_overlay_descriptor_state()
+	if not bool(state.get("done", false)):
+		return
+	_join_async_overlay_descriptor_thread()
+	if _async_cancel_requested:
+		return
+	if bool(state.get("failed", false)):
+		_end_build_state(false, "Overlay descriptor generation failed")
+		_reset_async_build_state()
+		if _async_requested_restart:
+			_request_refresh(_async_requested_reframe)
+		return
+	var overlay_descriptors: Array = state.get("result", [])
+	var metrics: Dictionary = state.get("metrics", {})
+	_start_async_overlay_apply(overlay_descriptors, metrics)
+
+
+func _join_async_overlay_descriptor_thread() -> void:
+	var thread: Thread = null
+	_async_overlay_descriptor_mutex.lock()
+	thread = _async_overlay_descriptor_thread
+	_async_overlay_descriptor_thread = null
+	_async_overlay_descriptor_mutex.unlock()
+	if thread != null:
+		thread.wait_to_finish()
+
+
+func _start_async_overlay_apply(descriptors: Array, metrics: Dictionary) -> void:
+	if _authored_overlay == null or not is_instance_valid(_authored_overlay):
+		_authored_overlay = Node3D.new()
+		_authored_overlay.name = "AuthoredOverlay"
+		add_child(_authored_overlay)
+	_async_overlay_descriptors = descriptors
+	_async_overlay_metrics = metrics.duplicate(true)
+	_async_overlay_apply_state = _overlay_apply_manager.begin_apply_overlay_node(_authored_overlay, _async_overlay_descriptors)
+	_async_overlay_apply_started_usec = Time.get_ticks_usec()
+	_async_overlay_apply_active = true
+	UATerrainPieceLibraryScript.reset_piece_overlay_build_counters()
+	_update_build_progress(total_chunks, total_chunks, "Finalizing overlays... 0%")
+
+
+func _pump_async_overlay_apply() -> void:
+	if not _async_overlay_apply_active:
+		return
+	if _async_cancel_requested:
+		_async_overlay_apply_active = false
+		_end_build_state(false, "3D render cancelled")
+		_reset_async_build_state()
+		if _async_requested_restart:
+			_request_refresh(_async_requested_reframe)
+		return
+	var done: bool = _overlay_apply_manager.apply_overlay_node_step(_authored_overlay, _async_overlay_apply_state, _ASYNC_OVERLAY_APPLY_OPS_PER_FRAME)
+	var progress: Dictionary = _overlay_apply_manager.overlay_apply_progress(_async_overlay_apply_state)
+	var progress_done := int(progress.get("done", 0))
+	var progress_total := int(progress.get("total", 0))
+	var pct := 100
+	if progress_total > 0:
+		pct = int(round((float(progress_done) / float(progress_total)) * 100.0))
+	_update_build_progress(total_chunks, total_chunks, "Finalizing overlays... %d%%" % clampi(pct, 0, 100))
+	_bump_3d_viewport_rendering()
+	if done:
+		_finalize_async_overlay_apply()
+
+
+func _finalize_async_overlay_apply() -> void:
+	if _authored_overlay != null and is_instance_valid(_authored_overlay):
+		_overlay_apply_manager.finalize_apply_overlay_node(_authored_overlay, _async_overlay_apply_state)
+	_apply_geometry_distance_culling_to_overlay()
+	var metrics := _async_overlay_metrics
+	var pc: Dictionary = UATerrainPieceLibraryScript.get_piece_overlay_build_counters()
+	metrics["piece_overlay_fast_path"] = int(pc.get("piece_overlay_fast_path", 0))
+	metrics["piece_overlay_slow_path"] = int(pc.get("piece_overlay_slow_path", 0))
+	metrics["overlay_node_creation_ms"] = _elapsed_ms_since(_async_overlay_apply_started_usec)
+	_last_build_metrics = metrics
+	_initial_build_in_progress = false
+	_initial_build_accumulated_authored_descriptors.clear()
+	_async_overlay_apply_active = false
+	_end_build_state(true, "3D map ready")
+	_bump_3d_viewport_rendering()
+	if _async_pending_reframe_camera and is_inside_tree():
+		_framed = false
+		_frame_if_needed()
+	var should_restart := _async_requested_restart
+	var restart_reframe := _async_requested_reframe
+	_reset_async_build_state()
+	if should_restart:
+		_request_refresh(restart_reframe)
+	elif _refresh_pending and _preview_refresh_active():
+		_request_refresh(_refresh_reframe_pending)
+
+
+func _cancel_async_initial_build() -> void:
+	if _is_async_build_active():
+		_async_state_mutex.lock()
+		cancel_requested_generation_id = active_build_generation_id
+		_async_cancel_requested = true
+		_async_state_mutex.unlock()
+	if _is_async_overlay_descriptor_active():
+		_async_cancel_requested = true
+	if _async_overlay_apply_active:
+		_async_cancel_requested = true
+
+
+func _join_async_thread() -> void:
+	var thread: Thread = null
+	_async_state_mutex.lock()
+	thread = _async_initial_thread
+	_async_initial_thread = null
+	_async_state_mutex.unlock()
+	if thread != null:
+		thread.wait_to_finish()
+
+
+func _reset_async_build_state() -> void:
+	_async_state_mutex.lock()
+	_async_worker_done = false
+	_async_worker_failed = false
+	_async_worker_error = ""
+	_async_cancel_requested = false
+	_async_state_mutex.unlock()
+	_clear_async_chunk_payloads()
+	_async_pending_reframe_camera = false
+	_async_effective_typ = PackedByteArray()
+	_async_blg = PackedByteArray()
+	_async_w = 0
+	_async_h = 0
+	_async_level_set = 0
+	_async_game_data_type = "original"
+	_async_requested_restart = false
+	_async_requested_reframe = false
+	_async_overlay_apply_active = false
+	_async_overlay_apply_state.clear()
+	_async_overlay_descriptors.clear()
+	_async_overlay_metrics.clear()
+	_async_overlay_apply_started_usec = 0
+	_set_async_overlay_descriptor_state(false, false, [], {})
+
+
 func _sync_terrain_overlay_animation_mode_from_editor() -> void:
 	var es := _editor_state()
 	var anims_on := true
@@ -540,11 +1149,21 @@ func _process(_delta: float) -> void:
 	# Keep mouse mode sane if window focus changes
 	if not _mouselook and Input.get_mouse_mode() == Input.MOUSE_MODE_CAPTURED:
 		Input.set_mouse_mode(Input.MOUSE_MODE_VISIBLE)
+	_pump_async_initial_build()
+	_pump_async_overlay_descriptor_build()
+	_pump_async_overlay_apply()
 
 
 func _notification(what: int) -> void:
 	if what == NOTIFICATION_VISIBILITY_CHANGED and is_visible_in_tree() and _preview_refresh_active():
 		_bump_3d_viewport_rendering()
+
+
+func _exit_tree() -> void:
+	if _is_async_pipeline_active():
+		_cancel_async_initial_build()
+		_join_async_thread()
+		_join_async_overlay_descriptor_thread()
 
 
 func _get_map_subviewport() -> SubViewport:
@@ -635,12 +1254,14 @@ func _frame_if_needed() -> void:
 	_update_geometry_distance_culling_visibility()
 
 func _on_map_changed() -> void:
+	_cancel_async_initial_build()
 	var _cmd = _current_map_data()
 	if _cmd:
 		print("[Map3D] map_changed signal: w=", _cmd.horizontal_sectors, " h=", _cmd.vertical_sectors, " hgt_size=", _cmd.hgt_map.size())
 		_request_refresh(false)
 
 func _on_map_created() -> void:
+	_cancel_async_initial_build()
 	var _cmd = _current_map_data()
 	if _cmd:
 		print("[Map3D] map_created signal: w=", _cmd.horizontal_sectors, " h=", _cmd.vertical_sectors, " hgt_size=", _cmd.hgt_map.size())
@@ -671,6 +1292,7 @@ func _on_map_updated() -> void:
 
 
 func _on_hgt_map_cells_edited(border_indices: Array) -> void:
+	_cancel_async_initial_build()
 	var _cmd = _current_map_data()
 	if _cmd == null:
 		return
@@ -709,6 +1331,7 @@ func _on_hgt_map_cells_edited(border_indices: Array) -> void:
 
 
 func _on_typ_map_cells_edited(typ_indices: Array) -> void:
+	_cancel_async_initial_build()
 	var _cmd = _current_map_data()
 	if _cmd == null:
 		return
@@ -1814,8 +2437,8 @@ static func _host_station_origin(host_station: Node2D, hgt: PackedByteArray, w: 
 	var support_y := _support_height_at_world_position(hgt, w, h, support_descriptors, world_x, world_z, profile)
 	return Vector3(world_x, support_y - ua_y, world_z)
 
-static func _build_host_station_descriptors(host_stations: Array, set_id: int, hgt: PackedByteArray, w: int, h: int, support_descriptors: Array = [], profile = null) -> Array:
-	var descriptors: Array = []
+static func _snapshot_host_station_nodes(host_stations: Array) -> Array:
+	var snapshot: Array = []
 	for host_station in host_stations:
 		if host_station == null or not is_instance_valid(host_station):
 			continue
@@ -1824,13 +2447,38 @@ static func _build_host_station_descriptors(host_stations: Array, set_id: int, h
 		var vehicle_value = host_station.get("vehicle")
 		if vehicle_value == null:
 			continue
-		var base_name := _host_station_base_name_for_vehicle(int(vehicle_value))
+		var station := host_station as Node2D
+		var pos_y_value = host_station.get("pos_y")
+		snapshot.append({
+			"id": int(host_station.get_instance_id()),
+			"vehicle": int(vehicle_value),
+			"x": float(station.position.x),
+			"y": float(station.position.y),
+			"pos_y": float(pos_y_value if pos_y_value != null else 0.0),
+		})
+	return snapshot
+
+
+static func _build_host_station_descriptors_from_snapshot(host_stations: Array, set_id: int, hgt: PackedByteArray, w: int, h: int, support_descriptors: Array = [], profile = null) -> Array:
+	var descriptors: Array = []
+	for host_station in host_stations:
+		if typeof(host_station) != TYPE_DICTIONARY:
+			continue
+		var hs := host_station as Dictionary
+		var vehicle := int(hs.get("vehicle", -1))
+		if vehicle < 0:
+			continue
+		var base_name := _host_station_base_name_for_vehicle(vehicle)
 		if base_name.is_empty():
 			continue
 		if not UATerrainPieceLibraryScript.has_piece_source(set_id, base_name):
 			continue
-		var origin := _host_station_origin(host_station as Node2D, hgt, w, h, support_descriptors, profile)
-		var station_key_id: int = int(host_station.get_instance_id())
+		var world_x := float(hs.get("x", 0.0))
+		var world_z := absf(float(hs.get("y", 0.0)))
+		var ua_y := float(hs.get("pos_y", 0.0))
+		var support_y := _support_height_at_world_position(hgt, w, h, support_descriptors, world_x, world_z, profile)
+		var origin := Vector3(world_x, support_y - ua_y, world_z)
+		var station_key_id := int(hs.get("id", 0))
 		descriptors.append({
 			"set_id": set_id,
 			"raw_id": - 1,
@@ -1838,7 +2486,7 @@ static func _build_host_station_descriptors(host_stations: Array, set_id: int, h
 			"instance_key": "host:%d:%d:%s" % [set_id, station_key_id, base_name],
 			"origin": origin,
 		})
-		var gun_attachments_value = HOST_STATION_GUN_ATTACHMENTS.get(int(vehicle_value), [])
+		var gun_attachments_value = HOST_STATION_GUN_ATTACHMENTS.get(vehicle, [])
 		if gun_attachments_value is Array:
 			for attachment in gun_attachments_value:
 				if typeof(attachment) != TYPE_DICTIONARY:
@@ -1863,6 +2511,10 @@ static func _build_host_station_descriptors(host_stations: Array, set_id: int, h
 					gun_descriptor["forward"] = godot_direction
 				descriptors.append(gun_descriptor)
 	return descriptors
+
+
+static func _build_host_station_descriptors(host_stations: Array, set_id: int, hgt: PackedByteArray, w: int, h: int, support_descriptors: Array = [], profile = null) -> Array:
+	return _build_host_station_descriptors_from_snapshot(_snapshot_host_station_nodes(host_stations), set_id, hgt, w, h, support_descriptors, profile)
 
 static func _normalized_game_data_type(game_data_type: String) -> String:
 	return "metropolisDawn" if game_data_type.to_lower() == "metropolisdawn" else "original"
@@ -2319,8 +2971,8 @@ static func _squad_formation_offsets(quantity: int) -> Array:
 		offsets.append(Vector3(x_offset, 0.0, z_offset))
 	return offsets
 
-static func _build_squad_descriptors(squads: Array, set_id: int, hgt: PackedByteArray, w: int, h: int, support_descriptors: Array, game_data_type: String, profile = null) -> Array:
-	var descriptors: Array = []
+static func _snapshot_squad_nodes(squads: Array) -> Array:
+	var snapshot: Array = []
 	for squad in squads:
 		if squad == null or not is_instance_valid(squad):
 			continue
@@ -2329,14 +2981,36 @@ static func _build_squad_descriptors(squads: Array, set_id: int, hgt: PackedByte
 		var vehicle_value = squad.get("vehicle")
 		if vehicle_value == null:
 			continue
-		var base_name := _squad_base_name_for_vehicle(int(vehicle_value), set_id, game_data_type)
+		var squad_node := squad as Node2D
+		snapshot.append({
+			"id": int(squad.get_instance_id()),
+			"vehicle": int(vehicle_value),
+			"x": float(squad_node.position.x),
+			"y": float(squad_node.position.y),
+			"quantity": max(1, int(squad.get("quantity") if squad.get("quantity") != null else 1)),
+		})
+	return snapshot
+
+
+static func _build_squad_descriptors_from_snapshot(squads: Array, set_id: int, hgt: PackedByteArray, w: int, h: int, support_descriptors: Array, game_data_type: String, profile = null) -> Array:
+	var descriptors: Array = []
+	for squad in squads:
+		if typeof(squad) != TYPE_DICTIONARY:
+			continue
+		var sq := squad as Dictionary
+		var vehicle := int(sq.get("vehicle", -1))
+		if vehicle < 0:
+			continue
+		var base_name := _squad_base_name_for_vehicle(vehicle, set_id, game_data_type)
 		if base_name.is_empty():
 			continue
 		if not UATerrainPieceLibraryScript.has_piece_source(set_id, base_name):
 			continue
-		var squad_anchor_origin := _squad_anchor_origin(squad as Node2D, hgt, w, h, support_descriptors, profile)
-		var squad_key_id: int = int(squad.get_instance_id())
-		var quantity := _squad_quantity(squad)
+		var world_x := float(sq.get("x", 0.0))
+		var world_z := absf(float(sq.get("y", 0.0)))
+		var anchor := Vector3(world_x, _support_height_at_world_position(hgt, w, h, support_descriptors, world_x, world_z, profile), world_z)
+		var squad_key_id := int(sq.get("id", 0))
+		var quantity: int = max(1, int(sq.get("quantity", 1)))
 		var offsets := _squad_formation_offsets(quantity)
 		for unit_index in offsets.size():
 			var formation_offset: Vector3 = offsets[unit_index]
@@ -2344,11 +3018,15 @@ static func _build_squad_descriptors(squads: Array, set_id: int, hgt: PackedByte
 				"set_id": set_id,
 				"raw_id": - 1,
 				"base_name": base_name,
-				"origin": squad_anchor_origin + Vector3(formation_offset),
+				"origin": anchor + Vector3(formation_offset),
 				"instance_key": "squad:%d:%d:%s:%d" % [set_id, squad_key_id, base_name, unit_index],
 				"y_offset": SQUAD_EXTRA_Y_OFFSET,
 			})
 	return descriptors
+
+
+static func _build_squad_descriptors(squads: Array, set_id: int, hgt: PackedByteArray, w: int, h: int, support_descriptors: Array, game_data_type: String, profile = null) -> Array:
+	return _build_squad_descriptors_from_snapshot(_snapshot_squad_nodes(squads), set_id, hgt, w, h, support_descriptors, game_data_type, profile)
 
 static func _draw_quad(st: SurfaceTool, xl: float, xr: float, zt: float, zb: float, y: float, f: int, cells: int, v: int, rot_deg: int = 0, u0: float = 0.0, vv0: float = 0.0, u1: float = 1.0, vv1: float = 1.0) -> void:
 	var rot := ((rot_deg % 360) + 360) % 360
