@@ -182,7 +182,8 @@ var _terrain_chunk_authored_cache_keys: Dictionary = {}
 var _initial_build_in_progress := false
 var _initial_build_batch_size := 4
 var _initial_build_accumulated_authored_descriptors: Array = []
-const _LARGE_MAP_STATIC_OVERLAY_THRESHOLD := 1600
+const _STATIC_OVERLAY_MEDIUM_MAP_THRESHOLD := 500
+const _STATIC_OVERLAY_SET6_MIN_AREA := 36
 
 # When the renderer fell back to a full rebuild (e.g. because dirty chunk tracking
 # didn't get signaled), the incremental cache bookkeeping may not be exact for
@@ -785,7 +786,11 @@ func build_from_current_map() -> void:
 	metrics["used_textured_preloads"] = true
 	var level_set := int(_cmd.level_set)
 	var map_area := w * h
-	var prefer_static_overlay := map_area >= _LARGE_MAP_STATIC_OVERLAY_THRESHOLD
+	var prefer_static_overlay := map_area >= _STATIC_OVERLAY_MEDIUM_MAP_THRESHOLD
+	if not prefer_static_overlay and level_set == 6 and map_area >= _STATIC_OVERLAY_SET6_MIN_AREA:
+		# Set6 authored pieces are PTCL/animation heavy; static fallback avoids severe
+		# frame drops on dense maps while preserving source-backed descriptor parsing.
+		prefer_static_overlay = true
 	UATerrainPieceLibraryScript.set_overlay_performance_hint(prefer_static_overlay)
 	metrics["overlay_perf_static_mode"] = prefer_static_overlay
 	var use_chunked := _chunked_terrain_enabled and not _needs_full_rebuild(w, h, level_set) and not _DEBUG_DISABLE_CHUNKED_EXPERIMENT
