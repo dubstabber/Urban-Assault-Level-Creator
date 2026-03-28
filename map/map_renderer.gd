@@ -229,6 +229,8 @@ func add_squad(owner_id: int, vehicle_id: int) -> void:
 	
 	CurrentMapData.is_saved = false
 	EditorState.selected_unit = squad
+	EventSystem.unit_position_committed.emit()
+	EventSystem.map_updated.emit()
 
 func _draw_key_sector(pos_x: int, pos_y: int, texture) -> void:
 	var key_rect := Rect2(pos_x, pos_y, _sector_rect_size, _sector_rect_size)
