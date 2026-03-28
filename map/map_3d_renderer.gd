@@ -131,6 +131,7 @@ static func apply_visibility_range_to_environment(environment: Environment, enab
 @onready var _terrain_mesh: MeshInstance3D = $TerrainMesh
 @onready var _edge_mesh: MeshInstance3D = $EdgeMesh if has_node("EdgeMesh") else null
 @onready var _authored_overlay: Node3D = $AuthoredOverlay if has_node("AuthoredOverlay") else null
+@onready var _dynamic_overlay: Node3D = $DynamicOverlay if has_node("DynamicOverlay") else null
 # Keep seam/slurp strips visible in the live preview; redundant flat/same-surface
 # seams are filtered out in the builder to avoid needless overdraw.
 var _edge_overlay_enabled := true
@@ -228,7 +229,7 @@ var _async_requested_reframe := false
 var _async_overlay_descriptor_thread: Thread = null
 var _async_overlay_descriptor_done := false
 var _async_overlay_descriptor_failed := false
-var _async_overlay_descriptor_result: Array = []
+var _async_overlay_descriptor_result: Variant = {}
 var _async_overlay_descriptor_metrics: Dictionary = {}
 var _async_overlay_descriptor_mutex: Mutex = Mutex.new()
 var _async_overlay_apply_active := false
@@ -237,6 +238,10 @@ var _async_overlay_descriptors: Array = []
 var _async_overlay_metrics: Dictionary = {}
 var _async_overlay_apply_started_usec := 0
 var _overlay_apply_manager := Map3DAuthoredOverlayManager.new()
+var _overlay_only_refresh_requested := false
+var _dynamic_overlay_refresh_requested := false
+var _async_dynamic_overlay_descriptors: Array = []
+var _async_overlay_descriptor_dynamic_only := false
 
 
 func set_event_system_override(event_system: Node) -> void:
@@ -326,7 +331,7 @@ func _is_async_overlay_descriptor_active() -> bool:
 	return active
 
 
-func _set_async_overlay_descriptor_state(done: bool, failed: bool, result: Array, metrics: Dictionary) -> void:
+func _set_async_overlay_descriptor_state(done: bool, failed: bool, result, metrics: Dictionary) -> void:
 	_async_overlay_descriptor_mutex.lock()
 	_async_overlay_descriptor_done = done
 	_async_overlay_descriptor_failed = failed
@@ -650,6 +655,12 @@ func _apply_pending_refresh() -> void:
 		_async_requested_reframe = _async_requested_reframe or reframe_camera
 		_cancel_async_initial_build()
 		return
+	if _dynamic_overlay_refresh_requested:
+		if _start_async_dynamic_overlay_refresh(reframe_camera):
+			return
+	if _overlay_only_refresh_requested or _can_use_overlay_only_refresh():
+		if _start_async_overlay_only_refresh(reframe_camera):
+			return
 	if _try_start_async_initial_build(reframe_camera):
 		return
 	build_from_current_map()
@@ -677,6 +688,8 @@ func _ready() -> void:
 		_es.level_set_changed.connect(_on_level_set_changed)
 		_es.map_view_updated.connect(_on_map_view_updated)
 		_es.map_3d_overlay_animations_changed.connect(_on_map_3d_overlay_animations_changed)
+		if _es.has_signal("hoststation_added"):
+			_es.hoststation_added.connect(_on_host_station_added)
 		if _es.has_signal("hgt_map_cells_edited"):
 			_es.hgt_map_cells_edited.connect(_on_hgt_map_cells_edited)
 		if _es.has_signal("typ_map_cells_edited"):
@@ -712,7 +725,78 @@ func _on_map_view_updated() -> void:
 
 func _on_map_3d_overlay_animations_changed() -> void:
 	if _preview_refresh_active():
-		_request_refresh(false)
+		_request_overlay_only_refresh()
+
+
+func _on_host_station_added(_owner_id: int, _vehicle_id: int) -> void:
+	if _preview_refresh_active():
+		_request_dynamic_overlay_refresh()
+
+
+func _request_overlay_only_refresh() -> void:
+	_overlay_only_refresh_requested = true
+	_request_refresh(false)
+
+
+func _request_dynamic_overlay_refresh() -> void:
+	_dynamic_overlay_refresh_requested = true
+	_request_refresh(false)
+
+
+func _can_use_overlay_only_refresh() -> bool:
+	if _initial_build_in_progress:
+		return false
+	if not _dirty_chunks.is_empty():
+		return false
+	if _terrain_chunk_nodes.is_empty() and _edge_chunk_nodes.is_empty():
+		return false
+	var cmd := _current_map_data()
+	if cmd == null:
+		return false
+	var w := int(cmd.horizontal_sectors)
+	var h := int(cmd.vertical_sectors)
+	if w <= 0 or h <= 0:
+		return false
+	if Vector2i(w, h) != _last_map_dimensions:
+		return false
+	if int(cmd.level_set) != _last_level_set:
+		return false
+	return true
+
+
+func _start_async_overlay_only_refresh(reframe_camera: bool) -> bool:
+	if not _can_use_overlay_only_refresh():
+		_overlay_only_refresh_requested = false
+		return false
+	_overlay_only_refresh_requested = false
+	build_generation_id += 1
+	active_build_generation_id = build_generation_id
+	cancel_requested_generation_id = 0
+	_async_pending_reframe_camera = reframe_camera
+	_async_cancel_requested = false
+	_async_requested_restart = false
+	_async_requested_reframe = false
+	_begin_build_state(1, "Preparing overlays...")
+	_start_async_overlay_descriptor_build()
+	return true
+
+
+func _start_async_dynamic_overlay_refresh(reframe_camera: bool) -> bool:
+	if not _can_use_overlay_only_refresh():
+		_dynamic_overlay_refresh_requested = false
+		return false
+	_dynamic_overlay_refresh_requested = false
+	_overlay_only_refresh_requested = false
+	build_generation_id += 1
+	active_build_generation_id = build_generation_id
+	cancel_requested_generation_id = 0
+	_async_pending_reframe_camera = reframe_camera
+	_async_cancel_requested = false
+	_async_requested_restart = false
+	_async_requested_reframe = false
+	_begin_build_state(1, "Updating vehicles...")
+	_start_async_overlay_descriptor_build(true)
+	return true
 
 
 func _try_start_async_initial_build(reframe_camera: bool) -> bool:
@@ -905,12 +989,12 @@ func _finish_async_initial_build() -> void:
 	_start_async_overlay_descriptor_build()
 
 
-func _start_async_overlay_descriptor_build() -> void:
+func _start_async_overlay_descriptor_build(dynamic_only: bool = false) -> void:
 	_update_build_progress(total_chunks, total_chunks, "Preparing overlays...")
 	var support_descriptors: Array = _terrain_authored_cache_by_key.values().duplicate()
 	var cmd := _current_map_data()
 	if cmd == null:
-		_start_async_overlay_apply(support_descriptors, _make_empty_build_metrics())
+		_start_async_overlay_apply(support_descriptors, [], _make_empty_build_metrics())
 		return
 	var host_station_snapshot: Array = []
 	var squad_snapshot: Array = []
@@ -920,6 +1004,7 @@ func _start_async_overlay_descriptor_build() -> void:
 		squad_snapshot = _snapshot_squad_nodes(cmd.squads.get_children())
 	var payload := {
 		"generation_id": active_build_generation_id,
+		"dynamic_only": dynamic_only,
 		"support_descriptors": support_descriptors,
 		"blg": _async_blg,
 		"effective_typ": _async_effective_typ,
@@ -931,12 +1016,13 @@ func _start_async_overlay_descriptor_build() -> void:
 		"host_station_snapshot": host_station_snapshot,
 		"squad_snapshot": squad_snapshot,
 	}
-	_set_async_overlay_descriptor_state(false, false, [], {})
+	_async_overlay_descriptor_dynamic_only = dynamic_only
+	_set_async_overlay_descriptor_state(false, false, {}, {})
 	var thread := Thread.new()
 	var err := thread.start(Callable(self, "_async_overlay_descriptor_worker").bind(payload))
 	if err != OK:
 		# Fallback to immediate apply of terrain-only descriptors if descriptor worker cannot start.
-		_start_async_overlay_apply(support_descriptors, _make_empty_build_metrics())
+		_start_async_overlay_apply(support_descriptors, [], _make_empty_build_metrics())
 		return
 	_async_overlay_descriptor_mutex.lock()
 	_async_overlay_descriptor_thread = thread
@@ -945,13 +1031,15 @@ func _start_async_overlay_descriptor_build() -> void:
 
 func _async_overlay_descriptor_worker(payload: Dictionary) -> void:
 	var generation_id := int(payload.get("generation_id", -1))
+	var dynamic_only := bool(payload.get("dynamic_only", false))
 	if _is_async_cancel_requested(generation_id):
-		_set_async_overlay_descriptor_state(true, false, [], {})
+		_set_async_overlay_descriptor_state(true, false, {}, {})
 		return
 	var metrics := _make_empty_build_metrics()
 	var started_usec := Time.get_ticks_usec()
 	var support_descriptors: Array = payload.get("support_descriptors", []).duplicate()
-	var overlay_descriptors: Array = support_descriptors.duplicate()
+	var static_descriptors: Array = support_descriptors.duplicate()
+	var dynamic_descriptors: Array = []
 	var blg: PackedByteArray = payload.get("blg", PackedByteArray())
 	var effective_typ: PackedByteArray = payload.get("effective_typ", PackedByteArray())
 	var set_id := int(payload.get("set_id", 1))
@@ -961,18 +1049,22 @@ func _async_overlay_descriptor_worker(payload: Dictionary) -> void:
 	var game_data_type := String(payload.get("game_data_type", "original"))
 	var host_station_snapshot: Array = payload.get("host_station_snapshot", [])
 	var squad_snapshot: Array = payload.get("squad_snapshot", [])
-	overlay_descriptors.append_array(_build_blg_attachment_descriptors(blg, effective_typ, set_id, hgt, w, h, support_descriptors, game_data_type))
+	if not dynamic_only:
+		static_descriptors.append_array(_build_blg_attachment_descriptors(blg, effective_typ, set_id, hgt, w, h, support_descriptors, game_data_type))
 	if _is_async_cancel_requested(generation_id):
-		_set_async_overlay_descriptor_state(true, false, [], {})
+		_set_async_overlay_descriptor_state(true, false, {}, {})
 		return
-	overlay_descriptors.append_array(_build_host_station_descriptors_from_snapshot(host_station_snapshot, set_id, hgt, w, h, support_descriptors, metrics))
+	dynamic_descriptors.append_array(_build_host_station_descriptors_from_snapshot(host_station_snapshot, set_id, hgt, w, h, support_descriptors, metrics))
 	if _is_async_cancel_requested(generation_id):
-		_set_async_overlay_descriptor_state(true, false, [], {})
+		_set_async_overlay_descriptor_state(true, false, {}, {})
 		return
-	overlay_descriptors.append_array(_build_squad_descriptors_from_snapshot(squad_snapshot, set_id, hgt, w, h, support_descriptors, game_data_type, metrics))
+	dynamic_descriptors.append_array(_build_squad_descriptors_from_snapshot(squad_snapshot, set_id, hgt, w, h, support_descriptors, game_data_type, metrics))
 	metrics["overlay_descriptor_generation_ms"] = _elapsed_ms_since(started_usec)
-	metrics["overlay_descriptor_count"] = overlay_descriptors.size()
-	_set_async_overlay_descriptor_state(true, false, overlay_descriptors, metrics)
+	metrics["overlay_descriptor_count"] = static_descriptors.size() + dynamic_descriptors.size()
+	_set_async_overlay_descriptor_state(true, false, {
+		"static_descriptors": static_descriptors,
+		"dynamic_descriptors": dynamic_descriptors,
+	}, metrics)
 
 
 func _pump_async_overlay_descriptor_build() -> void:
@@ -999,9 +1091,25 @@ func _pump_async_overlay_descriptor_build() -> void:
 		if _async_requested_restart:
 			_request_refresh(_async_requested_reframe)
 		return
-	var overlay_descriptors: Array = state.get("result", [])
+	var result_payload: Dictionary = state.get("result", {})
+	var static_descriptors: Array = result_payload.get("static_descriptors", [])
+	var dynamic_descriptors: Array = result_payload.get("dynamic_descriptors", [])
 	var metrics: Dictionary = state.get("metrics", {})
-	_start_async_overlay_apply(overlay_descriptors, metrics)
+	if _async_overlay_descriptor_dynamic_only:
+		_apply_dynamic_overlay(dynamic_descriptors)
+		_last_build_metrics = metrics
+		_end_build_state(true, "3D map ready")
+		_bump_3d_viewport_rendering()
+		if _async_pending_reframe_camera and is_inside_tree():
+			_framed = false
+			_frame_if_needed()
+		var should_restart := _async_requested_restart
+		var restart_reframe := _async_requested_reframe
+		_reset_async_build_state()
+		if should_restart:
+			_request_refresh(restart_reframe)
+		return
+	_start_async_overlay_apply(static_descriptors, dynamic_descriptors, metrics)
 
 
 func _join_async_overlay_descriptor_thread() -> void:
@@ -1014,12 +1122,27 @@ func _join_async_overlay_descriptor_thread() -> void:
 		thread.wait_to_finish()
 
 
-func _start_async_overlay_apply(descriptors: Array, metrics: Dictionary) -> void:
+func _ensure_overlay_nodes() -> void:
 	if _authored_overlay == null or not is_instance_valid(_authored_overlay):
 		_authored_overlay = Node3D.new()
 		_authored_overlay.name = "AuthoredOverlay"
 		add_child(_authored_overlay)
-	_async_overlay_descriptors = descriptors
+	if _dynamic_overlay == null or not is_instance_valid(_dynamic_overlay):
+		_dynamic_overlay = Node3D.new()
+		_dynamic_overlay.name = "DynamicOverlay"
+		add_child(_dynamic_overlay)
+
+
+func _apply_dynamic_overlay(dynamic_descriptors: Array) -> void:
+	_ensure_overlay_nodes()
+	AuthoredOverlayManager.apply_overlay_node(_dynamic_overlay, dynamic_descriptors)
+	_apply_geometry_distance_culling_to_overlay()
+
+
+func _start_async_overlay_apply(static_descriptors: Array, dynamic_descriptors: Array, metrics: Dictionary) -> void:
+	_ensure_overlay_nodes()
+	_async_overlay_descriptors = static_descriptors
+	_async_dynamic_overlay_descriptors = dynamic_descriptors
 	_async_overlay_metrics = metrics.duplicate(true)
 	_async_overlay_apply_state = _overlay_apply_manager.begin_apply_overlay_node(_authored_overlay, _async_overlay_descriptors)
 	_async_overlay_apply_started_usec = Time.get_ticks_usec()
@@ -1054,6 +1177,7 @@ func _pump_async_overlay_apply() -> void:
 func _finalize_async_overlay_apply() -> void:
 	if _authored_overlay != null and is_instance_valid(_authored_overlay):
 		_overlay_apply_manager.finalize_apply_overlay_node(_authored_overlay, _async_overlay_apply_state)
+	_apply_dynamic_overlay(_async_dynamic_overlay_descriptors)
 	_apply_geometry_distance_culling_to_overlay()
 	var metrics := _async_overlay_metrics
 	var pc: Dictionary = UATerrainPieceLibraryScript.get_piece_overlay_build_counters()
@@ -1120,9 +1244,13 @@ func _reset_async_build_state() -> void:
 	_async_overlay_apply_active = false
 	_async_overlay_apply_state.clear()
 	_async_overlay_descriptors.clear()
+	_async_dynamic_overlay_descriptors.clear()
 	_async_overlay_metrics.clear()
 	_async_overlay_apply_started_usec = 0
-	_set_async_overlay_descriptor_state(false, false, [], {})
+	_set_async_overlay_descriptor_state(false, false, {}, {})
+	_async_overlay_descriptor_dynamic_only = false
+	_overlay_only_refresh_requested = false
+	_dynamic_overlay_refresh_requested = false
 
 
 func _sync_terrain_overlay_animation_mode_from_editor() -> void:
@@ -1255,6 +1383,8 @@ func _frame_if_needed() -> void:
 
 func _on_map_changed() -> void:
 	_cancel_async_initial_build()
+	_overlay_only_refresh_requested = false
+	_dynamic_overlay_refresh_requested = false
 	var _cmd = _current_map_data()
 	if _cmd:
 		print("[Map3D] map_changed signal: w=", _cmd.horizontal_sectors, " h=", _cmd.vertical_sectors, " hgt_size=", _cmd.hgt_map.size())
@@ -1383,6 +1513,11 @@ func build_from_current_map() -> void:
 
 	var game_data_type := _current_game_data_type()
 	UATerrainPieceLibraryScript.set_piece_game_data_type(game_data_type)
+	_async_blg = blg
+	_async_w = w
+	_async_h = h
+	_async_level_set = int(_cmd.level_set)
+	_async_game_data_type = game_data_type
 	var effective_typ: PackedByteArray
 	var typ_checksum := _checksum_packed_byte_array(typ)
 	var blg_checksum := _checksum_packed_byte_array(blg)
@@ -1408,6 +1543,7 @@ func build_from_current_map() -> void:
 		_effective_typ_cache_typ_checksum = typ_checksum
 		_effective_typ_cache_blg_checksum = blg_checksum
 		_effective_typ_dirty = false
+	_async_effective_typ = effective_typ
 
 	var pre = _preloads()
 	if pre == null:
@@ -2141,12 +2277,21 @@ func _chunk_focus_coord(w: int, h: int) -> Vector2i:
 	return TerrainBuilder.sector_to_chunk(center_sx, center_sy)
 
 func _set_authored_overlay(descriptors: Array) -> void:
-	if _authored_overlay == null or not is_instance_valid(_authored_overlay):
-		_authored_overlay = Node3D.new()
-		_authored_overlay.name = "AuthoredOverlay"
-		add_child(_authored_overlay)
+	_ensure_overlay_nodes()
+	var static_descriptors: Array = []
+	var dynamic_descriptors: Array = []
+	for desc_any in descriptors:
+		if typeof(desc_any) != TYPE_DICTIONARY:
+			continue
+		var desc := desc_any as Dictionary
+		var instance_key := String(desc.get("instance_key", ""))
+		if instance_key.begins_with("host:") or instance_key.begins_with("host_gun:") or instance_key.begins_with("squad:"):
+			dynamic_descriptors.append(desc)
+		else:
+			static_descriptors.append(desc)
 	UATerrainPieceLibraryScript.reset_piece_overlay_build_counters()
-	AuthoredOverlayManager.apply_overlay_node(_authored_overlay, descriptors)
+	AuthoredOverlayManager.apply_overlay_node(_authored_overlay, static_descriptors)
+	AuthoredOverlayManager.apply_overlay_node(_dynamic_overlay, dynamic_descriptors)
 	_apply_geometry_distance_culling_to_overlay()
 
 
@@ -2170,6 +2315,10 @@ func _set_all_distance_culled_nodes_visible(make_visible: bool) -> void:
 			edge_chunk.visible = make_visible and edge_chunk.mesh != null
 	if _authored_overlay != null and is_instance_valid(_authored_overlay):
 		for child in _authored_overlay.get_children():
+			if child is Node3D:
+				(child as Node3D).visible = make_visible
+	if _dynamic_overlay != null and is_instance_valid(_dynamic_overlay):
+		for child in _dynamic_overlay.get_children():
 			if child is Node3D:
 				(child as Node3D).visible = make_visible
 
@@ -2219,25 +2368,37 @@ func _apply_geometry_distance_culling_to_chunk_node(chunk_node: MeshInstance3D, 
 
 
 func _apply_geometry_distance_culling_to_overlay() -> void:
-	if _authored_overlay == null or not is_instance_valid(_authored_overlay):
-		return
 	if not _geometry_distance_culling_enabled:
-		for child in _authored_overlay.get_children():
-			if child is Node3D:
-				(child as Node3D).visible = true
+		if _authored_overlay != null and is_instance_valid(_authored_overlay):
+			for child in _authored_overlay.get_children():
+				if child is Node3D:
+					(child as Node3D).visible = true
+		if _dynamic_overlay != null and is_instance_valid(_dynamic_overlay):
+			for child in _dynamic_overlay.get_children():
+				if child is Node3D:
+					(child as Node3D).visible = true
 		return
 	if _camera == null or not is_instance_valid(_camera):
 		return
 	var cam_pos := _camera.global_position
 	var cam_xz := Vector2(cam_pos.x, cam_pos.z)
 	var cull_sq := _geometry_cull_distance * _geometry_cull_distance
-	for child in _authored_overlay.get_children():
-		if not (child is Node3D):
-			continue
-		var node := child as Node3D
-		var p := node.global_position
-		var within_range := cam_xz.distance_squared_to(Vector2(p.x, p.z)) <= cull_sq
-		node.visible = within_range
+	if _authored_overlay != null and is_instance_valid(_authored_overlay):
+		for child in _authored_overlay.get_children():
+			if not (child is Node3D):
+				continue
+			var node := child as Node3D
+			var p := node.global_position
+			var within_range := cam_xz.distance_squared_to(Vector2(p.x, p.z)) <= cull_sq
+			node.visible = within_range
+	if _dynamic_overlay != null and is_instance_valid(_dynamic_overlay):
+		for child in _dynamic_overlay.get_children():
+			if not (child is Node3D):
+				continue
+			var node := child as Node3D
+			var p := node.global_position
+			var within_range := cam_xz.distance_squared_to(Vector2(p.x, p.z)) <= cull_sq
+			node.visible = within_range
 
 
 func _chunk_center_world_xz(chunk_coord: Vector2i) -> Vector2:
