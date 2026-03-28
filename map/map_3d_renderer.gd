@@ -809,6 +809,7 @@ func _start_async_overlay_only_refresh(reframe_camera: bool) -> bool:
 	if not _can_use_overlay_only_refresh():
 		_overlay_only_refresh_requested = false
 		return false
+	_sync_terrain_overlay_animation_mode_from_editor()
 	_overlay_only_refresh_requested = false
 	build_generation_id += 1
 	active_build_generation_id = build_generation_id
@@ -826,6 +827,7 @@ func _start_async_dynamic_overlay_refresh(reframe_camera: bool) -> bool:
 	if not _can_use_overlay_only_refresh():
 		_dynamic_overlay_refresh_requested = false
 		return false
+	_sync_terrain_overlay_animation_mode_from_editor()
 	_dynamic_overlay_refresh_requested = false
 	_overlay_only_refresh_requested = false
 	build_generation_id += 1
@@ -1225,7 +1227,7 @@ func _apply_single_unit_dynamic_refresh(unit_kind: String, unit_id: int) -> bool
 			"host:%d:%d:" % [_async_level_set, unit_id],
 			"host_gun:%d:%d:" % [_async_level_set, unit_id]
 		]
-		_overlay_apply_manager.apply_overlay_for_prefixes(_dynamic_overlay, host_prefixes, host_descriptors)
+		AuthoredOverlayManager.apply_overlay_for_prefixes(_dynamic_overlay, host_prefixes, host_descriptors)
 		_apply_geometry_distance_culling_to_overlay()
 		_bump_3d_viewport_rendering()
 		return true
@@ -1236,7 +1238,7 @@ func _apply_single_unit_dynamic_refresh(unit_kind: String, unit_id: int) -> bool
 		if sq != null:
 			squad_descriptors = _build_squad_descriptors([sq], _async_level_set, hgt, w, h, support_descriptors, _async_game_data_type, _make_empty_build_metrics())
 		var squad_prefixes: Array = ["squad:%d:%d:" % [_async_level_set, unit_id]]
-		_overlay_apply_manager.apply_overlay_for_prefixes(_dynamic_overlay, squad_prefixes, squad_descriptors)
+		AuthoredOverlayManager.apply_overlay_for_prefixes(_dynamic_overlay, squad_prefixes, squad_descriptors)
 		_apply_geometry_distance_culling_to_overlay()
 		_bump_3d_viewport_rendering()
 		return true
