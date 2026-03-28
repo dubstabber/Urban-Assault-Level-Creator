@@ -29,8 +29,10 @@ func _input(event: InputEvent) -> void:
 
 func _on_3d_build_state_changed(is_building: bool, completed: int, total: int, status: String) -> void:
 	var progress_text := status
-	if total > 0:
+	if status.begins_with("Rendering map") and total > 0:
 		progress_text = "%s\n%d / %d chunks" % [status, completed, total]
+	elif total > 0:
+		progress_text = "%s\nChunks ready: %d / %d" % [status, completed, total]
 	map_3d_loading_label.text = progress_text
 	map_3d_loading_overlay.visible = EditorState.view_mode_3d and is_building
 
@@ -44,7 +46,9 @@ func _refresh_loading_overlay() -> void:
 		map_3d_loading_overlay.visible = false
 		return
 	var text: String = String(map_3d_renderer.status_text)
-	if map_3d_renderer.total_chunks > 0:
+	if text.begins_with("Rendering map") and map_3d_renderer.total_chunks > 0:
 		text = "%s\n%d / %d chunks" % [text, map_3d_renderer.completed_chunks, map_3d_renderer.total_chunks]
+	elif map_3d_renderer.total_chunks > 0:
+		text = "%s\nChunks ready: %d / %d" % [text, map_3d_renderer.completed_chunks, map_3d_renderer.total_chunks]
 	map_3d_loading_label.text = text if not text.is_empty() else "Rendering map..."
 	map_3d_loading_overlay.visible = EditorState.view_mode_3d and map_3d_renderer.is_building_3d

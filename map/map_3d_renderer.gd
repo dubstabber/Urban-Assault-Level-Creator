@@ -231,6 +231,7 @@ var _async_overlay_descriptor_done := false
 var _async_overlay_descriptor_failed := false
 var _async_overlay_descriptor_result: Variant = {}
 var _async_overlay_descriptor_metrics: Dictionary = {}
+var _async_overlay_descriptor_stage := ""
 var _async_overlay_descriptor_mutex: Mutex = Mutex.new()
 var _async_overlay_apply_active := false
 var _async_overlay_apply_state: Dictionary = {}
@@ -338,6 +339,19 @@ func _set_async_overlay_descriptor_state(done: bool, failed: bool, result, metri
 	_async_overlay_descriptor_result = result
 	_async_overlay_descriptor_metrics = metrics
 	_async_overlay_descriptor_mutex.unlock()
+
+
+func _set_async_overlay_descriptor_stage(stage: String) -> void:
+	_async_overlay_descriptor_mutex.lock()
+	_async_overlay_descriptor_stage = stage
+	_async_overlay_descriptor_mutex.unlock()
+
+
+func _get_async_overlay_descriptor_stage() -> String:
+	_async_overlay_descriptor_mutex.lock()
+	var stage := _async_overlay_descriptor_stage
+	_async_overlay_descriptor_mutex.unlock()
+	return stage
 
 
 func _get_async_overlay_descriptor_state() -> Dictionary:
@@ -1031,6 +1045,7 @@ func _start_async_overlay_descriptor_build(dynamic_only: bool = false) -> void:
 		"squad_snapshot": squad_snapshot,
 	}
 	_async_overlay_descriptor_dynamic_only = dynamic_only
+	_set_async_overlay_descriptor_stage("Preparing overlays: queued")
 	_set_async_overlay_descriptor_state(false, false, {}, {})
 	var thread := Thread.new()
 	var err := thread.start(Callable(self, "_async_overlay_descriptor_worker").bind(payload))
@@ -1046,6 +1061,7 @@ func _start_async_overlay_descriptor_build(dynamic_only: bool = false) -> void:
 func _async_overlay_descriptor_worker(payload: Dictionary) -> void:
 	var generation_id := int(payload.get("generation_id", -1))
 	var dynamic_only := bool(payload.get("dynamic_only", false))
+	_set_async_overlay_descriptor_stage("Preparing overlays: starting")
 	if _is_async_cancel_requested(generation_id):
 		_set_async_overlay_descriptor_state(true, false, {}, {})
 		return
@@ -1064,17 +1080,21 @@ func _async_overlay_descriptor_worker(payload: Dictionary) -> void:
 	var host_station_snapshot: Array = payload.get("host_station_snapshot", [])
 	var squad_snapshot: Array = payload.get("squad_snapshot", [])
 	if not dynamic_only:
+		_set_async_overlay_descriptor_stage("Preparing overlays: building attachments")
 		static_descriptors.append_array(_build_blg_attachment_descriptors(blg, effective_typ, set_id, hgt, w, h, support_descriptors, game_data_type))
 	if _is_async_cancel_requested(generation_id):
 		_set_async_overlay_descriptor_state(true, false, {}, {})
 		return
+	_set_async_overlay_descriptor_stage("Preparing overlays: host stations")
 	dynamic_descriptors.append_array(_build_host_station_descriptors_from_snapshot(host_station_snapshot, set_id, hgt, w, h, support_descriptors, metrics))
 	if _is_async_cancel_requested(generation_id):
 		_set_async_overlay_descriptor_state(true, false, {}, {})
 		return
+	_set_async_overlay_descriptor_stage("Preparing overlays: squads")
 	dynamic_descriptors.append_array(_build_squad_descriptors_from_snapshot(squad_snapshot, set_id, hgt, w, h, support_descriptors, game_data_type, metrics))
 	metrics["overlay_descriptor_generation_ms"] = _elapsed_ms_since(started_usec)
 	metrics["overlay_descriptor_count"] = static_descriptors.size() + dynamic_descriptors.size()
+	_set_async_overlay_descriptor_stage("Preparing overlays: complete")
 	_set_async_overlay_descriptor_state(true, false, {
 		"static_descriptors": static_descriptors,
 		"dynamic_descriptors": dynamic_descriptors,
@@ -1084,6 +1104,9 @@ func _async_overlay_descriptor_worker(payload: Dictionary) -> void:
 func _pump_async_overlay_descriptor_build() -> void:
 	if not _is_async_overlay_descriptor_active():
 		return
+	var stage := _get_async_overlay_descriptor_stage()
+	if not stage.is_empty():
+		_update_build_progress(total_chunks, total_chunks, stage)
 	if _async_cancel_requested:
 		_join_async_overlay_descriptor_thread()
 		var should_restart := _async_requested_restart
@@ -1162,7 +1185,7 @@ func _start_async_overlay_apply(static_descriptors: Array, dynamic_descriptors: 
 	_async_overlay_apply_started_usec = Time.get_ticks_usec()
 	_async_overlay_apply_active = true
 	UATerrainPieceLibraryScript.reset_piece_overlay_build_counters()
-	_update_build_progress(total_chunks, total_chunks, "Finalizing overlays... 0%")
+	_update_build_progress(total_chunks, total_chunks, "Applying 3D overlays... 0%")
 
 
 func _pump_async_overlay_apply() -> void:
@@ -1182,7 +1205,7 @@ func _pump_async_overlay_apply() -> void:
 	var pct := 100
 	if progress_total > 0:
 		pct = int(round((float(progress_done) / float(progress_total)) * 100.0))
-	_update_build_progress(total_chunks, total_chunks, "Finalizing overlays... %d%%" % clampi(pct, 0, 100))
+	_update_build_progress(total_chunks, total_chunks, "Applying 3D overlays... %d%%" % clampi(pct, 0, 100))
 	_bump_3d_viewport_rendering()
 	if done:
 		_finalize_async_overlay_apply()
@@ -1262,6 +1285,7 @@ func _reset_async_build_state() -> void:
 	_async_overlay_metrics.clear()
 	_async_overlay_apply_started_usec = 0
 	_set_async_overlay_descriptor_state(false, false, {}, {})
+	_set_async_overlay_descriptor_stage("")
 	_async_overlay_descriptor_dynamic_only = false
 	_overlay_only_refresh_requested = false
 	_dynamic_overlay_refresh_requested = false
