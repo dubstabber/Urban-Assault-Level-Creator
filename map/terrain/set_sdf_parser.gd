@@ -3,6 +3,9 @@ class_name SetSdfParser
 
 const _UAProjectDataRoots = preload("res://map/ua_project_data_roots.gd")
 const _UALegacyText = preload("res://map/ua_legacy_text.gd")
+static var _full_typ_data_cache: Dictionary = {}
+static var _tile_mapping_cache: Dictionary = {}
+static var _lego_defs_cache: Dictionary = {}
 
 # Parses UA set.sdf and returns authoring metadata keyed by typ_id.
 # Path: UAProjectDataRoots.set_sdf_path_for_set (bundled sets, then optional in-project UA trees).
@@ -55,6 +58,10 @@ static func parse_lego_defs(path: String) -> Dictionary:
 	var lego_defs := {}
 	if path.is_empty() or not FileAccess.file_exists(path):
 		return lego_defs
+	var cache_key := _cache_key_for_path(path)
+	if not cache_key.is_empty() and _lego_defs_cache.has(cache_key):
+		var cached = _lego_defs_cache[cache_key]
+		return cached.duplicate(true) if typeof(cached) == TYPE_DICTIONARY else {}
 	var full := _UALegacyText.read_file(path)
 	if full.is_empty():
 		return lego_defs
@@ -82,6 +89,8 @@ static func parse_lego_defs(path: String) -> Dictionary:
 			"skeleton_ref": skeleton_ref
 		}
 		raw_id += 1
+	if not cache_key.is_empty():
+		_lego_defs_cache[cache_key] = lego_defs.duplicate(true)
 	return lego_defs
 
 static func parse_surface_type_map(set_id: int, game_data_type: String = "original") -> Dictionary:
@@ -115,6 +124,10 @@ static func parse_tile_mapping(path: String) -> Dictionary:
 	var tile_map := {}
 	if path.is_empty() or not FileAccess.file_exists(path):
 		return tile_map
+	var cache_key := _cache_key_for_path(path)
+	if not cache_key.is_empty() and _tile_mapping_cache.has(cache_key):
+		var cached = _tile_mapping_cache[cache_key]
+		return cached.duplicate(true) if typeof(cached) == TYPE_DICTIONARY else {}
 	
 	var f := FileAccess.open(path, FileAccess.READ)
 	if f == null:
@@ -217,6 +230,8 @@ static func parse_tile_mapping(path: String) -> Dictionary:
 	
 	f.close()
 	print("[SetSdfParser] Parsed %d tile definitions from %s" % [tile_map.size(), path])
+	if not cache_key.is_empty():
+		_tile_mapping_cache[cache_key] = tile_map.duplicate(true)
 	return tile_map
 
 # Parse full typ data including subsector patterns from a specific path
@@ -236,6 +251,10 @@ static func parse_full_typ_data_at(path: String) -> Dictionary:
 	if not FileAccess.file_exists(path):
 		push_warning("SetSdfParser: set.sdf not found at %s" % path)
 		return result
+	var cache_key := _cache_key_for_path(path)
+	if not cache_key.is_empty() and _full_typ_data_cache.has(cache_key):
+		var cached = _full_typ_data_cache[cache_key]
+		return cached.duplicate(true) if typeof(cached) == TYPE_DICTIONARY else result
 	var f := FileAccess.open(path, FileAccess.READ)
 	if f == null:
 		push_warning("SetSdfParser: cannot open %s" % path)
@@ -361,8 +380,15 @@ static func parse_full_typ_data_at(path: String) -> Dictionary:
 	for i in count:
 		var k: int = all_keys[i]
 		print("  typ %d -> surface_type %d" % [k, result["surface_types"][k]])
-	
+	if not cache_key.is_empty():
+		_full_typ_data_cache[cache_key] = result.duplicate(true)
 	return result
+
+
+static func _cache_key_for_path(path: String) -> String:
+	if path.is_empty() or not FileAccess.file_exists(path):
+		return ""
+	return "%s::%d" % [path, int(FileAccess.get_modified_time(path))]
 
 static func _strip_comments(s: String) -> String:
 	var semi := s.find(";")

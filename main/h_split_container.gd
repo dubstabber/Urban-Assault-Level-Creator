@@ -11,8 +11,8 @@ func _ready() -> void:
 func _apply_view_mode() -> void:
 	map_3d_container.visible = EditorState.view_mode_3d
 	map_container.visible = not EditorState.view_mode_3d
-	# UPDATE_ALWAYS keeps terrain/animated piece previews running; idle SubViewport throttling would freeze animations.
-	map_3d_viewport.render_target_update_mode = SubViewport.UPDATE_ALWAYS if EditorState.view_mode_3d else SubViewport.UPDATE_DISABLED
+	# UPDATE_WHEN_VISIBLE avoids unnecessary redraws while preserving live preview updates in 3D mode.
+	map_3d_viewport.render_target_update_mode = SubViewport.UPDATE_WHEN_VISIBLE if EditorState.view_mode_3d else SubViewport.UPDATE_DISABLED
 
 func _input(event: InputEvent) -> void:
 	if event.is_action_pressed("switch_view"):

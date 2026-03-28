@@ -58,6 +58,7 @@ static func build_mesh_with_textures(hgt: PackedByteArray, typ: PackedByteArray,
 	surface_tools[-1] = st_invalid
 	surface_type_order.append(-1)
 	var authored_piece_descriptors: Array = []
+	var authored_descriptor_base_cache := {}
 
 	for y in range(-1, h + 1):
 		for x in range(-1, w + 1):
@@ -88,7 +89,8 @@ static func build_mesh_with_textures(hgt: PackedByteArray, typ: PackedByteArray,
 						var piece_x1 := x0 + float(sub_x + 1) * piece_w
 						var piece_z0 := z0 + float(sub_y) * piece_h
 						var piece_z1 := z0 + float(sub_y + 1) * piece_h
-						var authored := UATerrainPieceLibraryScript.resolve_authored_descriptor(
+						var authored := _authored_descriptor_from_cache(
+							authored_descriptor_base_cache,
 							set_id,
 							int(selection.get("raw_id", -1)),
 							lego_defs,
@@ -123,7 +125,8 @@ static func build_mesh_with_textures(hgt: PackedByteArray, typ: PackedByteArray,
 				if subsectors.size() > 0:
 					var selection := _default_piece_selection_for_subsector(surface_type, int(subsectors[0]), tile_mapping, tile_remap, subsector_idx_remap)
 					piece = selection.get("piece", piece)
-					authored = UATerrainPieceLibraryScript.resolve_authored_descriptor(
+					authored = _authored_descriptor_from_cache(
+						authored_descriptor_base_cache,
 						set_id,
 						int(selection.get("raw_id", -1)),
 						lego_defs,
@@ -405,6 +408,19 @@ static func _authored_origin_for_subsector(sector_x0: float, sector_z0: float, s
 	)
 
 
+static func _authored_descriptor_from_cache(cache: Dictionary, set_id: int, raw_id: int, lego_defs: Dictionary, origin: Vector3) -> Dictionary:
+	if raw_id < 0:
+		return {}
+	if not cache.has(raw_id):
+		cache[raw_id] = UATerrainPieceLibraryScript.resolve_authored_descriptor(set_id, raw_id, lego_defs, Vector3.ZERO)
+	var cached_desc = cache.get(raw_id, {})
+	if typeof(cached_desc) != TYPE_DICTIONARY or (cached_desc as Dictionary).is_empty():
+		return {}
+	var descriptor := (cached_desc as Dictionary).duplicate(true)
+	descriptor["origin"] = origin
+	return descriptor
+
+
 static func sector_to_chunk(sx: int, sy: int) -> Vector2i:
 	return Vector2i(sx >> CHUNK_SHIFT, sy >> CHUNK_SHIFT)
 
@@ -516,6 +532,7 @@ static func build_chunk_mesh_with_textures(
 	surface_tools[-1] = st_invalid
 	surface_type_order.append(-1)
 	var authored_piece_descriptors: Array = []
+	var authored_descriptor_base_cache := {}
 
 	for y in range(sy_min, sy_max):
 		for x in range(sx_min, sx_max):
@@ -546,7 +563,8 @@ static func build_chunk_mesh_with_textures(
 						var piece_x1 := x0 + float(sub_x + 1) * piece_w
 						var piece_z0 := z0 + float(sub_y) * piece_h
 						var piece_z1 := z0 + float(sub_y + 1) * piece_h
-						var authored := UATerrainPieceLibraryScript.resolve_authored_descriptor(
+						var authored := _authored_descriptor_from_cache(
+							authored_descriptor_base_cache,
 							set_id,
 							int(selection.get("raw_id", -1)),
 							lego_defs,
@@ -581,7 +599,8 @@ static func build_chunk_mesh_with_textures(
 				if subsectors.size() > 0:
 					var selection := _default_piece_selection_for_subsector(surface_type, int(subsectors[0]), tile_mapping, tile_remap, subsector_idx_remap)
 					piece = selection.get("piece", piece)
-					authored = UATerrainPieceLibraryScript.resolve_authored_descriptor(
+					authored = _authored_descriptor_from_cache(
+						authored_descriptor_base_cache,
 						set_id,
 						int(selection.get("raw_id", -1)),
 						lego_defs,

@@ -28,7 +28,7 @@ const TERRAIN_PREVIEW_COLOR := Color(0.62, 0.66, 0.58, 1.0)
 const EDGE_PREVIEW_COLOR := Color(0.82, 0.48, 0.24, 0.55)
 const EDGE_BLEND_SHADER_PATH := "res://resources/terrain/shaders/edge_blend.gdshader"
 const SUBQUAD_UV_INSET := 0.002 # Prevent internal 1/3 and 2/3 seam sampling bleed
-const _DEBUG_DISABLE_CHUNKED_EXPERIMENT := true
+const _DEBUG_DISABLE_CHUNKED_EXPERIMENT := false
 
 #region debug NDJSON logging (runtime evidence)
 const _NDJSON_DEBUG_LOG_PATH := "/run/media/ydro/WDC/gamedev-workspace/Urban Assault Level Creator/.cursor/debug-324b35.log"
@@ -182,6 +182,7 @@ var _terrain_chunk_authored_cache_keys: Dictionary = {}
 var _initial_build_in_progress := false
 var _initial_build_batch_size := 4
 var _initial_build_accumulated_authored_descriptors: Array = []
+const _LARGE_MAP_STATIC_OVERLAY_THRESHOLD := 1600
 
 # When the renderer fell back to a full rebuild (e.g. because dirty chunk tracking
 # didn't get signaled), the incremental cache bookkeeping may not be exact for
@@ -540,7 +541,7 @@ func _bump_3d_viewport_rendering() -> void:
 	var vp := _get_map_subviewport()
 	if vp == null:
 		return
-	vp.render_target_update_mode = SubViewport.UPDATE_ALWAYS
+	vp.render_target_update_mode = SubViewport.UPDATE_WHEN_VISIBLE
 
 
 func _physics_process(delta: float) -> void:
@@ -783,6 +784,10 @@ func build_from_current_map() -> void:
 
 	metrics["used_textured_preloads"] = true
 	var level_set := int(_cmd.level_set)
+	var map_area := w * h
+	var prefer_static_overlay := map_area >= _LARGE_MAP_STATIC_OVERLAY_THRESHOLD
+	UATerrainPieceLibraryScript.set_overlay_performance_hint(prefer_static_overlay)
+	metrics["overlay_perf_static_mode"] = prefer_static_overlay
 	var use_chunked := _chunked_terrain_enabled and not _needs_full_rebuild(w, h, level_set) and not _DEBUG_DISABLE_CHUNKED_EXPERIMENT
 	#region agent log
 	_ndjson_log_once(
@@ -1369,8 +1374,9 @@ func _rebuild_dirty_chunks(
 	var all_authored_descriptors: Array = []
 	var chunks_rebuilt := 0
 	var processed: Array[Vector2i] = []
+	var dirty_chunk_list := _dirty_chunks_sorted_by_priority(w, h)
 
-	for chunk_coord in _dirty_chunks.keys():
+	for chunk_coord in dirty_chunk_list:
 		if max_chunks > 0 and chunks_rebuilt >= max_chunks:
 			break
 		var terrain_result := TerrainBuilder.build_chunk_mesh_with_textures(
@@ -1457,6 +1463,37 @@ func _rebuild_dirty_chunks(
 		_dirty_chunks.erase(chunk_coord)
 	metrics["chunks_rebuilt"] = chunks_rebuilt
 	return all_authored_descriptors
+
+
+static func _chunk_distance_sq(a: Vector2i, b: Vector2i) -> int:
+	var dx := a.x - b.x
+	var dy := a.y - b.y
+	return dx * dx + dy * dy
+
+
+func _dirty_chunks_sorted_by_priority(w: int, h: int) -> Array[Vector2i]:
+	var ordered: Array[Vector2i] = []
+	for key in _dirty_chunks.keys():
+		if key is Vector2i:
+			ordered.append(key)
+	if ordered.size() <= 1:
+		return ordered
+	var focus_chunk := _chunk_focus_coord(w, h)
+	ordered.sort_custom(func(a, b) -> bool:
+		return _chunk_distance_sq(Vector2i(a), focus_chunk) < _chunk_distance_sq(Vector2i(b), focus_chunk)
+	)
+	return ordered
+
+
+func _chunk_focus_coord(w: int, h: int) -> Vector2i:
+	if _camera != null and is_instance_valid(_camera):
+		var world_pos := _camera.global_position if _camera.is_inside_tree() else _camera.position
+		var sx := clampi(_world_to_sector_index(world_pos.x), 0, maxi(w - 1, 0))
+		var sy := clampi(_world_to_sector_index(world_pos.z), 0, maxi(h - 1, 0))
+		return TerrainBuilder.sector_to_chunk(sx, sy)
+	var center_sx := maxi(w / 2, 0)
+	var center_sy := maxi(h / 2, 0)
+	return TerrainBuilder.sector_to_chunk(center_sx, center_sy)
 
 func _set_authored_overlay(descriptors: Array) -> void:
 	if _authored_overlay == null or not is_instance_valid(_authored_overlay):
