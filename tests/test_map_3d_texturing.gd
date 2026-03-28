@@ -748,6 +748,18 @@ func test_build_edge_overlay_result_uses_pair_based_vertical_seam_for_interior_p
 	_check(result.get("mesh", null) == null, "When the authored interior slurp exists, the live overlay should not fall back to the old strip mesh for that seam")
 	return _errors.is_empty()
 
+
+func test_build_edge_overlay_result_keeps_authored_vertical_slurp_for_height_step_pair() -> bool:
+	_reset_errors()
+	var data := _make_typ_and_hgt(2, 1, [12, 34], 5)
+	_set_hgt_value(data["hgt"], 2, 1, 0, 10)
+	var renderer = Map3DRendererScript.new()
+	var result: Dictionary = renderer._build_edge_overlay_result(data["hgt"], 2, 1, data["typ"], {12: 0, 34: 1}, 1, MockPreloads.new())
+	var descriptors: Array = result.get("authored_piece_descriptors", [])
+	_check(_has_descriptor(descriptors, "S01V", Vector3(2.5 * SECTOR_SIZE, 10.0 * HEIGHT_SCALE, 1.5 * SECTOR_SIZE)), "Height-step interior left/right neighbors should still keep authored S01V slurps anchored to the right sector center")
+	_check(result.get("mesh", null) == null, "Height-step authored vertical seams should not fall back to strip mesh because fallback causes protruding artifacts")
+	return _errors.is_empty()
+
 func test_build_edge_overlay_result_keeps_authored_vertical_slurp_for_flat_same_surface_pair() -> bool:
 	_reset_errors()
 	var data := _make_typ_and_hgt(2, 1, [12, 34], 5)
@@ -765,6 +777,18 @@ func test_build_edge_overlay_result_uses_pair_based_horizontal_seam_for_interior
 	var descriptors: Array = result.get("authored_piece_descriptors", [])
 	_check(_has_descriptor(descriptors, "S01H", Vector3(1.5 * SECTOR_SIZE, 0.0, 2.5 * SECTOR_SIZE)), "Interior top/bottom seam should prefer authored S01H slurp anchored to the bottom sector center")
 	_check(result.get("mesh", null) == null, "When the authored interior hside slurp exists, the live overlay should not fall back to the old strip mesh for that seam")
+	return _errors.is_empty()
+
+
+func test_build_edge_overlay_result_keeps_authored_horizontal_slurp_for_height_step_pair() -> bool:
+	_reset_errors()
+	var data := _make_typ_and_hgt(1, 2, [12, 34], 5)
+	_set_hgt_value(data["hgt"], 1, 0, 1, 10)
+	var renderer = Map3DRendererScript.new()
+	var result: Dictionary = renderer._build_edge_overlay_result(data["hgt"], 1, 2, data["typ"], {12: 0, 34: 1}, 1, MockPreloads.new())
+	var descriptors: Array = result.get("authored_piece_descriptors", [])
+	_check(_has_descriptor(descriptors, "S01H", Vector3(1.5 * SECTOR_SIZE, 10.0 * HEIGHT_SCALE, 2.5 * SECTOR_SIZE)), "Height-step interior top/bottom neighbors should still keep authored S01H slurps anchored to the bottom sector center")
+	_check(result.get("mesh", null) == null, "Height-step authored horizontal seams should not fall back to strip mesh because fallback causes protruding artifacts")
 	return _errors.is_empty()
 
 func test_build_edge_overlay_result_uses_pair_based_horizontal_seam_for_north_border_pair() -> bool:
