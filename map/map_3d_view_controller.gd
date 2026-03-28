@@ -1,8 +1,8 @@
 extends RefCounted
 class_name Map3DViewController
 
-const UA_NORMAL_VIZ_LIMIT := 2500.0
-const UA_NORMAL_FADE_LENGTH := 1000.0
+const UA_NORMAL_VIZ_LIMIT := 1400.0
+const UA_NORMAL_FADE_LENGTH := 600.0
 const UA_VISIBILITY_FOG_COLOR := Color.BLACK
 
 

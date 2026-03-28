@@ -1,4 +1,4 @@
-[gd_scene load_steps=56 format=3 uid="uid://ctgiwn3scteuk"]
+[gd_scene load_steps=55 format=3 uid="uid://ctgiwn3scteuk"]
 
 [ext_resource type="Script" uid="uid://66b2147vfma0" path="res://main/main.gd" id="1_7pb5r"]
 [ext_resource type="Script" uid="uid://os5b5mds6770" path="res://modals/modals.gd" id="2_glk8b"]
@@ -114,8 +114,6 @@ sky_material = SubResource("ShaderMaterial_yjufm")
 [sub_resource type="Environment" id="Environment_cgvj2"]
 background_mode = 2
 sky = SubResource("Sky_phifs")
-
-[sub_resource type="SphereMesh" id="SphereMesh_yjufm"]
 
 [sub_resource type="PlaneMesh" id="PlaneMesh_yjufm"]
 size = Vector2(20, 20)
@@ -377,13 +375,8 @@ environment = SubResource("Environment_cgvj2")
 
 [node name="SkyRoot" type="Node3D" parent="PanelContainer/MarginContainer/VBoxContainer/HSplitContainer/Map3DContainer/SubViewport/Map3D"]
 script = ExtResource("37_skyrt")
-sky_vertical_offset = 550.0
 
 [node name="SkyContainer" type="Node3D" parent="PanelContainer/MarginContainer/VBoxContainer/HSplitContainer/Map3DContainer/SubViewport/Map3D/SkyRoot"]
-
-[node name="TestMesh" type="MeshInstance3D" parent="PanelContainer/MarginContainer/VBoxContainer/HSplitContainer/Map3DContainer/SubViewport/Map3D"]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.729786, -5.38842)
-mesh = SubResource("SphereMesh_yjufm")
 
 [node name="TerrainMesh" type="MeshInstance3D" parent="PanelContainer/MarginContainer/VBoxContainer/HSplitContainer/Map3DContainer/SubViewport/Map3D"]
 mesh = SubResource("PlaneMesh_yjufm")

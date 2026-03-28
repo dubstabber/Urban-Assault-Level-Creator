@@ -29,6 +29,8 @@ const EDGE_PREVIEW_COLOR := Color(0.82, 0.48, 0.24, 0.55)
 const EDGE_BLEND_SHADER_PATH := "res://resources/terrain/shaders/edge_blend.gdshader"
 const SUBQUAD_UV_INSET := 0.002 # Prevent internal 1/3 and 2/3 seam sampling bleed
 const _DEBUG_DISABLE_CHUNKED_EXPERIMENT := false
+const UA_NORMAL_RENDER_SECTORS := 5
+const UA_NORMAL_GEOMETRY_CULL_DISTANCE := float(UA_NORMAL_RENDER_SECTORS) * SECTOR_SIZE + SECTOR_SIZE * 0.5
 
 #region debug NDJSON logging (runtime evidence)
 const _NDJSON_DEBUG_LOG_PATH := "/run/media/ydro/WDC/gamedev-workspace/Urban Assault Level Creator/.cursor/debug-324b35.log"
@@ -189,6 +191,8 @@ var _initial_build_accumulated_authored_descriptors: Array = []
 # consistent edge/slurp + authored-overlay behavior.
 var _force_full_rebuild_next_update := false
 var _force_full_rebuild_was_applied := false
+var _geometry_distance_culling_enabled := false
+var _geometry_cull_distance := UA_NORMAL_GEOMETRY_CULL_DISTANCE
 
 
 func set_event_system_override(event_system: Node) -> void:
@@ -490,13 +494,13 @@ func _ready() -> void:
 			_request_refresh(true)
 
 func _apply_visibility_range_from_editor_state() -> void:
-	if _world_environment == null or _world_environment.environment == null:
-		return
 	var editor_state := _editor_state()
 	var enabled := false
 	if editor_state != null:
 		enabled = bool(editor_state.get("map_3d_visibility_range_enabled"))
-	apply_visibility_range_to_environment(_world_environment.environment, enabled)
+	if _world_environment != null and _world_environment.environment != null:
+		apply_visibility_range_to_environment(_world_environment.environment, enabled)
+	_apply_geometry_distance_culling_state(enabled)
 
 func _on_map_view_updated() -> void:
 	_apply_preview_activity_state()
@@ -577,6 +581,7 @@ func _physics_process(delta: float) -> void:
 		move = move.normalized()
 	var speed := _move_speed * (_sprint_mult if Input.is_physical_key_pressed(KEY_SHIFT) else 1.0)
 	_camera.global_translate(move * speed * delta)
+	_update_geometry_distance_culling_visibility()
 
 func _unhandled_input(event: InputEvent) -> void:
 	if not is_visible_in_tree():
@@ -588,8 +593,10 @@ func _unhandled_input(event: InputEvent) -> void:
 			Input.set_mouse_mode(Input.MOUSE_MODE_CAPTURED if _mouselook else Input.MOUSE_MODE_VISIBLE)
 		elif mb.button_index == MOUSE_BUTTON_WHEEL_UP and mb.pressed:
 			_camera.translate_local(Vector3(0, 0, -_wheel_step()))
+			_update_geometry_distance_culling_visibility()
 		elif mb.button_index == MOUSE_BUTTON_WHEEL_DOWN and mb.pressed:
 			_camera.translate_local(Vector3(0, 0, _wheel_step()))
+			_update_geometry_distance_culling_visibility()
 	elif event is InputEventMouseMotion and _mouselook:
 		var mm := event as InputEventMouseMotion
 		_yaw -= mm.relative.x * _look_sens
@@ -625,6 +632,7 @@ func _frame_if_needed() -> void:
 		" max_h=", int(frame_result.get("max_h", 0)),
 		" avg_h=", float(frame_result.get("avg_h", 0.0)))
 	_framed = bool(frame_result.get("framed", false))
+	_update_geometry_distance_culling_visibility()
 
 func _on_map_changed() -> void:
 	var _cmd = _current_map_data()
@@ -1190,6 +1198,7 @@ func _get_or_create_terrain_chunk_node(chunk_coord: Vector2i) -> MeshInstance3D:
 	if _terrain_mesh:
 		_terrain_mesh.add_child(node)
 	_terrain_chunk_nodes[chunk_coord] = node
+	_apply_geometry_distance_culling_to_chunk_node(node, chunk_coord)
 	return node
 
 
@@ -1204,6 +1213,7 @@ func _get_or_create_edge_chunk_node(chunk_coord: Vector2i) -> MeshInstance3D:
 	if _edge_mesh:
 		_edge_mesh.add_child(node)
 	_edge_chunk_nodes[chunk_coord] = node
+	_apply_geometry_distance_culling_to_chunk_node(node, chunk_coord)
 	return node
 
 
@@ -1514,6 +1524,111 @@ func _set_authored_overlay(descriptors: Array) -> void:
 		add_child(_authored_overlay)
 	UATerrainPieceLibraryScript.reset_piece_overlay_build_counters()
 	AuthoredOverlayManager.apply_overlay_node(_authored_overlay, descriptors)
+	_apply_geometry_distance_culling_to_overlay()
+
+
+func _apply_geometry_distance_culling_state(enabled: bool) -> void:
+	_geometry_distance_culling_enabled = enabled
+	_geometry_cull_distance = UA_NORMAL_GEOMETRY_CULL_DISTANCE
+	if not enabled:
+		_set_all_distance_culled_nodes_visible(true)
+		return
+	_update_geometry_distance_culling_visibility()
+
+
+func _set_all_distance_culled_nodes_visible(make_visible: bool) -> void:
+	for chunk_coord in _terrain_chunk_nodes.keys():
+		var terrain_chunk := _terrain_chunk_nodes[chunk_coord] as MeshInstance3D
+		if terrain_chunk != null and is_instance_valid(terrain_chunk):
+			terrain_chunk.visible = make_visible and terrain_chunk.mesh != null
+	for chunk_coord in _edge_chunk_nodes.keys():
+		var edge_chunk := _edge_chunk_nodes[chunk_coord] as MeshInstance3D
+		if edge_chunk != null and is_instance_valid(edge_chunk):
+			edge_chunk.visible = make_visible and edge_chunk.mesh != null
+	if _authored_overlay != null and is_instance_valid(_authored_overlay):
+		for child in _authored_overlay.get_children():
+			if child is Node3D:
+				(child as Node3D).visible = make_visible
+
+
+func _update_geometry_distance_culling_visibility() -> void:
+	if not _geometry_distance_culling_enabled:
+		return
+	if _camera == null or not is_instance_valid(_camera):
+		return
+	var cam_pos := _camera.global_position
+	var cam_xz := Vector2(cam_pos.x, cam_pos.z)
+	var cull_sq := _geometry_cull_distance * _geometry_cull_distance
+
+	for chunk_coord_any in _terrain_chunk_nodes.keys():
+		var chunk_coord := Vector2i(chunk_coord_any)
+		var terrain_chunk := _terrain_chunk_nodes[chunk_coord] as MeshInstance3D
+		if terrain_chunk == null or not is_instance_valid(terrain_chunk):
+			continue
+		var center := _chunk_center_world_xz(chunk_coord)
+		var within_range := cam_xz.distance_squared_to(center) <= cull_sq
+		terrain_chunk.visible = within_range and terrain_chunk.mesh != null
+
+	for chunk_coord_any in _edge_chunk_nodes.keys():
+		var chunk_coord := Vector2i(chunk_coord_any)
+		var edge_chunk := _edge_chunk_nodes[chunk_coord] as MeshInstance3D
+		if edge_chunk == null or not is_instance_valid(edge_chunk):
+			continue
+		var center := _chunk_center_world_xz(chunk_coord)
+		var within_range := cam_xz.distance_squared_to(center) <= cull_sq
+		edge_chunk.visible = within_range and edge_chunk.mesh != null
+
+	_apply_geometry_distance_culling_to_overlay()
+
+
+func _apply_geometry_distance_culling_to_chunk_node(chunk_node: MeshInstance3D, chunk_coord: Vector2i) -> void:
+	if chunk_node == null or not is_instance_valid(chunk_node):
+		return
+	if not _geometry_distance_culling_enabled:
+		chunk_node.visible = chunk_node.mesh != null
+		return
+	if _camera == null or not is_instance_valid(_camera):
+		return
+	var center := _chunk_center_world_xz(chunk_coord)
+	var cam_pos := _camera.global_position
+	var cam_xz := Vector2(cam_pos.x, cam_pos.z)
+	chunk_node.visible = cam_xz.distance_squared_to(center) <= (_geometry_cull_distance * _geometry_cull_distance) and chunk_node.mesh != null
+
+
+func _apply_geometry_distance_culling_to_overlay() -> void:
+	if _authored_overlay == null or not is_instance_valid(_authored_overlay):
+		return
+	if not _geometry_distance_culling_enabled:
+		for child in _authored_overlay.get_children():
+			if child is Node3D:
+				(child as Node3D).visible = true
+		return
+	if _camera == null or not is_instance_valid(_camera):
+		return
+	var cam_pos := _camera.global_position
+	var cam_xz := Vector2(cam_pos.x, cam_pos.z)
+	var cull_sq := _geometry_cull_distance * _geometry_cull_distance
+	for child in _authored_overlay.get_children():
+		if not (child is Node3D):
+			continue
+		var node := child as Node3D
+		var p := node.global_position
+		var within_range := cam_xz.distance_squared_to(Vector2(p.x, p.z)) <= cull_sq
+		node.visible = within_range
+
+
+func _chunk_center_world_xz(chunk_coord: Vector2i) -> Vector2:
+	var w := maxi(_last_map_dimensions.x, 0)
+	var h := maxi(_last_map_dimensions.y, 0)
+	if w <= 0 or h <= 0:
+		return Vector2.ZERO
+	var sx_min := chunk_coord.x * TerrainBuilder.CHUNK_SIZE
+	var sy_min := chunk_coord.y * TerrainBuilder.CHUNK_SIZE
+	var sx_max := mini(sx_min + TerrainBuilder.CHUNK_SIZE, w)
+	var sy_max := mini(sy_min + TerrainBuilder.CHUNK_SIZE, h)
+	var center_sector_x := (float(sx_min + sx_max) * 0.5) + 1.0
+	var center_sector_y := (float(sy_min + sy_max) * 0.5) + 1.0
+	return Vector2(center_sector_x * SECTOR_SIZE, center_sector_y * SECTOR_SIZE)
 
 static func _make_preview_material(color: Color) -> StandardMaterial3D:
 	var mat := StandardMaterial3D.new()
