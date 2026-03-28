@@ -243,6 +243,7 @@ var _overlay_only_refresh_requested := false
 var _dynamic_overlay_refresh_requested := false
 var _async_dynamic_overlay_descriptors: Array = []
 var _async_overlay_descriptor_dynamic_only := false
+var _skip_next_map_changed_refresh := false
 
 
 func set_event_system_override(event_system: Node) -> void:
@@ -708,6 +709,8 @@ func _ready() -> void:
 			_es.squad_added.connect(_on_squad_added)
 		if _es.has_signal("unit_position_committed"):
 			_es.unit_position_committed.connect(_on_unit_position_committed)
+		if _es.has_signal("unit_overlay_refresh_requested"):
+			_es.unit_overlay_refresh_requested.connect(_on_unit_overlay_refresh_requested)
 		if _es.has_signal("hgt_map_cells_edited"):
 			_es.hgt_map_cells_edited.connect(_on_hgt_map_cells_edited)
 		if _es.has_signal("typ_map_cells_edited"):
@@ -747,18 +750,28 @@ func _on_map_3d_overlay_animations_changed() -> void:
 
 
 func _on_host_station_added(_owner_id: int, _vehicle_id: int) -> void:
-	if _preview_refresh_active():
-		_request_dynamic_overlay_refresh()
+	_request_dynamic_overlay_refresh()
 
 
 func _on_squad_added(_owner_id: int, _vehicle_id: int) -> void:
-	if _preview_refresh_active():
-		_request_dynamic_overlay_refresh()
+	_request_dynamic_overlay_refresh()
 
 
 func _on_unit_position_committed() -> void:
-	if _preview_refresh_active():
+	_request_dynamic_overlay_refresh()
+
+
+func _on_unit_overlay_refresh_requested(unit_kind: String, unit_id: int) -> void:
+	if not _preview_refresh_active():
 		_request_dynamic_overlay_refresh()
+		return
+	_skip_next_map_changed_refresh = true
+	if _is_async_pipeline_active():
+		_request_dynamic_overlay_refresh()
+		return
+	if _apply_single_unit_dynamic_refresh(unit_kind, unit_id):
+		return
+	_request_dynamic_overlay_refresh()
 
 
 func _request_overlay_only_refresh() -> void:
@@ -1176,6 +1189,61 @@ func _apply_dynamic_overlay(dynamic_descriptors: Array) -> void:
 	_apply_geometry_distance_culling_to_overlay()
 
 
+func _find_unit_by_instance_id(container: Node, unit_id: int) -> Node2D:
+	if container == null or not is_instance_valid(container):
+		return null
+	for child in container.get_children():
+		if child is Node2D and int(child.get_instance_id()) == unit_id:
+			return child as Node2D
+	return null
+
+
+func _apply_single_unit_dynamic_refresh(unit_kind: String, unit_id: int) -> bool:
+	if unit_id <= 0:
+		return false
+	if not _can_use_overlay_only_refresh():
+		return false
+	var cmd := _current_map_data()
+	if cmd == null:
+		return false
+	var w := int(cmd.horizontal_sectors)
+	var h := int(cmd.vertical_sectors)
+	if w <= 0 or h <= 0:
+		return false
+	var hgt: PackedByteArray = cmd.hgt_map
+	if hgt.size() != (w + 2) * (h + 2):
+		return false
+	var support_descriptors: Array = _terrain_authored_cache_by_key.values().duplicate()
+	_ensure_overlay_nodes()
+
+	if unit_kind == "host":
+		var hs := _find_unit_by_instance_id(cmd.host_stations, unit_id)
+		var host_descriptors: Array = []
+		if hs != null:
+			host_descriptors = _build_host_station_descriptors([hs], _async_level_set, hgt, w, h, support_descriptors, _make_empty_build_metrics())
+		var host_prefixes: Array = [
+			"host:%d:%d:" % [_async_level_set, unit_id],
+			"host_gun:%d:%d:" % [_async_level_set, unit_id]
+		]
+		_overlay_apply_manager.apply_overlay_for_prefixes(_dynamic_overlay, host_prefixes, host_descriptors)
+		_apply_geometry_distance_culling_to_overlay()
+		_bump_3d_viewport_rendering()
+		return true
+
+	if unit_kind == "squad":
+		var sq := _find_unit_by_instance_id(cmd.squads, unit_id)
+		var squad_descriptors: Array = []
+		if sq != null:
+			squad_descriptors = _build_squad_descriptors([sq], _async_level_set, hgt, w, h, support_descriptors, _async_game_data_type, _make_empty_build_metrics())
+		var squad_prefixes: Array = ["squad:%d:%d:" % [_async_level_set, unit_id]]
+		_overlay_apply_manager.apply_overlay_for_prefixes(_dynamic_overlay, squad_prefixes, squad_descriptors)
+		_apply_geometry_distance_culling_to_overlay()
+		_bump_3d_viewport_rendering()
+		return true
+
+	return false
+
+
 func _start_async_overlay_apply(static_descriptors: Array, dynamic_descriptors: Array, metrics: Dictionary) -> void:
 	_ensure_overlay_nodes()
 	_async_overlay_descriptors = static_descriptors
@@ -1289,6 +1357,7 @@ func _reset_async_build_state() -> void:
 	_async_overlay_descriptor_dynamic_only = false
 	_overlay_only_refresh_requested = false
 	_dynamic_overlay_refresh_requested = false
+	_skip_next_map_changed_refresh = false
 
 
 func _sync_terrain_overlay_animation_mode_from_editor() -> void:
@@ -1420,6 +1489,9 @@ func _frame_if_needed() -> void:
 	_update_geometry_distance_culling_visibility()
 
 func _on_map_changed() -> void:
+	if _skip_next_map_changed_refresh:
+		_skip_next_map_changed_refresh = false
+		return
 	_cancel_async_initial_build()
 	_overlay_only_refresh_requested = false
 	_dynamic_overlay_refresh_requested = false

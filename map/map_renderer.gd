@@ -212,6 +212,7 @@ func add_hoststation(owner_id: int, vehicle_id: int) -> void:
 	hoststation.position.y = clampi(right_clicked_y, 1205, ((CurrentMapData.vertical_sectors + 1) * SECTOR_SIZE) - 5)
 
 	EditorState.selected_unit = hoststation
+	EventSystem.unit_overlay_refresh_requested.emit("host", int(hoststation.get_instance_id()))
 	if CurrentMapData.player_host_station == null or not is_instance_valid(CurrentMapData.player_host_station):
 		CurrentMapData.player_host_station = CurrentMapData.host_stations.get_child(0)
 	CurrentMapData.is_saved = false
@@ -230,6 +231,7 @@ func add_squad(owner_id: int, vehicle_id: int) -> void:
 	CurrentMapData.is_saved = false
 	EditorState.selected_unit = squad
 	EventSystem.unit_position_committed.emit()
+	EventSystem.unit_overlay_refresh_requested.emit("squad", int(squad.get_instance_id()))
 	EventSystem.map_updated.emit()
 
 func _draw_key_sector(pos_x: int, pos_y: int, texture) -> void:

@@ -38,7 +38,7 @@ func _ready() -> void:
 		EditorState.selected_unit.position.x = pos_x
 		if moved:
 			EventSystem.unit_position_committed.emit()
-			EventSystem.map_updated.emit()
+			EventSystem.unit_overlay_refresh_requested.emit("squad", int(EditorState.selected_unit.get_instance_id()))
 	)
 	zpos_squad_line_edit.text_submitted.connect(func(text_value: String):
 		var pos_z := clampi(abs(int(text_value)), 1205, ((CurrentMapData.vertical_sectors + 1) * 1200) - 5)
@@ -49,7 +49,7 @@ func _ready() -> void:
 		EditorState.selected_unit.position.y = pos_z
 		if moved:
 			EventSystem.unit_position_committed.emit()
-			EventSystem.map_updated.emit()
+			EventSystem.unit_overlay_refresh_requested.emit("squad", int(EditorState.selected_unit.get_instance_id()))
 	)
 	useable_check_box.toggled.connect(func(toggled: bool):
 		if EditorState.selected_unit.useable != toggled: CurrentMapData.is_saved = false

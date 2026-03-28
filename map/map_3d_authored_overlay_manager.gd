@@ -47,6 +47,87 @@ static func apply_overlay_node(root: Node3D, descriptors: Array) -> void:
 	manager.finalize_apply_overlay_node(root, state)
 
 
+static func apply_overlay_for_prefixes(root: Node3D, key_prefixes: Array, descriptors: Array) -> void:
+	if root == null or not is_instance_valid(root):
+		return
+	if key_prefixes.is_empty():
+		apply_overlay_node(root, descriptors)
+		return
+	if root.name != "AuthoredOverlay":
+		root.name = "AuthoredOverlay"
+
+	var desired := _desired_descriptors_by_key(descriptors)
+	var existing := _existing_nodes_by_key(root)
+
+	for key_value in existing.keys():
+		var key := String(key_value)
+		if not _key_matches_prefixes(key, key_prefixes):
+			continue
+		if desired.has(key):
+			continue
+		var node: Node = existing.get(key, null)
+		if node != null and is_instance_valid(node):
+			node.queue_free()
+		existing.erase(key)
+
+	for key_value in desired.keys():
+		var key := String(key_value)
+		if not _key_matches_prefixes(key, key_prefixes):
+			continue
+		var desc: Dictionary = desired.get(key, {}) as Dictionary
+		var set_id := int(desc.get("set_id", 1))
+		var base_name := String(desc.get("base_name", ""))
+		var raw_id := int(desc.get("raw_id", -1))
+		var node: Node = existing.get(key, null)
+		var needs_rebuild := false
+		if node == null or not is_instance_valid(node):
+			needs_rebuild = true
+		else:
+			var node_base := String(node.get_meta("base_name", ""))
+			var node_set := int(node.get_meta("set_id", 0))
+			if node_set != set_id or node_base.to_lower() != base_name.to_lower():
+				needs_rebuild = true
+			else:
+				var wants_static: bool = UATerrainPieceLibrary.is_force_static_terrain_overlays()
+				if not node.has_meta("overlay_force_static") or bool(node.get_meta("overlay_force_static")) != wants_static:
+					needs_rebuild = true
+
+		var piece_node: Node3D = null
+		if needs_rebuild:
+			if node != null and is_instance_valid(node):
+				node.queue_free()
+			piece_node = PieceLibraryScript.build_piece_scene_root(set_id, base_name, raw_id)
+			if piece_node == null:
+				continue
+			piece_node.set_meta("instance_key", key)
+			piece_node.set_meta("set_id", set_id)
+			piece_node.set_meta("base_name", base_name)
+			piece_node.set_meta("raw_id", raw_id)
+			piece_node.set_meta("overlay_force_static", UATerrainPieceLibrary.is_force_static_terrain_overlays())
+			piece_node.set_meta("warp_sig", "")
+			root.add_child(piece_node)
+		else:
+			piece_node = node as Node3D
+			if piece_node == null:
+				continue
+
+		piece_node.position = _piece_position_from_desc(desc)
+		PieceLibraryScript._apply_optional_piece_orientation(piece_node, desc)
+		var warp_sig := _warp_signature(desc)
+		var prev_warp_sig := String(piece_node.get_meta("warp_sig", ""))
+		if warp_sig != prev_warp_sig:
+			PieceLibraryScript._apply_optional_piece_deform(piece_node, desc)
+			piece_node.set_meta("warp_sig", warp_sig)
+
+
+static func _key_matches_prefixes(key: String, key_prefixes: Array) -> bool:
+	for prefix_value in key_prefixes:
+		var prefix := String(prefix_value)
+		if not prefix.is_empty() and key.begins_with(prefix):
+			return true
+	return false
+
+
 func begin_apply_overlay_node(root: Node3D, descriptors: Array) -> Dictionary:
 	if root == null or not is_instance_valid(root):
 		return {}
