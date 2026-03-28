@@ -37,6 +37,8 @@ static var _texture_cache := {}
 static var _dir_cache := {}
 static var _anim_cache := {}
 static var _support_sampler_cache := {}
+static var _deformed_slurp_mesh_cache := {}
+static var _printed_piece_uv_diagnostics := {}
 static var _external_source_loading_enabled := true
 static var _external_source_root: String = ""
 static var _piece_game_data_type := "original"
@@ -57,6 +59,7 @@ static func set_piece_game_data_type(game_data_type: String) -> void:
 	_dir_cache.clear()
 	_anim_cache.clear()
 	_support_sampler_cache.clear()
+	_deformed_slurp_mesh_cache.clear()
 
 
 static func reset_piece_overlay_build_counters() -> void:
@@ -87,6 +90,7 @@ static func _clear_runtime_caches_for_tests() -> void:
 	_dir_cache.clear()
 	_anim_cache.clear()
 	_support_sampler_cache.clear()
+	_deformed_slurp_mesh_cache.clear()
 	_external_source_loading_enabled = true
 	_external_source_root = ""
 	_piece_game_data_type = "original"
@@ -422,6 +426,34 @@ static func _load_piece_mesh(set_id: int, base_name: String) -> ArrayMesh:
 	_animated_overlay_cache[cache_key] = has_animated_surfaces
 	_piece_overlay_emitters_cache[cache_key] = has_emitters
 	if mesh.get_surface_count() > 0:
+		# Minimal UV-range diagnostics for the specific ground pieces that visually
+		# exhibit black stripe artifacts in the live editor.
+		# This is intentionally gated and runs at most once per base_name.
+		var bn_upper := base_name.strip_edges().to_upper()
+		if (bn_upper == "GR_248" or bn_upper == "GR_252") and not _printed_piece_uv_diagnostics.has(bn_upper):
+			_printed_piece_uv_diagnostics[bn_upper] = true
+			var arrays0 := mesh.surface_get_arrays(0)
+			var uvs: PackedVector2Array = arrays0[Mesh.ARRAY_TEX_UV] as PackedVector2Array
+			var min_u: float = 0.0
+			var max_u: float = 0.0
+			var min_v: float = 0.0
+			var max_v: float = 0.0
+			if not uvs.is_empty():
+				min_u = uvs[0].x
+				max_u = uvs[0].x
+				min_v = uvs[0].y
+				max_v = uvs[0].y
+				for uv in uvs:
+					min_u = min(min_u, uv.x)
+					max_u = max(max_u, uv.x)
+					min_v = min(min_v, uv.y)
+					max_v = max(max_v, uv.y)
+			print(
+				"[AuthoredPiece] piece=", base_name,
+				" set_id=", set_id,
+				" surfaces=", mesh.get_surface_count(),
+				" uv_range=[", min_u, ",", max_u, "]x[", min_v, ",", max_v, "]"
+			)
 		_mesh_cache[cache_key] = mesh
 		return _mesh_cache[cache_key]
 	_mesh_cache[cache_key] = null
@@ -488,6 +520,20 @@ static func _apply_optional_piece_deform(piece_node: Node3D, desc: Dictionary) -
 				mi.mesh = _deformed_slurp_mesh(mi.mesh, desc)
 
 static func _deformed_slurp_mesh(source_mesh: Mesh, desc: Dictionary) -> ArrayMesh:
+	var warp_sig := _warp_signature(desc)
+	if warp_sig.is_empty():
+		return source_mesh as ArrayMesh
+
+	var set_id := int(desc.get("set_id", 1))
+	var base_name := String(desc.get("base_name", "")).strip_edges().to_lower()
+	var raw_id := int(desc.get("raw_id", -1))
+	# Source mesh identity + warp params fully determines the deformed result.
+	var cache_key := "slurp_def:%s:%d:%s:%d:%s" % [str(source_mesh.get_rid()), set_id, base_name, raw_id, warp_sig]
+
+	if _deformed_slurp_mesh_cache.has(cache_key):
+		var cached := _deformed_slurp_mesh_cache[cache_key] as ArrayMesh
+		return cached if cached != null else null
+
 	var out := ArrayMesh.new()
 	for surface_idx in source_mesh.get_surface_count():
 		var arrays := source_mesh.surface_get_arrays(surface_idx)
@@ -501,6 +547,7 @@ static func _deformed_slurp_mesh(source_mesh: Mesh, desc: Dictionary) -> ArrayMe
 		arrays[Mesh.ARRAY_VERTEX] = deformed
 		out.add_surface_from_arrays(Mesh.PRIMITIVE_TRIANGLES, arrays)
 		out.surface_set_material(out.get_surface_count() - 1, source_mesh.surface_get_material(surface_idx))
+	_deformed_slurp_mesh_cache[cache_key] = out
 	return out
 
 static func _deformed_slurp_vertex(vertex: Vector3, desc: Dictionary) -> Vector3:
@@ -758,6 +805,12 @@ static func _surface_from_area(area_data: Array, points: Array, polys: Array, se
 	var polygon := _polygon_vertices(points, polys, poly_id)
 	if polygon.is_empty():
 		return {}
+	# `_polygon_vertices` returns editor-preview-space coordinates (scaled by UA_SECTOR_SPAN).
+	# Piece mesh geometry must remain in UA-space so that piece placement + support sampling
+	# stay consistent with the rest of the authored pipeline.
+	var poly_to_ua := UA_SECTOR_SPAN / MODEL_SCALE
+	for i in range(polygon.size()):
+		polygon[i] = polygon[i] * poly_to_ua
 	var render_hints := _render_hints_from_area(area_data)
 	var anim_name := _find_first_anim_name(area_data)
 	if not anim_name.is_empty():
@@ -792,6 +845,10 @@ static func _surfaces_from_amsh(amsh_data: Array, points: Array, polys: Array, s
 		var polygon := _polygon_vertices(points, polys, poly_id)
 		if polygon.is_empty():
 			continue
+		# See `_surface_from_area` for why preview-space -> UA-space is needed here.
+		var poly_to_ua := UA_SECTOR_SPAN / MODEL_SCALE
+		for j in range(polygon.size()):
+			polygon[j] = polygon[j] * poly_to_ua
 		var uv_points: Array = olpl_points[i] if i < olpl_points.size() else []
 		var triangles := _triangulate(polygon, _coerce_uvs(uv_points, polygon, set_id, texture_name))
 		if triangles.is_empty():
@@ -826,7 +883,13 @@ static func _polygon_vertices(points: Array, polys: Array, poly_id: int) -> Arra
 		# Retail UA sector rows advance toward negative world-Z. The editor preview keeps map
 		# rows growing toward positive Z, so authored local geometry must mirror Z as well or
 		# directional pieces/borders appear globally flipped relative to the terrain grid.
-		polygon.append(Vector3(float(p.get("x", 0.0)) * MODEL_SCALE, -float(p.get("y", 0.0)) * MODEL_SCALE, -float(p.get("z", 0.0)) * MODEL_SCALE))
+		# Convert from UA-space (sector span = 1200) into editor-preview-space (sector span = 1).
+		var ua_to_preview := MODEL_SCALE / UA_SECTOR_SPAN
+		polygon.append(Vector3(
+			float(p.get("x", 0.0)) * ua_to_preview,
+			-float(p.get("y", 0.0)) * ua_to_preview,
+			-float(p.get("z", 0.0)) * ua_to_preview
+		))
 	return polygon
 
 static func _coerce_uvs(raw_uvs: Array, polygon: Array, set_id: int = 0, texture_name: String = "") -> Array:

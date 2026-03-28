@@ -33,6 +33,7 @@ func _ready() -> void:
 			EditorState.selected_beam_gate.opened_bp = 26
 			CurrentMapData.typ_map[EditorState.selected_sector_idx] = 3
 			CurrentMapData.blg_map[EditorState.selected_sector_idx] = 25
+		EventSystem.typ_map_cells_edited.emit([EditorState.selected_sector_idx])
 		EventSystem.map_updated.emit()
 		)
 	beam_gate_mb_status.toggled.connect(func(toggled: bool):

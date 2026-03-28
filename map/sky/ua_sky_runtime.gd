@@ -695,9 +695,10 @@ func update_active_sky_transform() -> void:
 	var mw := int(cmd.horizontal_sectors) if cmd != null else 0
 	var mh := int(cmd.vertical_sectors) if cmd != null else 0
 	var sectors := Vector2i(mw, mh)
-	if cam.global_transform.is_equal_approx(_last_camera_for_sky) and is_equal_approx(_last_cam_far_for_sky, cam.far) and sectors == _last_map_sectors_for_sky:
+	var cam_xform := cam.global_transform if cam.is_inside_tree() else cam.transform
+	if cam_xform.is_equal_approx(_last_camera_for_sky) and is_equal_approx(_last_cam_far_for_sky, cam.far) and sectors == _last_map_sectors_for_sky:
 		return
-	_last_camera_for_sky = cam.global_transform
+	_last_camera_for_sky = cam_xform
 	_last_cam_far_for_sky = cam.far
 	_last_map_sectors_for_sky = sectors
 	_apply_active_sky_scale()

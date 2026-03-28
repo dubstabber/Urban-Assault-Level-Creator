@@ -10,6 +10,8 @@ class EventSystemStub extends Node:
 	signal map_updated
 	signal level_set_changed
 	signal map_view_updated
+	signal hgt_map_cells_edited(border_indices: Array)
+	signal typ_map_cells_edited(typ_indices: Array)
 
 
 class CurrentMapDataStub extends Node:
@@ -248,7 +250,9 @@ func _run_case(case_name: String) -> bool:
 	else:
 		var hidden_burst_started_usec := Time.get_ticks_usec()
 		for update_step in range(int(workflow.get("map_update_burst", 1))):
-			_touch_hidden_map(current_map_data, update_step)
+			var edited_border_idx := _touch_hidden_map(current_map_data, update_step)
+			if edited_border_idx >= 0:
+				event_system.hgt_map_cells_edited.emit([edited_border_idx])
 			event_system.map_updated.emit()
 		hidden_burst_elapsed_ms = float(Time.get_ticks_usec() - hidden_burst_started_usec) / 1000.0
 		pending_refresh_before_reactivate = renderer.has_pending_refresh()
@@ -332,10 +336,11 @@ func _dispose_fixture(fixture: Dictionary) -> void:
 			node.free()
 
 
-func _touch_hidden_map(current_map_data: CurrentMapDataStub, update_step: int) -> void:
+func _touch_hidden_map(current_map_data: CurrentMapDataStub, update_step: int) -> int:
 	if current_map_data.hgt_map.is_empty():
-		return
+		return -1
 	var hgt := current_map_data.hgt_map
 	var index := mini(1 + update_step, hgt.size() - 1)
 	hgt[index] = (int(hgt[index]) + update_step + 1) % 32
 	current_map_data.hgt_map = hgt
+	return index

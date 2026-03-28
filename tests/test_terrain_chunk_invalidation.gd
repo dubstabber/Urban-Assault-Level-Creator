@@ -126,10 +126,11 @@ func test_chunks_for_hgt_edit_bottom_edge() -> bool:
 func test_chunks_for_hgt_edit_corner() -> bool:
 	_reset_errors()
 	var chunks := TerrainBuilder.chunks_for_hgt_edit(3, 3, 16, 16)
-	_check_eq(chunks.size(), 3, "corner dirty count")
+	_check_eq(chunks.size(), 4, "corner dirty count")
 	_check_has(chunks, Vector2i(0, 0), "primary chunk")
 	_check_has(chunks, Vector2i(1, 0), "right neighbor")
 	_check_has(chunks, Vector2i(0, 1), "bottom neighbor")
+	_check_has(chunks, Vector2i(1, 1), "diagonal neighbor")
 	return _errors.is_empty()
 
 

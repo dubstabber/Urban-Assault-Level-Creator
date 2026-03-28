@@ -114,6 +114,9 @@ func _handle_typ_map_design():
 	_handle_single_selection()
 	CurrentMapData.typ_map[EditorState.selected_sector_idx] = EditorState.selected_typ_map
 	CurrentMapData.is_saved = false
+	EventSystem.typ_map_cells_edited.emit([EditorState.selected_sector_idx])
+	map.queue_redraw()
+	EventSystem.map_updated.emit()
 
 func _handle_single_selection():
 	var mouse_pos = map.get_local_mouse_position()
@@ -128,34 +131,46 @@ func _handle_ownership_change():
 	EventSystem.map_updated.emit()
 
 func _handle_height_change(direction: int):
+	var edited_border_indices: Array = []
 	if EditorState.selected_sectors.size() > 1:
 		for sector_dict in EditorState.selected_sectors:
 			var new_height = CurrentMapData.hgt_map[sector_dict.border_idx] + direction
 			if new_height >= 0 and new_height <= 255:
 				CurrentMapData.hgt_map[sector_dict.border_idx] = new_height
+				edited_border_indices.append(sector_dict.border_idx)
 	elif EditorState.border_selected_sector_idx >= 0:
 		var new_height = CurrentMapData.hgt_map[EditorState.border_selected_sector_idx] + direction
 		if new_height >= 0 and new_height <= 255:
 			CurrentMapData.hgt_map[EditorState.border_selected_sector_idx] = new_height
+			edited_border_indices.append(EditorState.border_selected_sector_idx)
 	CurrentMapData.is_saved = false
 	map.queue_redraw()
+	if not edited_border_indices.is_empty():
+		EventSystem.hgt_map_cells_edited.emit(edited_border_indices)
 	EventSystem.map_updated.emit()
 
 
 func _handle_building_change(direction: int):
+	var edited_typ_indices: Array = []
 	if EditorState.selected_sectors.size() > 1:
 		for sector_dict in EditorState.selected_sectors:
 			if sector_dict.has("idx"):
 				if direction > 0:
 					Utils.increment_typ_map(sector_dict.idx)
+					edited_typ_indices.append(sector_dict.idx)
 				else:
 					Utils.decrement_typ_map(sector_dict.idx)
+					edited_typ_indices.append(sector_dict.idx)
 	else:
 		if direction > 0:
 			Utils.increment_typ_map(EditorState.selected_sector_idx)
+			edited_typ_indices.append(EditorState.selected_sector_idx)
 		else:
 			Utils.decrement_typ_map(EditorState.selected_sector_idx)
+			edited_typ_indices.append(EditorState.selected_sector_idx)
 	CurrentMapData.is_saved = false
+	if not edited_typ_indices.is_empty():
+		EventSystem.typ_map_cells_edited.emit(edited_typ_indices)
 	EventSystem.map_updated.emit()
 
 func _handle_clear_sector():

@@ -196,8 +196,7 @@ func test_active_sky_follows_camera_translation_with_vertical_offset() -> bool:
 func test_default_vertical_offset_matches_godot_axis_flip() -> bool:
 	_reset_errors()
 	var runtime := UASkyRuntimeScript.new()
-	# With WORLD_SCALE = 1/1200, the scaled offset is 550.0 / 1200.0 ≈ 0.458
-	_check(is_equal_approx(runtime.sky_vertical_offset, 550.0 / 1200.0), "Expected Godot-side sky offset default to be the sign-flipped +550 equivalent of UA source _skyHeight = -550, scaled by WORLD_SCALE")
+	_check(is_equal_approx(runtime.sky_vertical_offset, 550.0), "Expected Godot-side sky offset default to be the sign-flipped +550 equivalent of UA source _skyHeight = -550")
 	_dispose_runtime(runtime)
 	return _errors.is_empty()
 
@@ -392,9 +391,8 @@ func test_material_flags_support_one_sided_and_additive_fallback_modes() -> bool
 func test_static_fog_factor_matches_ua_source_formula() -> bool:
 	_reset_errors()
 	var runtime := UASkyRuntimeScript.new()
-	# With WORLD_SCALE = 1/1200, distances are scaled: 3650 / 1200 ≈ 3.042
-	var factor := runtime._static_fog_factor_for_distance(3650.0 / 1200.0)
-	_check(is_equal_approx(factor, 0.5), "Expected source-backed sky fog factor to match ((4200 - 3650) / 1100) = 0.5 (with scaled distances)")
+	var factor := runtime._static_fog_factor_for_distance(3650.0)
+	_check(is_equal_approx(factor, 0.5), "Expected source-backed sky fog factor to match ((4200 - 3650) / 1100) = 0.5")
 	_dispose_runtime(runtime)
 	return _errors.is_empty()
 
@@ -402,9 +400,8 @@ func test_static_fog_factor_matches_ua_source_formula() -> bool:
 func test_static_fog_factor_clamps_to_full_visibility_before_fade_start() -> bool:
 	_reset_errors()
 	var runtime := UASkyRuntimeScript.new()
-	# With WORLD_SCALE = 1/1200, distances are scaled: 3100 / 1200 ≈ 2.583
-	var factor := runtime._static_fog_factor_for_distance(3100.0 / 1200.0)
-	var color := runtime._static_fog_color_for_vertex(Vector3(0.0, 3100.0 / 1200.0, 0.0))
+	var factor := runtime._static_fog_factor_for_distance(3100.0)
+	var color := runtime._static_fog_color_for_vertex(Vector3(0.0, 3100.0, 0.0))
 	_check(is_equal_approx(factor, 1.0), "Expected sky fog factor to stay fully visible at the fade start distance")
 	_check(color.is_equal_approx(Color(1.0, 1.0, 1.0, 1.0)), "Expected sky fog color to remain white at the fade start distance")
 	_dispose_runtime(runtime)
@@ -414,9 +411,8 @@ func test_static_fog_factor_clamps_to_full_visibility_before_fade_start() -> boo
 func test_static_fog_factor_clamps_to_black_beyond_visibility_limit() -> bool:
 	_reset_errors()
 	var runtime := UASkyRuntimeScript.new()
-	# With WORLD_SCALE = 1/1200, distances are scaled: 4500 / 1200 = 3.75
-	var factor := runtime._static_fog_factor_for_distance(4500.0 / 1200.0)
-	var color := runtime._static_fog_color_for_vertex(Vector3(0.0, 4500.0 / 1200.0, 0.0))
+	var factor := runtime._static_fog_factor_for_distance(4500.0)
+	var color := runtime._static_fog_color_for_vertex(Vector3(0.0, 4500.0, 0.0))
 	_check(is_zero_approx(factor), "Expected sky fog factor to clamp to black beyond the source visibility limit")
 	_check(color.is_equal_approx(Color(0.0, 0.0, 0.0, 1.0)), "Expected sky fog color to fall fully to black beyond the source visibility limit")
 	_dispose_runtime(runtime)

@@ -5,6 +5,8 @@ const UATerrainPieceLibraryScript := preload("res://map/terrain/ua_authored_piec
 
 const SECTOR_SIZE := 1200.0
 const HEIGHT_SCALE := 100.0
+const TERRAIN_AUTHORED_Y_OFFSET := 0.5
+const SUBQUAD_UV_INSET := 0.002 # Prevent internal 1/3 and 2/3 seam sampling bleed
 
 const CHUNK_SIZE := 4
 const CHUNK_SHIFT := 2
@@ -96,9 +98,25 @@ static func build_mesh_with_textures(hgt: PackedByteArray, typ: PackedByteArray,
 							authored["instance_key"] = "terrain:%d:%d:%d:%d:%d:%d" % [
 								set_id, x, y, sub_x, sub_y, int(authored.get("raw_id", -1))
 							]
+							authored["y_offset"] = TERRAIN_AUTHORED_Y_OFFSET
 							authored_piece_descriptors.append(authored)
 							continue
-						_draw_quad(st, piece_x0, piece_x1, piece_z0, piece_z1, sector_y, int(piece[0]), int(piece[1]), int(piece[2]))
+						_draw_quad(
+							st,
+							piece_x0,
+							piece_x1,
+							piece_z0,
+							piece_z1,
+							sector_y,
+							int(piece[0]),
+							int(piece[1]),
+							int(piece[2]),
+							0,
+							clampf(float(sub_x) / 3.0 + SUBQUAD_UV_INSET, 0.0, 1.0),
+							clampf(1.0 - float(sub_y + 1) / 3.0 + SUBQUAD_UV_INSET, 0.0, 1.0),
+							clampf(float(sub_x + 1) / 3.0 - SUBQUAD_UV_INSET, 0.0, 1.0),
+							clampf(1.0 - float(sub_y) / 3.0 - SUBQUAD_UV_INSET, 0.0, 1.0)
+						)
 			else:
 				var piece := [surface_type, (16 if surface_type == 4 else 4), 0]
 				var authored := {}
@@ -115,20 +133,22 @@ static func build_mesh_with_textures(hgt: PackedByteArray, typ: PackedByteArray,
 					_draw_quad(st, x0, x1, z0, z1, sector_y, int(piece[0]), int(piece[1]), int(piece[2]))
 				else:
 					authored["instance_key"] = "terrain:%d:%d:%d:%d" % [set_id, x, y, int(authored.get("raw_id", -1))]
+					authored["y_offset"] = TERRAIN_AUTHORED_Y_OFFSET
 					authored_piece_descriptors.append(authored)
+					continue
 
 	var mesh := ArrayMesh.new()
 	var surface_to_surface_type := {}
 	for i in surface_type_order.size():
 		var surface_type: int = surface_type_order[i]
 		var st: SurfaceTool = surface_tools[surface_type]
-		var arrays := st.commit_to_arrays()
-		if arrays.size() == 0 or arrays[Mesh.ARRAY_VERTEX] == null or (arrays[Mesh.ARRAY_VERTEX] as PackedVector3Array).size() == 0:
-			continue
+		var before := mesh.get_surface_count()
 		st.index()
 		st.generate_normals()
 		st.commit(mesh)
-		surface_to_surface_type[mesh.get_surface_count() - 1] = surface_type
+		var after := mesh.get_surface_count()
+		if after > before:
+			surface_to_surface_type[before] = surface_type
 	return {"mesh": mesh, "surface_to_surface_type": surface_to_surface_type, "authored_piece_descriptors": authored_piece_descriptors}
 
 
@@ -345,17 +365,29 @@ static func _selected_raw_id_for_tile_desc(tile_desc: Dictionary) -> int:
 	]
 	if int(tile_desc.get("flag", 0)) == 0 and vals[0] != 0 and vals[0] == vals[1] and vals[1] == vals[2] and vals[3] != 0 and vals[3] != vals[0]:
 		return vals[0]
-	var slot := _default_stage_slot_for_raw(0)
-	return vals[clampi(slot, 0, 3)]
+	var raw_val := vals[_default_stage_slot_for_raw(int(tile_desc.get("flag", 0)))]
+	if raw_val != 0:
+		return raw_val
+	var single_nonzero_raw := 0
+	for candidate in vals:
+		if candidate == 0:
+			continue
+		if single_nonzero_raw == 0:
+			single_nonzero_raw = candidate
+			continue
+		if candidate != single_nonzero_raw:
+			return raw_val
+	return single_nonzero_raw
 
 
 static func _default_piece_selection_for_subsector(surface_type: int, subsector_idx: int, tile_mapping: Dictionary, tile_remap: Dictionary, subsector_idx_remap: Dictionary) -> Dictionary:
+	var default_file := clampi(surface_type, 0, 5)
 	var remapped_idx := _remap_subsector_idx(subsector_idx, subsector_idx_remap)
 	var tile_desc := _tile_desc_for_subsector(tile_mapping, remapped_idx)
 	if tile_desc.is_empty():
-		return {"piece": _decode_raw_to_fcv_with_remap(remapped_idx, clampi(surface_type, 0, 5), tile_remap), "raw_id": - 1}
-	var raw_id := _selected_raw_id_for_tile_desc(tile_desc)
-	return {"piece": _decode_raw_to_fcv_with_remap(raw_id, clampi(surface_type, 0, 5), tile_remap), "raw_id": raw_id}
+		return {"raw_id": - 1, "piece": [default_file, (16 if default_file == 4 else 4), 0]}
+	var raw_val := _selected_raw_id_for_tile_desc(tile_desc)
+	return {"raw_id": raw_val, "piece": _decode_raw_to_fcv_with_remap(raw_val, default_file, tile_remap)}
 
 
 static func _default_file_variant_for_subsector(surface_type: int, subsector_idx: int, tile_mapping: Dictionary, tile_remap: Dictionary, subsector_idx_remap: Dictionary) -> Array:
@@ -363,12 +395,13 @@ static func _default_file_variant_for_subsector(surface_type: int, subsector_idx
 
 
 static func _authored_origin_for_subsector(sector_x0: float, sector_z0: float, sector_y: float, sub_x: int, sub_y: int) -> Vector3:
-	var piece_w := SECTOR_SIZE / 3.0
-	var piece_h := SECTOR_SIZE / 3.0
+	var sector_center_x := sector_x0 + SECTOR_SIZE * 0.5
+	var sector_center_z := sector_z0 + SECTOR_SIZE * 0.5
+	var lattice_step := SECTOR_SIZE * 0.25
 	return Vector3(
-		sector_x0 + (float(sub_x) + 0.5) * piece_w,
+		sector_center_x + (float(sub_x) - 1.0) * lattice_step,
 		sector_y,
-		sector_z0 + (float(sub_y) + 0.5) * piece_h
+		sector_center_z + (float(sub_y) - 1.0) * lattice_step
 	)
 
 
@@ -394,15 +427,27 @@ static func chunks_for_hgt_edit(sx: int, sy: int, map_w: int, map_h: int) -> Arr
 		return result
 	var primary := sector_to_chunk(sx, sy)
 	var chunk_count := chunk_count_for_map(map_w, map_h)
+	var touches_left_boundary := (sx % CHUNK_SIZE) == 0 and primary.x > 0
+	var touches_right_boundary := (sx % CHUNK_SIZE) == (CHUNK_SIZE - 1) and (primary.x + 1) < chunk_count.x
+	var touches_top_boundary := (sy % CHUNK_SIZE) == 0 and primary.y > 0
+	var touches_bottom_boundary := (sy % CHUNK_SIZE) == (CHUNK_SIZE - 1) and (primary.y + 1) < chunk_count.y
 	result.append(primary)
-	if (sx % CHUNK_SIZE) == 0 and primary.x > 0:
+	if touches_left_boundary:
 		result.append(Vector2i(primary.x - 1, primary.y))
-	if (sx % CHUNK_SIZE) == (CHUNK_SIZE - 1) and (primary.x + 1) < chunk_count.x:
+	if touches_right_boundary:
 		result.append(Vector2i(primary.x + 1, primary.y))
-	if (sy % CHUNK_SIZE) == 0 and primary.y > 0:
+	if touches_top_boundary:
 		result.append(Vector2i(primary.x, primary.y - 1))
-	if (sy % CHUNK_SIZE) == (CHUNK_SIZE - 1) and (primary.y + 1) < chunk_count.y:
+	if touches_bottom_boundary:
 		result.append(Vector2i(primary.x, primary.y + 1))
+	if touches_left_boundary and touches_top_boundary:
+		result.append(Vector2i(primary.x - 1, primary.y - 1))
+	if touches_right_boundary and touches_top_boundary:
+		result.append(Vector2i(primary.x + 1, primary.y - 1))
+	if touches_left_boundary and touches_bottom_boundary:
+		result.append(Vector2i(primary.x - 1, primary.y + 1))
+	if touches_right_boundary and touches_bottom_boundary:
+		result.append(Vector2i(primary.x + 1, primary.y + 1))
 	return result
 
 
@@ -511,9 +556,25 @@ static func build_chunk_mesh_with_textures(
 							authored["instance_key"] = "terrain:%d:%d:%d:%d:%d:%d" % [
 								set_id, x, y, sub_x, sub_y, int(authored.get("raw_id", -1))
 							]
+							authored["y_offset"] = TERRAIN_AUTHORED_Y_OFFSET
 							authored_piece_descriptors.append(authored)
 							continue
-						_draw_quad(st, piece_x0, piece_x1, piece_z0, piece_z1, sector_y, int(piece[0]), int(piece[1]), int(piece[2]))
+						_draw_quad(
+							st,
+							piece_x0,
+							piece_x1,
+							piece_z0,
+							piece_z1,
+							sector_y,
+							int(piece[0]),
+							int(piece[1]),
+							int(piece[2]),
+							0,
+							clampf(float(sub_x) / 3.0 + SUBQUAD_UV_INSET, 0.0, 1.0),
+							clampf(1.0 - float(sub_y + 1) / 3.0 + SUBQUAD_UV_INSET, 0.0, 1.0),
+							clampf(float(sub_x + 1) / 3.0 - SUBQUAD_UV_INSET, 0.0, 1.0),
+							clampf(1.0 - float(sub_y) / 3.0 - SUBQUAD_UV_INSET, 0.0, 1.0)
+						)
 			else:
 				var piece := [surface_type, (16 if surface_type == 4 else 4), 0]
 				var authored := {}
@@ -530,18 +591,20 @@ static func build_chunk_mesh_with_textures(
 					_draw_quad(st, x0, x1, z0, z1, sector_y, int(piece[0]), int(piece[1]), int(piece[2]))
 				else:
 					authored["instance_key"] = "terrain:%d:%d:%d:%d" % [set_id, x, y, int(authored.get("raw_id", -1))]
+					authored["y_offset"] = TERRAIN_AUTHORED_Y_OFFSET
 					authored_piece_descriptors.append(authored)
+					continue
 
 	var mesh := ArrayMesh.new()
 	var surface_to_surface_type := {}
 	for i in surface_type_order.size():
 		var surface_type: int = surface_type_order[i]
 		var st: SurfaceTool = surface_tools[surface_type]
-		var arrays := st.commit_to_arrays()
-		if arrays.size() == 0 or arrays[Mesh.ARRAY_VERTEX] == null or (arrays[Mesh.ARRAY_VERTEX] as PackedVector3Array).size() == 0:
-			continue
+		var before := mesh.get_surface_count()
 		st.index()
 		st.generate_normals()
 		st.commit(mesh)
-		surface_to_surface_type[mesh.get_surface_count() - 1] = surface_type
+		var after := mesh.get_surface_count()
+		if after > before:
+			surface_to_surface_type[before] = surface_type
 	return {"mesh": mesh, "surface_to_surface_type": surface_to_surface_type, "authored_piece_descriptors": authored_piece_descriptors}

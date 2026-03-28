@@ -21,6 +21,7 @@ export_presets.cfg
 .idea/
 .augment/
 .windsurf/
+.cursor/
 
 # OS-generated files
 .DS_Store
@@ -44,4 +45,6 @@ resources/ua/sets/
 resources/ua/bundled/shared_scripts/**/*.bak
 resources/ua/bundled/shared_scripts/**/*.bak.*
 .augmentignore
-GODOT_EXECUTABLE_PATH.md
+Godot_v4.5.1-stable_linux.x86_64
+debug-output.txt
+tests/

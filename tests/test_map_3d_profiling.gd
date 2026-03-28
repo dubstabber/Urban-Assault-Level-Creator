@@ -10,6 +10,8 @@ class EventSystemStub extends Node:
 	signal map_updated
 	signal level_set_changed
 	signal map_view_updated
+	signal hgt_map_cells_edited(border_indices: Array)
+	signal typ_map_cells_edited(typ_indices: Array)
 
 
 class CurrentMapDataStub extends Node:
@@ -53,6 +55,13 @@ func _check(cond: bool, msg: String) -> void:
 	if not cond:
 		push_error(msg)
 		_errors.append(msg)
+
+
+func _check_eq(a, b, msg: String) -> void:
+	if a != b:
+		var full_msg := "%s (got %s, expected %s)" % [msg, str(a), str(b)]
+		push_error(full_msg)
+		_errors.append(full_msg)
 
 
 func _scene_root() -> Node:
@@ -106,6 +115,140 @@ func _check_metric_keys(metrics: Dictionary) -> void:
 		_check(metrics.has(key), "Expected profiling metrics to include '%s'" % key)
 
 
+static func _count_named_children(parent: Node, prefix: String) -> int:
+	if parent == null:
+		return 0
+	var count := 0
+	for child in parent.get_children():
+		if child != null and String(child.name).begins_with(prefix):
+			count += 1
+	return count
+
+
+func _make_zero_filled_packed_byte_array(size: int) -> PackedByteArray:
+	var arr := PackedByteArray()
+	arr.resize(size)
+	for i in range(size):
+		arr[i] = 0
+	return arr
+
+
+func test_hgt_edit_triggers_incremental_chunk_rebuild() -> bool:
+	_reset_errors()
+	var fixture := _create_fixture(true)
+	var renderer := fixture["renderer"] as Map3DRenderer
+	var event_system: EventSystemStub = fixture["event_system"]
+	var current_map_data := fixture["current_map_data"] as CurrentMapDataStub
+
+	var w := 8
+	var h := 8
+	current_map_data.horizontal_sectors = w
+	current_map_data.vertical_sectors = h
+	current_map_data.hgt_map = _make_zero_filled_packed_byte_array((w + 2) * (h + 2))
+	current_map_data.typ_map = _make_zero_filled_packed_byte_array(w * h)
+	current_map_data.blg_map = _make_zero_filled_packed_byte_array(w * h)
+
+	# Seed chunk nodes via map_created so the initial state uses the chunked path.
+	event_system.map_created.emit()
+	renderer._apply_pending_refresh()
+
+	var terrain_mesh := renderer.get_node_or_null("TerrainMesh")
+	var edge_mesh := renderer.get_node_or_null("EdgeMesh")
+	var before_terrain_chunks := _count_named_children(terrain_mesh, "TerrainChunk_")
+	var before_edge_chunks := _count_named_children(edge_mesh, "EdgeChunk_")
+
+	# Pick a deterministic border cell and edit its height.
+	var border_idx := 0 # (0,0) corner of the border footprint
+	current_map_data.hgt_map[border_idx] = 1
+	event_system.hgt_map_cells_edited.emit([border_idx])
+
+	# Build immediately to avoid relying on deferred refresh scheduling in headless tests.
+	renderer.build_from_current_map()
+	var metrics := renderer.get_last_build_metrics()
+	_check(bool(metrics.get("incremental_rebuild", false)), "Expected hgt edit to use incremental chunk rebuild")
+	_check(int(metrics.get("chunks_rebuilt", 0)) > 0, "Expected at least one chunk to be rebuilt")
+
+	var after_terrain_chunks := _count_named_children(terrain_mesh, "TerrainChunk_")
+	var after_edge_chunks := _count_named_children(edge_mesh, "EdgeChunk_")
+	_check(after_terrain_chunks == before_terrain_chunks, "Terrain chunk node count should be preserved across hgt edit")
+	_check(after_edge_chunks == before_edge_chunks, "Edge chunk node count should be preserved across hgt edit")
+
+	_dispose_fixture(fixture)
+	return _errors.is_empty()
+
+
+func test_typ_edit_triggers_incremental_chunk_rebuild() -> bool:
+	_reset_errors()
+	var fixture := _create_fixture(true)
+	var renderer := fixture["renderer"] as Map3DRenderer
+	var event_system: EventSystemStub = fixture["event_system"]
+	var current_map_data := fixture["current_map_data"] as CurrentMapDataStub
+
+	var w := 8
+	var h := 8
+	current_map_data.horizontal_sectors = w
+	current_map_data.vertical_sectors = h
+	current_map_data.hgt_map = _make_zero_filled_packed_byte_array((w + 2) * (h + 2))
+	current_map_data.typ_map = _make_zero_filled_packed_byte_array(w * h)
+	current_map_data.blg_map = _make_zero_filled_packed_byte_array(w * h)
+
+	event_system.map_created.emit()
+	renderer._apply_pending_refresh()
+
+	# Edit a single typ cell.
+	var sx := 3
+	var sy := 4
+	var typ_idx := sy * w + sx
+	current_map_data.typ_map[typ_idx] = 1
+	event_system.typ_map_cells_edited.emit([typ_idx])
+
+	renderer.build_from_current_map()
+	var metrics := renderer.get_last_build_metrics()
+	_check(bool(metrics.get("incremental_rebuild", false)), "Expected typ edit to use incremental chunk rebuild")
+	_check(int(metrics.get("chunks_rebuilt", 0)) > 0, "Expected at least one chunk to be rebuilt")
+
+	_dispose_fixture(fixture)
+	return _errors.is_empty()
+
+
+func test_first_incremental_rebuild_after_full_mode_seeds_all_chunks() -> bool:
+	_reset_errors()
+	var fixture := _create_fixture(true)
+	var renderer := fixture["renderer"] as Map3DRenderer
+	var event_system: EventSystemStub = fixture["event_system"]
+	var current_map_data := fixture["current_map_data"] as CurrentMapDataStub
+
+	var w := 6
+	var h := 6
+	current_map_data.horizontal_sectors = w
+	current_map_data.vertical_sectors = h
+	current_map_data.hgt_map = _make_zero_filled_packed_byte_array((w + 2) * (h + 2))
+	current_map_data.typ_map = _make_zero_filled_packed_byte_array(w * h)
+	current_map_data.blg_map = _make_zero_filled_packed_byte_array(w * h)
+
+	# Match the editor flow seen in the user log: two full rebuilds happen before the
+	# first incremental edit when the renderer is still in legacy full-mesh mode.
+	renderer.build_from_current_map()
+	renderer.build_from_current_map()
+
+	var terrain_mesh := renderer.get_node_or_null("TerrainMesh")
+	_check(_count_named_children(terrain_mesh, "TerrainChunk_") == 0, "Expected no terrain chunk nodes before the first incremental transition")
+
+	current_map_data.hgt_map[0] = 1
+	event_system.hgt_map_cells_edited.emit([0])
+	renderer.build_from_current_map()
+
+	var metrics := renderer.get_last_build_metrics()
+	var expected_chunk_count := Map3DRendererScript.TerrainBuilder.all_chunks_for_map(w, h).size()
+	var terrain_chunk_count := _count_named_children(terrain_mesh, "TerrainChunk_")
+	_check(bool(metrics.get("incremental_rebuild", false)), "Expected the post-full-build edit to use incremental chunk rebuild")
+	_check_eq(int(metrics.get("chunks_rebuilt", 0)), expected_chunk_count, "Expected the first incremental transition to seed all terrain chunks")
+	_check_eq(terrain_chunk_count, expected_chunk_count, "Expected all terrain chunk nodes to be created during the first incremental transition")
+
+	_dispose_fixture(fixture)
+	return _errors.is_empty()
+
+
 func test_visible_refresh_records_stage_timings_with_preloads() -> bool:
 	_reset_errors()
 	var fixture := _create_fixture(true)
@@ -157,6 +300,9 @@ func run() -> int:
 		"test_visible_refresh_records_stage_timings_with_preloads",
 		"test_build_metrics_fallback_when_preloads_missing",
 		"test_invalid_map_input_still_records_metrics",
+		"test_hgt_edit_triggers_incremental_chunk_rebuild",
+		"test_typ_edit_triggers_incremental_chunk_rebuild",
+		"test_first_incremental_rebuild_after_full_mode_seeds_all_chunks",
 	]:
 		print("RUN ", name)
 		if bool(call(name)):

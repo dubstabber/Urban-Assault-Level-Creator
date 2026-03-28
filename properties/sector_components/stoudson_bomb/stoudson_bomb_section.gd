@@ -34,6 +34,7 @@ func _ready() -> void:
 				EditorState.selected_bomb.trigger_bp = 70
 				CurrentMapData.typ_map[EditorState.selected_sector_idx] = 235
 				CurrentMapData.blg_map[EditorState.selected_sector_idx] = 68
+		EventSystem.typ_map_cells_edited.emit([EditorState.selected_sector_idx])
 		EventSystem.map_updated.emit()
 		)
 	seconds_spin_box.value_changed.connect(func(value: float) -> void:

@@ -7,7 +7,8 @@ func _init() -> void:
 	var dir := "res://tests"
 	for f in DirAccess.get_files_at(dir):
 		# Skip this runner itself
-		if f == "test_runner.gd":
+		# These helper scripts are executed via scenes/automation and are not unit tests.
+		if f == "test_runner.gd" or f == "test_runner_scene.gd" or f == "test_runner_overlay_wiring_scene.gd":
 			continue
 		if not f.ends_with(".gd"):
 			continue

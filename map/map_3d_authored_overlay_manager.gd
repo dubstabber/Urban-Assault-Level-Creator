@@ -3,6 +3,32 @@ class_name Map3DAuthoredOverlayManager
 
 const PieceLibraryScript := preload("res://map/terrain/ua_authored_piece_library.gd")
 
+#region agent log
+const _AGENT_DEBUG_LOG_PATH := "/run/media/ydro/WDC/gamedev-workspace/Urban Assault Level Creator/.cursor/debug-324b35.log"
+static var _agent_debug_log_count: int = 0
+static func _agent_debug_log_once(run_id: String, hypothesis_id: String, location: String, message: String, data: Dictionary) -> void:
+	if _agent_debug_log_count >= 120:
+		return
+	_agent_debug_log_count += 1
+	var payload := {
+		"sessionId": "324b35",
+		"runId": run_id,
+		"hypothesisId": hypothesis_id,
+		"location": location,
+		"message": message,
+		"data": data,
+		"timestamp": Time.get_ticks_msec()
+	}
+	var f := FileAccess.open(_AGENT_DEBUG_LOG_PATH, FileAccess.READ_WRITE)
+	if f == null:
+		f = FileAccess.open(_AGENT_DEBUG_LOG_PATH, FileAccess.WRITE)
+	if f == null:
+		return
+	f.seek(f.get_length())
+	f.store_line(JSON.stringify(payload))
+	f.close()
+#endregion
+
 
 static func build_overlay_node(descriptors: Array) -> Node3D:
 	var root := Node3D.new()
@@ -19,6 +45,8 @@ static func apply_overlay_node(root: Node3D, descriptors: Array) -> void:
 
 	var desired := _desired_descriptors_by_key(descriptors)
 	var existing := _existing_nodes_by_key(root)
+	var existing_count_before := existing.size()
+	var root_children_before := root.get_child_count()
 
 	var to_remove: Array[String] = []
 	for key_value in existing.keys():
@@ -31,6 +59,8 @@ static func apply_overlay_node(root: Node3D, descriptors: Array) -> void:
 			node.queue_free()
 		existing.erase(key)
 
+	var rebuilt_count := 0
+	var reused_count := 0
 	for key_value in desired.keys():
 		var key := String(key_value)
 		var desc: Dictionary = desired.get(key, {}) as Dictionary
@@ -60,10 +90,12 @@ static func apply_overlay_node(root: Node3D, descriptors: Array) -> void:
 			piece_node.set_meta("raw_id", raw_id)
 			piece_node.set_meta("warp_sig", "")
 			root.add_child(piece_node)
+			rebuilt_count += 1
 		else:
 			piece_node = node as Node3D
 			if piece_node == null:
 				continue
+			reused_count += 1
 
 		piece_node.position = _piece_position_from_desc(desc)
 		PieceLibraryScript._apply_optional_piece_orientation(piece_node, desc)
@@ -73,6 +105,25 @@ static func apply_overlay_node(root: Node3D, descriptors: Array) -> void:
 		if warp_sig != prev_warp_sig:
 			PieceLibraryScript._apply_optional_piece_deform(piece_node, desc)
 			piece_node.set_meta("warp_sig", warp_sig)
+
+	#region agent log
+	_agent_debug_log_once(
+		"pre_fix",
+		"H16_overlay_node_lifecycle",
+		"Map3DAuthoredOverlayManager.apply_overlay_node",
+		"Collected overlay node apply lifecycle stats",
+		{
+			"input_descriptor_count": descriptors.size(),
+			"desired_key_count": desired.size(),
+			"existing_key_count_before": existing_count_before,
+			"scheduled_remove_count": to_remove.size(),
+			"rebuilt_count": rebuilt_count,
+			"reused_count": reused_count,
+			"root_children_before": root_children_before,
+			"root_children_after": root.get_child_count()
+		}
+	)
+	#endregion
 
 
 static func _desired_descriptors_by_key(descriptors: Array) -> Dictionary:

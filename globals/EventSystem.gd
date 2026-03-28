@@ -34,6 +34,11 @@ signal warning_logs_updated(refresh: bool)
 
 signal sector_faction_changed(faction_id: int)
 signal sector_height_changed(height_value: int)
+# Batched editor notifications intended for the live 3D preview.
+# - `hgt_map` is indexed by border footprint cells: size = (w+2)*(h+2)
+# - `typ_map` is indexed by playable sectors: size = w*h
+signal hgt_map_cells_edited(border_indices: Array)
+signal typ_map_cells_edited(typ_indices: Array)
 signal special_building_added(blg_map: int, typ_map: int, own_map: int)
 signal building_added(typ_map: int)
 

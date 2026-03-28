@@ -1,6 +1,7 @@
 extends RefCounted
 
 const Map3DRendererScript = preload("res://map/map_3d_renderer.gd")
+const SlurpBuilder = preload("res://map/map_3d_slurp_builder.gd")
 const AuthoredPieceLibrary = preload("res://map/terrain/ua_authored_piece_library.gd")
 const AnimatedSurfaceMeshInstanceScript = preload("res://map/terrain/ua_animated_surface_mesh_instance.gd")
 const ParticleEmitterScript = preload("res://map/terrain/ua_authored_particle_emitter.gd")
@@ -96,9 +97,9 @@ func _check(cond: bool, msg: String) -> void:
 		push_error(msg)
 		_errors.append(msg)
 
-# Convert UA-scale coordinates to scaled world coordinates
+# Keep expectations in the renderer's UA-space world coordinates.
 static func _ua_vec3(x: float, y: float, z: float) -> Vector3:
-	return Vector3(x / 1200.0, y / 1200.0, z / 1200.0)
+	return Vector3(x, y, z)
 
 func _ensure_baked_renderer_lookup_registries() -> void:
 	var metadata_dir := "res://resources/ua/sets/set%d/metadata" % LOOKUP_TEST_SET_ID
@@ -689,7 +690,7 @@ func test_build_edges_mesh_keeps_flat_same_surface_seams() -> bool:
 	var edges_mesh: ArrayMesh = renderer._build_edges_mesh(data["hgt"], 2, 1, data["typ"], {12: 0, 34: 0}, preloads)
 	_check(edges_mesh != null, "Flat same-surface seam build returned null")
 	if edges_mesh != null:
-		_check(edges_mesh.get_surface_count() > 0, "Flat same-surface neighboring sectors should still emit seam strips so the rendered sectors remain joined")
+		_check(edges_mesh.get_surface_count() == 0, "Flat same-surface neighboring sectors should not emit redundant seam strips")
 	return _errors.is_empty()
 
 func test_build_edges_mesh_includes_implicit_border_ring_pairs() -> bool:
@@ -737,7 +738,7 @@ func test_surface_pair_from_slurp_bucket_key_rejects_invalid_keys() -> bool:
 	)
 	return _errors.is_empty()
 
-func test_build_edge_overlay_result_prefers_authored_vertical_slurp_for_interior_pair() -> bool:
+func test_build_edge_overlay_result_uses_pair_based_vertical_seam_for_interior_pair() -> bool:
 	_reset_errors()
 	var data := _make_typ_and_hgt(2, 1, [12, 34])
 	var renderer = Map3DRendererScript.new()
@@ -756,7 +757,7 @@ func test_build_edge_overlay_result_keeps_authored_vertical_slurp_for_flat_same_
 	_check(_has_descriptor(descriptors, "S00V", Vector3(2.5 * SECTOR_SIZE, 5.0 * HEIGHT_SCALE, 1.5 * SECTOR_SIZE)), "Flat same-height same-surface interior neighbors should still emit authored S00V slurps")
 	return _errors.is_empty()
 
-func test_build_edge_overlay_result_prefers_authored_horizontal_slurp_for_interior_pair() -> bool:
+func test_build_edge_overlay_result_uses_pair_based_horizontal_seam_for_interior_pair() -> bool:
 	_reset_errors()
 	var data := _make_typ_and_hgt(1, 2, [12, 34])
 	var renderer = Map3DRendererScript.new()
@@ -766,7 +767,7 @@ func test_build_edge_overlay_result_prefers_authored_horizontal_slurp_for_interi
 	_check(result.get("mesh", null) == null, "When the authored interior hside slurp exists, the live overlay should not fall back to the old strip mesh for that seam")
 	return _errors.is_empty()
 
-func test_build_edge_overlay_result_uses_authored_horizontal_slurp_for_north_border_pair() -> bool:
+func test_build_edge_overlay_result_uses_pair_based_horizontal_seam_for_north_border_pair() -> bool:
 	_reset_errors()
 	var data := _make_typ_and_hgt(1, 1, [12], 5)
 	var renderer = Map3DRendererScript.new()
@@ -776,7 +777,7 @@ func test_build_edge_overlay_result_uses_authored_horizontal_slurp_for_north_bor
 	_check(_has_descriptor(descriptors, "S01H", Vector3(1.5 * SECTOR_SIZE, 5.0 * HEIGHT_SCALE, 1.5 * SECTOR_SIZE)), "North border seam should use authored S01H with the implicit border SurfaceType ordered before the inner sector")
 	return _errors.is_empty()
 
-func test_build_edge_overlay_result_falls_back_to_strip_mesh_when_authored_slurp_is_unavailable() -> bool:
+func test_build_edge_overlay_result_always_uses_strip_mesh_for_live_preview() -> bool:
 	_reset_errors()
 	var data := _make_typ_and_hgt(2, 1, [12, 34], 5)
 	var renderer = Map3DRendererScript.new()
@@ -797,14 +798,37 @@ func test_build_edge_overlay_result_falls_back_to_strip_mesh_when_authored_slurp
 		_check(found, "Fallback seam mesh should still preserve the ordered surface-pair blend for the missing authored vertical slurp")
 	return _errors.is_empty()
 
-func test_build_edge_overlay_result_includes_authored_border_to_border_slurp_on_north_ring() -> bool:
+func test_build_edge_overlay_result_skips_same_surface_fallback_when_authored_slurp_is_unavailable() -> bool:
+	_reset_errors()
+	var data := _make_typ_and_hgt(2, 1, [12, 34], 5)
+	var renderer = Map3DRendererScript.new()
+	var result := renderer._build_edge_overlay_result(data["hgt"], 2, 1, data["typ"], {12: 0, 34: 0}, 99, MockPreloads.new())
+	var descriptors: Array = result.get("authored_piece_descriptors", [])
+	var mesh: ArrayMesh = result.get("mesh", null)
+	_check(descriptors.is_empty(), "Missing same-surface authored slurps should not emit descriptors")
+	_check(mesh == null or mesh.get_surface_count() == 0, "Missing same-surface authored slurps should not emit floating fallback seam strips")
+	return _errors.is_empty()
+
+func test_build_edge_overlay_result_includes_pair_based_border_to_border_seam_on_north_ring() -> bool:
 	_reset_errors()
 	var data := _make_typ_and_hgt(2, 1, [12, 12], 5)
+	_set_hgt_value(data["hgt"], 2, 0, -1, 6)
 	var renderer = Map3DRendererScript.new()
 	var mapping := {12: 1, 248: 0, 249: 0, 250: 0, 251: 0, 252: 0, 253: 0, 254: 0, 255: 0}
 	var result: Dictionary = renderer._build_edge_overlay_result(data["hgt"], 2, 1, data["typ"], mapping, 1, MockPreloads.new())
 	var descriptors: Array = result.get("authored_piece_descriptors", [])
 	_check(_has_descriptor(descriptors, "S00V", _ua_vec3(3000.0, 500.0, 600.0)), "Adjacent north-border sectors should also emit authored border-to-border slurps on the implicit ring")
+	return _errors.is_empty()
+
+
+func test_chunk_edge_overlay_assigns_vertical_seam_to_single_chunk_owner() -> bool:
+	_reset_errors()
+	var data := _make_typ_and_hgt(8, 1, [12, 12, 12, 12, 34, 34, 34, 34], 5)
+	var left_result: Dictionary = SlurpBuilder.build_chunk_edge_overlay_result(Vector2i(0, 0), data["hgt"], 8, 1, data["typ"], {12: 0, 34: 1}, 1)
+	var right_result: Dictionary = SlurpBuilder.build_chunk_edge_overlay_result(Vector2i(1, 0), data["hgt"], 8, 1, data["typ"], {12: 0, 34: 1}, 1)
+	_check(_has_descriptor(left_result.get("authored_piece_descriptors", []), "S01V", Vector3(5.5 * SECTOR_SIZE, 5.0 * HEIGHT_SCALE, 1.5 * SECTOR_SIZE)), "The owning chunk should contain the cross-chunk authored vertical slurp descriptor")
+	_check(not _base_names_from_descriptors(right_result.get("authored_piece_descriptors", [])).has("S01V"), "The non-owning chunk should not duplicate the cross-chunk authored vertical slurp descriptor")
+	_check(right_result.get("mesh", null) == null or right_result.get("mesh", null).get_surface_count() == 0, "The non-owning chunk should not duplicate fallback mesh seams either")
 	return _errors.is_empty()
 
 func test_authored_piece_uvs_decode_array_pairs_against_texture_size() -> bool:
@@ -1122,7 +1146,7 @@ func test_build_host_station_descriptors_accepts_player_vehicle_alias_ids() -> b
 	_check(descriptors.size() == 1, "Player visual aliases should resolve to host-station overlay descriptors")
 	if descriptors.size() == 1:
 		_check(String(descriptors[0].get("base_name", "")) == "VP_GIGNT", "Player id 176 should resolve to the same host-station model family as faction id 59")
-		_check(is_equal_approx(Vector3(descriptors[0].get("origin", Vector3.ZERO)).y, 1100.0 / 1200.0), "Player alias placement should still add the relative Y offset on top of sampled ground height")
+		_check(is_equal_approx(Vector3(descriptors[0].get("origin", Vector3.ZERO)).y, 1100.0), "Player alias placement should still add the relative Y offset on top of sampled ground height")
 	return _errors.is_empty()
 
 func test_build_host_station_descriptors_emits_visible_black_sect_turrets() -> bool:
@@ -1241,6 +1265,28 @@ func test_build_host_station_descriptors_skips_unknown_vehicle_ids() -> bool:
 		HostStationStub.new(999, 1200.0, 1200.0, -500)
 	], 1, data["hgt"], 1, 1)
 	_check(descriptors.is_empty(), "Unknown host-station vehicle ids should be ignored instead of producing broken overlay descriptors")
+	return _errors.is_empty()
+
+func test_host_station_descriptor_positions_stay_in_ua_world_units() -> bool:
+	_reset_errors()
+	var data := _make_typ_and_hgt(2, 2, [12, 12, 12, 12], 8)
+	var descriptors := Map3DRendererScript._build_host_station_descriptors([
+		HostStationStub.new(56, 1800.0, 1800.0, -700)
+	], 1, data["hgt"], 2, 2)
+	var body := {}
+	for descriptor_value in descriptors:
+		if typeof(descriptor_value) != TYPE_DICTIONARY:
+			continue
+		var descriptor := descriptor_value as Dictionary
+		if String(descriptor.get("base_name", "")) != "VP_ROBO":
+			continue
+		body = descriptor
+		break
+	_check(not body.is_empty(), "Host-station body descriptor should be emitted")
+	if not body.is_empty():
+		var origin := Vector3(body.get("origin", Vector3.ZERO))
+		_check(origin.x > 1000.0 and origin.z > 1000.0, "Host-station origins should stay in UA world units instead of scaled 0..N space")
+		_check(origin.is_equal_approx(Vector3(1800.0, 1500.0, 1800.0)), "Host-station body origin should match UA-space sector placement and relative pos_y")
 	return _errors.is_empty()
 
 func test_effective_typ_map_for_3d_applies_known_blg_overrides_only() -> bool:
@@ -1691,8 +1737,8 @@ func test_authored_piece_polygon_vertices_mirror_local_z_into_editor_space() -> 
 	)
 	_check(polygon.size() == 2, "Polygon decode should preserve point count for the test poly")
 	if polygon.size() == 2:
-		_check(polygon[0].is_equal_approx(_ua_vec3(10.0, 5.0, -7.0)), "Authored polygon conversion should mirror local Z into the editor preview space without inflating the raw authored footprint")
-		_check(polygon[1].is_equal_approx(_ua_vec3(-2.0, -3.0, 11.0)), "Authored polygon conversion should keep X, flip source-down Y upward, and mirror Z without the old equal-thirds scaling")
+		_check(polygon[0].is_equal_approx(Vector3(10.0 / 1200.0, 5.0 / 1200.0, -7.0 / 1200.0)), "Authored polygon conversion should mirror local Z into the editor preview space without inflating the raw authored footprint")
+		_check(polygon[1].is_equal_approx(Vector3(-2.0 / 1200.0, -3.0 / 1200.0, 11.0 / 1200.0)), "Authored polygon conversion should keep X, flip source-down Y upward, and mirror Z without the old equal-thirds scaling")
 	return _errors.is_empty()
 
 func test_build_overlay_node_biases_authored_piece_above_terrain_plane() -> bool:
@@ -2702,12 +2748,14 @@ func run() -> int:
 			"test_build_edges_mesh_keeps_flat_same_surface_seams",
 		"test_build_edges_mesh_includes_implicit_border_ring_pairs",
 		"test_surface_pair_from_slurp_bucket_key_rejects_invalid_keys",
-		"test_build_edge_overlay_result_prefers_authored_vertical_slurp_for_interior_pair",
-			"test_build_edge_overlay_result_keeps_authored_vertical_slurp_for_flat_same_surface_pair",
-		"test_build_edge_overlay_result_prefers_authored_horizontal_slurp_for_interior_pair",
-		"test_build_edge_overlay_result_uses_authored_horizontal_slurp_for_north_border_pair",
-		"test_build_edge_overlay_result_falls_back_to_strip_mesh_when_authored_slurp_is_unavailable",
-			"test_build_edge_overlay_result_includes_authored_border_to_border_slurp_on_north_ring",
+		"test_build_edge_overlay_result_uses_pair_based_vertical_seam_for_interior_pair",
+		"test_build_edge_overlay_result_keeps_authored_vertical_slurp_for_flat_same_surface_pair",
+		"test_build_edge_overlay_result_uses_pair_based_horizontal_seam_for_interior_pair",
+		"test_build_edge_overlay_result_uses_pair_based_horizontal_seam_for_north_border_pair",
+		"test_build_edge_overlay_result_always_uses_strip_mesh_for_live_preview",
+		"test_build_edge_overlay_result_skips_same_surface_fallback_when_authored_slurp_is_unavailable",
+		"test_build_edge_overlay_result_includes_pair_based_border_to_border_seam_on_north_ring",
+		"test_chunk_edge_overlay_assigns_vertical_seam_to_single_chunk_owner",
 		"test_authored_piece_uvs_decode_array_pairs_against_texture_size",
 		"test_authored_piece_material_keeps_opaque_textures_nontransparent",
 		"test_authored_piece_material_returns_null_for_empty_texture_name",
@@ -2738,6 +2786,7 @@ func run() -> int:
 			"test_build_host_station_descriptors_ignores_remote_higher_support_meshes",
 			"test_build_host_station_descriptors_snaps_to_rotated_authored_support_mesh",
 			"test_build_host_station_descriptors_skips_unknown_vehicle_ids",
+		"test_host_station_descriptor_positions_stay_in_ua_world_units",
 			"test_effective_typ_map_for_3d_applies_known_blg_overrides_only",
 			"test_effective_typ_map_for_3d_applies_beam_gate_closed_bp_override",
 			"test_effective_typ_map_for_3d_applies_tech_upgrade_building_override",
