@@ -690,6 +690,8 @@ func _ready() -> void:
 		_es.map_3d_overlay_animations_changed.connect(_on_map_3d_overlay_animations_changed)
 		if _es.has_signal("hoststation_added"):
 			_es.hoststation_added.connect(_on_host_station_added)
+		if _es.has_signal("unit_position_committed"):
+			_es.unit_position_committed.connect(_on_unit_position_committed)
 		if _es.has_signal("hgt_map_cells_edited"):
 			_es.hgt_map_cells_edited.connect(_on_hgt_map_cells_edited)
 		if _es.has_signal("typ_map_cells_edited"):
@@ -729,6 +731,11 @@ func _on_map_3d_overlay_animations_changed() -> void:
 
 
 func _on_host_station_added(_owner_id: int, _vehicle_id: int) -> void:
+	if _preview_refresh_active():
+		_request_dynamic_overlay_refresh()
+
+
+func _on_unit_position_committed() -> void:
 	if _preview_refresh_active():
 		_request_dynamic_overlay_refresh()
 

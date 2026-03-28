@@ -53,7 +53,11 @@ func _on_button_button_down():
 
 
 func _on_button_button_up():
+	var moved := init_pos != position
 	dragging = false
+	if moved:
+		EventSystem.unit_position_committed.emit()
+		EventSystem.map_updated.emit()
 
 
 func recalculate_limits():
