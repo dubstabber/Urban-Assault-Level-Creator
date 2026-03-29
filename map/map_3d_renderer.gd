@@ -12,6 +12,7 @@ const AuthoredOverlayManager := preload("res://map/map_3d_authored_overlay_manag
 const ViewController := preload("res://map/map_3d_view_controller.gd")
 const UALegacyText := preload("res://map/ua_legacy_text.gd")
 const RefreshCoordinator := preload("res://map/map_3d_refresh_coordinator.gd")
+const ChunkRuntime := preload("res://map/map_3d_chunk_runtime.gd")
 
 const SECTOR_SIZE := 1200.0
 const HEIGHT_SCALE := 100.0
@@ -177,12 +178,8 @@ var _refresh_deferred := false
 var _refresh_requested_at_usec := 0
 var _last_build_metrics: Dictionary = {}
 
-var _chunked_terrain_enabled := true
 var _terrain_chunk_nodes: Dictionary = {}
 var _edge_chunk_nodes: Dictionary = {}
-var _dirty_chunks: Dictionary = {}
-var _last_map_dimensions: Vector2i = Vector2i.ZERO
-var _last_level_set: int = -1
 
 # Cache to avoid recomputing `effective_typ` when only `hgt_map` changes.
 var _effective_typ_cache_valid := false
@@ -192,30 +189,6 @@ var _effective_typ_cache: PackedByteArray = PackedByteArray()
 var _effective_typ_dirty := true
 var _effective_typ_cache_typ_checksum: int = 0
 var _effective_typ_cache_blg_checksum: int = 0
-
-# Terrain/edge authored piece descriptor cache.
-# Used to keep incremental chunk rebuilds from accidentally queue-free'ing
-# unaffected authored pieces.
-var _terrain_authored_cache_by_key: Dictionary = {}
-# Instance-key reference counts across chunks.
-# Border-inclusive chunk meshes generate overlapping authored descriptors, so
-# keys can contribute to multiple chunks simultaneously. We must not erase
-# a key globally just because one chunk rebuild dropped its contribution.
-var _terrain_authored_cache_key_ref_counts: Dictionary = {}
-# Maps a chunk coord to the authored descriptor instance-keys it contributed last time.
-var _terrain_chunk_authored_cache_keys: Dictionary = {}
-
-# Initial-load batching for large maps.
-var _initial_build_in_progress := false
-var _initial_build_batch_size := 4
-var _initial_build_accumulated_authored_descriptors: Array = []
-# When the renderer fell back to a full rebuild (e.g. because dirty chunk tracking
-# didn't get signaled), the incremental cache bookkeeping may not be exact for
-# border-inclusive chunk meshes.
-# Force exactly one follow-up full rebuild on the next map update to restore
-# consistent edge/slurp + authored-overlay behavior.
-var _force_full_rebuild_next_update := false
-var _force_full_rebuild_was_applied := false
 var _geometry_distance_culling_enabled := false
 var _geometry_cull_distance := UA_NORMAL_GEOMETRY_CULL_DISTANCE
 
@@ -223,6 +196,9 @@ var _geometry_cull_distance := UA_NORMAL_GEOMETRY_CULL_DISTANCE
 # Thread-safe state, chunk payload queues, generation IDs, and map signature
 # tracking live there; the renderer accesses them via `_coordinator`.
 var _coordinator := RefreshCoordinator.new()
+
+# Chunk-level state: dirty tracking, rebuild decisions, authored cache.
+var _chunk_rt := ChunkRuntime.new()
 
 # Async initial-build state (exposed for UI loading indicator and cancellation).
 var is_building_3d := false
@@ -250,7 +226,6 @@ var _dynamic_overlay_refresh_requested := false
 var _async_dynamic_overlay_descriptors: Array = []
 var _async_overlay_descriptor_dynamic_only := false
 var _skip_next_map_changed_refresh := false
-var _explicit_chunk_invalidation_pending := false
 
 
 func set_event_system_override(event_system: Node) -> void:
@@ -639,9 +614,9 @@ func _request_dynamic_overlay_refresh() -> void:
 
 
 func _can_use_overlay_only_refresh() -> bool:
-	if _initial_build_in_progress:
+	if _chunk_rt.initial_build_in_progress:
 		return false
-	if not _dirty_chunks.is_empty():
+	if _chunk_rt.has_dirty_chunks():
 		return false
 	if _terrain_chunk_nodes.is_empty() and _edge_chunk_nodes.is_empty():
 		return false
@@ -652,9 +627,9 @@ func _can_use_overlay_only_refresh() -> bool:
 	var h := int(cmd.vertical_sectors)
 	if w <= 0 or h <= 0:
 		return false
-	if Vector2i(w, h) != _last_map_dimensions:
+	if Vector2i(w, h) != _chunk_rt.last_map_dimensions:
 		return false
-	if int(cmd.level_set) != _last_level_set:
+	if int(cmd.level_set) != _chunk_rt.last_level_set:
 		return false
 	return true
 
@@ -726,9 +701,9 @@ func _sync_async_overlay_state_from_current_map() -> bool:
 
 
 func _try_start_async_initial_build(reframe_camera: bool) -> bool:
-	if not _initial_build_in_progress:
+	if not _chunk_rt.initial_build_in_progress:
 		return false
-	if _dirty_chunks.is_empty():
+	if not _chunk_rt.has_dirty_chunks():
 		return false
 	var cmd := _current_map_data()
 	if cmd == null:
@@ -887,7 +862,7 @@ func _apply_async_chunk_payload(payload: Dictionary) -> void:
 			)
 		chunk_authored_descriptors.append_array(edge_result.get("authored_piece_descriptors", []))
 	_update_terrain_authored_cache_for_chunk(chunk_coord, chunk_authored_descriptors)
-	_dirty_chunks.erase(chunk_coord)
+	_chunk_rt.erase_dirty_chunk(chunk_coord)
 	var done := completed_chunks + 1
 	_update_build_progress(done, total_chunks, "Rendering map... %d / %d" % [done, total_chunks])
 	_bump_3d_viewport_rendering()
@@ -915,7 +890,7 @@ func _finish_async_initial_build() -> void:
 
 func _start_async_overlay_descriptor_build(dynamic_only: bool = false) -> void:
 	_update_build_progress(total_chunks, total_chunks, "Preparing overlays...")
-	var support_descriptors: Array = _terrain_authored_cache_by_key.values().duplicate()
+	var support_descriptors: Array = _chunk_rt.get_support_descriptors()
 	var cmd := _current_map_data()
 	if cmd == null:
 		_start_async_overlay_apply(support_descriptors, [], _make_empty_build_metrics())
@@ -1088,7 +1063,7 @@ func _apply_single_unit_dynamic_refresh(unit_kind: String, unit_id: int) -> bool
 	var hgt: PackedByteArray = cmd.hgt_map
 	if hgt.size() != (w + 2) * (h + 2):
 		return false
-	var support_descriptors: Array = _terrain_authored_cache_by_key.values().duplicate()
+	var support_descriptors: Array = _chunk_rt.get_support_descriptors()
 	_ensure_overlay_nodes()
 
 	if unit_kind == "host":
@@ -1165,8 +1140,8 @@ func _finalize_async_overlay_apply() -> void:
 	metrics["piece_overlay_slow_path"] = int(pc.get("piece_overlay_slow_path", 0))
 	metrics["overlay_node_creation_ms"] = _elapsed_ms_since(_async_overlay_apply_started_usec)
 	_last_build_metrics = metrics
-	_initial_build_in_progress = false
-	_initial_build_accumulated_authored_descriptors.clear()
+	_chunk_rt.initial_build_in_progress = false
+	_chunk_rt.initial_build_accumulated_authored_descriptors.clear()
 	_async_overlay_apply_active = false
 	_end_build_state(true, "3D map ready")
 	_bump_3d_viewport_rendering()
@@ -1341,7 +1316,7 @@ func _on_map_changed() -> void:
 	_overlay_only_refresh_requested = false
 	_dynamic_overlay_refresh_requested = false
 	var _cmd = _current_map_data()
-	_explicit_chunk_invalidation_pending = false
+	_chunk_rt.explicit_chunk_invalidation_pending = false
 	if _cmd:
 		var w := int(_cmd.horizontal_sectors)
 		var h := int(_cmd.vertical_sectors)
@@ -1370,19 +1345,15 @@ func _on_map_created() -> void:
 		var w := int(_cmd.horizontal_sectors)
 		var h := int(_cmd.vertical_sectors)
 		var level_set := int(_cmd.level_set)
-		_last_map_dimensions = Vector2i(w, h)
-		_last_level_set = level_set
+		_chunk_rt.last_map_dimensions = Vector2i(w, h)
+		_chunk_rt.last_level_set = level_set
 		_clear_chunk_nodes()
 		_set_authored_overlay([])
-		_dirty_chunks.clear()
-		_terrain_authored_cache_by_key.clear()
-		_terrain_authored_cache_key_ref_counts.clear()
-		_terrain_chunk_authored_cache_keys.clear()
-		var all_chunks := TerrainBuilder.all_chunks_for_map(w, h)
-		for chunk_coord in all_chunks:
-			_dirty_chunks[chunk_coord] = true
-		_initial_build_in_progress = true
-		_initial_build_accumulated_authored_descriptors.clear()
+		_chunk_rt.clear_dirty_chunks()
+		_chunk_rt.clear_authored_caches()
+		_chunk_rt.invalidate_all_chunks(w, h)
+		_chunk_rt.initial_build_in_progress = true
+		_chunk_rt.initial_build_accumulated_authored_descriptors.clear()
 	_request_refresh(true)
 
 func _on_map_updated() -> void:
@@ -1531,17 +1502,17 @@ func build_from_current_map() -> void:
 
 	metrics["used_textured_preloads"] = true
 	var level_set := int(_cmd.level_set)
-	var use_chunked := _chunked_terrain_enabled and not _needs_full_rebuild(w, h, level_set)
+	var use_chunked := _chunk_rt.chunked_terrain_enabled and not _needs_full_rebuild(w, h, level_set)
 
 	var terrain_started_usec := Time.get_ticks_usec()
 	var authored_piece_descriptors: Array = []
 	var support_descriptors: Array = []
 	var overlay_descriptors: Array = []
 
-	if use_chunked and not _dirty_chunks.is_empty():
+	if use_chunked and _chunk_rt.has_dirty_chunks():
 		# Incremental chunk rebuild
-		_force_full_rebuild_next_update = false
-		_force_full_rebuild_was_applied = false
+		_chunk_rt.force_full_rebuild_next_update = false
+		_chunk_rt.force_full_rebuild_was_applied = false
 		if _terrain_chunk_nodes.is_empty():
 			# We may be transitioning from the legacy full-mesh path into chunked mode.
 			# Seed all chunk nodes before clearing the shared terrain mesh, otherwise the
@@ -1552,44 +1523,44 @@ func build_from_current_map() -> void:
 		# any incremental cache updates. If our chunk overlap bookkeeping ever
 		# underflows and wipes the cache, we'd otherwise remove the entire authored
 		# overlay and leave only the edge meshes (the black grid).
-		var terrain_cache_snapshot_descriptors: Array = _terrain_authored_cache_by_key.values().duplicate()
+		var terrain_cache_snapshot_descriptors: Array = _chunk_rt.get_support_descriptors()
 		if _terrain_mesh:
 			_terrain_mesh.mesh = null
 		if _edge_mesh:
 			_edge_mesh.mesh = null
 		var max_chunks := -1
-		var is_initial_batch := _initial_build_in_progress
+		var is_initial_batch := _chunk_rt.initial_build_in_progress
 		if is_initial_batch:
-			max_chunks = _initial_build_batch_size
+			max_chunks = _chunk_rt.initial_build_batch_size
 		var batch_authored_descriptors := _rebuild_dirty_chunks(hgt, effective_typ, w, h, pre, level_set, metrics, max_chunks)
 		metrics["terrain_build_ms"] = _elapsed_ms_since(terrain_started_usec)
 		metrics["incremental_rebuild"] = true
 
 		if is_initial_batch:
-			_initial_build_accumulated_authored_descriptors.append_array(batch_authored_descriptors)
-			metrics["terrain_authored_descriptor_count"] = _initial_build_accumulated_authored_descriptors.size()
+			_chunk_rt.initial_build_accumulated_authored_descriptors.append_array(batch_authored_descriptors)
+			metrics["terrain_authored_descriptor_count"] = _chunk_rt.initial_build_accumulated_authored_descriptors.size()
 
 			# Keep building chunks until the accumulator is complete, then proceed with overlay generation.
-			if not _dirty_chunks.is_empty():
+			if _chunk_rt.has_dirty_chunks():
 				_finalize_build_metrics(metrics, build_started_usec)
 				_request_refresh(false)
 				return
 
-			authored_piece_descriptors = _initial_build_accumulated_authored_descriptors
-			_initial_build_in_progress = false
-			_initial_build_accumulated_authored_descriptors.clear()
+			authored_piece_descriptors = _chunk_rt.initial_build_accumulated_authored_descriptors
+			_chunk_rt.initial_build_in_progress = false
+			_chunk_rt.initial_build_accumulated_authored_descriptors.clear()
 		else:
 			authored_piece_descriptors = batch_authored_descriptors
 			metrics["terrain_authored_descriptor_count"] = authored_piece_descriptors.size()
 
-		var cached_terrain_descriptors: Array = _terrain_authored_cache_by_key.values()
+		var cached_terrain_descriptors: Array = _chunk_rt.get_support_descriptors()
 		if cached_terrain_descriptors.is_empty():
 			if not terrain_cache_snapshot_descriptors.is_empty():
 				cached_terrain_descriptors = terrain_cache_snapshot_descriptors.duplicate()
 			else:
 				cached_terrain_descriptors = authored_piece_descriptors.duplicate()
 		else:
-			# `_terrain_authored_cache_by_key` is already updated per rebuilt chunk;
+			# The authored cache is already updated per rebuilt chunk;
 			# appending `authored_piece_descriptors` here duplicates keys and inflates
 			# overlay descriptors during incremental rebuilds.
 			cached_terrain_descriptors = cached_terrain_descriptors.duplicate()
@@ -1600,8 +1571,8 @@ func build_from_current_map() -> void:
 		# Full rebuild (legacy path or first build)
 		_clear_chunk_nodes()
 		_invalidate_all_chunks(w, h)
-		_last_map_dimensions = Vector2i(w, h)
-		_last_level_set = level_set
+		_chunk_rt.last_map_dimensions = Vector2i(w, h)
+		_chunk_rt.last_level_set = level_set
 
 		var result := build_mesh_with_textures(
 			hgt,
@@ -1642,12 +1613,12 @@ func build_from_current_map() -> void:
 			if _edge_mesh:
 				_edge_mesh.mesh = null
 		metrics["edge_slurp_build_ms"] = _elapsed_ms_since(edge_started_usec)
-		_dirty_chunks.clear()
+		_chunk_rt.clear_dirty_chunks()
 		# Ensure authored-terrain cache matches the current full rebuild.
 		_reset_terrain_authored_cache_from_descriptors(support_descriptors, w, h)
-		if not _force_full_rebuild_was_applied:
-			_force_full_rebuild_next_update = true
-		_force_full_rebuild_was_applied = false
+		if not _chunk_rt.force_full_rebuild_was_applied:
+			_chunk_rt.force_full_rebuild_next_update = true
+		_chunk_rt.force_full_rebuild_was_applied = false
 	var overlay_descriptor_started_usec := Time.get_ticks_usec()
 	overlay_descriptors.append_array(_build_blg_attachment_descriptors(blg, effective_typ, int(_cmd.level_set), hgt, w, h, support_descriptors, game_data_type))
 	if _cmd.host_stations != null and is_instance_valid(_cmd.host_stations):
@@ -1695,15 +1666,11 @@ func _clear_chunk_nodes() -> void:
 		if node != null and is_instance_valid(node):
 			node.queue_free()
 	_edge_chunk_nodes.clear()
-	_dirty_chunks.clear()
+	_chunk_rt.clear_dirty_chunks()
 
 
 func _invalidate_all_chunks(w: int, h: int) -> void:
-	_dirty_chunks.clear()
-	var all_chunks := TerrainBuilder.all_chunks_for_map(w, h)
-	for chunk_coord in all_chunks:
-		_dirty_chunks[chunk_coord] = true
-	_explicit_chunk_invalidation_pending = true
+	_chunk_rt.invalidate_all_chunks(w, h)
 
 
 func _is_map_signature_changed(w: int, h: int, level_set: int, hgt: PackedByteArray, typ: PackedByteArray, blg: PackedByteArray) -> bool:
@@ -1715,13 +1682,7 @@ func _record_map_signature(w: int, h: int, level_set: int, hgt: PackedByteArray,
 
 
 func _invalidate_chunks_for_sector_edit(sx: int, sy: int, w: int, h: int, edit_type: String) -> void:
-	var affected: Array[Vector2i]
-	if edit_type == "hgt" or edit_type == "typ":
-		affected = TerrainBuilder.chunks_for_hgt_edit(sx, sy, w, h)
-	else:
-		affected = TerrainBuilder.chunks_for_blg_edit(sx, sy, w, h)
-	for chunk_coord in affected:
-		_dirty_chunks[chunk_coord] = true
+	_chunk_rt.invalidate_chunks_for_sector_edit(sx, sy, w, h, edit_type)
 
 
 func mark_sector_dirty(sx: int, sy: int, edit_type: String = "hgt") -> void:
@@ -1732,7 +1693,7 @@ func mark_sector_dirty(sx: int, sy: int, edit_type: String = "hgt") -> void:
 	var h := int(_cmd.vertical_sectors)
 	if w <= 0 or h <= 0:
 		return
-	_explicit_chunk_invalidation_pending = true
+	_chunk_rt.explicit_chunk_invalidation_pending = true
 	_invalidate_chunks_for_sector_edit(sx, sy, w, h, edit_type)
 
 
@@ -1744,7 +1705,7 @@ func mark_sectors_dirty(sectors: Array, edit_type: String = "hgt") -> void:
 	var h := int(_cmd.vertical_sectors)
 	if w <= 0 or h <= 0:
 		return
-	_explicit_chunk_invalidation_pending = true
+	_chunk_rt.explicit_chunk_invalidation_pending = true
 	for sector in sectors:
 		if sector is Vector2i:
 			_invalidate_chunks_for_sector_edit(sector.x, sector.y, w, h, edit_type)
@@ -1753,30 +1714,20 @@ func mark_sectors_dirty(sectors: Array, edit_type: String = "hgt") -> void:
 
 
 func get_dirty_chunk_count() -> int:
-	return _dirty_chunks.size()
+	return _chunk_rt.get_dirty_chunk_count()
 
 
 func is_using_chunked_terrain() -> bool:
-	return _chunked_terrain_enabled
+	return _chunk_rt.chunked_terrain_enabled
 
 
 func set_chunked_terrain_enabled(enabled: bool) -> void:
-	_chunked_terrain_enabled = enabled
+	_chunk_rt.chunked_terrain_enabled = enabled
 
 
 func _needs_full_rebuild(w: int, h: int, level_set: int) -> bool:
-	if _force_full_rebuild_next_update:
-		_force_full_rebuild_next_update = false
-		_force_full_rebuild_was_applied = true
-		return true
-	var dims := Vector2i(w, h)
-	if dims != _last_map_dimensions:
-		return true
-	if level_set != _last_level_set:
-		return true
-	if _terrain_chunk_nodes.is_empty() and _dirty_chunks.is_empty():
-		return true
-	return false
+	var has_chunk_nodes := not _terrain_chunk_nodes.is_empty()
+	return _chunk_rt.needs_full_rebuild(w, h, level_set, has_chunk_nodes)
 
 
 func _get_or_create_terrain_chunk_node(chunk_coord: Vector2i) -> MeshInstance3D:
@@ -1809,169 +1760,11 @@ func _get_or_create_edge_chunk_node(chunk_coord: Vector2i) -> MeshInstance3D:
 
 
 func _update_terrain_authored_cache_for_chunk(chunk_coord: Vector2i, chunk_descriptors: Array) -> void:
-	# Remove previously cached authored pieces for this chunk.
-	if _terrain_chunk_authored_cache_keys.has(chunk_coord):
-		for key in _terrain_chunk_authored_cache_keys[chunk_coord]:
-			var k := String(key)
-			if _terrain_authored_cache_key_ref_counts.has(k):
-				var new_ref_count := int(_terrain_authored_cache_key_ref_counts[k]) - 1
-				if new_ref_count <= 0:
-					_terrain_authored_cache_key_ref_counts.erase(k)
-					_terrain_authored_cache_by_key.erase(k)
-				else:
-					_terrain_authored_cache_key_ref_counts[k] = new_ref_count
-		_terrain_chunk_authored_cache_keys.erase(chunk_coord)
-
-	var new_keys: Array = []
-	var seen_in_chunk := {}
-	for desc in chunk_descriptors:
-		if typeof(desc) != TYPE_DICTIONARY:
-			continue
-		var d := desc as Dictionary
-		var key := String(d.get("instance_key", ""))
-		if key.is_empty():
-			continue
-		if seen_in_chunk.has(key):
-			continue
-		seen_in_chunk[key] = true
-		_terrain_authored_cache_by_key[key] = d
-		_terrain_authored_cache_key_ref_counts[key] = int(_terrain_authored_cache_key_ref_counts.get(key, 0)) + 1
-		new_keys.append(key)
-
-	_terrain_chunk_authored_cache_keys[chunk_coord] = new_keys
+	_chunk_rt.update_terrain_authored_cache_for_chunk(chunk_coord, chunk_descriptors)
 
 
 func _reset_terrain_authored_cache_from_descriptors(support_descriptors: Array, w: int, h: int) -> void:
-	_terrain_authored_cache_by_key.clear()
-	_terrain_chunk_authored_cache_keys.clear()
-	_terrain_authored_cache_key_ref_counts.clear()
-	if w <= 0 or h <= 0:
-		return
-
-	var chunk_count := TerrainBuilder.chunk_count_for_map(w, h)
-
-	for desc in support_descriptors:
-		if typeof(desc) != TYPE_DICTIONARY:
-			continue
-		var d := desc as Dictionary
-		var key := String(d.get("instance_key", ""))
-		if key.is_empty():
-			continue
-
-		# Cache lookups for chunk invalidation rely on being able to associate a descriptor
-		# with all chunks that could have generated it when building chunk meshes with
-		# `include_border=true` (so border/seam geometry is produced redundantly).
-		var cell_x := 0
-		var cell_y := 0
-		var cache_mode: String = "terrain"
-		if key.begins_with("terrain:"):
-			var parts := key.split(":")
-			# terrain:<set_id>:<x>:<y>:...
-			if parts.size() >= 4:
-				cell_x = int(parts[2])
-				cell_y = int(parts[3])
-		elif key.begins_with("slurp:v:"):
-			cache_mode = "slurp_v"
-			var parts := key.split(":")
-			# slurp:v:<set_id>:<x>:<y>:...
-			if parts.size() >= 5:
-				cell_x = int(parts[3])
-				cell_y = int(parts[4])
-		elif key.begins_with("slurp:h:"):
-			cache_mode = "slurp_h"
-			var parts := key.split(":")
-			# slurp:h:<set_id>:<x>:<y>:...
-			if parts.size() >= 5:
-				cell_x = int(parts[3])
-				cell_y = int(parts[4])
-		elif key.begins_with("slurp:"):
-			# Fallback for unknown slurp variants; keep old behavior.
-			cache_mode = "slurp_unknown"
-			var parts := key.split(":")
-			# slurp:<family>:<set_id>:<x>:<y>:...
-			if parts.size() >= 5:
-				cell_x = int(parts[3])
-				cell_y = int(parts[4])
-
-		_terrain_authored_cache_by_key[key] = d
-
-		# Determine conservatively which chunk coords are eligible to include this raw
-		# cell coordinate based on border-expanded chunk ranges.
-		var candidate_chunks: Array[Vector2i] = []
-		var cx_center := int(cell_x) >> TerrainBuilder.CHUNK_SHIFT
-		var cy_center := int(cell_y) >> TerrainBuilder.CHUNK_SHIFT
-		for dy in range(-1, 2):
-			for dx in range(-1, 2):
-				var cx := cx_center + dx
-				var cy := cy_center + dy
-				if cx < 0 or cy < 0 or cx >= chunk_count.x or cy >= chunk_count.y:
-					continue
-
-				var main_sx_min := cx * TerrainBuilder.CHUNK_SIZE
-				var main_sy_min := cy * TerrainBuilder.CHUNK_SIZE
-				var main_sx_max := mini(main_sx_min + TerrainBuilder.CHUNK_SIZE, w)
-				var main_sy_max := mini(main_sy_min + TerrainBuilder.CHUNK_SIZE, h)
-
-				# Match the loop extents used by the generators for the given instance key type.
-				# This ensures refcounts for shared seam descriptors don't underflow when
-				# only a neighboring chunk is rebuilt.
-				var exp_sx_min := maxi(main_sx_min - 1, -1)
-				var exp_sy_min := maxi(main_sy_min - 1, -1)
-				var exp_sx_max: int
-				var exp_sy_max: int
-				if cache_mode == "terrain" or cache_mode == "slurp_unknown":
-					# Map3DTerrainBuilder.build_chunk_mesh_with_textures(..., include_border=true)
-					# loop extents for x/y indices.
-					exp_sx_max = mini(main_sx_max + 1, w + 1) # exclusive
-					exp_sy_max = mini(main_sy_max + 1, h + 1) # exclusive
-				elif cache_mode == "slurp_v":
-					# Map3DSlurpBuilder.build_chunk_edge_overlay_result vertical loop:
-					#   x == -1 only for the first chunk, otherwise sx_min <= x < sx_max
-					#   y == -1 only for the top chunk, y == h only for the bottom chunk,
-					#   otherwise sy_min <= y < sy_max
-					exp_sx_min = (-1 if main_sx_min == 0 else main_sx_min)
-					exp_sy_min = (-1 if main_sy_min == 0 else main_sy_min)
-					exp_sx_max = main_sx_max # exclusive
-					exp_sy_max = (h + 1 if main_sy_max == h else main_sy_max) # exclusive
-				elif cache_mode == "slurp_h":
-					# Map3DSlurpBuilder.build_chunk_edge_overlay_result horizontal loop:
-					#   x == -1 only for the left chunk, x == w only for the right chunk,
-					#   otherwise sx_min <= x < sx_max
-					#   y == -1 only for the top chunk, otherwise sy_min <= y < sy_max
-					exp_sx_min = (-1 if main_sx_min == 0 else main_sx_min)
-					exp_sy_min = (-1 if main_sy_min == 0 else main_sy_min)
-					exp_sx_max = (w + 1 if main_sx_max == w else main_sx_max) # exclusive
-					exp_sy_max = main_sy_max # exclusive
-				else:
-					# Defensive fallback.
-					exp_sx_max = mini(main_sx_max + 1, w + 1) # exclusive
-					exp_sy_max = mini(main_sy_max + 1, h + 1) # exclusive
-
-				if cell_x >= exp_sx_min and cell_x < exp_sx_max and cell_y >= exp_sy_min and cell_y < exp_sy_max:
-					candidate_chunks.append(Vector2i(cx, cy))
-
-		# Fallback: if no candidates matched, associate with clamped cell coordinates.
-		if candidate_chunks.is_empty():
-			var playable_x := clampi(cell_x, 0, w - 1)
-			var playable_y := clampi(cell_y, 0, h - 1)
-			candidate_chunks.append(TerrainBuilder.sector_to_chunk(playable_x, playable_y))
-
-		# Deduplicate candidates.
-		var seen_chunks: Dictionary = {}
-		var unique_chunks: Array[Vector2i] = []
-		for cc in candidate_chunks:
-			var kk := "%d:%d" % [cc.x, cc.y]
-			if seen_chunks.has(kk):
-				continue
-			seen_chunks[kk] = true
-			unique_chunks.append(cc)
-
-		_terrain_authored_cache_key_ref_counts[key] = unique_chunks.size()
-		for chunk_coord in unique_chunks:
-			var chunk_keys: Array = _terrain_chunk_authored_cache_keys.get(chunk_coord, [])
-			if not chunk_keys.has(key):
-				chunk_keys.append(key)
-			_terrain_chunk_authored_cache_keys[chunk_coord] = chunk_keys
+	_chunk_rt.reset_terrain_authored_cache_from_descriptors(support_descriptors, w, h)
 
 
 func _rebuild_dirty_chunks(
@@ -2043,7 +1836,7 @@ func _rebuild_dirty_chunks(
 		processed.append(chunk_coord)
 
 	for chunk_coord in processed:
-		_dirty_chunks.erase(chunk_coord)
+		_chunk_rt.erase_dirty_chunk(chunk_coord)
 	metrics["chunks_rebuilt"] = chunks_rebuilt
 	return all_authored_descriptors
 
@@ -2055,17 +1848,8 @@ static func _chunk_distance_sq(a: Vector2i, b: Vector2i) -> int:
 
 
 func _dirty_chunks_sorted_by_priority(w: int, h: int) -> Array[Vector2i]:
-	var ordered: Array[Vector2i] = []
-	for key in _dirty_chunks.keys():
-		if key is Vector2i:
-			ordered.append(key)
-	if ordered.size() <= 1:
-		return ordered
 	var focus_chunk := _chunk_focus_coord(w, h)
-	ordered.sort_custom(func(a, b) -> bool:
-		return _chunk_distance_sq(Vector2i(a), focus_chunk) < _chunk_distance_sq(Vector2i(b), focus_chunk)
-	)
-	return ordered
+	return _chunk_rt.dirty_chunks_sorted_by_priority(focus_chunk)
 
 
 func _chunk_focus_coord(w: int, h: int) -> Vector2i:
@@ -2204,8 +1988,8 @@ func _apply_geometry_distance_culling_to_overlay() -> void:
 
 
 func _chunk_center_world_xz(chunk_coord: Vector2i) -> Vector2:
-	var w := maxi(_last_map_dimensions.x, 0)
-	var h := maxi(_last_map_dimensions.y, 0)
+	var w := maxi(_chunk_rt.last_map_dimensions.x, 0)
+	var h := maxi(_chunk_rt.last_map_dimensions.y, 0)
 	if w <= 0 or h <= 0:
 		return Vector2.ZERO
 	var sx_min := chunk_coord.x * TerrainBuilder.CHUNK_SIZE
