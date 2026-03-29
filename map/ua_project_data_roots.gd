@@ -19,6 +19,7 @@ const BUNDLED_ROOT := "res://resources/ua/bundled"
 const BUNDLED_SETS_ROOT := "res://resources/ua/bundled/sets"
 const BUNDLED_ORIGINAL_SHARED_SCRIPTS := "res://resources/ua/bundled/shared_scripts/original"
 const BUNDLED_METROPOLIS_DAWN_SHARED_SCRIPTS := "res://resources/ua/bundled/shared_scripts/metropolis_dawn"
+const LEGACY_SET_METADATA_ROOT := "res://resources/ua/sets"
 
 # Optional editor-only JSON (see Preloads.reload_surface_type_map).
 const EDITOR_OVERRIDES_ROOT := "res://resources/ua/editor_overrides"
@@ -53,6 +54,23 @@ static func all_set_root_base_paths() -> Array[String]:
 	return out
 
 
+static func candidate_set_directories(set_id: int, game_data_type: String) -> Array[String]:
+	var norm := normalized_game_data_type(game_data_type)
+	var sid := maxi(set_id, 1)
+	var xp_suffix := "_xp" if norm == "metropolisDawn" else ""
+	var candidates: Array[String] = []
+	for base in all_set_root_base_paths():
+		candidates.append("%s/set%d%s" % [base, sid, xp_suffix])
+	if norm == "metropolisDawn":
+		for base in all_set_root_base_paths():
+			candidates.append("%s/set%d" % [base, sid])
+	# Legacy metadata fixtures still used by tests and synthetic lookup sets.
+	candidates.append("%s/set%d%s" % [LEGACY_SET_METADATA_ROOT, sid, xp_suffix])
+	if norm == "metropolisDawn":
+		candidates.append("%s/set%d" % [LEGACY_SET_METADATA_ROOT, sid])
+	return candidates
+
+
 ## First existing `set{N}` or `set{N}_xp` directory on disk (searches bundled, then optional in-project trees).
 static func first_existing_set_directory(set_id: int, game_data_type: String) -> String:
 	var norm := normalized_game_data_type(game_data_type)
@@ -72,6 +90,20 @@ static func first_existing_set_directory(set_id: int, game_data_type: String) ->
 
 static func primary_set_root(set_id: int, game_data_type: String) -> String:
 	return first_existing_set_directory(set_id, game_data_type)
+
+
+static func metadata_file_candidates(set_id: int, game_data_type: String, metadata_filename: String) -> Array[String]:
+	var filename := metadata_filename.strip_edges().trim_prefix("/")
+	if filename.is_empty():
+		return []
+	var candidates: Array[String] = []
+	for set_dir in candidate_set_directories(set_id, game_data_type):
+		candidates.append("%s/metadata/%s" % [set_dir, filename])
+	return candidates
+
+
+static func first_existing_metadata_file(set_id: int, game_data_type: String, metadata_filename: String) -> String:
+	return first_existing_file(metadata_file_candidates(set_id, game_data_type, metadata_filename))
 
 
 static func first_existing_file(candidates: Array) -> String:

@@ -260,6 +260,28 @@ static func _base_names_from_descriptors(descriptors: Array) -> Dictionary:
 			seen[String(desc.get("base_name", ""))] = true
 	return seen
 
+
+static func _instance_keys_from_descriptors(descriptors: Array) -> Dictionary:
+	var seen := {}
+	for desc in descriptors:
+		if typeof(desc) != TYPE_DICTIONARY:
+			continue
+		var key := String(Dictionary(desc).get("instance_key", ""))
+		if not key.is_empty():
+			seen[key] = true
+	return seen
+
+
+static func _attachment_vehicle_ids(definition: Dictionary) -> Array:
+	var ids: Array = []
+	for attachment in Array(definition.get("attachments", [])):
+		if typeof(attachment) != TYPE_DICTIONARY:
+			continue
+		ids.append(int(Dictionary(attachment).get("vehicle_id", -1)))
+	ids.sort()
+	return ids
+
+
 static func _has_descriptor(descriptors: Array, base_name: String, origin: Vector3) -> bool:
 	for desc in descriptors:
 		if typeof(desc) != TYPE_DICTIONARY:
@@ -1438,6 +1460,21 @@ func test_building_attachment_base_name_for_vehicle_prefers_non_effect_vehicle_d
 	_check(base_name == "VP_DFLAK", "Building attachments should prefer the non-effect vehicle definition for id 96 instead of the later bruch.scr particle/effect reuse")
 	return _errors.is_empty()
 
+
+func test_md_building_alias_74_reuses_taerflak_definition() -> bool:
+	_reset_errors()
+	var d74 := Map3DRendererScript._building_definition_for_id_and_sec_type(74, 208, 1, "metropolisDawn")
+	var d31 := Map3DRendererScript._building_definition_for_id_and_sec_type(31, 208, 1, "metropolisDawn")
+	_check(not d74.is_empty(), "MD building id 74 should resolve a definition through the 74->31 alias path")
+	_check(not d31.is_empty(), "MD building id 31 should resolve the source TAERFLAK definition")
+	if not d74.is_empty() and not d31.is_empty():
+		var ids74 := _attachment_vehicle_ids(d74)
+		var ids31 := _attachment_vehicle_ids(d31)
+		_check(ids74.size() > 0, "Aliased MD building id 74 should include turret/radar attachment vehicle entries")
+		_check(ids74 == ids31, "Aliased MD building id 74 should keep the same attachment vehicle profile as source id 31")
+	return _errors.is_empty()
+
+
 func test_build_blg_attachment_descriptors_emits_small_aa_overlay_for_blg28() -> bool:
 	_reset_errors()
 	var data := _make_typ_and_hgt(1, 1, [12], 0)
@@ -1651,6 +1688,29 @@ func test_build_squad_descriptors_resolves_metropolis_dawn_vehicle_visuals() -> 
 		_check(String(descriptors[0].get("base_name", "")) == "VP_MYKO4", "XP squad vehicle id 63 should resolve through Myk.scr and set1_xp visproto.lst to VP_MYKO4")
 		_check(is_equal_approx(float(descriptors[0].get("y_offset", -1.0)), Map3DRendererScript.SQUAD_EXTRA_Y_OFFSET), "XP squad overlays should receive the same conservative extra lift as original-game squads")
 	return _errors.is_empty()
+
+
+func test_md_direct_squad_base_mappings_resolve_xpack_models() -> bool:
+	_reset_errors()
+	AuthoredPieceLibrary.set_piece_game_data_type("metropolisDawn")
+	Map3DRendererScript._clear_runtime_lookup_caches_for_tests()
+	var expected := {
+		143: "VP_TODIN",
+		144: "VP_TKATJ",
+		145: "VP_MMYKO",
+	}
+	var known_bad := {
+		"VP_GHTT": true,
+		"VP_GLIDW": true,
+		"VP_BRGR4": true,
+	}
+	for vehicle_id in expected.keys():
+		var base_name := Map3DRendererScript._squad_base_name_for_vehicle(int(vehicle_id), 1, "metropolisDawn")
+		_check(not base_name.is_empty(), "MD squad vehicle %d should resolve to a non-empty visual base name" % int(vehicle_id))
+		_check(base_name == String(expected[vehicle_id]), "MD squad vehicle %d should resolve to the expected direct XPACK base name" % int(vehicle_id))
+		_check(not known_bad.has(base_name), "MD squad vehicle %d should not regress to known bad projectile/effect bases" % int(vehicle_id))
+	return _errors.is_empty()
+
 
 func test_preferred_squad_visual_base_name_prefers_wait_over_normal() -> bool:
 	_reset_errors()
@@ -2625,6 +2685,24 @@ func test_build_mesh_with_textures_invalid_input_returns_empty_mesh() -> bool:
 	return _errors.is_empty()
 
 
+func _overlay_child_by_name(renderer: Node, overlay_name: String) -> Node3D:
+	for child in renderer.get_children():
+		if child != null and child is Node3D and child.name == overlay_name:
+			return child
+	return null
+
+
+func _instance_keys_from_overlay(overlay: Node3D) -> Dictionary:
+	var found_keys: Dictionary = {}
+	if overlay == null:
+		return found_keys
+	for piece_root in overlay.get_children():
+		var key: String = String(piece_root.get_meta("instance_key", ""))
+		if not key.is_empty():
+			found_keys[key] = true
+	return found_keys
+
+
 func test_build_from_current_map_wires_host_stations_into_authored_overlay() -> bool:
 	_reset_errors()
 
@@ -2685,6 +2763,100 @@ func test_build_from_current_map_wires_host_stations_into_authored_overlay() -> 
 	for desc in expected_descriptors:
 		var expected_key := String(desc.get("instance_key", ""))
 		_check(found_keys.has(expected_key), "AuthoredOverlay missing host descriptor instance_key: %s" % expected_key)
+
+	renderer.free()
+	return _errors.is_empty()
+
+
+func test_dynamic_overlay_keeps_md_squads_after_mixed_pool_refresh_events() -> bool:
+	_reset_errors()
+
+	var w := 2
+	var h := 2
+	var data := _make_typ_and_hgt(w, h, [12, 12, 12, 12], 0)
+
+	var squads := Node.new()
+	var md_squad := SquadStub.new(143, 1200.0, 1200.0, 1)
+	squads.add_child(md_squad)
+
+	var map_data := CurrentMapDataStub.new()
+	map_data.horizontal_sectors = w
+	map_data.vertical_sectors = h
+	map_data.level_set = 1
+	map_data.hgt_map = data["hgt"]
+	map_data.typ_map = data["typ"]
+	map_data.blg_map = PackedByteArray([0, 0, 0, 0])
+	map_data.host_stations = null
+	map_data.squads = squads
+
+	var editor_state := EditorStateStub.new()
+	editor_state.game_data_type = "metropolisDawn"
+
+	var preloads := MockPreloads.new()
+	preloads.surface_type_map = {12: 0}
+
+	var renderer := Map3DRendererScript.new()
+	renderer._edge_overlay_enabled = false
+	renderer.set_current_map_data_override(map_data)
+	renderer.set_editor_state_override(editor_state)
+	renderer.set_preloads_override(preloads)
+
+	_check(renderer._sync_async_overlay_state_from_current_map(), "Expected async overlay state to sync from current map for MD scenario")
+	var initial_payload := {
+		"generation_id": renderer.active_build_generation_id,
+		"dynamic_only": true,
+		"support_descriptors": [],
+		"blg": map_data.blg_map,
+		"effective_typ": map_data.typ_map,
+		"set_id": map_data.level_set,
+		"hgt": map_data.hgt_map,
+		"w": w,
+		"h": h,
+		"game_data_type": renderer._async_game_data_type,
+		"host_station_snapshot": [],
+		"squad_snapshot": Map3DRendererScript._snapshot_squad_nodes([md_squad]),
+	}
+	renderer._async_overlay_descriptor_worker(initial_payload)
+	var initial_state := renderer._get_async_overlay_descriptor_state()
+	var initial_result: Dictionary = initial_state.get("result", {})
+	var initial_dynamic: Array = initial_result.get("dynamic_descriptors", [])
+	_check(initial_dynamic.size() > 0, "Initial descriptor pass should include MD squad overlays")
+	var initial_keys := _instance_keys_from_descriptors(initial_dynamic)
+	var expected_md_descriptors: Array = Map3DRendererScript._build_squad_descriptors([md_squad], map_data.level_set, data["hgt"], w, h, [], editor_state.game_data_type)
+	for desc in expected_md_descriptors:
+		var md_key := String(desc.get("instance_key", ""))
+		_check(initial_keys.has(md_key), "Initial dynamic descriptor set should contain MD squad key: %s" % md_key)
+
+	var original_squad := SquadStub.new(1, 1800.0, 1200.0, 1)
+	squads.add_child(original_squad)
+	renderer._on_unit_overlay_refresh_requested("squad", int(original_squad.get_instance_id()))
+	renderer._on_map_updated()
+
+	_check(renderer._sync_async_overlay_state_from_current_map(), "Expected async overlay state to stay synced after mixed-pool refresh events")
+	var refreshed_payload := {
+		"generation_id": renderer.active_build_generation_id,
+		"dynamic_only": true,
+		"support_descriptors": [],
+		"blg": map_data.blg_map,
+		"effective_typ": map_data.typ_map,
+		"set_id": map_data.level_set,
+		"hgt": map_data.hgt_map,
+		"w": w,
+		"h": h,
+		"game_data_type": renderer._async_game_data_type,
+		"host_station_snapshot": [],
+		"squad_snapshot": Map3DRendererScript._snapshot_squad_nodes(squads.get_children()),
+	}
+	renderer._async_overlay_descriptor_worker(refreshed_payload)
+	var refreshed_state := renderer._get_async_overlay_descriptor_state()
+	var refreshed_result: Dictionary = refreshed_state.get("result", {})
+	var refreshed_dynamic: Array = refreshed_result.get("dynamic_descriptors", [])
+	var refreshed_keys := _instance_keys_from_descriptors(refreshed_dynamic)
+	var expected_all: Array = Map3DRendererScript._build_squad_descriptors(squads.get_children(), map_data.level_set, data["hgt"], w, h, [], editor_state.game_data_type)
+	_check(expected_all.size() >= 2, "Mixed MD/original squad setup should emit both MD and original descriptors")
+	for desc in expected_all:
+		var expected_key := String(desc.get("instance_key", ""))
+		_check(refreshed_keys.has(expected_key), "Dynamic overlay should keep mixed-pool squad key after refresh events: %s" % expected_key)
 
 	renderer.free()
 	return _errors.is_empty()
@@ -2819,6 +2991,7 @@ func run() -> int:
 			"test_effective_typ_map_for_3d_ignores_unknown_or_out_of_bounds_secondary_building_overrides",
 			"test_building_definition_for_id_and_sec_type_distinguishes_duplicate_original_ids",
 			"test_building_attachment_base_name_for_vehicle_prefers_non_effect_vehicle_definition",
+			"test_md_building_alias_74_reuses_taerflak_definition",
 			"test_build_blg_attachment_descriptors_emits_small_aa_overlay_for_blg28",
 			"test_build_blg_attachment_descriptors_keeps_sector_ground_height_when_authored_support_mesh_is_higher",
 			"test_build_blg_attachment_descriptors_skips_dummy_gflak_visuals",
@@ -2832,6 +3005,7 @@ func run() -> int:
 			"test_build_squad_descriptors_expands_quantity_into_left_to_right_upward_formation",
 			"test_build_squad_descriptors_clamps_invalid_quantity_to_single_unit",
 			"test_build_squad_descriptors_resolves_metropolis_dawn_vehicle_visuals",
+			"test_md_direct_squad_base_mappings_resolve_xpack_models",
 			"test_preferred_squad_visual_base_name_prefers_wait_over_normal",
 			"test_preferred_squad_visual_base_name_falls_back_from_dummy_wait_to_normal",
 			"test_build_squad_descriptors_snaps_y_to_authored_support_mesh_when_present",
@@ -2875,6 +3049,7 @@ func run() -> int:
 		"test_build_mesh_with_textures_unknown_typ_uses_debug_surface",
 		"test_build_mesh_with_textures_invalid_input_returns_empty_mesh",
 	"test_build_from_current_map_wires_host_stations_into_authored_overlay",
+	"test_dynamic_overlay_keeps_md_squads_after_mixed_pool_refresh_events",
 	"test_build_from_current_map_wires_squads_into_authored_overlay",
 	]
 	for name in tests:

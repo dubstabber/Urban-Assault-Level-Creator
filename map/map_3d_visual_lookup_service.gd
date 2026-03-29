@@ -60,6 +60,26 @@ const TECH_UPGRADE_EDITOR_TYP_OVERRIDES := {
 	61: 113,
 	65: 110,
 }
+const MD_SQUAD_DIRECT_BASE_NAMES := {
+	# MD-only squads not present as `new_vehicle` entries in bundled/shared SCR scripts.
+	# Use XPACK-specific visproto base names from set*_xp payloads.
+	143: "VP_TODIN", # Thor's Hammer
+	144: "VP_TKATJ", # Ostwind
+	145: "VP_MMYKO", # Crusher
+}
+const MD_SQUAD_VEHICLE_ALIASES := {
+	# Some MD-only units are absent from shared SCR `new_vehicle` mappings.
+	# Alias them to close visual equivalents so they still render in 3D preview.
+	143: 32, # Thor's Hammer -> Eisenhans
+	144: 37, # Ostwind -> Leonid
+	145: 64, # Crusher -> X01 Quadda
+}
+const MD_BUILDING_DEFINITION_ALIASES := {
+	# Metropolis Dawn includes building IDs that share BUILD.SCR definitions
+	# with legacy IDs (same typ_map/icon role) but do not have their own
+	# `new_building` blocks in shared scripts.
+	74: 31, # Taerkasten flak station variant -> TAERFLAK definition
+}
 const UA_DATA_JSON = preload("res://resources/UAdata.json")
 
 static var _squad_vehicle_visuals_cache: Dictionary = {}
@@ -139,6 +159,140 @@ static func _visproto_path_for_set(set_id: int, game_data_type: String) -> Strin
 	])
 
 
+static func _metadata_file_candidates(set_id: int, game_data_type: String, metadata_filename: String) -> Array[String]:
+	var filename := metadata_filename.strip_edges().trim_prefix("/")
+	if filename.is_empty():
+		return []
+	var normalized_game_data_type := _UAProjectDataRoots.normalized_game_data_type(game_data_type)
+	var sid := maxi(set_id, 1)
+	var relative_path := "metadata/%s" % filename
+	var out: Array[String] = []
+	var seen := {}
+	var primary := _UAProjectDataRoots.first_existing_path_under_set_roots(sid, normalized_game_data_type, relative_path)
+	if not primary.is_empty():
+		out.append(primary)
+		seen[primary] = true
+	var legacy_root := "res://resources/ua/sets"
+	var xp_suffix := "_xp" if normalized_game_data_type == "metropolisDawn" else ""
+	var legacy_candidates: Array[String] = [
+		"%s/set%d%s/%s" % [legacy_root, sid, xp_suffix, relative_path],
+	]
+	if normalized_game_data_type == "metropolisDawn":
+		legacy_candidates.append("%s/set%d/%s" % [legacy_root, sid, relative_path])
+	for candidate in legacy_candidates:
+		if seen.has(candidate):
+			continue
+		if FileAccess.file_exists(candidate):
+			out.append(candidate)
+			seen[candidate] = true
+	return out
+
+
+static func _metadata_json_dictionary(path: String) -> Dictionary:
+	if path.is_empty() or not FileAccess.file_exists(path):
+		return {}
+	var txt: String = _UALegacyText.read_file(path)
+	if txt.is_empty():
+		return {}
+	var parsed: Variant = JSON.parse_string(txt)
+	return parsed if typeof(parsed) == TYPE_DICTIONARY else {}
+
+
+static func _metadata_visproto_base_names_for_set(set_id: int, game_data_type: String) -> Array:
+	for meta_path in _metadata_file_candidates(set_id, game_data_type, "visproto_base_names.json"):
+		var parsed := _metadata_json_dictionary(String(meta_path))
+		if parsed.has("base_names") and typeof(parsed["base_names"]) == TYPE_ARRAY:
+			return Array(parsed["base_names"]).duplicate(true)
+	return []
+
+
+static func _metadata_vehicle_visual_entries_for_set(set_id: int, game_data_type: String) -> Dictionary:
+	var out := {}
+	for meta_path in _metadata_file_candidates(set_id, game_data_type, "vehicle_visuals.json"):
+		var parsed := _metadata_json_dictionary(String(meta_path))
+		if not parsed.has("vehicles") or typeof(parsed["vehicles"]) != TYPE_DICTIONARY:
+			continue
+		var vehicles: Dictionary = parsed["vehicles"]
+		for vid_key in vehicles.keys():
+			var vid := int(vid_key)
+			if out.has(vid):
+				continue
+			var info_variant: Variant = vehicles[vid_key]
+			if typeof(info_variant) != TYPE_DICTIONARY:
+				continue
+			var info: Dictionary = info_variant
+			var model := String(info.get("model", ""))
+			var slots_variant: Variant = info.get("slots", {})
+			if typeof(slots_variant) != TYPE_DICTIONARY:
+				continue
+			var slots: Dictionary = slots_variant
+			var entry: Dictionary = {"model": model}
+			if slots.has("wait"):
+				entry["wait"] = int(slots.get("wait", 0))
+			if slots.has("normal"):
+				entry["normal"] = int(slots.get("normal", 0))
+			out[vid] = [entry]
+	return out
+
+
+static func _metadata_squad_vehicle_visuals_for_set(set_id: int, game_data_type: String) -> Dictionary:
+	var metadata_entries := _metadata_vehicle_visual_entries_for_set(set_id, game_data_type)
+	var out := {}
+	for vehicle_id in metadata_entries.keys():
+		var entries := Array(metadata_entries[vehicle_id])
+		if entries.is_empty():
+			continue
+		var first_entry_variant: Variant = entries[0]
+		if typeof(first_entry_variant) != TYPE_DICTIONARY:
+			continue
+		var first_entry := first_entry_variant as Dictionary
+		var slots := {}
+		if first_entry.has("wait"):
+			slots["wait"] = int(first_entry["wait"])
+		if first_entry.has("normal"):
+			slots["normal"] = int(first_entry["normal"])
+		if slots.is_empty():
+			continue
+		out[int(vehicle_id)] = slots
+	return out
+
+
+static func _append_unique_building_definitions(target: Array, incoming: Array) -> void:
+	var seen_keys := {}
+	for definition_value in target:
+		if typeof(definition_value) != TYPE_DICTIONARY:
+			continue
+		var definition := definition_value as Dictionary
+		var building_id := int(definition.get("building_id", -1))
+		var sec_type := int(definition.get("sec_type", -1))
+		if building_id < 0 or sec_type < 0:
+			continue
+		seen_keys["%d:%d" % [building_id, sec_type]] = true
+	for definition_value in incoming:
+		if typeof(definition_value) != TYPE_DICTIONARY:
+			continue
+		var definition := definition_value as Dictionary
+		var building_id := int(definition.get("building_id", -1))
+		var sec_type := int(definition.get("sec_type", -1))
+		if building_id < 0 or sec_type < 0:
+			continue
+		var key := "%d:%d" % [building_id, sec_type]
+		if seen_keys.has(key):
+			continue
+		target.append(definition.duplicate(true))
+		seen_keys[key] = true
+
+
+static func _metadata_building_definitions_for_set(set_id: int, game_data_type: String) -> Array:
+	var out: Array = []
+	for meta_path in _metadata_file_candidates(set_id, game_data_type, "building_definitions.json"):
+		var parsed := _metadata_json_dictionary(String(meta_path))
+		if not parsed.has("definitions") or typeof(parsed["definitions"]) != TYPE_ARRAY:
+			continue
+		_append_unique_building_definitions(out, Array(parsed["definitions"]))
+	return out
+
+
 static func _script_paths_for_game_data_type(set_id: int, game_data_type: String) -> Array:
 	var script_root := _script_root_for_game_data_type(set_id, game_data_type)
 	var result: Array = []
@@ -201,19 +355,10 @@ static func _visproto_base_names_for_set(set_id: int, game_data_type: String) ->
 	var cache_key := "%s:%d" % [normalized_game_data_type, max(set_id, 1)]
 	if _squad_visproto_base_name_cache.has(cache_key):
 		return _squad_visproto_base_name_cache[cache_key]
-
-	# Test harness fallback:
-	# Some checkouts (including this kata repo) do not ship `lookup/visproto.lst` for
-	# synthetic lookup sets; unit tests instead generate `visproto_base_names.json` in
-	# `res://resources/ua/sets/set{N}/metadata/`.
-	var metadata_dir := "res://resources/ua/sets/set%d/metadata" % max(set_id, 1)
-	var meta_path := "%s/visproto_base_names.json" % metadata_dir
-	if FileAccess.file_exists(meta_path):
-		var txt: String = _UALegacyText.read_file(meta_path)
-		var parsed: Variant = JSON.parse_string(txt) if not txt.is_empty() else null
-		if typeof(parsed) == TYPE_DICTIONARY and parsed.has("base_names") and typeof(parsed["base_names"]) == TYPE_ARRAY:
-			_squad_visproto_base_name_cache[cache_key] = parsed["base_names"].duplicate(true)
-			return _squad_visproto_base_name_cache[cache_key]
+	var metadata_base_names := _metadata_visproto_base_names_for_set(set_id, normalized_game_data_type)
+	if not metadata_base_names.is_empty():
+		_squad_visproto_base_name_cache[cache_key] = metadata_base_names
+		return _squad_visproto_base_name_cache[cache_key]
 
 	var result: Array = []
 	var visproto_path := _visproto_path_for_set(set_id, normalized_game_data_type)
@@ -349,6 +494,11 @@ static func _squad_vehicle_visuals_for_game_data_type(set_id: int, game_data_typ
 		var parsed: Dictionary = _parse_vehicle_visual_pairs(String(script_path))
 		for vehicle_id in parsed.keys():
 			merged[int(vehicle_id)] = Dictionary(parsed[vehicle_id]).duplicate(true)
+	var metadata_visuals := _metadata_squad_vehicle_visuals_for_set(set_id, normalized_game_data_type)
+	for vehicle_id in metadata_visuals.keys():
+		if merged.has(vehicle_id):
+			continue
+		merged[int(vehicle_id)] = Dictionary(metadata_visuals[vehicle_id]).duplicate(true)
 	_squad_vehicle_visuals_cache[cache_key] = merged
 	return merged
 
@@ -358,36 +508,6 @@ static func _vehicle_visual_entries_for_game_data_type(set_id: int, game_data_ty
 	var cache_key := "%s:%d" % [normalized_game_data_type, max(set_id, 1)]
 	if _vehicle_visual_entries_cache.has(cache_key):
 		return _vehicle_visual_entries_cache[cache_key]
-
-	# Test harness fallback:
-	# Prefer generated `vehicle_visuals.json` for synthetic lookup sets (set178 in tests).
-	var metadata_dir := "res://resources/ua/sets/set%d/metadata" % max(set_id, 1)
-	var meta_path := "%s/vehicle_visuals.json" % metadata_dir
-	if FileAccess.file_exists(meta_path):
-		var txt: String = _UALegacyText.read_file(meta_path)
-		var parsed: Variant = JSON.parse_string(txt) if not txt.is_empty() else null
-		if typeof(parsed) == TYPE_DICTIONARY and parsed.has("vehicles") and typeof(parsed["vehicles"]) == TYPE_DICTIONARY:
-			var vehicles: Dictionary = parsed["vehicles"]
-			var out: Dictionary = {}
-			for vid_key in vehicles.keys():
-				var vid: int = int(vid_key)
-				var info_variant: Variant = vehicles[vid_key]
-				if typeof(info_variant) != TYPE_DICTIONARY:
-					continue
-				var info: Dictionary = info_variant
-				var model := String(info.get("model", ""))
-				var slots_variant: Variant = info.get("slots", {})
-				if typeof(slots_variant) != TYPE_DICTIONARY:
-					continue
-				var slots: Dictionary = slots_variant
-				var entry: Dictionary = {"model": model}
-				if slots.has("wait"):
-					entry["wait"] = int(slots.get("wait", 0))
-				if slots.has("normal"):
-					entry["normal"] = int(slots.get("normal", 0))
-				out[vid] = [entry]
-			_vehicle_visual_entries_cache[cache_key] = out
-			return _vehicle_visual_entries_cache[cache_key]
 
 	var merged := {}
 	for script_path in _script_paths_for_game_data_type(set_id, normalized_game_data_type):
@@ -404,16 +524,35 @@ static func _vehicle_visual_entries_for_game_data_type(set_id: int, game_data_ty
 				merged[vid] = existing
 			else:
 				merged[vid] = incoming
+	var metadata_entries := _metadata_vehicle_visual_entries_for_set(set_id, normalized_game_data_type)
+	for vehicle_id in metadata_entries.keys():
+		if merged.has(vehicle_id):
+			continue
+		merged[int(vehicle_id)] = Array(metadata_entries[vehicle_id]).duplicate(true)
 	_vehicle_visual_entries_cache[cache_key] = merged
 	return merged
 
 
 static func _squad_base_name_for_vehicle(vehicle_id: int, set_id: int, game_data_type: String) -> String:
+	var normalized_game_data_type := _normalized_game_data_type(game_data_type)
+	if normalized_game_data_type == "metropolisDawn" and MD_SQUAD_DIRECT_BASE_NAMES.has(vehicle_id):
+		var direct_base_name := String(MD_SQUAD_DIRECT_BASE_NAMES[vehicle_id])
+		var direct_has_source := (not direct_base_name.is_empty()) and UATerrainPieceLibrary.has_piece_source(set_id, direct_base_name)
+		if direct_has_source:
+			return direct_base_name
 	var vehicle_visuals: Dictionary = _squad_vehicle_visuals_for_game_data_type(set_id, game_data_type)
 	if not vehicle_visuals.has(vehicle_id):
-		return ""
+		if normalized_game_data_type == "metropolisDawn" and MD_SQUAD_VEHICLE_ALIASES.has(vehicle_id):
+			var alias_id := int(MD_SQUAD_VEHICLE_ALIASES[vehicle_id])
+			if vehicle_visuals.has(alias_id):
+				vehicle_id = alias_id
+			else:
+				return ""
+		else:
+			return ""
 	var visproto_base_names := _visproto_base_names_for_set(set_id, game_data_type)
-	return _preferred_squad_visual_base_name(Dictionary(vehicle_visuals[vehicle_id]), visproto_base_names)
+	var selected_base_name := _preferred_squad_visual_base_name(Dictionary(vehicle_visuals[vehicle_id]), visproto_base_names)
+	return selected_base_name
 
 
 static func _building_attachment_base_name_for_vehicle(vehicle_id: int, set_id: int, game_data_type: String) -> String:
@@ -540,6 +679,7 @@ static func _building_definitions_for_game_data_type(set_id: int, game_data_type
 	var result: Array = []
 	for script_path in _script_paths_for_game_data_type(set_id, normalized_game_data_type):
 		result.append_array(_parse_building_definitions(String(script_path)))
+	_append_unique_building_definitions(result, _metadata_building_definitions_for_set(set_id, normalized_game_data_type))
 	_building_definitions_cache[cache_key] = result
 	return result
 
@@ -561,6 +701,20 @@ static func _building_definition_for_id_and_sec_type(building_id: int, sec_type:
 		if int(definition.get("sec_type", -1)) != sec_type:
 			continue
 		return definition.duplicate(true)
+	var normalized_game_data_type := _normalized_game_data_type(resolved_game_data_type)
+	if normalized_game_data_type == "metropolisDawn" and MD_BUILDING_DEFINITION_ALIASES.has(building_id):
+		var alias_id := int(MD_BUILDING_DEFINITION_ALIASES[building_id])
+		for definition_value in definitions:
+			if typeof(definition_value) != TYPE_DICTIONARY:
+				continue
+			var definition := definition_value as Dictionary
+			if int(definition.get("building_id", -1)) != alias_id:
+				continue
+			if int(definition.get("sec_type", -1)) != sec_type:
+				continue
+			var aliased := definition.duplicate(true)
+			aliased["building_id"] = building_id
+			return aliased
 	return {}
 
 

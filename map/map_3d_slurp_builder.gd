@@ -8,32 +8,6 @@ const SECTOR_SIZE := 1200.0
 const HEIGHT_SCALE := 100.0
 const EDGE_SLOPE := 150.0
 
-#region agent log
-const _AGENT_DEBUG_LOG_PATH := "/run/media/ydro/WDC/gamedev-workspace/Urban Assault Level Creator/.cursor/debug-324b35.log"
-static var _agent_debug_log_count: int = 0
-static func _agent_debug_log_once(run_id: String, hypothesis_id: String, location: String, message: String, data: Dictionary) -> void:
-	if _agent_debug_log_count >= 200:
-		return
-	_agent_debug_log_count += 1
-	var payload := {
-		"sessionId": "324b35",
-		"runId": run_id,
-		"hypothesisId": hypothesis_id,
-		"location": location,
-		"message": message,
-		"data": data,
-		"timestamp": Time.get_ticks_msec()
-	}
-	var f := FileAccess.open(_AGENT_DEBUG_LOG_PATH, FileAccess.READ_WRITE)
-	if f == null:
-		f = FileAccess.open(_AGENT_DEBUG_LOG_PATH, FileAccess.WRITE)
-	if f == null:
-		return
-	f.seek(f.get_length())
-	f.store_line(JSON.stringify(payload))
-	f.close()
-#endregion
-
 
 static func _retail_slurp_bucket_key(surface_a: int, surface_b: int, neighbor_dx: int, neighbor_dy: int) -> String:
 	if neighbor_dx != 0:
@@ -243,7 +217,7 @@ static func _append_horizontal_fallback_group(groups: Dictionary, bucket_key: St
 
 
 static func build_chunk_edge_overlay_result(
-	chunk_coord: Vector2i,
+	_chunk_coord: Vector2i,
 	hgt: PackedByteArray,
 	w: int,
 	h: int,
@@ -254,20 +228,8 @@ static func build_chunk_edge_overlay_result(
 	var authored_piece_descriptors: Array = []
 	var fallback_horiz := {}
 	var fallback_vert := {}
-	var vertical_checked := 0
-	var vertical_rejected_by_ownership := 0
-	var vertical_emitted := 0
-	var vertical_same_surface_emitted := 0
-	var horizontal_checked := 0
-	var horizontal_rejected_by_ownership := 0
-	var horizontal_emitted := 0
-	var horizontal_same_surface_emitted := 0
-	var vertical_same_surface_samples: Array = []
-	var horizontal_same_surface_samples: Array = []
-	var vertical_emitted_samples: Array = []
-	var horizontal_emitted_samples: Array = []
 
-	var chunk_range := TerrainBuilder.chunk_sector_range(chunk_coord.x, chunk_coord.y)
+	var chunk_range := TerrainBuilder.chunk_sector_range(_chunk_coord.x, _chunk_coord.y)
 	var sx_min := chunk_range.position.x
 	var sy_min := chunk_range.position.y
 	var sx_max := mini(sx_min + TerrainBuilder.CHUNK_SIZE, w)
@@ -277,9 +239,7 @@ static func build_chunk_edge_overlay_result(
 		for x in range(sx_min - 1, sx_max):
 			if x < -1 or x >= w or y < -1 or y >= h + 1:
 				continue
-			vertical_checked += 1
 			if not _chunk_owns_vertical_seam(x, y, sx_min, sx_max, sy_min, sy_max, h):
-				vertical_rejected_by_ownership += 1
 				continue
 			var a := TerrainBuilder._typ_value_with_implicit_border(typ, w, h, x, y)
 			var b := TerrainBuilder._typ_value_with_implicit_border(typ, w, h, x + 1, y)
@@ -312,40 +272,13 @@ static func build_chunk_edge_overlay_result(
 				continue
 			if sa == sb:
 				continue
-			vertical_emitted += 1
-			if vertical_emitted_samples.size() < 6:
-				vertical_emitted_samples.append({
-					"x": x,
-					"y": y,
-					"typ_a": a,
-					"typ_b": b,
-					"surface_a": sa,
-					"surface_b": sb,
-					"at_border": (x < 0 or x + 1 >= w or y < 0 or y >= h)
-				})
-			if sa == sb:
-				vertical_same_surface_emitted += 1
-				if vertical_same_surface_samples.size() < 4:
-					vertical_same_surface_samples.append({
-						"x": x,
-						"y": y,
-						"typ_a": a,
-						"typ_b": b,
-						"surface": sa,
-						"outer_left": yL,
-						"outer_right": yR,
-						"corner_top_avg": yTopAvg,
-						"corner_bottom_avg": yBottomAvg
-					})
 			_append_vertical_fallback_group(fallback_horiz, _retail_slurp_bucket_key(sa, sb, 1, 0), float(x + 2) * SECTOR_SIZE, float(y + 1) * SECTOR_SIZE, float(y + 2) * SECTOR_SIZE, yL, yR, yTopAvg, yBottomAvg)
 
 	for y2 in range(sy_min - 1, sy_max):
 		for x2 in range(sx_min - 1, sx_max + 1):
 			if x2 < -1 or x2 >= w + 1 or y2 < -1 or y2 >= h:
 				continue
-			horizontal_checked += 1
 			if not _chunk_owns_horizontal_seam(x2, y2, sx_min, sx_max, sy_min, sy_max, w):
-				horizontal_rejected_by_ownership += 1
 				continue
 			var a2 := TerrainBuilder._typ_value_with_implicit_border(typ, w, h, x2, y2)
 			var b2 := TerrainBuilder._typ_value_with_implicit_border(typ, w, h, x2, y2 + 1)
@@ -378,31 +311,6 @@ static func build_chunk_edge_overlay_result(
 				continue
 			if sa2 == sb2:
 				continue
-			horizontal_emitted += 1
-			if horizontal_emitted_samples.size() < 6:
-				horizontal_emitted_samples.append({
-					"x": x2,
-					"y": y2,
-					"typ_a": a2,
-					"typ_b": b2,
-					"surface_a": sa2,
-					"surface_b": sb2,
-					"at_border": (x2 < 0 or x2 >= w or y2 < 0 or y2 + 1 >= h)
-				})
-			if sa2 == sb2:
-				horizontal_same_surface_emitted += 1
-				if horizontal_same_surface_samples.size() < 4:
-					horizontal_same_surface_samples.append({
-						"x": x2,
-						"y": y2,
-						"typ_a": a2,
-						"typ_b": b2,
-						"surface": sa2,
-						"outer_top": yT,
-						"outer_bottom": yB,
-						"corner_left_avg": yLeftAvg,
-						"corner_right_avg": yRightAvg
-					})
 			_append_horizontal_fallback_group(fallback_vert, _retail_slurp_bucket_key(sa2, sb2, 0, 1), float(x2 + 1) * SECTOR_SIZE, float(x2 + 2) * SECTOR_SIZE, float(y2 + 2) * SECTOR_SIZE, yT, yB, yLeftAvg, yRightAvg)
 
 	var fallback_mesh := ArrayMesh.new()
@@ -418,35 +326,6 @@ static func build_chunk_edge_overlay_result(
 		st_v.index()
 		st_v.generate_normals()
 		st_v.commit(fallback_mesh)
-	#region agent log
-	_agent_debug_log_once(
-		"pre_fix",
-		"H2_chunk_ownership_or_duplication",
-		"Map3DSlurpBuilder.build_chunk_edge_overlay_result",
-		"Collected chunk edge/slurp seam ownership statistics",
-		{
-			"chunk_x": chunk_coord.x,
-			"chunk_y": chunk_coord.y,
-			"map_w": w,
-			"map_h": h,
-			"vertical_checked": vertical_checked,
-			"vertical_rejected_by_ownership": vertical_rejected_by_ownership,
-			"vertical_emitted": vertical_emitted,
-			"vertical_same_surface_emitted": vertical_same_surface_emitted,
-			"horizontal_checked": horizontal_checked,
-			"horizontal_rejected_by_ownership": horizontal_rejected_by_ownership,
-			"horizontal_emitted": horizontal_emitted,
-			"horizontal_same_surface_emitted": horizontal_same_surface_emitted,
-			"vertical_same_surface_samples": vertical_same_surface_samples,
-			"horizontal_same_surface_samples": horizontal_same_surface_samples,
-			"vertical_emitted_samples": vertical_emitted_samples,
-			"horizontal_emitted_samples": horizontal_emitted_samples,
-			"fallback_horiz_group_count": fallback_horiz_keys.size(),
-			"fallback_vert_group_count": fallback_vert_keys.size(),
-			"mesh_surface_count": fallback_mesh.get_surface_count()
-		}
-	)
-	#endregion
 	return {
 		"authored_piece_descriptors": authored_piece_descriptors,
 		"mesh": fallback_mesh if fallback_mesh.get_surface_count() > 0 else null,

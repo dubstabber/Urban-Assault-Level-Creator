@@ -230,7 +230,6 @@ func add_squad(owner_id: int, vehicle_id: int) -> void:
 	
 	CurrentMapData.is_saved = false
 	EditorState.selected_unit = squad
-	EventSystem.unit_position_committed.emit()
 	EventSystem.unit_overlay_refresh_requested.emit("squad", int(squad.get_instance_id()))
 	EventSystem.map_updated.emit()
 

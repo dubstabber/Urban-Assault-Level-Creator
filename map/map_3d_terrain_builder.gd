@@ -98,7 +98,7 @@ static func build_mesh_with_textures(hgt: PackedByteArray, typ: PackedByteArray,
 						)
 						if not authored.is_empty():
 							authored["instance_key"] = "terrain:%d:%d:%d:%d:%d:%d" % [
-								set_id, x, y, sub_x, sub_y, int(authored.get("raw_id", -1))
+								set_id, x, y, sub_x, sub_y, 0
 							]
 							authored["y_offset"] = TERRAIN_AUTHORED_Y_OFFSET
 							authored_piece_descriptors.append(authored)
@@ -135,7 +135,7 @@ static func build_mesh_with_textures(hgt: PackedByteArray, typ: PackedByteArray,
 				if authored.is_empty():
 					_draw_quad(st, x0, x1, z0, z1, sector_y, int(piece[0]), int(piece[1]), int(piece[2]))
 				else:
-					authored["instance_key"] = "terrain:%d:%d:%d:%d" % [set_id, x, y, int(authored.get("raw_id", -1))]
+					authored["instance_key"] = "terrain:%d:%d:%d:%d" % [set_id, x, y, 0]
 					authored["y_offset"] = TERRAIN_AUTHORED_Y_OFFSET
 					authored_piece_descriptors.append(authored)
 					continue

@@ -3,32 +3,6 @@ class_name Map3DAuthoredOverlayManager
 
 const PieceLibraryScript := preload("res://map/terrain/ua_authored_piece_library.gd")
 
-#region agent log
-const _AGENT_DEBUG_LOG_PATH := "/run/media/ydro/WDC/gamedev-workspace/Urban Assault Level Creator/.cursor/debug-324b35.log"
-static var _agent_debug_log_count: int = 0
-static func _agent_debug_log_once(run_id: String, hypothesis_id: String, location: String, message: String, data: Dictionary) -> void:
-	if _agent_debug_log_count >= 120:
-		return
-	_agent_debug_log_count += 1
-	var payload := {
-		"sessionId": "324b35",
-		"runId": run_id,
-		"hypothesisId": hypothesis_id,
-		"location": location,
-		"message": message,
-		"data": data,
-		"timestamp": Time.get_ticks_msec()
-	}
-	var f := FileAccess.open(_AGENT_DEBUG_LOG_PATH, FileAccess.READ_WRITE)
-	if f == null:
-		f = FileAccess.open(_AGENT_DEBUG_LOG_PATH, FileAccess.WRITE)
-	if f == null:
-		return
-	f.seek(f.get_length())
-	f.store_line(JSON.stringify(payload))
-	f.close()
-#endregion
-
 
 static func build_overlay_node(descriptors: Array) -> Node3D:
 	var root := Node3D.new()
@@ -244,24 +218,6 @@ func apply_overlay_node_step(root: Node3D, state: Dictionary, max_ops: int = 64)
 func finalize_apply_overlay_node(root: Node3D, state: Dictionary) -> void:
 	if root == null or not is_instance_valid(root) or state.is_empty():
 		return
-	#region agent log
-	_agent_debug_log_once(
-		"pre_fix",
-		"H16_overlay_node_lifecycle",
-		"Map3DAuthoredOverlayManager.apply_overlay_node",
-		"Collected overlay node apply lifecycle stats",
-		{
-			"input_descriptor_count": int(state.get("descriptor_count", 0)),
-			"desired_key_count": int(state.get("desired_count", 0)),
-			"existing_key_count_before": int(state.get("existing_count_before", 0)),
-			"scheduled_remove_count": (state.get("to_remove", []) as Array).size(),
-			"rebuilt_count": int(state.get("rebuilt_count", 0)),
-			"reused_count": int(state.get("reused_count", 0)),
-			"root_children_before": int(state.get("root_children_before", 0)),
-			"root_children_after": root.get_child_count()
-		}
-	)
-	#endregion
 
 
 func overlay_apply_progress(state: Dictionary) -> Dictionary:

@@ -8,6 +8,17 @@ const SECTOR_SIZE := RendererScript.SECTOR_SIZE
 var _errors: Array[String] = []
 
 
+class CurrentMapDataStub:
+	extends Node
+
+	var horizontal_sectors := 0
+	var vertical_sectors := 0
+	var level_set := 1
+	var hgt_map := PackedByteArray()
+	var typ_map := PackedByteArray()
+	var blg_map := PackedByteArray()
+
+
 func _reset_errors() -> void:
 	_errors.clear()
 
@@ -335,6 +346,14 @@ func _make_typ(w: int, h: int, value: int) -> PackedByteArray:
 	return arr
 
 
+func _make_blg(w: int, h: int, value: int) -> PackedByteArray:
+	var arr := PackedByteArray()
+	arr.resize(w * h)
+	for i in arr.size():
+		arr[i] = value
+	return arr
+
+
 func test_needs_full_rebuild_empty_chunks() -> bool:
 	_reset_errors()
 	var renderer := RendererScript.new()
@@ -375,6 +394,35 @@ func test_invalidate_all_chunks_marks_all_dirty() -> bool:
 	_check_eq(renderer._dirty_chunks.size(), expected_count, "8x8 map should have 4 dirty chunks")
 	_check(renderer._dirty_chunks.has(Vector2i(0, 0)), "chunk 0,0 should be dirty")
 	_check(renderer._dirty_chunks.has(Vector2i(1, 1)), "chunk 1,1 should be dirty")
+	renderer.free()
+	return _errors.is_empty()
+
+
+func test_map_signature_change_invalidates_all_chunks_without_explicit_sector_signals() -> bool:
+	_reset_errors()
+	var renderer := RendererScript.new()
+	var map_data := CurrentMapDataStub.new()
+	map_data.horizontal_sectors = 6
+	map_data.vertical_sectors = 6
+	map_data.level_set = 1
+	map_data.hgt_map = _make_hgt(6, 6, 0)
+	map_data.typ_map = _make_typ(6, 6, 12)
+	map_data.blg_map = _make_blg(6, 6, 0)
+	renderer.set_current_map_data_override(map_data)
+
+	# Seed signature + partial stale dirty set, then mutate typ_map as if a bulk
+	# generator/import path changed map data without per-cell edit signals.
+	renderer._record_map_signature(6, 6, 1, map_data.hgt_map, map_data.typ_map, map_data.blg_map)
+	renderer._dirty_chunks.clear()
+	renderer._dirty_chunks[Vector2i(1, 0)] = true
+	renderer._effective_typ_dirty = false
+	map_data.typ_map[0] = 99
+
+	renderer._on_map_changed()
+
+	var expected_chunks := TerrainBuilder.all_chunks_for_map(6, 6).size()
+	_check_eq(renderer._dirty_chunks.size(), expected_chunks, "Checksum-signature map changes should invalidate all chunks even without explicit sector edit signals")
+	_check(renderer._effective_typ_dirty, "Checksum-signature map changes should mark effective typ cache dirty")
 	renderer.free()
 	return _errors.is_empty()
 
@@ -434,6 +482,7 @@ func run() -> int:
 		"test_needs_full_rebuild_dimension_change",
 		"test_needs_full_rebuild_level_set_change",
 		"test_invalidate_all_chunks_marks_all_dirty",
+		"test_map_signature_change_invalidates_all_chunks_without_explicit_sector_signals",
 		"test_clear_chunk_nodes_resets_state",
 		"test_chunked_terrain_toggle",
 	]

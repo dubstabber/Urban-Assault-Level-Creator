@@ -38,7 +38,6 @@ static var _dir_cache := {}
 static var _anim_cache := {}
 static var _support_sampler_cache := {}
 static var _deformed_slurp_mesh_cache := {}
-static var _printed_piece_uv_diagnostics := {}
 static var _external_source_loading_enabled := true
 static var _external_source_root: String = ""
 static var _piece_game_data_type := "original"
@@ -435,34 +434,6 @@ static func _load_piece_mesh(set_id: int, base_name: String) -> ArrayMesh:
 	_animated_overlay_cache[cache_key] = has_animated_surfaces
 	_piece_overlay_emitters_cache[cache_key] = has_emitters
 	if mesh.get_surface_count() > 0:
-		# Minimal UV-range diagnostics for the specific ground pieces that visually
-		# exhibit black stripe artifacts in the live editor.
-		# This is intentionally gated and runs at most once per base_name.
-		var bn_upper := base_name.strip_edges().to_upper()
-		if (bn_upper == "GR_248" or bn_upper == "GR_252") and not _printed_piece_uv_diagnostics.has(bn_upper):
-			_printed_piece_uv_diagnostics[bn_upper] = true
-			var arrays0 := mesh.surface_get_arrays(0)
-			var uvs: PackedVector2Array = arrays0[Mesh.ARRAY_TEX_UV] as PackedVector2Array
-			var min_u: float = 0.0
-			var max_u: float = 0.0
-			var min_v: float = 0.0
-			var max_v: float = 0.0
-			if not uvs.is_empty():
-				min_u = uvs[0].x
-				max_u = uvs[0].x
-				min_v = uvs[0].y
-				max_v = uvs[0].y
-				for uv in uvs:
-					min_u = min(min_u, uv.x)
-					max_u = max(max_u, uv.x)
-					min_v = min(min_v, uv.y)
-					max_v = max(max_v, uv.y)
-			print(
-				"[AuthoredPiece] piece=", base_name,
-				" set_id=", set_id,
-				" surfaces=", mesh.get_surface_count(),
-				" uv_range=[", min_u, ",", max_u, "]x[", min_v, ",", max_v, "]"
-			)
 		_mesh_cache[cache_key] = mesh
 		return _mesh_cache[cache_key]
 	_mesh_cache[cache_key] = null
@@ -1559,6 +1530,8 @@ static func _load_json(path: String) -> Dictionary:
 static func _find_file(dir_path: String, filename: String) -> String:
 	if dir_path.is_empty() or filename.is_empty():
 		return ""
+	if not DirAccess.dir_exists_absolute(dir_path):
+		return ""
 	if not _dir_cache.has(dir_path):
 		var index := {}
 		for entry in DirAccess.get_files_at(dir_path):
@@ -1585,6 +1558,20 @@ static func _set_root(set_id: int) -> String:
 		return _first_existing_set_under_base(_external_source_root, resolved_set_id, _piece_game_data_type)
 	return _UAProjectDataRoots.first_existing_set_directory(set_id, _piece_game_data_type)
 
+
+static func _dir_with_retail_fallback(root: String, relative_dir: String) -> String:
+	if root.is_empty():
+		return ""
+	var primary := "%s/%s" % [root, relative_dir]
+	if DirAccess.dir_exists_absolute(primary):
+		return primary
+	if _UAProjectDataRoots.normalized_game_data_type(_piece_game_data_type) == "metropolisDawn" and root.ends_with("_xp"):
+		var retail_root := root.trim_suffix("_xp")
+		var retail := "%s/%s" % [retail_root, relative_dir]
+		if DirAccess.dir_exists_absolute(retail):
+			return retail
+	return primary
+
 static func _find_piece_bas_path(set_id: int, base_name: String) -> String:
 	var filename := "%s.bas.json" % base_name
 	var bas_path := _find_file(_buildings_dir(set_id), filename)
@@ -1609,7 +1596,7 @@ static func _vehicles_dir(set_id: int) -> String:
 
 static func _hi_alpha_dir(set_id: int) -> String:
 	var root := _set_root(set_id)
-	return "" if root.is_empty() else "%s/hi/alpha" % root
+	return _dir_with_retail_fallback(root, "hi/alpha")
 
 static func _skeleton_dir(set_id: int) -> String:
 	var root := _set_root(set_id)
