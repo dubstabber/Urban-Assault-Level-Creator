@@ -13,6 +13,7 @@ const ViewController := preload("res://map/map_3d_view_controller.gd")
 const UALegacyText := preload("res://map/ua_legacy_text.gd")
 const RefreshCoordinator := preload("res://map/map_3d_refresh_coordinator.gd")
 const ChunkRuntime := preload("res://map/map_3d_chunk_runtime.gd")
+const OverlayProducers := preload("res://map/map_3d_overlay_descriptor_producers.gd")
 
 const SECTOR_SIZE := 1200.0
 const HEIGHT_SCALE := 100.0
@@ -2185,83 +2186,15 @@ static func _host_station_origin(host_station: Node2D, hgt: PackedByteArray, w: 
 	return Vector3(world_x, support_y - ua_y, world_z)
 
 static func _snapshot_host_station_nodes(host_stations: Array) -> Array:
-	var snapshot: Array = []
-	for host_station in host_stations:
-		if host_station == null or not is_instance_valid(host_station):
-			continue
-		if not (host_station is Node2D):
-			continue
-		var vehicle_value = host_station.get("vehicle")
-		if vehicle_value == null:
-			continue
-		var station := host_station as Node2D
-		var pos_y_value = host_station.get("pos_y")
-		snapshot.append({
-			"id": int(host_station.get_instance_id()),
-			"vehicle": int(vehicle_value),
-			"x": float(station.position.x),
-			"y": float(station.position.y),
-			"pos_y": float(pos_y_value if pos_y_value != null else 0.0),
-		})
-	return snapshot
+	return OverlayProducers.snapshot_host_station_nodes(host_stations)
 
 
 static func _build_host_station_descriptors_from_snapshot(host_stations: Array, set_id: int, hgt: PackedByteArray, w: int, h: int, support_descriptors: Array = [], profile = null) -> Array:
-	var descriptors: Array = []
-	for host_station in host_stations:
-		if typeof(host_station) != TYPE_DICTIONARY:
-			continue
-		var hs := host_station as Dictionary
-		var vehicle := int(hs.get("vehicle", -1))
-		if vehicle < 0:
-			continue
-		var base_name := _host_station_base_name_for_vehicle(vehicle)
-		if base_name.is_empty():
-			continue
-		if not UATerrainPieceLibraryScript.has_piece_source(set_id, base_name):
-			continue
-		var world_x := float(hs.get("x", 0.0))
-		var world_z := absf(float(hs.get("y", 0.0)))
-		var ua_y := float(hs.get("pos_y", 0.0))
-		var support_y := _support_height_at_world_position(hgt, w, h, support_descriptors, world_x, world_z, profile)
-		var origin := Vector3(world_x, support_y - ua_y, world_z)
-		var station_key_id := int(hs.get("id", 0))
-		descriptors.append({
-			"set_id": set_id,
-			"raw_id": - 1,
-			"base_name": base_name,
-			"instance_key": "host:%d:%d:%s" % [set_id, station_key_id, base_name],
-			"origin": origin,
-		})
-		var gun_attachments_value = HOST_STATION_GUN_ATTACHMENTS.get(vehicle, [])
-		if gun_attachments_value is Array:
-			for attachment in gun_attachments_value:
-				if typeof(attachment) != TYPE_DICTIONARY:
-					continue
-				var gun_type := int(attachment.get("gun_type", -1))
-				var gun_base_name := _host_station_gun_base_name_for_type(gun_type)
-				if gun_base_name.is_empty():
-					continue
-				if not UATerrainPieceLibraryScript.has_piece_source(set_id, gun_base_name):
-					continue
-				var ua_offset := _vector3_from_variant(attachment.get("ua_offset", Vector3.ZERO))
-				var gun_descriptor := {
-					"set_id": set_id,
-					"raw_id": - 1,
-					"base_name": gun_base_name,
-					"instance_key": "host_gun:%d:%d:%d:%s" % [set_id, station_key_id, gun_type, gun_base_name],
-					"origin": origin + _host_station_godot_offset_from_ua(ua_offset),
-				}
-				var ua_direction := _vector3_from_variant(attachment.get("ua_direction", Vector3.ZERO))
-				var godot_direction := _host_station_godot_direction_from_ua(ua_direction)
-				if godot_direction.length_squared() > 0.000001:
-					gun_descriptor["forward"] = godot_direction
-				descriptors.append(gun_descriptor)
-	return descriptors
+	return OverlayProducers.build_host_station_descriptors_from_snapshot(host_stations, set_id, hgt, w, h, support_descriptors, profile)
 
 
 static func _build_host_station_descriptors(host_stations: Array, set_id: int, hgt: PackedByteArray, w: int, h: int, support_descriptors: Array = [], profile = null) -> Array:
-	return _build_host_station_descriptors_from_snapshot(_snapshot_host_station_nodes(host_stations), set_id, hgt, w, h, support_descriptors, profile)
+	return OverlayProducers.build_host_station_descriptors(host_stations, set_id, hgt, w, h, support_descriptors, profile)
 
 static func _normalized_game_data_type(game_data_type: String) -> String:
 	return "metropolisDawn" if game_data_type.to_lower() == "metropolisdawn" else "original"
@@ -2539,55 +2472,7 @@ static func _building_definition_for_id_and_sec_type(building_id: int, sec_type:
 	return VisualLookupService._building_definition_for_id_and_sec_type(building_id, sec_type, resolved_set_id, resolved_game_data_type)
 
 static func _build_blg_attachment_descriptors(blg: PackedByteArray, effective_typ: PackedByteArray, set_id: int, hgt: PackedByteArray, w: int, h: int, _support_descriptors: Array, game_data_type: String) -> Array:
-	var descriptors: Array = []
-	if blg.size() != w * h or effective_typ.size() != w * h:
-		return descriptors
-	# Source-backed building turret/radar sockets (`sbact_pos_*`) are defined relative to
-	# the sector center, so their Y anchor should stay on the terrain sector height rather
-	# than snapping up to the authored support mesh used by squads/host stations.
-	for sy in h:
-		for sx in w:
-			var idx := sy * w + sx
-			var building_id := int(blg[idx])
-			if building_id <= 0:
-				continue
-			var definition := _building_definition_for_id_and_sec_type(building_id, int(effective_typ[idx]), set_id, game_data_type)
-			if definition.is_empty():
-				continue
-			var world_x := (float(sx) + 1.5) * SECTOR_SIZE
-			var world_z := (float(sy) + 1.5) * SECTOR_SIZE
-			var sector_origin := _sector_center_origin(sx, sy, _ground_height_at_world_position(hgt, w, h, world_x, world_z))
-			var attachments: Array = definition.get("attachments", [])
-			for attachment_idx in attachments.size():
-				var attachment_value = attachments[attachment_idx]
-				if typeof(attachment_value) != TYPE_DICTIONARY:
-					continue
-				var attachment := attachment_value as Dictionary
-				var base_name := _building_attachment_base_name_for_vehicle(int(attachment.get("vehicle_id", -1)), set_id, game_data_type)
-				if base_name.is_empty():
-					continue
-				var has_piece_source := UATerrainPieceLibraryScript.has_piece_source(set_id, base_name)
-				if not has_piece_source:
-					continue
-				var descriptor := {
-					"set_id": set_id,
-					"raw_id": - 1,
-					"base_name": base_name,
-					"instance_key": "blg_attach:%d:%d:%d:%d:%d:%s" % [
-						set_id,
-						sx,
-						sy,
-						building_id,
-						int(attachment.get("vehicle_id", -1)),
-						str(attachment_idx)
-					],
-					"origin": sector_origin + _host_station_godot_offset_from_ua(_vector3_from_variant(attachment.get("ua_offset", Vector3.ZERO))),
-				}
-				var godot_direction := _host_station_godot_direction_from_ua(_vector3_from_variant(attachment.get("ua_direction", Vector3.ZERO)))
-				if godot_direction.length_squared() > 0.000001:
-					descriptor["forward"] = godot_direction
-				descriptors.append(descriptor)
-	return descriptors
+	return OverlayProducers.build_blg_attachment_descriptors(blg, effective_typ, set_id, hgt, w, h, _support_descriptors, game_data_type)
 
 static func _append_vehicle_visual_entry(result: Dictionary, vehicle_id: int, entry: Dictionary) -> void:
 	if vehicle_id < 0:
@@ -2708,74 +2593,18 @@ static func _squad_anchor_origin(squad: Node2D, hgt: PackedByteArray, w: int, h:
 	return Vector3(world_x, _support_height_at_world_position(hgt, w, h, support_descriptors, world_x, world_z, profile), world_z)
 
 static func _squad_formation_offsets(quantity: int) -> Array:
-	var offsets: Array = []
-	var columns := int(sqrt(float(quantity))) + 2
-	for unit_index in range(quantity):
-		# Latest user-validated preview parity keeps the recovered spacing/column-count rule,
-		# but fills each row left-to-right and advances subsequent rows upward in preview space
-		# while preserving the same shared snapped anchor rules.
-		var x_offset := SQUAD_FORMATION_SPACING * (float(unit_index % columns) - float(columns) / 2.0)
-		var z_offset: float = - SQUAD_FORMATION_SPACING * floor(float(unit_index) / float(columns))
-		offsets.append(Vector3(x_offset, 0.0, z_offset))
-	return offsets
+	return OverlayProducers.squad_formation_offsets(quantity)
 
 static func _snapshot_squad_nodes(squads: Array) -> Array:
-	var snapshot: Array = []
-	for squad in squads:
-		if squad == null or not is_instance_valid(squad):
-			continue
-		if not (squad is Node2D):
-			continue
-		var vehicle_value = squad.get("vehicle")
-		if vehicle_value == null:
-			continue
-		var squad_node := squad as Node2D
-		snapshot.append({
-			"id": int(squad.get_instance_id()),
-			"vehicle": int(vehicle_value),
-			"x": float(squad_node.position.x),
-			"y": float(squad_node.position.y),
-			"quantity": max(1, int(squad.get("quantity") if squad.get("quantity") != null else 1)),
-		})
-	return snapshot
+	return OverlayProducers.snapshot_squad_nodes(squads)
 
 
 static func _build_squad_descriptors_from_snapshot(squads: Array, set_id: int, hgt: PackedByteArray, w: int, h: int, support_descriptors: Array, game_data_type: String, profile = null) -> Array:
-	var descriptors: Array = []
-	for squad in squads:
-		if typeof(squad) != TYPE_DICTIONARY:
-			continue
-		var sq := squad as Dictionary
-		var vehicle := int(sq.get("vehicle", -1))
-		if vehicle < 0:
-			continue
-		var base_name := _squad_base_name_for_vehicle(vehicle, set_id, game_data_type)
-		if base_name.is_empty():
-			continue
-		var has_piece_source := UATerrainPieceLibraryScript.has_piece_source(set_id, base_name)
-		if not has_piece_source:
-			continue
-		var world_x := float(sq.get("x", 0.0))
-		var world_z := absf(float(sq.get("y", 0.0)))
-		var anchor := Vector3(world_x, _support_height_at_world_position(hgt, w, h, support_descriptors, world_x, world_z, profile), world_z)
-		var squad_key_id := int(sq.get("id", 0))
-		var quantity: int = max(1, int(sq.get("quantity", 1)))
-		var offsets := _squad_formation_offsets(quantity)
-		for unit_index in offsets.size():
-			var formation_offset: Vector3 = offsets[unit_index]
-			descriptors.append({
-				"set_id": set_id,
-				"raw_id": - 1,
-				"base_name": base_name,
-				"origin": anchor + Vector3(formation_offset),
-				"instance_key": "squad:%d:%d:%s:%d" % [set_id, squad_key_id, base_name, unit_index],
-				"y_offset": SQUAD_EXTRA_Y_OFFSET,
-			})
-	return descriptors
+	return OverlayProducers.build_squad_descriptors_from_snapshot(squads, set_id, hgt, w, h, support_descriptors, game_data_type, profile)
 
 
 static func _build_squad_descriptors(squads: Array, set_id: int, hgt: PackedByteArray, w: int, h: int, support_descriptors: Array, game_data_type: String, profile = null) -> Array:
-	return _build_squad_descriptors_from_snapshot(_snapshot_squad_nodes(squads), set_id, hgt, w, h, support_descriptors, game_data_type, profile)
+	return OverlayProducers.build_squad_descriptors(squads, set_id, hgt, w, h, support_descriptors, game_data_type, profile)
 
 static func _draw_quad(st: SurfaceTool, xl: float, xr: float, zt: float, zb: float, y: float, f: int, cells: int, v: int, rot_deg: int = 0, u0: float = 0.0, vv0: float = 0.0, u1: float = 1.0, vv1: float = 1.0) -> void:
 	var rot := ((rot_deg % 360) + 360) % 360
