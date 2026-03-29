@@ -11,6 +11,7 @@ const SlurpBuilder := preload("res://map/map_3d_slurp_builder.gd")
 const AuthoredOverlayManager := preload("res://map/map_3d_authored_overlay_manager.gd")
 const ViewController := preload("res://map/map_3d_view_controller.gd")
 const UALegacyText := preload("res://map/ua_legacy_text.gd")
+const RefreshCoordinator := preload("res://map/map_3d_refresh_coordinator.gd")
 
 const SECTOR_SIZE := 1200.0
 const HEIGHT_SCALE := 100.0
@@ -218,22 +219,17 @@ var _force_full_rebuild_was_applied := false
 var _geometry_distance_culling_enabled := false
 var _geometry_cull_distance := UA_NORMAL_GEOMETRY_CULL_DISTANCE
 
+# Scheduling and async build coordination is delegated to the coordinator.
+# Thread-safe state, chunk payload queues, generation IDs, and map signature
+# tracking live there; the renderer accesses them via `_coordinator`.
+var _coordinator := RefreshCoordinator.new()
+
 # Async initial-build state (exposed for UI loading indicator and cancellation).
-var build_generation_id := 0
-var active_build_generation_id := 0
-var cancel_requested_generation_id := 0
 var is_building_3d := false
 var total_chunks := 0
 var completed_chunks := 0
 var status_text := ""
 
-var _async_initial_thread: Thread = null
-var _async_state_mutex: Mutex = Mutex.new()
-var _async_queue_mutex: Mutex = Mutex.new()
-var _async_chunk_results: Array = []
-var _async_worker_done := false
-var _async_worker_failed := false
-var _async_worker_error := ""
 var _async_pending_reframe_camera := false
 var _async_effective_typ: PackedByteArray = PackedByteArray()
 var _async_blg: PackedByteArray = PackedByteArray()
@@ -241,16 +237,8 @@ var _async_w := 0
 var _async_h := 0
 var _async_level_set := 0
 var _async_game_data_type := "original"
-var _async_cancel_requested := false
 var _async_requested_restart := false
 var _async_requested_reframe := false
-var _async_overlay_descriptor_thread: Thread = null
-var _async_overlay_descriptor_done := false
-var _async_overlay_descriptor_failed := false
-var _async_overlay_descriptor_result: Variant = {}
-var _async_overlay_descriptor_metrics: Dictionary = {}
-var _async_overlay_descriptor_stage := ""
-var _async_overlay_descriptor_mutex: Mutex = Mutex.new()
 var _async_overlay_apply_active := false
 var _async_overlay_apply_state: Dictionary = {}
 var _async_overlay_descriptors: Array = []
@@ -262,12 +250,6 @@ var _dynamic_overlay_refresh_requested := false
 var _async_dynamic_overlay_descriptors: Array = []
 var _async_overlay_descriptor_dynamic_only := false
 var _skip_next_map_changed_refresh := false
-var _map_signature_valid := false
-var _map_signature_dims: Vector2i = Vector2i.ZERO
-var _map_signature_level_set: int = -1
-var _map_signature_hgt_checksum: int = 0
-var _map_signature_typ_checksum: int = 0
-var _map_signature_blg_checksum: int = 0
 var _explicit_chunk_invalidation_pending := false
 
 
@@ -350,109 +332,59 @@ func _end_build_state(success: bool, status: String = "") -> void:
 
 
 func _is_async_build_active() -> bool:
-	_async_state_mutex.lock()
-	var active := _async_initial_thread != null
-	_async_state_mutex.unlock()
-	return active
+	return _coordinator.is_async_build_active()
 
 
 func _is_async_pipeline_active() -> bool:
-	return _is_async_build_active() or _is_async_overlay_descriptor_active() or _async_overlay_apply_active
+	return _coordinator.is_async_pipeline_active(_async_overlay_apply_active)
 
 
 func _is_async_overlay_descriptor_active() -> bool:
-	_async_overlay_descriptor_mutex.lock()
-	var active := _async_overlay_descriptor_thread != null
-	_async_overlay_descriptor_mutex.unlock()
-	return active
+	return _coordinator.is_async_overlay_descriptor_active()
 
 
 func _set_async_overlay_descriptor_state(done: bool, failed: bool, result, metrics: Dictionary) -> void:
-	_async_overlay_descriptor_mutex.lock()
-	_async_overlay_descriptor_done = done
-	_async_overlay_descriptor_failed = failed
-	_async_overlay_descriptor_result = result
-	_async_overlay_descriptor_metrics = metrics
-	_async_overlay_descriptor_mutex.unlock()
+	_coordinator.set_async_overlay_descriptor_state(done, failed, result, metrics)
 
 
 func _set_async_overlay_descriptor_stage(stage: String) -> void:
-	_async_overlay_descriptor_mutex.lock()
-	_async_overlay_descriptor_stage = stage
-	_async_overlay_descriptor_mutex.unlock()
+	_coordinator.set_async_overlay_descriptor_stage(stage)
 
 
 func _get_async_overlay_descriptor_stage() -> String:
-	_async_overlay_descriptor_mutex.lock()
-	var stage := _async_overlay_descriptor_stage
-	_async_overlay_descriptor_mutex.unlock()
-	return stage
+	return _coordinator.get_async_overlay_descriptor_stage()
 
 
 func _get_async_overlay_descriptor_state() -> Dictionary:
-	_async_overlay_descriptor_mutex.lock()
-	var state := {
-		"done": _async_overlay_descriptor_done,
-		"failed": _async_overlay_descriptor_failed,
-		"result": _async_overlay_descriptor_result,
-		"metrics": _async_overlay_descriptor_metrics,
-	}
-	_async_overlay_descriptor_mutex.unlock()
-	return state
+	return _coordinator.get_async_overlay_descriptor_state()
 
 
 func _set_async_worker_state(done: bool, failed: bool, message: String) -> void:
-	_async_state_mutex.lock()
-	_async_worker_done = done
-	_async_worker_failed = failed
-	_async_worker_error = message
-	_async_state_mutex.unlock()
+	_coordinator.set_async_worker_state(done, failed, message)
 
 
 func _get_async_worker_state() -> Dictionary:
-	_async_state_mutex.lock()
-	var state := {
-		"done": _async_worker_done,
-		"failed": _async_worker_failed,
-		"error": _async_worker_error,
-	}
-	_async_state_mutex.unlock()
-	return state
+	return _coordinator.get_async_worker_state()
 
 
 func _is_async_cancel_requested(generation_id: int) -> bool:
-	_async_state_mutex.lock()
-	var cancelled := _async_cancel_requested and generation_id == active_build_generation_id
-	_async_state_mutex.unlock()
-	return cancelled
+	return _coordinator.is_async_cancel_requested(generation_id)
 
 
 func _push_async_chunk_payload(payload: Dictionary) -> void:
-	_async_queue_mutex.lock()
-	_async_chunk_results.append(payload)
-	_async_queue_mutex.unlock()
+	_coordinator.push_async_chunk_payload(payload)
 
 
 func _pop_async_chunk_payload() -> Dictionary:
-	_async_queue_mutex.lock()
-	var payload := {}
-	if not _async_chunk_results.is_empty():
-		payload = _async_chunk_results.pop_front()
-	_async_queue_mutex.unlock()
-	return payload
+	return _coordinator.pop_async_chunk_payload()
 
 
 func _clear_async_chunk_payloads() -> void:
-	_async_queue_mutex.lock()
-	_async_chunk_results.clear()
-	_async_queue_mutex.unlock()
+	_coordinator.clear_async_chunk_payloads()
 
 
 func _async_chunk_payload_count() -> int:
-	_async_queue_mutex.lock()
-	var count := _async_chunk_results.size()
-	_async_queue_mutex.unlock()
-	return count
+	return _coordinator.async_chunk_payload_count()
 
 
 func _compute_effective_typ_for_map(
@@ -736,11 +668,11 @@ func _start_async_overlay_only_refresh(reframe_camera: bool) -> bool:
 		return false
 	_sync_terrain_overlay_animation_mode_from_editor()
 	_overlay_only_refresh_requested = false
-	build_generation_id += 1
-	active_build_generation_id = build_generation_id
-	cancel_requested_generation_id = 0
+	_coordinator.build_generation_id += 1
+	_coordinator.active_build_generation_id = _coordinator.build_generation_id
+	_coordinator.cancel_requested_generation_id = 0
 	_async_pending_reframe_camera = reframe_camera
-	_async_cancel_requested = false
+	_coordinator._async_cancel_requested = false
 	_async_requested_restart = false
 	_async_requested_reframe = false
 	_begin_build_state(1, "Preparing overlays...")
@@ -758,11 +690,11 @@ func _start_async_dynamic_overlay_refresh(reframe_camera: bool) -> bool:
 	_sync_terrain_overlay_animation_mode_from_editor()
 	_dynamic_overlay_refresh_requested = false
 	_overlay_only_refresh_requested = false
-	build_generation_id += 1
-	active_build_generation_id = build_generation_id
-	cancel_requested_generation_id = 0
+	_coordinator.build_generation_id += 1
+	_coordinator.active_build_generation_id = _coordinator.build_generation_id
+	_coordinator.cancel_requested_generation_id = 0
 	_async_pending_reframe_camera = reframe_camera
-	_async_cancel_requested = false
+	_coordinator._async_cancel_requested = false
 	_async_requested_restart = false
 	_async_requested_reframe = false
 	_begin_build_state(1, "Updating vehicles...")
@@ -835,9 +767,9 @@ func _try_start_async_initial_build(reframe_camera: bool) -> bool:
 		"subsector_idx_remap": pre.subsector_idx_remap,
 		"lego_defs": pre.lego_defs,
 	}
-	build_generation_id += 1
-	active_build_generation_id = build_generation_id
-	cancel_requested_generation_id = 0
+	_coordinator.build_generation_id += 1
+	_coordinator.active_build_generation_id = _coordinator.build_generation_id
+	_coordinator.cancel_requested_generation_id = 0
 	_async_pending_reframe_camera = reframe_camera
 	_async_effective_typ = effective_typ
 	_async_blg = blg
@@ -845,7 +777,7 @@ func _try_start_async_initial_build(reframe_camera: bool) -> bool:
 	_async_h = h
 	_async_level_set = level_set
 	_async_game_data_type = game_data_type
-	_async_cancel_requested = false
+	_coordinator._async_cancel_requested = false
 	_async_requested_restart = false
 	_async_requested_reframe = false
 	_clear_async_chunk_payloads()
@@ -853,13 +785,11 @@ func _try_start_async_initial_build(reframe_camera: bool) -> bool:
 	var total := chunk_list.size()
 	_begin_build_state(total, "Rendering map...")
 	var thread := Thread.new()
-	var err := thread.start(Callable(self, "_async_initial_build_worker").bind(snapshot, active_build_generation_id))
+	var err := thread.start(Callable(self, "_async_initial_build_worker").bind(snapshot, _coordinator.active_build_generation_id))
 	if err != OK:
 		_end_build_state(false, "3D render worker could not start")
 		return false
-	_async_state_mutex.lock()
-	_async_initial_thread = thread
-	_async_state_mutex.unlock()
+	_coordinator.set_async_initial_thread(thread)
 	return true
 
 
@@ -924,9 +854,9 @@ func _pump_async_initial_build() -> void:
 		var payload := _pop_async_chunk_payload()
 		if payload.is_empty():
 			break
-		if int(payload.get("generation_id", -1)) != active_build_generation_id:
+		if int(payload.get("generation_id", -1)) != _coordinator.active_build_generation_id:
 			continue
-		if _async_cancel_requested:
+		if _coordinator._async_cancel_requested:
 			continue
 		_apply_async_chunk_payload(payload)
 	var state := _get_async_worker_state()
@@ -965,7 +895,7 @@ func _apply_async_chunk_payload(payload: Dictionary) -> void:
 
 func _finish_async_initial_build() -> void:
 	_join_async_thread()
-	var cancelled := _async_cancel_requested
+	var cancelled := _coordinator._async_cancel_requested
 	var failed := bool(_get_async_worker_state().get("failed", false))
 	var should_restart := _async_requested_restart
 	var restart_reframe := _async_requested_reframe
@@ -997,7 +927,7 @@ func _start_async_overlay_descriptor_build(dynamic_only: bool = false) -> void:
 	if cmd.squads != null and is_instance_valid(cmd.squads):
 		squad_snapshot = _snapshot_squad_nodes(cmd.squads.get_children())
 	var payload := {
-		"generation_id": active_build_generation_id,
+		"generation_id": _coordinator.active_build_generation_id,
 		"dynamic_only": dynamic_only,
 		"support_descriptors": support_descriptors,
 		"blg": _async_blg,
@@ -1019,9 +949,7 @@ func _start_async_overlay_descriptor_build(dynamic_only: bool = false) -> void:
 		# Fallback to immediate apply of terrain-only descriptors if descriptor worker cannot start.
 		_start_async_overlay_apply(support_descriptors, [], _make_empty_build_metrics())
 		return
-	_async_overlay_descriptor_mutex.lock()
-	_async_overlay_descriptor_thread = thread
-	_async_overlay_descriptor_mutex.unlock()
+	_coordinator.set_async_overlay_descriptor_thread(thread)
 
 
 func _async_overlay_descriptor_worker(payload: Dictionary) -> void:
@@ -1073,7 +1001,7 @@ func _pump_async_overlay_descriptor_build() -> void:
 	var stage := _get_async_overlay_descriptor_stage()
 	if not stage.is_empty():
 		_update_build_progress(total_chunks, total_chunks, stage)
-	if _async_cancel_requested:
+	if _coordinator._async_cancel_requested:
 		_join_async_overlay_descriptor_thread()
 		var should_restart := _async_requested_restart
 		var restart_reframe := _async_requested_reframe
@@ -1086,7 +1014,7 @@ func _pump_async_overlay_descriptor_build() -> void:
 	if not bool(state.get("done", false)):
 		return
 	_join_async_overlay_descriptor_thread()
-	if _async_cancel_requested:
+	if _coordinator._async_cancel_requested:
 		return
 	if bool(state.get("failed", false)):
 		_end_build_state(false, "Overlay descriptor generation failed")
@@ -1116,13 +1044,7 @@ func _pump_async_overlay_descriptor_build() -> void:
 
 
 func _join_async_overlay_descriptor_thread() -> void:
-	var thread: Thread = null
-	_async_overlay_descriptor_mutex.lock()
-	thread = _async_overlay_descriptor_thread
-	_async_overlay_descriptor_thread = null
-	_async_overlay_descriptor_mutex.unlock()
-	if thread != null:
-		thread.wait_to_finish()
+	_coordinator.join_async_overlay_descriptor_thread()
 
 
 func _ensure_overlay_nodes() -> void:
@@ -1212,7 +1134,7 @@ func _start_async_overlay_apply(static_descriptors: Array, dynamic_descriptors: 
 func _pump_async_overlay_apply() -> void:
 	if not _async_overlay_apply_active:
 		return
-	if _async_cancel_requested:
+	if _coordinator._async_cancel_requested:
 		_async_overlay_apply_active = false
 		_end_build_state(false, "3D render cancelled")
 		_reset_async_build_state()
@@ -1261,35 +1183,15 @@ func _finalize_async_overlay_apply() -> void:
 
 
 func _cancel_async_initial_build() -> void:
-	if _is_async_build_active():
-		_async_state_mutex.lock()
-		cancel_requested_generation_id = active_build_generation_id
-		_async_cancel_requested = true
-		_async_state_mutex.unlock()
-	if _is_async_overlay_descriptor_active():
-		_async_cancel_requested = true
-	if _async_overlay_apply_active:
-		_async_cancel_requested = true
+	_coordinator.cancel_async_build(_async_overlay_apply_active)
 
 
 func _join_async_thread() -> void:
-	var thread: Thread = null
-	_async_state_mutex.lock()
-	thread = _async_initial_thread
-	_async_initial_thread = null
-	_async_state_mutex.unlock()
-	if thread != null:
-		thread.wait_to_finish()
+	_coordinator.join_async_thread()
 
 
 func _reset_async_build_state() -> void:
-	_async_state_mutex.lock()
-	_async_worker_done = false
-	_async_worker_failed = false
-	_async_worker_error = ""
-	_async_cancel_requested = false
-	_async_state_mutex.unlock()
-	_clear_async_chunk_payloads()
+	_coordinator.reset_async_state()
 	_async_pending_reframe_camera = false
 	_async_effective_typ = PackedByteArray()
 	_async_blg = PackedByteArray()
@@ -1305,8 +1207,6 @@ func _reset_async_build_state() -> void:
 	_async_dynamic_overlay_descriptors.clear()
 	_async_overlay_metrics.clear()
 	_async_overlay_apply_started_usec = 0
-	_set_async_overlay_descriptor_state(false, false, {}, {})
-	_set_async_overlay_descriptor_stage("")
 	_async_overlay_descriptor_dynamic_only = false
 	_overlay_only_refresh_requested = false
 	_dynamic_overlay_refresh_requested = false
@@ -1807,28 +1707,11 @@ func _invalidate_all_chunks(w: int, h: int) -> void:
 
 
 func _is_map_signature_changed(w: int, h: int, level_set: int, hgt: PackedByteArray, typ: PackedByteArray, blg: PackedByteArray) -> bool:
-	if not _map_signature_valid:
-		return true
-	if _map_signature_dims != Vector2i(w, h):
-		return true
-	if _map_signature_level_set != level_set:
-		return true
-	if _map_signature_hgt_checksum != _checksum_packed_byte_array(hgt):
-		return true
-	if _map_signature_typ_checksum != _checksum_packed_byte_array(typ):
-		return true
-	if _map_signature_blg_checksum != _checksum_packed_byte_array(blg):
-		return true
-	return false
+	return _coordinator.is_map_signature_changed(w, h, level_set, hgt, typ, blg)
 
 
 func _record_map_signature(w: int, h: int, level_set: int, hgt: PackedByteArray, typ: PackedByteArray, blg: PackedByteArray) -> void:
-	_map_signature_valid = true
-	_map_signature_dims = Vector2i(w, h)
-	_map_signature_level_set = level_set
-	_map_signature_hgt_checksum = _checksum_packed_byte_array(hgt)
-	_map_signature_typ_checksum = _checksum_packed_byte_array(typ)
-	_map_signature_blg_checksum = _checksum_packed_byte_array(blg)
+	_coordinator.record_map_signature(w, h, level_set, hgt, typ, blg)
 
 
 func _invalidate_chunks_for_sector_edit(sx: int, sy: int, w: int, h: int, edit_type: String) -> void:
