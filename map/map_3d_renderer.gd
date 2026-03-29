@@ -99,6 +99,53 @@ static func visibility_range_config(viz_limit: float = ViewController.UA_NORMAL_
 static func apply_visibility_range_to_environment(environment: Environment, enabled: bool, viz_limit: float = ViewController.UA_NORMAL_VIZ_LIMIT, fade_length: float = ViewController.UA_NORMAL_FADE_LENGTH) -> bool:
 	return ViewController.apply_visibility_range_to_environment(environment, enabled, viz_limit, fade_length)
 
+static func facade_contract() -> Dictionary:
+	return {
+		"runtime_fields": [
+			"is_building_3d",
+			"completed_chunks",
+			"total_chunks",
+			"status_text",
+		],
+		"instance_api": [
+			"set_event_system_override",
+			"set_current_map_data_override",
+			"set_editor_state_override",
+			"set_preloads_override",
+			"get_build_state_snapshot",
+			"has_pending_refresh",
+			"get_last_build_metrics",
+			"build_from_current_map",
+			"clear",
+			"mark_sector_dirty",
+			"mark_sectors_dirty",
+			"get_dirty_chunk_count",
+			"is_using_chunked_terrain",
+			"set_chunked_terrain_enabled",
+		],
+		"static_api": [
+			"facade_contract",
+			"visibility_range_fade_start",
+			"visibility_range_config",
+			"apply_visibility_range_to_environment",
+			"build_mesh",
+			"build_mesh_with_textures",
+		],
+		"compatibility_instance_api": [
+			"_apply_pending_refresh",
+			"_build_edge_overlay_result",
+		],
+		"compatibility_static_api": [
+			"_building_definition_for_id_and_sec_type",
+			"_visproto_base_names_for_set",
+			"_base_name_from_visproto_index",
+			"_building_attachment_base_name_for_vehicle",
+			"_squad_base_name_for_vehicle",
+			"_build_host_station_descriptors",
+			"_build_squad_descriptors",
+		],
+	}
+
 @onready var _terrain_mesh: MeshInstance3D = $TerrainMesh
 @onready var _edge_mesh: MeshInstance3D = $EdgeMesh if has_node("EdgeMesh") else null
 @onready var _authored_overlay: Node3D = $AuthoredOverlay if has_node("AuthoredOverlay") else null
@@ -239,6 +286,15 @@ func set_editor_state_override(editor_state: Node) -> void:
 func set_preloads_override(preloads: Node) -> void:
 	_preloads_override = preloads
 	_preloads_override_set = true
+
+
+func get_build_state_snapshot() -> Dictionary:
+	return {
+		"is_building_3d": is_building_3d,
+		"completed_chunks": completed_chunks,
+		"total_chunks": total_chunks,
+		"status_text": status_text,
+	}
 
 
 func has_pending_refresh() -> bool:

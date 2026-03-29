@@ -45,10 +45,13 @@ func _refresh_loading_overlay() -> void:
 	if map_3d_renderer == null or not is_instance_valid(map_3d_renderer):
 		map_3d_loading_overlay.visible = false
 		return
-	var text: String = String(map_3d_renderer.status_text)
-	if text.begins_with("Rendering map") and map_3d_renderer.total_chunks > 0:
-		text = "%s\n%d / %d chunks" % [text, map_3d_renderer.completed_chunks, map_3d_renderer.total_chunks]
-	elif map_3d_renderer.total_chunks > 0:
-		text = "%s\nChunks ready: %d / %d" % [text, map_3d_renderer.completed_chunks, map_3d_renderer.total_chunks]
+	var build_state := map_3d_renderer.get_build_state_snapshot()
+	var text: String = String(build_state.get("status_text", ""))
+	var completed := int(build_state.get("completed_chunks", 0))
+	var total := int(build_state.get("total_chunks", 0))
+	if text.begins_with("Rendering map") and total > 0:
+		text = "%s\n%d / %d chunks" % [text, completed, total]
+	elif total > 0:
+		text = "%s\nChunks ready: %d / %d" % [text, completed, total]
 	map_3d_loading_label.text = text if not text.is_empty() else "Rendering map..."
-	map_3d_loading_overlay.visible = EditorState.view_mode_3d and map_3d_renderer.is_building_3d
+	map_3d_loading_overlay.visible = EditorState.view_mode_3d and bool(build_state.get("is_building_3d", false))
