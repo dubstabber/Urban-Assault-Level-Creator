@@ -1176,10 +1176,10 @@ func _unhandled_input(event: InputEvent) -> void:
 			_mouselook = mb.pressed
 			Input.set_mouse_mode(Input.MOUSE_MODE_CAPTURED if _mouselook else Input.MOUSE_MODE_VISIBLE)
 		elif mb.button_index == MOUSE_BUTTON_WHEEL_UP and mb.pressed:
-			_camera.translate_local(Vector3(0, 0, -_wheel_step()))
+			_camera.translate_object_local(Vector3(0, 0, -_wheel_step()))
 			_update_geometry_distance_culling_visibility()
 		elif mb.button_index == MOUSE_BUTTON_WHEEL_DOWN and mb.pressed:
-			_camera.translate_local(Vector3(0, 0, _wheel_step()))
+			_camera.translate_object_local(Vector3(0, 0, _wheel_step()))
 			_update_geometry_distance_culling_visibility()
 	elif event is InputEventMouseMotion and _mouselook:
 		var mm := event as InputEventMouseMotion
