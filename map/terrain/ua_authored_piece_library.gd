@@ -1,8 +1,12 @@
 extends RefCounted
 class_name UATerrainPieceLibrary
 
-const _UAProjectDataRoots = preload("res://map/ua_project_data_roots.gd")
-const _UALegacyText = preload("res://map/ua_legacy_text.gd")
+const SupportSampler = preload("res://map/terrain/ua_authored_support_sampler.gd")
+const SourceResolver = preload("res://map/terrain/ua_authored_piece_source_resolver.gd")
+const MeshLoader = preload("res://map/terrain/ua_authored_piece_mesh_loader.gd")
+const MaterialFactory = preload("res://map/terrain/ua_authored_material_factory.gd")
+const AnimationBuilder = preload("res://map/terrain/ua_authored_animation_builder.gd")
+const ParticleBuilder = preload("res://map/terrain/ua_authored_particle_builder.gd")
 ## Optional override for tests/tools (`set_external_source_root`); runtime uses UAProjectDataRoots when unset.
 # Raw BAS/SKLT terrain-piece coordinates already use UA world-space sector units:
 # - 3x3 top pieces are authored as 300x300 footprints
@@ -14,7 +18,6 @@ const OVERLAY_Y_BIAS := 8.0
 const UA_SECTOR_SPAN := 1200.0
 const UA_SECTOR_HALF := UA_SECTOR_SPAN * 0.5
 const UA_SLURP_HALF_WIDTH := 150.0
-const SUPPORT_BUCKET_CELL_SIZE := 300.0
 const AnimatedSurfaceMeshInstanceScript = preload("res://map/terrain/ua_animated_surface_mesh_instance.gd")
 const AREA_POL_FLAG_GRADIENTSHADE := 0x30
 const AREA_POL_FLAG_SHADE_MASK := 0x30
@@ -29,13 +32,10 @@ const BMPANIM_UV_SCALE := 256.0
 static var _mesh_cache := {}
 static var _animated_overlay_cache := {}
 static var _piece_overlay_emitters_cache := {}
-static var _json_cache := {}
 static var _piece_overlay_fast_path_count := 0
 static var _piece_overlay_slow_path_count := 0
 static var _material_cache := {}
 static var _texture_cache := {}
-static var _dir_cache := {}
-static var _anim_cache := {}
 static var _support_sampler_cache := {}
 static var _deformed_slurp_mesh_cache := {}
 static var _external_source_loading_enabled := true
@@ -60,26 +60,23 @@ static func set_piece_game_data_type(game_data_type: String) -> void:
 	_mesh_cache.clear()
 	_animated_overlay_cache.clear()
 	_piece_overlay_emitters_cache.clear()
-	_json_cache.clear()
+	SourceResolver.clear_runtime_caches_for_tests()
+	MaterialFactory.clear_runtime_caches_for_tests()
 	_material_cache.clear()
 	_texture_cache.clear()
-	_dir_cache.clear()
-	_anim_cache.clear()
+	AnimationBuilder.clear_runtime_caches_for_tests()
 	_support_sampler_cache.clear()
 	_deformed_slurp_mesh_cache.clear()
-
 
 static func reset_piece_overlay_build_counters() -> void:
 	_piece_overlay_fast_path_count = 0
 	_piece_overlay_slow_path_count = 0
-
 
 static func get_piece_overlay_build_counters() -> Dictionary:
 	return {
 		"piece_overlay_fast_path": _piece_overlay_fast_path_count,
 		"piece_overlay_slow_path": _piece_overlay_slow_path_count,
 	}
-
 
 static func set_external_source_loading_enabled(enabled: bool) -> void:
 	_external_source_loading_enabled = enabled
@@ -91,11 +88,11 @@ static func _clear_runtime_caches_for_tests() -> void:
 	_mesh_cache.clear()
 	_animated_overlay_cache.clear()
 	_piece_overlay_emitters_cache.clear()
-	_json_cache.clear()
+	SourceResolver.clear_runtime_caches_for_tests()
+	MaterialFactory.clear_runtime_caches_for_tests()
 	_material_cache.clear()
 	_texture_cache.clear()
-	_dir_cache.clear()
-	_anim_cache.clear()
+	AnimationBuilder.clear_runtime_caches_for_tests()
 	_support_sampler_cache.clear()
 	_deformed_slurp_mesh_cache.clear()
 	_external_source_loading_enabled = true
@@ -158,52 +155,27 @@ func apply_overlay_node_to(root: Node3D, descriptors: Array) -> void:
 	overlay_manager.apply_overlay_node(root, descriptors)
 
 static func _piece_position_from_desc(desc: Dictionary) -> Vector3:
-	return Vector3(desc.get("origin", Vector3.ZERO)) + Vector3(0.0, OVERLAY_Y_BIAS + float(desc.get("y_offset", 0.0)), 0.0)
+	return SupportSampler.piece_position_from_desc(desc, OVERLAY_Y_BIAS)
 
 static func support_height_at_world_position(descriptors: Array, world_x: float, world_z: float):
-	var seeded := false
-	var best_y := 0.0
-	for desc in descriptors:
-		if typeof(desc) != TYPE_DICTIONARY:
-			continue
+	var sampler_provider := func(desc: Dictionary) -> Dictionary:
 		var set_id := int(desc.get("set_id", 1))
 		var base_name := String(desc.get("base_name", ""))
-		var basis := _piece_basis_from_desc(desc)
-		var origin := _piece_position_from_desc(desc)
-		var sampled_height = null
 		var warp_sig := _warp_signature(desc)
-		var sampler := _piece_support_sampler(set_id, base_name, warp_sig, desc)
-		if not sampler.is_empty():
-			sampled_height = _support_sampler_height_at_world_position(sampler, basis, origin, world_x, world_z)
-		if sampled_height == null:
-			continue
-		var sampled_height_float := float(sampled_height)
-		if not seeded or sampled_height_float > best_y:
-			best_y = sampled_height_float
-			seeded = true
-	if not seeded:
-		return null
-	return best_y
+		return _piece_support_sampler(set_id, base_name, warp_sig, desc)
+	return SupportSampler.support_height_at_world_position(descriptors, world_x, world_z, sampler_provider, OVERLAY_Y_BIAS)
 
 static func _apply_optional_piece_orientation(piece_node: Node3D, desc: Dictionary) -> void:
-	var basis := _piece_basis_from_desc(desc)
+	var basis := SupportSampler.piece_basis_from_desc(desc)
 	if basis == Basis.IDENTITY:
 		return
 	piece_node.transform.basis = basis
 
 static func _piece_basis_from_desc(desc: Dictionary) -> Basis:
-	var forward_value = desc.get("forward", null)
-	if typeof(forward_value) != TYPE_VECTOR3:
-		return Basis.IDENTITY
-	var forward := Vector3(forward_value)
-	var horizontal_forward := Vector3(forward.x, 0.0, forward.z)
-	if horizontal_forward.length_squared() <= 0.000001:
-		return Basis.IDENTITY
-	return Basis(Vector3.UP, atan2(-horizontal_forward.x, -horizontal_forward.z))
+	return SupportSampler.piece_basis_from_desc(desc)
 
 static func _mesh_support_height_at_world_position(mesh: Mesh, basis: Basis, origin: Vector3, world_x: float, world_z: float):
-	var sampler := _support_sampler_from_mesh(mesh)
-	return _support_sampler_height_at_world_position(sampler, basis, origin, world_x, world_z)
+	return SupportSampler.mesh_support_height_at_world_position(mesh, basis, origin, world_x, world_z)
 
 static func _piece_support_sampler(set_id: int, base_name: String, warp_sig: String = "", desc: Dictionary = {}) -> Dictionary:
 	var cleaned := base_name.strip_edges().to_lower()
@@ -222,167 +194,27 @@ static func _piece_support_sampler(set_id: int, base_name: String, warp_sig: Str
 	if mesh == null or mesh.get_surface_count() == 0:
 		_support_sampler_cache[cache_key] = {}
 		return {}
-	var sampler := _support_sampler_from_mesh(mesh)
+	var sampler := SupportSampler.support_sampler_from_mesh(mesh)
 	_support_sampler_cache[cache_key] = sampler
 	return sampler
 
 static func _support_sampler_from_mesh(mesh: Mesh) -> Dictionary:
-	if mesh == null:
-		return {}
-	var triangles: Array = []
-	for surface_idx in mesh.get_surface_count():
-		var arrays := mesh.surface_get_arrays(surface_idx)
-		var verts: PackedVector3Array = arrays[Mesh.ARRAY_VERTEX]
-		if verts.is_empty():
-			continue
-		var indices: PackedInt32Array = arrays[Mesh.ARRAY_INDEX]
-		if indices.is_empty():
-			for i in range(0, verts.size(), 3):
-				if i + 2 >= verts.size():
-					break
-				_append_support_triangle_record(triangles, verts[i], verts[i + 1], verts[i + 2])
-			continue
-		for i in range(0, indices.size(), 3):
-			if i + 2 >= indices.size():
-				break
-			_append_support_triangle_record(triangles, verts[indices[i]], verts[indices[i + 1]], verts[indices[i + 2]])
-	return _support_sampler_from_triangle_records(triangles)
+	return SupportSampler.support_sampler_from_mesh(mesh)
 
 static func _append_support_triangle_record(out: Array, a: Vector3, b: Vector3, c: Vector3) -> void:
-	var normal := (b - a).cross(c - a)
-	if normal.length_squared() <= 0.000001:
-		return
-	if absf(normal.normalized().y) <= 0.0001:
-		return
-	var denominator := ((b.z - c.z) * (a.x - c.x)) + ((c.x - b.x) * (a.z - c.z))
-	if absf(denominator) <= 0.000001:
-		return
-	out.append({
-		"a": a,
-		"b": b,
-		"c": c,
-		"denominator": denominator,
-		"min_x": minf(a.x, minf(b.x, c.x)),
-		"max_x": maxf(a.x, maxf(b.x, c.x)),
-		"min_z": minf(a.z, minf(b.z, c.z)),
-		"max_z": maxf(a.z, maxf(b.z, c.z)),
-	})
+	SupportSampler.append_support_triangle_record(out, a, b, c)
 
 static func _support_sampler_from_triangle_records(triangles: Array) -> Dictionary:
-	if triangles.is_empty():
-		return {}
-	var min_v := Vector3(INF, INF, INF)
-	var max_v := Vector3(-INF, -INF, -INF)
-	var buckets := {}
-	for tri_index in triangles.size():
-		var tri_value = triangles[tri_index]
-		if typeof(tri_value) != TYPE_DICTIONARY:
-			continue
-		var tri := tri_value as Dictionary
-		var a := Vector3(tri.get("a", Vector3.ZERO))
-		var b := Vector3(tri.get("b", Vector3.ZERO))
-		var c := Vector3(tri.get("c", Vector3.ZERO))
-		min_v = min_v.min(a).min(b).min(c)
-		max_v = max_v.max(a).max(b).max(c)
-		var min_cell_x := _support_bucket_coord(float(tri.get("min_x", 0.0)))
-		var max_cell_x := _support_bucket_coord(float(tri.get("max_x", 0.0)))
-		var min_cell_z := _support_bucket_coord(float(tri.get("min_z", 0.0)))
-		var max_cell_z := _support_bucket_coord(float(tri.get("max_z", 0.0)))
-		for cell_x in range(min_cell_x, max_cell_x + 1):
-			for cell_z in range(min_cell_z, max_cell_z + 1):
-				var bucket_key := _support_bucket_key(cell_x, cell_z)
-				var bucket: Array = buckets.get(bucket_key, [])
-				bucket.append(tri_index)
-				buckets[bucket_key] = bucket
-	if min_v == Vector3(INF, INF, INF) or max_v == Vector3(-INF, -INF, -INF):
-		return {}
-	return {
-		"bounds_min": min_v,
-		"bounds_max": max_v,
-		"buckets": buckets,
-		"triangles": triangles,
-	}
+	return SupportSampler.support_sampler_from_triangle_records(triangles)
 
 static func _support_sampler_height_at_world_position(sampler: Dictionary, basis: Basis, origin: Vector3, world_x: float, world_z: float):
-	if sampler.is_empty():
-		return null
-	var local := basis.inverse() * Vector3(world_x - origin.x, 0.0, world_z - origin.z)
-	var local_y = _support_sampler_height_at_local_position(sampler, local.x, local.z)
-	if local_y == null:
-		return null
-	return origin.y + float(local_y)
+	return SupportSampler.support_sampler_height_at_world_position(sampler, basis, origin, world_x, world_z)
 
 static func _support_sampler_height_at_local_position(sampler: Dictionary, local_x: float, local_z: float):
-	var bounds_min := Vector3(sampler.get("bounds_min", Vector3.ZERO))
-	var bounds_max := Vector3(sampler.get("bounds_max", Vector3.ZERO))
-	if local_x < bounds_min.x - 0.001 or local_x > bounds_max.x + 0.001 or local_z < bounds_min.z - 0.001 or local_z > bounds_max.z + 0.001:
-		return null
-	var bucket_key := _support_bucket_key(_support_bucket_coord(local_x), _support_bucket_coord(local_z))
-	var candidate_indices_value = sampler.get("buckets", {}).get(bucket_key, [])
-	if typeof(candidate_indices_value) != TYPE_ARRAY:
-		return null
-	var triangles_value = sampler.get("triangles", [])
-	if typeof(triangles_value) != TYPE_ARRAY:
-		return null
-	var triangles := Array(triangles_value)
-	var seeded := false
-	var best_y := 0.0
-	for index_value in Array(candidate_indices_value):
-		var tri_index := int(index_value)
-		if tri_index < 0 or tri_index >= triangles.size():
-			continue
-		var tri_value = triangles[tri_index]
-		if typeof(tri_value) != TYPE_DICTIONARY:
-			continue
-		var tri := tri_value as Dictionary
-		if local_x < float(tri.get("min_x", 0.0)) - 0.001 or local_x > float(tri.get("max_x", 0.0)) + 0.001 or local_z < float(tri.get("min_z", 0.0)) - 0.001 or local_z > float(tri.get("max_z", 0.0)) + 0.001:
-			continue
-		var sampled = _triangle_support_height_at_local_position(tri, local_x, local_z)
-		if sampled == null:
-			continue
-		var sampled_f := float(sampled)
-		if not seeded or sampled_f > best_y:
-			best_y = sampled_f
-			seeded = true
-	if not seeded:
-		return null
-	return best_y
-
-static func _support_bucket_coord(value: float) -> int:
-	return int(floor(value / SUPPORT_BUCKET_CELL_SIZE))
-
-static func _support_bucket_key(cell_x: int, cell_z: int) -> String:
-	return "%d:%d" % [cell_x, cell_z]
-
-static func _triangle_support_height_at_local_position(tri: Dictionary, local_x: float, local_z: float):
-	var a := Vector3(tri.get("a", Vector3.ZERO))
-	var b := Vector3(tri.get("b", Vector3.ZERO))
-	var c := Vector3(tri.get("c", Vector3.ZERO))
-	var denominator := float(tri.get("denominator", 0.0))
-	if absf(denominator) <= 0.000001:
-		return null
-	var alpha := (((b.z - c.z) * (local_x - c.x)) + ((c.x - b.x) * (local_z - c.z))) / denominator
-	var beta := (((c.z - a.z) * (local_x - c.x)) + ((a.x - c.x) * (local_z - c.z))) / denominator
-	var gamma := 1.0 - alpha - beta
-	if alpha < -0.001 or beta < -0.001 or gamma < -0.001:
-		return null
-	return (alpha * a.y) + (beta * b.y) + (gamma * c.y)
+	return SupportSampler.support_sampler_height_at_local_position(sampler, local_x, local_z)
 
 static func _triangle_support_height_at_world_position(a: Vector3, b: Vector3, c: Vector3, world_x: float, world_z: float):
-	var normal := (b - a).cross(c - a)
-	if normal.length_squared() <= 0.000001:
-		return null
-	if absf(normal.normalized().y) <= 0.0001:
-		return null
-	var denominator := ((b.z - c.z) * (a.x - c.x)) + ((c.x - b.x) * (a.z - c.z))
-	if absf(denominator) <= 0.000001:
-		return null
-	var alpha := (((b.z - c.z) * (world_x - c.x)) + ((c.x - b.x) * (world_z - c.z))) / denominator
-	var beta := (((c.z - a.z) * (world_x - c.x)) + ((a.x - c.x) * (world_z - c.z))) / denominator
-	var gamma := 1.0 - alpha - beta
-	if alpha < -0.001 or beta < -0.001 or gamma < -0.001:
-		return null
-	return (alpha * a.y) + (beta * b.y) + (gamma * c.y)
+	return SupportSampler.triangle_support_height_at_world_position(a, b, c, world_x, world_z)
 
 static func has_piece_source(set_id: int, base_name: String) -> bool:
 	if base_name.is_empty():
@@ -415,25 +247,17 @@ static func _load_piece_mesh(set_id: int, base_name: String) -> ArrayMesh:
 		_piece_overlay_emitters_cache[cache_key] = false
 		return null
 	var piece_source := _load_piece_source(set_id, base_name)
-	var bas_data: Dictionary = piece_source.get("bas_data", {})
-	var points: Array = piece_source.get("points", [])
-	var polys: Array = piece_source.get("polys", [])
-	var emitters := _extract_particle_emitters(bas_data, points, set_id)
-	var has_emitters := emitters.size() > 0
-	var mesh := ArrayMesh.new()
-	var has_animated_surfaces := false
-	for surface in _extract_surfaces(bas_data, points, polys, set_id):
-		var anim_frames: Array = surface.get("animation_frames", [])
-		if anim_frames.size() > 0:
-			has_animated_surfaces = true
-		var mesh_surface := _mesh_surface_from_surface(surface, set_id)
-		var triangles: Array = mesh_surface.get("triangles", [])
-		if triangles.is_empty() or mesh_surface.get("material", null) == null:
-			continue
-		_append_surface_to_mesh(mesh, triangles, mesh_surface.get("material", null))
-	_animated_overlay_cache[cache_key] = has_animated_surfaces
-	_piece_overlay_emitters_cache[cache_key] = has_emitters
-	if mesh.get_surface_count() > 0:
+	var surface_extractor := func(bas_data: Dictionary, points: Array, polys: Array, resolved_set_id: int) -> Array:
+		return _extract_surfaces(bas_data, points, polys, resolved_set_id)
+	var particle_extractor := func(bas_data: Dictionary, points: Array, resolved_set_id: int) -> Array:
+		return _extract_particle_emitters(bas_data, points, resolved_set_id)
+	var mesh_surface_builder := func(surface: Dictionary, resolved_set_id: int) -> Dictionary:
+		return _mesh_surface_from_surface(surface, resolved_set_id)
+	var built := MeshLoader.build_piece_mesh(piece_source, set_id, surface_extractor, particle_extractor, mesh_surface_builder)
+	var mesh: ArrayMesh = built.get("mesh", null)
+	_animated_overlay_cache[cache_key] = bool(built.get("has_animated_surfaces", false))
+	_piece_overlay_emitters_cache[cache_key] = bool(built.get("has_emitters", false))
+	if mesh != null and mesh.get_surface_count() > 0:
 		_mesh_cache[cache_key] = mesh
 		return _mesh_cache[cache_key]
 	_mesh_cache[cache_key] = null
@@ -449,23 +273,11 @@ static func _build_piece_node(set_id: int, base_name: String, raw_id: int) -> No
 		var polys: Array = piece_source.get("polys", [])
 		var surfaces := _extract_surfaces(bas_data, points, polys, set_id)
 		var emitters := _extract_particle_emitters(bas_data, points, set_id)
-		if not surfaces.is_empty() or not emitters.is_empty():
-			var piece := Node3D.new()
-			piece.name = "%s_%d" % [base_name, raw_id]
-			for i in surfaces.size():
-				var child := _surface_node_from_surface(surfaces[i], set_id)
-				if child == null:
-					continue
-				child.name = "Surface_%d" % i
-				piece.add_child(child)
-			for i in emitters.size():
-				var emitter := _particle_node_from_definition(emitters[i])
-				if emitter == null:
-					continue
-				emitter.name = "ParticleEmitter_%d" % i
-				piece.add_child(emitter)
-			if piece.get_child_count() > 0:
-				return piece
+		var surface_node_builder := func(surface: Dictionary) -> Node3D:
+			return _surface_node_from_surface(surface, set_id)
+		var particle_node_builder := func(emitter_definition: Dictionary) -> Node3D:
+			return _particle_node_from_definition(emitter_definition)
+		return MeshLoader.build_piece_node(base_name, raw_id, surfaces, emitters, surface_node_builder, particle_node_builder)
 	return null
 
 static func build_piece_scene_root(set_id: int, base_name: String, raw_id: int = -1) -> Node3D:
@@ -481,13 +293,7 @@ static func build_piece_scene_root(set_id: int, base_name: String, raw_id: int =
 	# explicitly requests static overlays for performance (`set_force_static_terrain_overlays`).
 	if mesh != null and mesh.get_surface_count() > 0 and (_force_static_terrain_overlays or (not use_animated and not has_emitters)):
 		_piece_overlay_fast_path_count += 1
-		var root := Node3D.new()
-		root.name = "%s_%d" % [base_name, raw_id]
-		var mi := MeshInstance3D.new()
-		mi.name = "Mesh"
-		mi.mesh = mesh
-		root.add_child(mi)
-		return root
+		return MeshLoader.build_fast_piece_root(base_name, raw_id, mesh)
 	_piece_overlay_slow_path_count += 1
 	return _build_piece_node(set_id, base_name, raw_id)
 
@@ -604,121 +410,62 @@ static func _collect_surfaces(node, out: Array, points: Array, polys: Array, set
 			_collect_surfaces(item, out, points, polys, set_id)
 
 static func _extract_particle_emitters(node, points: Array, set_id: int) -> Array:
-	var result: Array = []
-	_collect_particle_emitters(node, result, points, set_id)
-	return result
+	var emitter_from_ptcl := func(ptcl_data: Array, resolved_points: Array, resolved_set_id: int) -> Dictionary:
+		return _particle_emitter_from_ptcl(ptcl_data, resolved_points, resolved_set_id)
+	return ParticleBuilder.extract_particle_emitters(node, points, set_id, emitter_from_ptcl)
 
 static func _collect_particle_emitters(node, out: Array, points: Array, set_id: int) -> void:
-	if typeof(node) == TYPE_DICTIONARY:
-		if node.has("PTCL"):
-			var emitter := _particle_emitter_from_ptcl(node["PTCL"], points, set_id)
-			if not emitter.is_empty():
-				out.append(emitter)
-			return
-		for value in node.values():
-			_collect_particle_emitters(value, out, points, set_id)
-	elif typeof(node) == TYPE_ARRAY:
-		for item in node:
-			_collect_particle_emitters(item, out, points, set_id)
+	var emitter_from_ptcl := func(ptcl_data: Array, resolved_points: Array, resolved_set_id: int) -> Dictionary:
+		return _particle_emitter_from_ptcl(ptcl_data, resolved_points, resolved_set_id)
+	ParticleBuilder.collect_particle_emitters(node, out, points, set_id, emitter_from_ptcl)
 
 static func _particle_emitter_from_ptcl(ptcl_data: Array, points: Array, set_id: int) -> Dictionary:
-	if not _external_source_loading_enabled:
-		return {}
-
-	var point_id := _find_first_ade_point(ptcl_data)
-	var anchor = _point_position(points, point_id)
-	if anchor == null:
-		return {}
-	var atts := _find_first_particle_atts(ptcl_data)
-	if atts.is_empty():
-		return {}
-	var stages := _particle_stages_from_ptcl(ptcl_data, set_id)
-	if stages.is_empty():
-		return {}
-	return {
-		"point_id": point_id,
-		"anchor": anchor,
-		"context_life_time_ms": max(int(atts.get("context_life_time", 0)), 1),
-		"context_start_gen_ms": max(int(atts.get("context_start_gen", 0)), 0),
-		"context_stop_gen_ms": max(int(atts.get("context_stop_gen", 0)), 0),
-		"gen_rate": max(int(atts.get("gen_rate", 0)), 0),
-		"lifetime_ms": max(int(atts.get("lifetime", 0)), 1),
-		"start_speed": float(atts.get("start_speed", 0.0)),
-		"start_size": float(atts.get("start_size", 1.0)),
-		"end_size": float(atts.get("end_size", atts.get("start_size", 1.0))),
-		"noise": float(atts.get("noise", 0.0)),
-		"accel_start": _vector3_from_components(atts, "accel_start"),
-		"accel_end": _vector3_from_components(atts, "accel_end"),
-		"magnify_start": _vector3_from_components(atts, "magnify_start"),
-		"magnify_end": _vector3_from_components(atts, "magnify_end"),
-		"stages": stages,
-	}
+	var ade_point_finder := func(node_value) -> int:
+		return _find_first_ade_point(node_value)
+	var point_position_resolver := func(resolved_points: Array, point_id: int):
+		return _point_position(resolved_points, point_id)
+	var particle_atts_finder := func(node_value) -> Dictionary:
+		return _find_first_particle_atts(node_value)
+	var stages_builder := func(resolved_ptcl_data: Array, resolved_set_id: int) -> Array:
+		return _particle_stages_from_ptcl(resolved_ptcl_data, resolved_set_id)
+	var vector3_components := func(atts: Dictionary, key_prefix: String) -> Vector3:
+		return _vector3_from_components(atts, key_prefix)
+	return ParticleBuilder.particle_emitter_from_ptcl(ptcl_data, points, set_id, _external_source_loading_enabled, ade_point_finder, point_position_resolver, particle_atts_finder, stages_builder, vector3_components)
 
 static func _particle_stages_from_ptcl(ptcl_data: Array, set_id: int) -> Array:
-	var area_stages: Array = []
-	_collect_ptcl_stage_areas(ptcl_data, area_stages)
-	var stages: Array = []
-	for area_data in area_stages:
-		var stage := _particle_stage_from_area(area_data, set_id)
-		if not stage.is_empty():
-			stages.append(stage)
-	return stages
+	var stage_from_area := func(area_data: Array, resolved_set_id: int) -> Dictionary:
+		return _particle_stage_from_area(area_data, resolved_set_id)
+	return ParticleBuilder.particle_stages_from_ptcl(ptcl_data, set_id, stage_from_area)
 
 static func _collect_ptcl_stage_areas(node, out: Array) -> void:
-	if typeof(node) == TYPE_DICTIONARY:
-		if node.has("AREA"):
-			out.append(node["AREA"])
-			return
-		for value in node.values():
-			_collect_ptcl_stage_areas(value, out)
-	elif typeof(node) == TYPE_ARRAY:
-		for item in node:
-			_collect_ptcl_stage_areas(item, out)
+	ParticleBuilder.collect_ptcl_stage_areas(node, out)
 
 static func _particle_stage_from_area(area_data: Array, set_id: int) -> Dictionary:
-	var polygon := _unit_billboard_polygon()
-	var render_hints := _render_hints_from_area(area_data)
-	var frames: Array = []
-	var anim_name := _find_first_anim_name(area_data)
-	if not anim_name.is_empty():
-		for frame in _load_anim_frames(set_id, anim_name, polygon):
-			var material := _billboard_material_for_texture(set_id, String(frame.get("texture_name", "")), render_hints)
-			if material == null:
-				continue
-			frames.append({
-				"triangles": frame.get("triangles", []),
-				"material": material,
-				"duration_sec": float(frame.get("duration_sec", 0.04)),
-			})
-	else:
-		var texture_name := _find_first_name(area_data, "NAM2")
-		var material := _billboard_material_for_texture(set_id, texture_name, render_hints)
-		if material == null:
-			return {}
-		frames.append({
-			"triangles": _triangulate(polygon, _coerce_uvs(_find_first_points(area_data, "OTL2"), polygon, set_id, texture_name)),
-			"material": material,
-			"duration_sec": 0.04,
-		})
-	return {"frames": frames} if not frames.is_empty() else {}
+	var load_anim_frames := func(resolved_set_id: int, anim_name: String, polygon: Array) -> Array:
+		return _load_anim_frames(resolved_set_id, anim_name, polygon)
+	var billboard_material_resolver := func(resolved_set_id: int, texture_name: String, render_hints: Dictionary):
+		return _billboard_material_for_texture(resolved_set_id, texture_name, render_hints)
+	var render_hints_from_area := func(node_value) -> Dictionary:
+		return _render_hints_from_area(node_value)
+	var first_anim_name_finder := func(node_value) -> String:
+		return _find_first_anim_name(node_value)
+	var first_name_finder := func(node_value, key: String) -> String:
+		return _find_first_name(node_value, key)
+	var triangulator := func(polygon: Array, uvs: Array) -> Array:
+		return _triangulate(polygon, uvs)
+	var coerce_uvs := func(uv_points: Array, polygon: Array, resolved_set_id: int, texture_name: String) -> Array:
+		return _coerce_uvs(uv_points, polygon, resolved_set_id, texture_name)
+	var first_points_finder := func(node_value, key: String) -> Array:
+		return _find_first_points(node_value, key)
+	var unit_billboard_polygon_builder := func() -> Array:
+		return _unit_billboard_polygon()
+	return ParticleBuilder.particle_stage_from_area(area_data, set_id, load_anim_frames, billboard_material_resolver, render_hints_from_area, first_anim_name_finder, first_name_finder, triangulator, coerce_uvs, first_points_finder, unit_billboard_polygon_builder)
 
 static func _particle_node_from_definition(definition: Dictionary) -> Node3D:
-	if definition.is_empty():
-		return null
-	var emitter_script = load("res://map/terrain/ua_authored_particle_emitter.gd")
-	if emitter_script == null:
-		return null
-	var emitter: Node3D = emitter_script.new()
-	emitter.setup_emitter(definition)
-	return emitter if emitter.has_meta("ua_authored_particle_emitter") else null
+	return ParticleBuilder.particle_node_from_definition(definition)
 
 static func _unit_billboard_polygon() -> Array:
-	return [
-		Vector3(-0.5, -0.5, 0.0),
-		Vector3(0.5, -0.5, 0.0),
-		Vector3(0.5, 0.5, 0.0),
-		Vector3(-0.5, 0.5, 0.0),
-	]
+	return ParticleBuilder.unit_billboard_polygon()
 
 static func _billboard_material_for_texture(set_id: int, texture_name: String, render_hints: Dictionary = {}) -> Material:
 	var base_material := _material_for_texture(set_id, texture_name, render_hints)
@@ -869,8 +616,8 @@ static func _polygon_vertices(points: Array, polys: Array, poly_id: int) -> Arra
 		var ua_to_preview := MODEL_SCALE / UA_SECTOR_SPAN
 		polygon.append(Vector3(
 			float(p.get("x", 0.0)) * ua_to_preview,
-			-float(p.get("y", 0.0)) * ua_to_preview,
-			-float(p.get("z", 0.0)) * ua_to_preview
+			- float(p.get("y", 0.0)) * ua_to_preview,
+			- float(p.get("z", 0.0)) * ua_to_preview
 		))
 	return polygon
 
@@ -1073,10 +820,10 @@ static func _material_for_texture(set_id: int, texture_name: String, render_hint
 	var texture_file := _normalize_texture_name(texture_name)
 	if texture_file.is_empty():
 		return null
-	var hints := _normalized_render_hints(render_hints)
-	var cache_key := _render_cache_key(set_id, texture_file, hints)
-	if _material_cache.has(cache_key):
-		return _material_cache[cache_key]
+	var hints := MaterialFactory.normalized_render_hints(render_hints)
+	var cache_key := MaterialFactory.render_cache_key(set_id, texture_file, hints, _piece_game_data_type)
+	if MaterialFactory.has_material_cache(cache_key):
+		return MaterialFactory.get_cached_material(cache_key)
 	var mat := StandardMaterial3D.new()
 	mat.cull_mode = BaseMaterial3D.CULL_DISABLED
 	mat.texture_filter = BaseMaterial3D.TEXTURE_FILTER_NEAREST
@@ -1089,7 +836,7 @@ static func _material_for_texture(set_id: int, texture_name: String, render_hint
 		var image := tex.get_image()
 		var has_alpha := image != null and image.detect_alpha() != Image.ALPHA_NONE
 		var transparency_mode := String(hints.get("transparency_mode", "auto"))
-		var shade_multiplier := _shade_multiplier_from_value(int(hints.get("shade_value", 0)))
+		var shade_multiplier := MaterialFactory.shade_multiplier_from_value(int(hints.get("shade_value", 0)))
 		if transparency_mode == "lumtracy":
 			mat.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
 			mat.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
@@ -1112,23 +859,21 @@ static func _material_for_texture(set_id: int, texture_name: String, render_hint
 	if mat.albedo_texture == null:
 		mat.albedo_color = Color(1.0, 0.0, 1.0, 0.5)
 		mat.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
-	_material_cache[cache_key] = mat
-	return mat
+	return MaterialFactory.store_material(cache_key, mat)
 
 static func _texture_for_name(set_id: int, texture_name: String, render_hints: Dictionary = {}) -> Texture2D:
 	var texture_file := _normalize_texture_name(texture_name)
 	if texture_file.is_empty():
 		return null
-	var hints := _normalized_render_hints(render_hints)
-	var cache_key := _texture_cache_key(set_id, texture_file, hints)
-	if _texture_cache.has(cache_key):
-		return _texture_cache[cache_key]
+	var hints := MaterialFactory.normalized_render_hints(render_hints)
+	var cache_key := MaterialFactory.texture_cache_key(set_id, texture_file, hints, _piece_game_data_type)
+	if MaterialFactory.has_texture_cache(cache_key):
+		return MaterialFactory.get_cached_texture(cache_key)
 	if _external_source_loading_enabled:
-		var raw_image := _raw_image_for_texture(set_id, texture_name, hints)
+		var raw_image := MaterialFactory.raw_image_for_texture(set_id, texture_name, hints, _piece_game_data_type, _external_source_root)
 		if raw_image != null:
-			var converted_raw := _apply_color_key_transparency(raw_image)
-			_texture_cache[cache_key] = ImageTexture.create_from_image(converted_raw)
-			return _texture_cache[cache_key]
+			var converted_raw := MaterialFactory.apply_color_key_transparency(raw_image)
+			return MaterialFactory.store_texture(cache_key, ImageTexture.create_from_image(converted_raw))
 
 		var texture_path := _find_file(_set_root(set_id), texture_file)
 		if not texture_path.is_empty():
@@ -1136,292 +881,96 @@ static func _texture_for_name(set_id: int, texture_name: String, render_hints: D
 			if tex is Texture2D:
 				var image: Image = tex.get_image()
 				if image != null:
-					var converted := _apply_color_key_transparency(image)
-					_texture_cache[cache_key] = ImageTexture.create_from_image(converted)
-					return _texture_cache[cache_key]
-				_texture_cache[cache_key] = tex
-				if _texture_cache[cache_key] != null:
-					return _texture_cache[cache_key]
+					var converted := MaterialFactory.apply_color_key_transparency(image)
+					return MaterialFactory.store_texture(cache_key, ImageTexture.create_from_image(converted))
+				MaterialFactory.store_texture(cache_key, tex)
+				if MaterialFactory.get_cached_texture(cache_key) != null:
+					return MaterialFactory.get_cached_texture(cache_key)
 			# Filenames like BODEN1.ILB.bmp confuse ResourceLoader (no bmp importer match);
 			# Image.load_from_file still decodes standard PC bitmaps.
 			var img_fallback := Image.load_from_file(texture_path)
 			if img_fallback != null:
-				var converted_fb := _apply_color_key_transparency(img_fallback)
-				_texture_cache[cache_key] = ImageTexture.create_from_image(converted_fb)
-				return _texture_cache[cache_key]
+				var converted_fb := MaterialFactory.apply_color_key_transparency(img_fallback)
+				return MaterialFactory.store_texture(cache_key, ImageTexture.create_from_image(converted_fb))
 
-	_texture_cache[cache_key] = null
-	return _texture_cache[cache_key]
+	return MaterialFactory.store_texture(cache_key, null)
 
 static func _normalized_render_hints(render_hints: Dictionary) -> Dictionary:
-	var mode := String(render_hints.get("transparency_mode", "auto"))
-	if mode != "cutout" and mode != "lumtracy":
-		mode = "auto"
-	return {
-		"transparency_mode": mode,
-		"tracy_val": clampi(int(render_hints.get("tracy_val", 0)), 0, 255),
-		"shade_value": clampi(int(render_hints.get("shade_value", 0)), 0, 255),
-	}
+	return MaterialFactory.normalized_render_hints(render_hints)
 
 static func _render_cache_key(set_id: int, texture_file: String, render_hints: Dictionary) -> String:
-	return "%d:%s:%s:%d:%d:%s" % [
-		set_id,
-		texture_file.to_lower(),
-		String(render_hints.get("transparency_mode", "auto")),
-		int(render_hints.get("tracy_val", 0)),
-		int(render_hints.get("shade_value", 0)),
-		_piece_game_data_type.to_lower(),
-	]
+	return MaterialFactory.render_cache_key(set_id, texture_file, render_hints, _piece_game_data_type)
 
 static func _texture_cache_key(set_id: int, texture_file: String, render_hints: Dictionary) -> String:
-	return "%d:%s:%s:%s" % [
-		set_id,
-		texture_file.to_lower(),
-		String(render_hints.get("transparency_mode", "auto")),
-		_piece_game_data_type.to_lower(),
-	]
+	return MaterialFactory.texture_cache_key(set_id, texture_file, render_hints, _piece_game_data_type)
 
 static func _surface_group_key(texture_name: String, render_hints: Dictionary) -> String:
-	var hints := _normalized_render_hints(render_hints)
-	return "%s:%s:%d:%d" % [
-		texture_name.to_lower(),
-		String(hints.get("transparency_mode", "auto")),
-		int(hints.get("tracy_val", 0)),
-		int(hints.get("shade_value", 0)),
-	]
+	return MaterialFactory.surface_group_key(texture_name, render_hints)
 
 static func _shade_multiplier_from_value(shade_value: int) -> float:
-	return clampf(1.0 - float(clampi(shade_value, 0, 255)) / 256.0, 0.0, 1.0)
+	return MaterialFactory.shade_multiplier_from_value(shade_value)
 
 static func _raw_image_for_texture(set_id: int, texture_name: String, render_hints: Dictionary) -> Image:
-	var raw_path := _raw_texture_override_path(set_id, texture_name, render_hints)
-	if raw_path.is_empty():
-		return null
-	return _load_ilbm_image(raw_path)
+	return MaterialFactory.raw_image_for_texture(set_id, texture_name, render_hints, _piece_game_data_type, _external_source_root)
 
 static func _raw_texture_override_path(set_id: int, texture_name: String, render_hints: Dictionary) -> String:
-	if String(render_hints.get("transparency_mode", "auto")) != "lumtracy":
-		return ""
-	var base := texture_name.strip_edges().get_file().get_basename().to_lower()
-	if base != "fx1" and base != "fx2" and base != "fx3":
-		return ""
-	return _find_file(_hi_alpha_dir(set_id), "%s.ilb" % base)
+	return MaterialFactory.raw_texture_override_path(set_id, texture_name, render_hints, _piece_game_data_type, _external_source_root)
 
 static func _load_ilbm_image(path: String) -> Image:
-	if path.is_empty() or not FileAccess.file_exists(path):
-		return null
-	var f := FileAccess.open(path, FileAccess.READ)
-	if f == null:
-		return null
-	var data := f.get_buffer(f.get_length())
-	f.close()
-	if data.size() < 12:
-		return null
-	if _ascii_from_bytes(data, 0, 4) != "FORM":
-		return null
-	var form_type := _ascii_from_bytes(data, 8, 4)
-	if form_type != "ILBM" and form_type != "PBM ":
-		return null
-	var width := 0
-	var height := 0
-	var nplanes := 0
-	var masking := 0
-	var compression := 0
-	var transparent_color := -1
-	var palette: Array = []
-	palette.resize(256)
-	for i in palette.size():
-		palette[i] = Color(0.0, 0.0, 0.0, 1.0)
-	var body := PackedByteArray()
-	var pos := 12
-	while pos + 8 <= data.size():
-		var tag := _ascii_from_bytes(data, pos, 4)
-		var chunk_size := _read_u32_be(data, pos + 4)
-		var chunk_start := pos + 8
-		var chunk_end := chunk_start + chunk_size
-		if chunk_end > data.size():
-			break
-		if tag == "BMHD" and chunk_size >= 20:
-			width = _read_u16_be(data, chunk_start)
-			height = _read_u16_be(data, chunk_start + 2)
-			nplanes = int(data[chunk_start + 8])
-			masking = int(data[chunk_start + 9])
-			compression = int(data[chunk_start + 10])
-			transparent_color = _read_u16_be(data, chunk_start + 12)
-		elif tag == "CMAP":
-			var color_count := mini(int(float(chunk_size) / 3.0), 256)
-			for i in color_count:
-				var color_offset := chunk_start + i * 3
-				palette[i] = Color(
-					float(data[color_offset]) / 255.0,
-					float(data[color_offset + 1]) / 255.0,
-					float(data[color_offset + 2]) / 255.0,
-					1.0
-				)
-		elif tag == "BODY":
-			body.resize(chunk_size)
-			for i in chunk_size:
-				body[i] = data[chunk_start + i]
-		pos = chunk_end + (chunk_size & 1)
-	if width <= 0 or height <= 0 or nplanes <= 0 or body.is_empty():
-		return null
-	if compression == 1:
-		body = _byte_run1_decode(body)
-	var plane_row_bytes := int(ceili(float(width) / 8.0))
-	if (plane_row_bytes & 1) != 0:
-		plane_row_bytes += 1
-	var total_planes := nplanes + (1 if masking == ILBM_MASK_HAS_MASK else 0)
-	var row_bytes := plane_row_bytes * total_planes
-	if row_bytes <= 0 or body.size() < row_bytes * height:
-		return null
-	var image := Image.create(width, height, false, Image.FORMAT_RGBA8)
-	for y in height:
-		var row_offset := y * row_bytes
-		var mask_offset := row_offset + plane_row_bytes * nplanes
-		for x in width:
-			var byte_index := int(x) >> 3
-			var bit_mask := 1 << (7 - (x & 7))
-			var color_index := 0
-			for plane in nplanes:
-				var plane_byte_offset := row_offset + plane * plane_row_bytes + byte_index
-				if (int(body[plane_byte_offset]) & bit_mask) != 0:
-					color_index |= 1 << plane
-			var color: Color = palette[color_index] if color_index < palette.size() else Color(0.0, 0.0, 0.0, 1.0)
-			if masking == ILBM_MASK_HAS_MASK:
-				var mask_byte := int(body[mask_offset + byte_index])
-				if (mask_byte & bit_mask) == 0:
-					color = Color(0.0, 0.0, 0.0, 0.0)
-			elif masking == ILBM_MASK_TRANSPARENT_COLOR and color_index == transparent_color:
-				color = Color(0.0, 0.0, 0.0, 0.0)
-			image.set_pixel(x, y, color)
-	return image
+	return MaterialFactory.load_ilbm_image(path)
 
 static func _byte_run1_decode(src: PackedByteArray) -> PackedByteArray:
-	var out := PackedByteArray()
-	var i := 0
-	while i < src.size():
-		var control := int(src[i])
-		if control > 127:
-			control -= 256
-		i += 1
-		if control >= 0:
-			var literal_count := control + 1
-			for j in literal_count:
-				if i + j >= src.size():
-					break
-				out.append(src[i + j])
-			i += literal_count
-		elif control >= -127:
-			if i >= src.size():
-				break
-			var repeat_count := 1 - control
-			var repeated := src[i]
-			for _j in repeat_count:
-				out.append(repeated)
-			i += 1
-	return out
+	return MaterialFactory.byte_run1_decode(src)
 
 static func _ascii_from_bytes(data: PackedByteArray, start: int, size: int) -> String:
-	var chars := PackedByteArray()
-	chars.resize(size)
-	for i in size:
-		chars[i] = data[start + i]
-	return chars.get_string_from_ascii()
+	return MaterialFactory.ascii_from_bytes(data, start, size)
 
 static func _read_u16_be(data: PackedByteArray, offset: int) -> int:
-	return (int(data[offset]) << 8) | int(data[offset + 1])
+	return MaterialFactory.read_u16_be(data, offset)
 
 static func _read_u32_be(data: PackedByteArray, offset: int) -> int:
-	return (
-		(int(data[offset]) << 24)
-		| (int(data[offset + 1]) << 16)
-		| (int(data[offset + 2]) << 8)
-		| int(data[offset + 3])
-	)
+	return MaterialFactory.read_u32_be(data, offset)
 
 static func _apply_color_key_transparency(image: Image) -> Image:
-	var converted := image.duplicate()
-	if converted.get_format() != Image.FORMAT_RGBA8:
-		converted.convert(Image.FORMAT_RGBA8)
-	for y in converted.get_height():
-		for x in converted.get_width():
-			var px: Color = converted.get_pixel(x, y)
-			if is_equal_approx(px.r, 1.0) and is_equal_approx(px.g, 1.0) and is_equal_approx(px.b, 0.0):
-				converted.set_pixel(x, y, Color(0.0, 0.0, 0.0, 0.0))
-	return converted
+	return MaterialFactory.apply_color_key_transparency(image)
 
 static func _load_anim_frames(set_id: int, anim_name: String, polygon: Array) -> Array:
-	if _external_source_loading_enabled:
-		var cache_key := "%d:%s:%s" % [set_id, anim_name.to_lower(), _piece_game_data_type.to_lower()]
-		if _anim_cache.has(cache_key):
-			return _clone_anim_frames(_anim_cache[cache_key], polygon, set_id)
-		var anim_path := _find_anim_json_path(set_id, anim_name)
-		var anim_data := _load_json(anim_path)
-		var raw_frames := _find_frames_list(anim_data)
-		var compiled: Array = []
-		for frame in raw_frames:
-			if typeof(frame) != TYPE_DICTIONARY:
-				continue
-			var texture_name := String(frame.get("vbmp_name", ""))
-			var uv_points: Array = frame.get("vbmp_coords", [])
-			compiled.append({
-				"texture_name": texture_name,
-				"raw_uv_points": uv_points.duplicate(true),
-				"duration_sec": max(float(frame.get("frame_time", 40.0)) / 1000.0, 0.01),
-			})
-		_anim_cache[cache_key] = compiled
-		if compiled.size() > 0:
-			return _clone_anim_frames(compiled, polygon, set_id)
-	return []
+	var anim_path_finder := func(resolved_set_id: int, resolved_anim_name: String) -> String:
+		return _find_anim_json_path(resolved_set_id, resolved_anim_name)
+	var json_loader := func(path: String) -> Dictionary:
+		return _load_json(path)
+	var triangulator := func(poly: Array, uvs: Array) -> Array:
+		return _triangulate(poly, uvs)
+	var bmpanim_uv_coercer := func(raw_uvs: Array, poly: Array) -> Array:
+		return _coerce_bmpanim_uvs(raw_uvs, poly)
+	return AnimationBuilder.load_anim_frames(
+		set_id,
+		anim_name,
+		polygon,
+		_piece_game_data_type,
+		_external_source_loading_enabled,
+		anim_path_finder,
+		json_loader,
+		triangulator,
+		bmpanim_uv_coercer
+	)
 
 static func _clone_anim_frames(compiled_frames: Array, polygon: Array, _set_id: int) -> Array:
-	var frames: Array = []
-	for frame in compiled_frames:
-		if typeof(frame) != TYPE_DICTIONARY:
-			continue
-		var texture_name := String(frame.get("texture_name", ""))
-		var uvs := _coerce_bmpanim_uvs(frame.get("raw_uv_points", []), polygon)
-		frames.append({
-			"texture_name": texture_name,
-			"triangles": _triangulate(polygon, uvs),
-			"duration_sec": float(frame.get("duration_sec", 0.04)),
-		})
-	return frames
+	var triangulator := func(poly: Array, uvs: Array) -> Array:
+		return _triangulate(poly, uvs)
+	var bmpanim_uv_coercer := func(raw_uvs: Array, poly: Array) -> Array:
+		return _coerce_bmpanim_uvs(raw_uvs, poly)
+	return AnimationBuilder.clone_anim_frames(compiled_frames, polygon, triangulator, bmpanim_uv_coercer)
 
 static func _find_anim_json_path(set_id: int, anim_name: String) -> String:
-	var cleaned := anim_name.strip_edges().get_file()
-	if cleaned.is_empty():
-		return ""
-	var candidates: Array = []
-	_push_unique(candidates, cleaned)
-	if not cleaned.to_lower().ends_with(".json"):
-		_push_unique(candidates, "%s.json" % cleaned)
-	if not cleaned.to_lower().ends_with(".anm"):
-		_push_unique(candidates, "%s.ANM.json" % cleaned)
-	for candidate in candidates:
-		var path := _find_file(_rsrcpool_dir(set_id), String(candidate))
-		if not path.is_empty():
-			return path
-	return ""
+	return SourceResolver.find_anim_json_path(set_id, anim_name, _piece_game_data_type, _external_source_root)
 
 static func _push_unique(items: Array, value) -> void:
 	if not items.has(value):
 		items.append(value)
 
 static func _find_frames_list(node) -> Array:
-	if typeof(node) == TYPE_DICTIONARY:
-		if node.has("frames"):
-			return node.get("frames", [])
-		for value in node.values():
-			var found: Array = _find_frames_list(value)
-			if not found.is_empty():
-				return found
-	elif typeof(node) == TYPE_ARRAY:
-		for item in node:
-			var found: Array = _find_frames_list(item)
-			if not found.is_empty():
-				return found
-	return []
+	return AnimationBuilder.find_frames_list(node)
 
 static func _load_piece_source(set_id: int, base_name: String) -> Dictionary:
 	if not _external_source_loading_enabled:
@@ -1430,30 +979,18 @@ static func _load_piece_source(set_id: int, base_name: String) -> Dictionary:
 	var bas_data := _load_json(bas_path)
 	var skel_ref := _find_first_skeleton_ref(bas_data)
 	var skel_name := skel_ref.get_file().get_basename() if not skel_ref.is_empty() else base_name
-	var skel_data := _load_json(_find_file(_skeleton_dir(set_id), "%s.skl.json" % skel_name))
 	return {
 		"bas_data": bas_data,
-		"points": _find_first_points(skel_data, "POO2"),
-		"polys": _find_first_edges(skel_data, "POL2"),
+		"points": _find_first_points(_load_json(_find_file(_skeleton_dir(set_id), "%s.skl.json" % skel_name)), "POO2"),
+		"polys": _find_first_edges(_load_json(_find_file(_skeleton_dir(set_id), "%s.skl.json" % skel_name)), "POL2"),
 	}
 
 static func _surface_node_from_surface(surface: Dictionary, set_id: int) -> Node3D:
 	var animation_frames: Array = surface.get("animation_frames", [])
-	var render_hints: Dictionary = surface.get("render_hints", {})
 	if not animation_frames.is_empty():
-		var animated := AnimatedSurfaceMeshInstanceScript.new()
-		var prepared_frames: Array = []
-		for frame in animation_frames:
-			var prepared: Dictionary = frame.duplicate(true)
-			prepared["material"] = _material_for_texture(set_id, String(frame.get("texture_name", "")), render_hints)
-			if prepared.get("material", null) == null:
-				continue
-			prepared_frames.append(prepared)
-		if prepared_frames.is_empty():
-			return null
-		animated.setup_animation(prepared_frames)
-		animated.set_meta("ua_authored_animated", true)
-		return animated
+		var material_resolver := func(resolved_set_id: int, texture_name: String, render_hints: Dictionary):
+			return _material_for_texture(resolved_set_id, texture_name, render_hints)
+		return AnimationBuilder.build_animated_surface_node(surface, set_id, material_resolver)
 	var mi := MeshInstance3D.new()
 	var mesh_surface := _mesh_surface_from_surface(surface, set_id)
 	if mesh_surface.get("material", null) == null:
@@ -1483,28 +1020,10 @@ static func _mesh_surface_from_surface(surface: Dictionary, set_id: int) -> Dict
 	}
 
 static func _mesh_from_triangles(triangles: Array, material: Material) -> ArrayMesh:
-	var mesh := ArrayMesh.new()
-	_append_surface_to_mesh(mesh, triangles, material)
-	return mesh
+	return MeshLoader.mesh_from_triangles(triangles, material)
 
 static func _append_surface_to_mesh(mesh: ArrayMesh, triangles: Array, material: Material) -> void:
-	if triangles.is_empty() or material == null:
-		return
-	var st := SurfaceTool.new()
-	st.begin(Mesh.PRIMITIVE_TRIANGLES)
-	for tri in triangles:
-		var verts: Array = tri.get("verts", [])
-		var uvs: Array = tri.get("uvs", [])
-		if verts.size() != 3 or uvs.size() != 3:
-			continue
-		for i in 3:
-			st.set_uv(uvs[i])
-			st.add_vertex(verts[i])
-	st.index()
-	st.generate_normals()
-	st.commit(mesh)
-	if mesh.get_surface_count() > 0:
-		mesh.surface_set_material(mesh.get_surface_count() - 1, material)
+	MeshLoader.append_surface_to_mesh(mesh, triangles, material)
 
 static func _normalize_texture_name(texture_name: String) -> String:
 	var cleaned := texture_name.strip_edges()
@@ -1514,94 +1033,37 @@ static func _normalize_texture_name(texture_name: String) -> String:
 	return "%s.ILB.bmp" % base
 
 static func _load_json(path: String) -> Dictionary:
-	if path.is_empty() or not FileAccess.file_exists(path):
-		return {}
-	if _json_cache.has(path):
-		var cached = _json_cache[path]
-		return cached if typeof(cached) == TYPE_DICTIONARY else {}
-	var txt := _UALegacyText.read_file(path)
-	if txt.is_empty():
-		return {}
-	var parsed = JSON.parse_string(txt)
-	var out: Dictionary = parsed if typeof(parsed) == TYPE_DICTIONARY else {}
-	_json_cache[path] = out
-	return out
+	return SourceResolver.load_json(path)
 
 static func _find_file(dir_path: String, filename: String) -> String:
-	if dir_path.is_empty() or filename.is_empty():
-		return ""
-	if not DirAccess.dir_exists_absolute(dir_path):
-		return ""
-	if not _dir_cache.has(dir_path):
-		var index := {}
-		for entry in DirAccess.get_files_at(dir_path):
-			index[String(entry).to_lower()] = "%s/%s" % [dir_path, entry]
-		_dir_cache[dir_path] = index
-	return _dir_cache[dir_path].get(filename.to_lower(), "")
+	return SourceResolver.find_file(dir_path, filename)
 
 static func _first_existing_set_under_base(base: String, resolved_set_id: int, game_data_type: String) -> String:
-	var norm := _UAProjectDataRoots.normalized_game_data_type(game_data_type)
-	var suffix := "_xp" if norm == "metropolisDawn" else ""
-	var candidate := "%s/set%d%s" % [base, resolved_set_id, suffix]
-	if DirAccess.dir_exists_absolute(candidate):
-		return candidate
-	if suffix == "_xp":
-		var retail := "%s/set%d" % [base, resolved_set_id]
-		if DirAccess.dir_exists_absolute(retail):
-			return retail
-	return candidate
-
+	return SourceResolver.first_existing_set_under_base(base, resolved_set_id, game_data_type)
 
 static func _set_root(set_id: int) -> String:
-	var resolved_set_id: int = max(set_id, 1)
-	if not _external_source_root.is_empty():
-		return _first_existing_set_under_base(_external_source_root, resolved_set_id, _piece_game_data_type)
-	return _UAProjectDataRoots.first_existing_set_directory(set_id, _piece_game_data_type)
-
+	return SourceResolver.set_root(set_id, _piece_game_data_type, _external_source_root)
 
 static func _dir_with_retail_fallback(root: String, relative_dir: String) -> String:
-	if root.is_empty():
-		return ""
-	var primary := "%s/%s" % [root, relative_dir]
-	if DirAccess.dir_exists_absolute(primary):
-		return primary
-	if _UAProjectDataRoots.normalized_game_data_type(_piece_game_data_type) == "metropolisDawn" and root.ends_with("_xp"):
-		var retail_root := root.trim_suffix("_xp")
-		var retail := "%s/%s" % [retail_root, relative_dir]
-		if DirAccess.dir_exists_absolute(retail):
-			return retail
-	return primary
+	return SourceResolver.dir_with_retail_fallback(root, relative_dir, _piece_game_data_type)
 
 static func _find_piece_bas_path(set_id: int, base_name: String) -> String:
-	var filename := "%s.bas.json" % base_name
-	var bas_path := _find_file(_buildings_dir(set_id), filename)
-	if not bas_path.is_empty():
-		return bas_path
-	bas_path = _find_file(_ground_dir(set_id), filename)
-	if not bas_path.is_empty():
-		return bas_path
-	return _find_file(_vehicles_dir(set_id), filename)
+	return SourceResolver.find_piece_bas_path(set_id, base_name, _piece_game_data_type, _external_source_root)
 
 static func _buildings_dir(set_id: int) -> String:
-	var root := _set_root(set_id)
-	return "" if root.is_empty() else "%s/objects/buildings" % root
+	return SourceResolver.buildings_dir(set_id, _piece_game_data_type, _external_source_root)
 
 static func _ground_dir(set_id: int) -> String:
-	var root := _set_root(set_id)
-	return "" if root.is_empty() else "%s/objects/ground" % root
+	return SourceResolver.ground_dir(set_id, _piece_game_data_type, _external_source_root)
 
 static func _vehicles_dir(set_id: int) -> String:
-	var root := _set_root(set_id)
-	return "" if root.is_empty() else "%s/objects/vehicles" % root
+	return SourceResolver.vehicles_dir(set_id, _piece_game_data_type, _external_source_root)
 
 static func _hi_alpha_dir(set_id: int) -> String:
-	var root := _set_root(set_id)
-	return _dir_with_retail_fallback(root, "hi/alpha")
+	return SourceResolver.hi_alpha_dir(set_id, _piece_game_data_type, _external_source_root)
 
 static func _skeleton_dir(set_id: int) -> String:
-	var root := _set_root(set_id)
-	return "" if root.is_empty() else "%s/Skeleton" % root
+	return SourceResolver.skeleton_dir(set_id, _piece_game_data_type, _external_source_root)
 
 static func _rsrcpool_dir(set_id: int) -> String:
-	var root := _set_root(set_id)
-	return "" if root.is_empty() else "%s/rsrcpool" % root
+	return SourceResolver.rsrcpool_dir(set_id, _piece_game_data_type, _external_source_root)
