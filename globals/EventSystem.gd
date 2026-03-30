@@ -14,6 +14,8 @@ signal sector_height_window_requested
 signal sector_building_windows_requested
 signal warning_logs_window_requested
 
+signal map_load_started
+signal map_load_finished
 signal map_created
 signal unit_selected
 signal sector_selected

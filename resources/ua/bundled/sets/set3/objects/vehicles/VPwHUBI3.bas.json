@@ -1,0 +1,990 @@
+{
+ "MC2 ": [ 
+  {
+   "OBJT": [ 
+    {
+     "CLID": {
+      "class_id": "base.class"
+     }
+    }, 
+    {
+     "BASE": [ 
+      {
+       "ROOT": [ 
+        {
+         "NAME": {
+          "name": "VPwHUBI3",
+          "zero_terminated": false
+         }
+        } ]
+      }, 
+      {
+       "STRC": {
+        "_un1": 0,
+        "ambient_light": 255,
+        "att_flags": 72,
+        "ax": 0,
+        "ay": 0,
+        "az": 0,
+        "pos": [ 0.0, 0.0, 0.0 ],
+        "rx": 0,
+        "ry": 0,
+        "rz": 0,
+        "scale": [ 1.0, 1.0, 1.0 ],
+        "strc_type": "STRC_BASE",
+        "vec": [ 0.0, 0.0, 0.0 ],
+        "version": 1,
+        "vis_limit": 4096
+       }
+      }, 
+      {
+       "OBJT": [ 
+        {
+         "CLID": {
+          "class_id": "sklt.class"
+         }
+        }, 
+        {
+         "SKLC": [ 
+          {
+           "NAME": {
+            "name": "Skeleton/VPWHUBI3.sklt",
+            "zero_terminated": true
+           }
+          } ]
+        } ]
+      }, 
+      {
+       "ADES": [ 
+        {
+         "OBJT": [ 
+          {
+           "CLID": {
+            "class_id": "area.class"
+           }
+          }, 
+          {
+           "AREA": [ 
+            {
+             "ADE ": [ 
+              {
+               "ROOT": []
+              }, 
+              {
+               "STRC": {
+                "_nu2": 0,
+                "_nul": 0,
+                "flags": 6,
+                "point": 0,
+                "poly": 4,
+                "strc_type": "STRC_ADE ",
+                "version": 1
+               }
+              } ]
+            }, 
+            {
+             "STRC": {
+              "_un1": 0,
+              "clrVal": 0,
+              "flags": 1,
+              "polFlags": 58,
+              "shdVal": 90,
+              "strc_type": "STRC_AREA",
+              "trcVal": 128,
+              "version": 256
+             }
+            }, 
+            {
+             "OBJT": [ 
+              {
+               "CLID": {
+                "class_id": "ilbm.class"
+               }
+              }, 
+              {
+               "CIBO": [ 
+                {
+                 "NAM2": {
+                  "name": "FMACHT.ILBM",
+                  "zero_terminated": true
+                 }
+                }, 
+                {
+                 "OTL2": {
+                  "points": [ 
+                   [ 195, 0 ], 
+                   [ 255, 0 ], 
+                   [ 255, 47 ], 
+                   [ 195, 47 ] ]
+                 }
+                } ]
+              } ]
+            } ]
+          } ]
+        }, 
+        {
+         "OBJT": [ 
+          {
+           "CLID": {
+            "class_id": "area.class"
+           }
+          }, 
+          {
+           "AREA": [ 
+            {
+             "ADE ": [ 
+              {
+               "ROOT": []
+              }, 
+              {
+               "STRC": {
+                "_nu2": 0,
+                "_nul": 0,
+                "flags": 6,
+                "point": 0,
+                "poly": 5,
+                "strc_type": "STRC_ADE ",
+                "version": 1
+               }
+              } ]
+            }, 
+            {
+             "STRC": {
+              "_un1": 0,
+              "clrVal": 0,
+              "flags": 1,
+              "polFlags": 58,
+              "shdVal": 95,
+              "strc_type": "STRC_AREA",
+              "trcVal": 128,
+              "version": 256
+             }
+            }, 
+            {
+             "OBJT": [ 
+              {
+               "CLID": {
+                "class_id": "ilbm.class"
+               }
+              }, 
+              {
+               "CIBO": [ 
+                {
+                 "NAM2": {
+                  "name": "MTL.ILBM",
+                  "zero_terminated": true
+                 }
+                }, 
+                {
+                 "OTL2": {
+                  "points": [ 
+                   [ 202, 226 ], 
+                   [ 254, 226 ], 
+                   [ 254, 255 ], 
+                   [ 202, 255 ] ]
+                 }
+                } ]
+              } ]
+            } ]
+          } ]
+        }, 
+        {
+         "OBJT": [ 
+          {
+           "CLID": {
+            "class_id": "area.class"
+           }
+          }, 
+          {
+           "AREA": [ 
+            {
+             "ADE ": [ 
+              {
+               "ROOT": []
+              }, 
+              {
+               "STRC": {
+                "_nu2": 0,
+                "_nul": 0,
+                "flags": 6,
+                "point": 0,
+                "poly": 40,
+                "strc_type": "STRC_ADE ",
+                "version": 1
+               }
+              } ]
+            }, 
+            {
+             "STRC": {
+              "_un1": 0,
+              "clrVal": 0,
+              "flags": 1,
+              "polFlags": 62,
+              "shdVal": 102,
+              "strc_type": "STRC_AREA",
+              "trcVal": 128,
+              "version": 256
+             }
+            }, 
+            {
+             "OBJT": [ 
+              {
+               "CLID": {
+                "class_id": "ilbm.class"
+               }
+              }, 
+              {
+               "CIBO": [ 
+                {
+                 "NAM2": {
+                  "name": "BAGGER.ILBM",
+                  "zero_terminated": true
+                 }
+                }, 
+                {
+                 "OTL2": {
+                  "points": [ 
+                   [ 71, 187 ], 
+                   [ 58, 187 ], 
+                   [ 70, 123 ] ]
+                 }
+                } ]
+              } ]
+            } ]
+          } ]
+        }, 
+        {
+         "OBJT": [ 
+          {
+           "CLID": {
+            "class_id": "amesh.class"
+           }
+          }, 
+          {
+           "AMSH": [ 
+            {
+             "AREA": [ 
+              {
+               "ADE ": [ 
+                {
+                 "ROOT": []
+                }, 
+                {
+                 "STRC": {
+                  "_nu2": 0,
+                  "_nul": 0,
+                  "flags": 2,
+                  "point": 0,
+                  "poly": 0,
+                  "strc_type": "STRC_ADE ",
+                  "version": 1
+                 }
+                } ]
+              }, 
+              {
+               "STRC": {
+                "_un1": 0,
+                "clrVal": 1,
+                "flags": 1,
+                "polFlags": 58,
+                "shdVal": 0,
+                "strc_type": "STRC_AREA",
+                "trcVal": 0,
+                "version": 256
+               }
+              }, 
+              {
+               "OBJT": [ 
+                {
+                 "CLID": {
+                  "class_id": "ilbm.class"
+                 }
+                }, 
+                {
+                 "CIBO": [ 
+                  {
+                   "NAM2": {
+                    "name": "BAGGER.ILBM",
+                    "zero_terminated": true
+                   }
+                  } ]
+                } ]
+              } ]
+            }, 
+            {
+             "ATTS": {
+              "atts_entries": [ 
+               {
+                "color_val": 0,
+                "pad": 0,
+                "poly_id": 0,
+                "shade_val": 81,
+                "tracy_val": 128
+               }, 
+               {
+                "color_val": 0,
+                "pad": 0,
+                "poly_id": 1,
+                "shade_val": 2,
+                "tracy_val": 128
+               }, 
+               {
+                "color_val": 0,
+                "pad": 0,
+                "poly_id": 3,
+                "shade_val": 14,
+                "tracy_val": 128
+               }, 
+               {
+                "color_val": 0,
+                "pad": 0,
+                "poly_id": 7,
+                "shade_val": 60,
+                "tracy_val": 128
+               }, 
+               {
+                "color_val": 0,
+                "pad": 0,
+                "poly_id": 8,
+                "shade_val": 92,
+                "tracy_val": 128
+               }, 
+               {
+                "color_val": 0,
+                "pad": 0,
+                "poly_id": 10,
+                "shade_val": 20,
+                "tracy_val": 128
+               }, 
+               {
+                "color_val": 0,
+                "pad": 0,
+                "poly_id": 12,
+                "shade_val": 21,
+                "tracy_val": 128
+               }, 
+               {
+                "color_val": 0,
+                "pad": 0,
+                "poly_id": 13,
+                "shade_val": 17,
+                "tracy_val": 128
+               }, 
+               {
+                "color_val": 0,
+                "pad": 0,
+                "poly_id": 14,
+                "shade_val": 15,
+                "tracy_val": 128
+               }, 
+               {
+                "color_val": 0,
+                "pad": 0,
+                "poly_id": 17,
+                "shade_val": 100,
+                "tracy_val": 128
+               }, 
+               {
+                "color_val": 0,
+                "pad": 0,
+                "poly_id": 18,
+                "shade_val": 100,
+                "tracy_val": 128
+               }, 
+               {
+                "color_val": 0,
+                "pad": 0,
+                "poly_id": 19,
+                "shade_val": 91,
+                "tracy_val": 128
+               }, 
+               {
+                "color_val": 0,
+                "pad": 0,
+                "poly_id": 20,
+                "shade_val": 86,
+                "tracy_val": 128
+               }, 
+               {
+                "color_val": 0,
+                "pad": 0,
+                "poly_id": 21,
+                "shade_val": 100,
+                "tracy_val": 128
+               }, 
+               {
+                "color_val": 0,
+                "pad": 0,
+                "poly_id": 22,
+                "shade_val": 5,
+                "tracy_val": 128
+               }, 
+               {
+                "color_val": 0,
+                "pad": 0,
+                "poly_id": 23,
+                "shade_val": 100,
+                "tracy_val": 128
+               }, 
+               {
+                "color_val": 0,
+                "pad": 0,
+                "poly_id": 24,
+                "shade_val": 100,
+                "tracy_val": 128
+               }, 
+               {
+                "color_val": 0,
+                "pad": 0,
+                "poly_id": 25,
+                "shade_val": 86,
+                "tracy_val": 128
+               }, 
+               {
+                "color_val": 0,
+                "pad": 0,
+                "poly_id": 28,
+                "shade_val": 100,
+                "tracy_val": 128
+               }, 
+               {
+                "color_val": 0,
+                "pad": 0,
+                "poly_id": 29,
+                "shade_val": 80,
+                "tracy_val": 128
+               }, 
+               {
+                "color_val": 0,
+                "pad": 0,
+                "poly_id": 30,
+                "shade_val": 100,
+                "tracy_val": 128
+               }, 
+               {
+                "color_val": 0,
+                "pad": 0,
+                "poly_id": 31,
+                "shade_val": 100,
+                "tracy_val": 128
+               }, 
+               {
+                "color_val": 0,
+                "pad": 0,
+                "poly_id": 32,
+                "shade_val": 100,
+                "tracy_val": 128
+               }, 
+               {
+                "color_val": 0,
+                "pad": 0,
+                "poly_id": 33,
+                "shade_val": 86,
+                "tracy_val": 128
+               }, 
+               {
+                "color_val": 0,
+                "pad": 0,
+                "poly_id": 34,
+                "shade_val": 100,
+                "tracy_val": 128
+               }, 
+               {
+                "color_val": 0,
+                "pad": 0,
+                "poly_id": 35,
+                "shade_val": 86,
+                "tracy_val": 128
+               }, 
+               {
+                "color_val": 0,
+                "pad": 0,
+                "poly_id": 36,
+                "shade_val": 40,
+                "tracy_val": 128
+               }, 
+               {
+                "color_val": 0,
+                "pad": 0,
+                "poly_id": 37,
+                "shade_val": 30,
+                "tracy_val": 128
+               }, 
+               {
+                "color_val": 0,
+                "pad": 0,
+                "poly_id": 38,
+                "shade_val": 70,
+                "tracy_val": 128
+               }, 
+               {
+                "color_val": 0,
+                "pad": 0,
+                "poly_id": 39,
+                "shade_val": 80,
+                "tracy_val": 128
+               }, 
+               {
+                "color_val": 0,
+                "pad": 0,
+                "poly_id": 41,
+                "shade_val": 71,
+                "tracy_val": 128
+               } ],
+              "is_particle_atts": false
+             }
+            }, 
+            {
+             "OLPL": {
+              "points": [ 
+               [ 
+                [ 8, 46 ], 
+                [ 83, 46 ], 
+                [ 83, 61 ], 
+                [ 8, 61 ] ], 
+               [ 
+                [ 73, 45 ], 
+                [ 20, 45 ], 
+                [ 20, 2 ], 
+                [ 73, 2 ] ], 
+               [ 
+                [ 7, 100 ], 
+                [ 34, 95 ], 
+                [ 29, 114 ] ], 
+               [ 
+                [ 85, 218 ], 
+                [ 115, 231 ], 
+                [ 117, 253 ], 
+                [ 85, 254 ] ], 
+               [ 
+                [ 85, 218 ], 
+                [ 115, 231 ], 
+                [ 117, 253 ], 
+                [ 85, 254 ] ], 
+               [ 
+                [ 45, 73 ], 
+                [ 17, 115 ], 
+                [ 88, 115 ] ], 
+               [ 
+                [ 45, 73 ], 
+                [ 1, 73 ], 
+                [ 17, 115 ] ], 
+               [ 
+                [ 89, 74 ], 
+                [ 45, 73 ], 
+                [ 88, 115 ] ], 
+               [ 
+                [ 33, 86 ], 
+                [ 62, 80 ], 
+                [ 82, 87 ] ], 
+               [ 
+                [ 85, 218 ], 
+                [ 85, 254 ], 
+                [ 117, 253 ], 
+                [ 115, 231 ] ], 
+               [ 
+                [ 85, 218 ], 
+                [ 85, 254 ], 
+                [ 117, 253 ], 
+                [ 115, 231 ] ], 
+               [ 
+                [ 45, 73 ], 
+                [ 88, 115 ], 
+                [ 17, 115 ] ], 
+               [ 
+                [ 45, 73 ], 
+                [ 17, 115 ], 
+                [ 1, 73 ] ], 
+               [ 
+                [ 89, 74 ], 
+                [ 88, 115 ], 
+                [ 45, 73 ] ], 
+               [ 
+                [ 33, 86 ], 
+                [ 82, 87 ], 
+                [ 62, 80 ] ], 
+               [ 
+                [ 28, 149 ], 
+                [ 28, 169 ], 
+                [ 52, 169 ], 
+                [ 53, 149 ] ], 
+               [ 
+                [ 53, 149 ], 
+                [ 52, 169 ], 
+                [ 116, 179 ], 
+                [ 117, 139 ] ], 
+               [ 
+                [ 7, 100 ], 
+                [ 29, 114 ], 
+                [ 34, 95 ] ], 
+               [ 
+                [ 84, 45 ], 
+                [ 11, 45 ], 
+                [ 11, 14 ], 
+                [ 84, 14 ] ], 
+               [ 
+                [ 84, 45 ], 
+                [ 11, 45 ], 
+                [ 11, 14 ], 
+                [ 84, 14 ] ], 
+               [ 
+                [ 84, 45 ], 
+                [ 11, 45 ], 
+                [ 11, 14 ], 
+                [ 84, 14 ] ], 
+               [ 
+                [ 84, 45 ], 
+                [ 11, 45 ], 
+                [ 11, 14 ], 
+                [ 84, 14 ] ], 
+               [ 
+                [ 22, 74 ], 
+                [ 85, 74 ], 
+                [ 85, 113 ], 
+                [ 22, 113 ] ], 
+               [ 
+                [ 22, 74 ], 
+                [ 22, 113 ], 
+                [ 85, 113 ], 
+                [ 85, 74 ] ], 
+               [ 
+                [ 22, 74 ], 
+                [ 85, 74 ], 
+                [ 85, 113 ], 
+                [ 22, 113 ] ], 
+               [ 
+                [ 22, 74 ], 
+                [ 22, 113 ], 
+                [ 85, 113 ], 
+                [ 85, 74 ] ], 
+               [ 
+                [ 89, 9 ], 
+                [ 89, 42 ], 
+                [ 46, 26 ], 
+                [ 46, 3 ] ], 
+               [ 
+                [ 84, 10 ], 
+                [ 42, 4 ], 
+                [ 42, 27 ], 
+                [ 84, 43 ] ], 
+               [ 
+                [ 89, 9 ], 
+                [ 46, 3 ], 
+                [ 46, 26 ], 
+                [ 89, 42 ] ], 
+               [ 
+                [ 84, 10 ], 
+                [ 84, 43 ], 
+                [ 42, 27 ], 
+                [ 42, 4 ] ], 
+               [ 
+                [ 71, 187 ], 
+                [ 58, 187 ], 
+                [ 70, 123 ] ] ]
+             }
+            } ]
+          } ]
+        }, 
+        {
+         "OBJT": [ 
+          {
+           "CLID": {
+            "class_id": "amesh.class"
+           }
+          }, 
+          {
+           "AMSH": [ 
+            {
+             "AREA": [ 
+              {
+               "ADE ": [ 
+                {
+                 "ROOT": []
+                }, 
+                {
+                 "STRC": {
+                  "_nu2": 0,
+                  "_nul": 0,
+                  "flags": 2,
+                  "point": 0,
+                  "poly": 0,
+                  "strc_type": "STRC_ADE ",
+                  "version": 1
+                 }
+                } ]
+              }, 
+              {
+               "STRC": {
+                "_un1": 0,
+                "clrVal": 1,
+                "flags": 1,
+                "polFlags": 58,
+                "shdVal": 0,
+                "strc_type": "STRC_AREA",
+                "trcVal": 0,
+                "version": 256
+               }
+              }, 
+              {
+               "OBJT": [ 
+                {
+                 "CLID": {
+                  "class_id": "ilbm.class"
+                 }
+                }, 
+                {
+                 "CIBO": [ 
+                  {
+                   "NAM2": {
+                    "name": "TAERROBO.ILBM",
+                    "zero_terminated": true
+                   }
+                  } ]
+                } ]
+              } ]
+            }, 
+            {
+             "ATTS": {
+              "atts_entries": [ 
+               {
+                "color_val": 0,
+                "pad": 0,
+                "poly_id": 2,
+                "shade_val": 0,
+                "tracy_val": 128
+               }, 
+               {
+                "color_val": 0,
+                "pad": 0,
+                "poly_id": 6,
+                "shade_val": 30,
+                "tracy_val": 128
+               }, 
+               {
+                "color_val": 0,
+                "pad": 0,
+                "poly_id": 16,
+                "shade_val": 68,
+                "tracy_val": 128
+               } ],
+              "is_particle_atts": false
+             }
+            }, 
+            {
+             "OLPL": {
+              "points": [ 
+               [ 
+                [ 255, 45 ], 
+                [ 185, 45 ], 
+                [ 185, 2 ], 
+                [ 255, 2 ] ], 
+               [ 
+                [ 240, 219 ], 
+                [ 189, 219 ], 
+                [ 220, 187 ] ], 
+               [ 
+                [ 240, 219 ], 
+                [ 220, 187 ], 
+                [ 189, 219 ] ] ]
+             }
+            } ]
+          } ]
+        }, 
+        {
+         "OBJT": [ 
+          {
+           "CLID": {
+            "class_id": "amesh.class"
+           }
+          }, 
+          {
+           "AMSH": [ 
+            {
+             "AREA": [ 
+              {
+               "ADE ": [ 
+                {
+                 "ROOT": []
+                }, 
+                {
+                 "STRC": {
+                  "_nu2": 0,
+                  "_nul": 0,
+                  "flags": 2,
+                  "point": 0,
+                  "poly": 0,
+                  "strc_type": "STRC_ADE ",
+                  "version": 1
+                 }
+                } ]
+              }, 
+              {
+               "STRC": {
+                "_un1": 0,
+                "clrVal": 1,
+                "flags": 1,
+                "polFlags": 58,
+                "shdVal": 0,
+                "strc_type": "STRC_AREA",
+                "trcVal": 0,
+                "version": 256
+               }
+              }, 
+              {
+               "OBJT": [ 
+                {
+                 "CLID": {
+                  "class_id": "ilbm.class"
+                 }
+                }, 
+                {
+                 "CIBO": [ 
+                  {
+                   "NAM2": {
+                    "name": "SHRTTWND.ILBM",
+                    "zero_terminated": true
+                   }
+                  } ]
+                } ]
+              } ]
+            }, 
+            {
+             "ATTS": {
+              "atts_entries": [ 
+               {
+                "color_val": 0,
+                "pad": 0,
+                "poly_id": 9,
+                "shade_val": 10,
+                "tracy_val": 128
+               }, 
+               {
+                "color_val": 0,
+                "pad": 0,
+                "poly_id": 11,
+                "shade_val": 100,
+                "tracy_val": 128
+               }, 
+               {
+                "color_val": 0,
+                "pad": 0,
+                "poly_id": 15,
+                "shade_val": 0,
+                "tracy_val": 128
+               }, 
+               {
+                "color_val": 0,
+                "pad": 0,
+                "poly_id": 26,
+                "shade_val": 86,
+                "tracy_val": 128
+               }, 
+               {
+                "color_val": 0,
+                "pad": 0,
+                "poly_id": 27,
+                "shade_val": 100,
+                "tracy_val": 128
+               } ],
+              "is_particle_atts": false
+             }
+            }, 
+            {
+             "OLPL": {
+              "points": [ 
+               [ 
+                [ 252, 253 ], 
+                [ 252, 216 ], 
+                [ 233, 216 ], 
+                [ 233, 253 ] ], 
+               [ 
+                [ 232, 216 ], 
+                [ 219, 216 ], 
+                [ 219, 253 ], 
+                [ 232, 253 ] ], 
+               [ 
+                [ 253, 254 ], 
+                [ 153, 254 ], 
+                [ 153, 215 ], 
+                [ 253, 215 ] ], 
+               [ 
+                [ 252, 253 ], 
+                [ 233, 253 ], 
+                [ 233, 216 ], 
+                [ 252, 216 ] ], 
+               [ 
+                [ 232, 216 ], 
+                [ 232, 253 ], 
+                [ 219, 253 ], 
+                [ 219, 216 ] ] ]
+             }
+            } ]
+          } ]
+        }, 
+        {
+         "OBJT": [ 
+          {
+           "CLID": {
+            "class_id": "amesh.class"
+           }
+          }, 
+          {
+           "AMSH": [ 
+            {
+             "AREA": [ 
+              {
+               "ADE ": [ 
+                {
+                 "ROOT": []
+                }, 
+                {
+                 "STRC": {
+                  "_nu2": 0,
+                  "_nul": 0,
+                  "flags": 0,
+                  "point": 0,
+                  "poly": 0,
+                  "strc_type": "STRC_ADE ",
+                  "version": 1
+                 }
+                } ]
+              }, 
+              {
+               "STRC": {
+                "_un1": 0,
+                "clrVal": 1,
+                "flags": 0,
+                "polFlags": 0,
+                "shdVal": 0,
+                "strc_type": "STRC_AREA",
+                "trcVal": 0,
+                "version": 256
+               }
+              } ]
+            }, 
+            {
+             "ATTS": {
+              "atts_entries": [ 
+               {
+                "color_val": 1,
+                "pad": 0,
+                "poly_id": 42,
+                "shade_val": 0,
+                "tracy_val": 0
+               }, 
+               {
+                "color_val": 1,
+                "pad": 0,
+                "poly_id": 43,
+                "shade_val": 0,
+                "tracy_val": 0
+               } ],
+              "is_particle_atts": false
+             }
+            } ]
+          } ]
+        } ]
+      } ]
+    } ]
+  } ]
+}

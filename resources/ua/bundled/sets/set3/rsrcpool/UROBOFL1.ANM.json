@@ -1,0 +1,45 @@
+{
+ "VANM": [ 
+  {
+   "DATA": {
+    "class_id": "ilbm.class",
+    "frames": [ 
+     {
+      "frame_time": 40,
+      "vbmp_coords": [ 
+       [ 90, 129 ], 
+       [ 2, 129 ], 
+       [ 2, 151 ], 
+       [ 90, 151 ] ],
+      "vbmp_name": "ROBONEU.ILBM"
+     }, 
+     {
+      "frame_time": 40,
+      "vbmp_coords": [ 
+       [ 90, 155 ], 
+       [ 2, 155 ], 
+       [ 2, 177 ], 
+       [ 90, 177 ] ],
+      "vbmp_name": "ROBONEU.ILBM"
+     }, 
+     {
+      "frame_time": 40,
+      "vbmp_coords": [ 
+       [ 90, 181 ], 
+       [ 2, 181 ], 
+       [ 2, 203 ], 
+       [ 90, 203 ] ],
+      "vbmp_name": "ROBONEU.ILBM"
+     }, 
+     {
+      "frame_time": 40,
+      "vbmp_coords": [ 
+       [ 90, 155 ], 
+       [ 2, 155 ], 
+       [ 2, 177 ], 
+       [ 90, 177 ] ],
+      "vbmp_name": "ROBONEU.ILBM"
+     } ]
+   }
+  } ]
+}

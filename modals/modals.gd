@@ -18,9 +18,7 @@ func _ready() -> void:
 		if not CurrentMapData.is_saved:
 			%UnsavedMapConfirmationDialog.show.call_deferred()
 			await %UnsavedMapConfirmationDialog.close_requested
-		CurrentMapData.close_map()
-		CurrentMapData.map_path = file_path
-		SingleplayerOpener.load_level()
+		MapLoadService.request_open_map(file_path)
 		)
 	EventSystem.save_map_requested.connect(func():
 		if CurrentMapData.horizontal_sectors == 0 or CurrentMapData.vertical_sectors == 0:

@@ -1,10 +1,16 @@
+extends RefCounted
 class_name SingleplayerOpener
 
-static var string_line: String
-static var description_mode: bool
-static var modifications_mode: bool
+var string_line: String
+var description_mode: bool
+var modifications_mode: bool
 
-static func load_level() -> void:
+const _COOP_PHASE1_EVERY := 32
+const _COOP_PHASE2_EVERY := 48
+const _COOP_MAP_ROW_EVERY := 12
+
+
+func load_level_async(yield_host: Node) -> void:
 	var file = FileAccess.open(CurrentMapData.map_path, FileAccess.READ)
 	if not file:
 		printerr("Error: File '%s' cannot be opened" % CurrentMapData.map_path)
@@ -31,12 +37,16 @@ static func load_level() -> void:
 	description_mode = false
 	modifications_mode = false
 	
+	var phase1_line := 0
 	while file.get_position() < file.get_length():
+		phase1_line += 1
+		if yield_host != null and is_instance_valid(yield_host) and phase1_line % _COOP_PHASE1_EVERY == 0:
+			await yield_host.get_tree().process_frame
 		string_line = file.get_line().strip_edges()
-		_handle_typ_map(file)
-		_handle_own_map(file)
-		_handle_hgt_map(file)
-		_handle_blg_map(file)
+		await _handle_typ_map(file, yield_host)
+		await _handle_own_map(file, yield_host)
+		await _handle_hgt_map(file, yield_host)
+		await _handle_blg_map(file, yield_host)
 	
 	var total_sectors = CurrentMapData.horizontal_sectors * CurrentMapData.vertical_sectors
 	var total_border_sectors = (CurrentMapData.horizontal_sectors + 2) * (CurrentMapData.vertical_sectors + 2)
@@ -63,7 +73,11 @@ static func load_level() -> void:
 	description_mode = true
 	modifications_mode = false
 
+	var phase2_line := 0
 	while file.get_position() < file.get_length():
+		phase2_line += 1
+		if yield_host != null and is_instance_valid(yield_host) and phase2_line % _COOP_PHASE2_EVERY == 0:
+			await yield_host.get_tree().process_frame
 		if string_line.is_empty() and not description_mode and not modifications_mode:
 			string_line = file.get_line().get_slice(';', 0).strip_edges()
 			continue
@@ -137,7 +151,14 @@ static func _is_valid_ldf_format(file: FileAccess) -> bool:
 	return found_typ_map and found_own_map and found_hgt_map and found_blg_map
 
 
-static func _handle_typ_map(file: FileAccess) -> void:
+func _yield_map_rows(yield_host: Node, row_index: int) -> void:
+	if yield_host == null or not is_instance_valid(yield_host):
+		return
+	if row_index != 0 and row_index % _COOP_MAP_ROW_EVERY == 0:
+		await yield_host.get_tree().process_frame
+
+
+func _handle_typ_map(file: FileAccess, yield_host: Node) -> void:
 	if string_line.to_lower().begins_with('typ_map'):
 		if description_mode: description_mode = false
 		if modifications_mode: modifications_mode = false
@@ -152,7 +173,10 @@ static func _handle_typ_map(file: FileAccess) -> void:
 		
 		var sector_hex_value: String
 		string_line = file.get_line().strip_edges()
+		var v_idx := 0
 		for v in CurrentMapData.vertical_sectors:
+			await _yield_map_rows(yield_host, v_idx)
+			v_idx += 1
 			string_line = file.get_line().strip_edges().substr(3)
 			for h in CurrentMapData.horizontal_sectors:
 				sector_hex_value = string_line.substr(0, 2)
@@ -163,7 +187,7 @@ static func _handle_typ_map(file: FileAccess) -> void:
 				string_line = string_line.substr(3).strip_edges()
 
 
-static func _handle_own_map(file: FileAccess) -> void:
+func _handle_own_map(file: FileAccess, yield_host: Node) -> void:
 	if string_line.to_lower().begins_with('own_map'):
 		if description_mode: description_mode = false
 		if modifications_mode: modifications_mode = false
@@ -171,7 +195,10 @@ static func _handle_own_map(file: FileAccess) -> void:
 		var sector_hex_value: String
 		string_line = file.get_line()
 		string_line = file.get_line()
+		var v_own := 0
 		for v in CurrentMapData.vertical_sectors:
+			await _yield_map_rows(yield_host, v_own)
+			v_own += 1
 			string_line = file.get_line().strip_edges().substr(3)
 			for h in CurrentMapData.horizontal_sectors:
 				sector_hex_value = string_line.substr(0, 2)
@@ -182,14 +209,17 @@ static func _handle_own_map(file: FileAccess) -> void:
 				string_line = string_line.substr(3).strip_edges()
 
 
-static func _handle_hgt_map(file: FileAccess) -> void:
+func _handle_hgt_map(file: FileAccess, yield_host: Node) -> void:
 	if string_line.to_lower().begins_with('hgt_map'):
 		if description_mode: description_mode = false
 		if modifications_mode: modifications_mode = false
 		
 		var sector_hex_value: String
 		string_line = file.get_line()
+		var v_h := 0
 		for v in CurrentMapData.vertical_sectors + 2:
+			await _yield_map_rows(yield_host, v_h)
+			v_h += 1
 			string_line = file.get_line().strip_edges()
 			for h in CurrentMapData.horizontal_sectors + 2:
 				sector_hex_value = string_line.substr(0, 2)
@@ -200,7 +230,7 @@ static func _handle_hgt_map(file: FileAccess) -> void:
 				string_line = string_line.substr(3).strip_edges()
 
 
-static func _handle_blg_map(file: FileAccess) -> void:
+func _handle_blg_map(file: FileAccess, yield_host: Node) -> void:
 	if string_line.to_lower().begins_with('blg_map'):
 		if description_mode: description_mode = false
 		if modifications_mode: modifications_mode = false
@@ -208,7 +238,10 @@ static func _handle_blg_map(file: FileAccess) -> void:
 		var sector_hex_value: String
 		string_line = file.get_line()
 		string_line = file.get_line()
+		var v_b := 0
 		for v in CurrentMapData.vertical_sectors:
+			await _yield_map_rows(yield_host, v_b)
+			v_b += 1
 			string_line = file.get_line().strip_edges().substr(3)
 			for h in CurrentMapData.horizontal_sectors:
 				sector_hex_value = string_line.substr(0, 2)
@@ -219,7 +252,7 @@ static func _handle_blg_map(file: FileAccess) -> void:
 				string_line = string_line.substr(3).strip_edges()
 
 
-static func _handle_description(file: FileAccess) -> void:
+func _handle_description(file: FileAccess) -> void:
 	if description_mode:
 		var temp_pattern := ""
 
@@ -249,7 +282,7 @@ static func _handle_description(file: FileAccess) -> void:
 			CurrentMapData.level_description += temp_pattern
 
 
-static func _handle_level_parameters(file: FileAccess) -> void:
+func _handle_level_parameters(file: FileAccess) -> void:
 	if string_line.to_lower().begins_with('begin_level'):
 		if description_mode: description_mode = false
 		if modifications_mode: modifications_mode = false
@@ -287,7 +320,7 @@ static func _handle_level_parameters(file: FileAccess) -> void:
 				CurrentMapData.movie = string_line.replacen("mov:", "")
 
 
-static func _handle_briefing_maps(file: FileAccess) -> void:
+func _handle_briefing_maps(file: FileAccess) -> void:
 	if string_line.to_lower().begins_with('begin_mbmap'):
 		if description_mode: description_mode = false
 		if modifications_mode: modifications_mode = false
@@ -328,7 +361,7 @@ static func _handle_briefing_maps(file: FileAccess) -> void:
 				CurrentMapData.debriefing_size_y = int(string_line)
 
 
-static func _handle_beam_gates(file: FileAccess) -> void:
+func _handle_beam_gates(file: FileAccess) -> void:
 	if string_line.to_lower().begins_with('begin_gate'):
 		if description_mode: description_mode = false
 		if modifications_mode: modifications_mode = false
@@ -387,7 +420,7 @@ static func _handle_beam_gates(file: FileAccess) -> void:
 		CurrentMapData.beam_gates.append(beam_gate)
 
 
-static func _handle_host_stations(file: FileAccess) -> void:
+func _handle_host_stations(file: FileAccess) -> void:
 	if string_line.to_lower().begins_with('begin_robo'):
 		if description_mode: description_mode = false
 		if modifications_mode: modifications_mode = false
@@ -557,7 +590,7 @@ static func _handle_host_stations(file: FileAccess) -> void:
 			CurrentMapData.player_host_station = host_station
 
 
-static func _handle_bombs(file: FileAccess) -> void:
+func _handle_bombs(file: FileAccess) -> void:
 	if string_line.to_lower().begins_with('begin_item'):
 		if description_mode: description_mode = false
 		if modifications_mode: modifications_mode = false
@@ -623,7 +656,7 @@ static func _handle_bombs(file: FileAccess) -> void:
 		CurrentMapData.stoudson_bombs.append(bomb)
 
 
-static func _handle_predefined_squads(file: FileAccess) -> void:
+func _handle_predefined_squads(file: FileAccess) -> void:
 	if string_line.to_lower().begins_with('begin_squad'):
 		if description_mode: description_mode = false
 		if modifications_mode: modifications_mode = false
@@ -676,7 +709,7 @@ static func _handle_predefined_squads(file: FileAccess) -> void:
 		squad.mb_status = mb_status
 
 
-static func _handle_modifications(file: FileAccess) -> void:
+func _handle_modifications(file: FileAccess) -> void:
 	if string_line.to_lower().begins_with('include'):
 		modifications_mode = true
 		if description_mode: description_mode = false
@@ -709,7 +742,7 @@ static func _handle_modifications(file: FileAccess) -> void:
 			CurrentMapData.prototype_modifications += temp_pattern
 
 
-static func _handle_prototype_enabling(file: FileAccess) -> void:
+func _handle_prototype_enabling(file: FileAccess) -> void:
 	if string_line.to_lower().begins_with("begin_enable"):
 		if description_mode: description_mode = false
 		if modifications_mode: modifications_mode = false
@@ -746,7 +779,7 @@ static func _handle_prototype_enabling(file: FileAccess) -> void:
 					_: CurrentMapData.unknown_enabled_buildings.append({owner_id = owner_id, building_id = int(string_line)})
 
 
-static func _handle_tech_upgrades(file: FileAccess) -> void:
+func _handle_tech_upgrades(file: FileAccess) -> void:
 	if string_line.to_lower().begins_with("begin_gem"):
 		if description_mode: description_mode = false
 		if modifications_mode: modifications_mode = false
@@ -963,7 +996,7 @@ static func _handle_tech_upgrades(file: FileAccess) -> void:
 		CurrentMapData.tech_upgrades.append(tech_upgrade)
 
 
-static func _infer_game_type() -> void:
+func _infer_game_type() -> void:
 	# Note: Inferring game type is not 100% accurate. Always check if game type matches your specific mod
 	var player_hs: HostStation
 	if CurrentMapData.host_stations.get_child_count() > 0:

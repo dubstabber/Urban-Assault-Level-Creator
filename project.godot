@@ -29,6 +29,7 @@ CurrentMapData="*res://globals/CurrentMapData.gd"
 Preloads="*res://globals/Preloads.gd"
 Utils="*res://globals/Utils.gd"
 EditorState="*res://globals/EditorState.gd"
+MapLoadService="*res://globals/MapLoadService.gd"
 
 [debug]
 

@@ -21,101 +21,161 @@
 [node name="MapContainer" type="ScrollContainer"]
 script = ExtResource("1_5foj2")
 
-[node name="SubViewportMapContainer" type="SubViewportContainer" parent="."]
+[node name="MapScrollContent" type="Control" parent="."]
 unique_name_in_owner = true
 layout_mode = 2
+size_flags_horizontal = 3
+size_flags_vertical = 3
+mouse_filter = 1
+
+[node name="SubViewportMapContainer" type="SubViewportContainer" parent="MapScrollContent"]
+unique_name_in_owner = true
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
 stretch = true
 
-[node name="SubViewport" type="SubViewport" parent="SubViewportMapContainer"]
+[node name="SubViewport" type="SubViewport" parent="MapScrollContent/SubViewportMapContainer"]
 disable_3d = true
 handle_input_locally = false
 size = Vector2i(2, 2)
 render_target_update_mode = 4
 
-[node name="Map" type="Node2D" parent="SubViewportMapContainer/SubViewport"]
+[node name="Map2DLoadingOverlay" type="Control" parent="MapScrollContent"]
+unique_name_in_owner = true
+visible = false
+z_index = 1
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+
+[node name="ColorRect" type="ColorRect" parent="MapScrollContent/Map2DLoadingOverlay"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+color = Color(0.08, 0.08, 0.1, 0.55)
+
+[node name="CenterContainer" type="CenterContainer" parent="MapScrollContent/Map2DLoadingOverlay"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+
+[node name="PanelContainer" type="PanelContainer" parent="MapScrollContent/Map2DLoadingOverlay/CenterContainer"]
+layout_mode = 2
+
+[node name="MarginContainer" type="MarginContainer" parent="MapScrollContent/Map2DLoadingOverlay/CenterContainer/PanelContainer"]
+layout_mode = 2
+theme_override_constants/margin_left = 14
+theme_override_constants/margin_top = 12
+theme_override_constants/margin_right = 14
+theme_override_constants/margin_bottom = 12
+
+[node name="Label" type="Label" parent="MapScrollContent/Map2DLoadingOverlay/CenterContainer/PanelContainer/MarginContainer"]
+layout_mode = 2
+theme_override_fonts/font = ExtResource("3_6n7wx")
+theme_override_font_sizes/font_size = 13
+text = "Loading map..."
+horizontal_alignment = 1
+
+[node name="Map" type="Node2D" parent="MapScrollContent/SubViewportMapContainer/SubViewport"]
 unique_name_in_owner = true
 script = ExtResource("2_v1tro")
 
-[node name="InputHandler" type="Node" parent="SubViewportMapContainer/SubViewport/Map"]
+[node name="InputHandler" type="Node" parent="MapScrollContent/SubViewportMapContainer/SubViewport/Map"]
 script = ExtResource("3_ayu2m")
 
-[node name="Camera2D" type="Camera2D" parent="SubViewportMapContainer/SubViewport/Map"]
+[node name="Camera2D" type="Camera2D" parent="MapScrollContent/SubViewportMapContainer/SubViewport/Map"]
 anchor_mode = 0
 zoom = Vector2(0.056, 0.056)
 
-[node name="HostStations" type="Node2D" parent="SubViewportMapContainer/SubViewport/Map"]
+[node name="HostStations" type="Node2D" parent="MapScrollContent/SubViewportMapContainer/SubViewport/Map"]
 
-[node name="Squads" type="Node2D" parent="SubViewportMapContainer/SubViewport/Map"]
+[node name="Squads" type="Node2D" parent="MapScrollContent/SubViewportMapContainer/SubViewport/Map"]
 
-[node name="MapContextMenu" type="PopupMenu" parent="SubViewportMapContainer/SubViewport"]
+[node name="MapContextMenu" type="PopupMenu" parent="MapScrollContent/SubViewportMapContainer/SubViewport"]
 unique_name_in_owner = true
 auto_translate_mode = 1
 theme_override_fonts/font = ExtResource("3_6n7wx")
 submenu_popup_delay = 0.01
 
-[node name="AddHostStation" type="Node" parent="SubViewportMapContainer/SubViewport/MapContextMenu"]
+[node name="AddHostStation" type="Node" parent="MapScrollContent/SubViewportMapContainer/SubViewport/MapContextMenu"]
 script = ExtResource("3_5rxkp")
 
-[node name="AddSquad" type="Node" parent="SubViewportMapContainer/SubViewport/MapContextMenu"]
+[node name="AddSquad" type="Node" parent="MapScrollContent/SubViewportMapContainer/SubViewport/MapContextMenu"]
 script = ExtResource("4_k643x")
 
-[node name="ChangeFaction" type="Node" parent="SubViewportMapContainer/SubViewport/MapContextMenu"]
+[node name="ChangeFaction" type="Node" parent="MapScrollContent/SubViewportMapContainer/SubViewport/MapContextMenu"]
 script = ExtResource("5_r6vs5")
 
-[node name="ChangeHeight" type="Node" parent="SubViewportMapContainer/SubViewport/MapContextMenu"]
+[node name="ChangeHeight" type="Node" parent="MapScrollContent/SubViewportMapContainer/SubViewport/MapContextMenu"]
 script = ExtResource("6_ixe4a")
 
-[node name="AddBuilding" type="Node" parent="SubViewportMapContainer/SubViewport/MapContextMenu"]
+[node name="AddBuilding" type="Node" parent="MapScrollContent/SubViewportMapContainer/SubViewport/MapContextMenu"]
 script = ExtResource("7_wljrt")
 
-[node name="AddSpecialBuilding" type="Node" parent="SubViewportMapContainer/SubViewport/MapContextMenu"]
+[node name="AddSpecialBuilding" type="Node" parent="MapScrollContent/SubViewportMapContainer/SubViewport/MapContextMenu"]
 script = ExtResource("8_g5uc3")
 
-[node name="AddItem" type="Node" parent="SubViewportMapContainer/SubViewport/MapContextMenu"]
+[node name="AddItem" type="Node" parent="MapScrollContent/SubViewportMapContainer/SubViewport/MapContextMenu"]
 script = ExtResource("9_t3ijr")
 
-[node name="ViewSectorIn3D" type="Node" parent="SubViewportMapContainer/SubViewport/MapContextMenu"]
+[node name="ViewSectorIn3D" type="Node" parent="MapScrollContent/SubViewportMapContainer/SubViewport/MapContextMenu"]
 script = ExtResource("15_view3d")
 
-[node name="CleanSector" type="Node" parent="SubViewportMapContainer/SubViewport/MapContextMenu"]
+[node name="CleanSector" type="Node" parent="MapScrollContent/SubViewportMapContainer/SubViewport/MapContextMenu"]
 script = ExtResource("10_g5mjj")
 
-[node name="CopySector" type="Node" parent="SubViewportMapContainer/SubViewport/MapContextMenu"]
+[node name="CopySector" type="Node" parent="MapScrollContent/SubViewportMapContainer/SubViewport/MapContextMenu"]
 script = ExtResource("11_ngkm6")
 
-[node name="PasteSector" type="Node" parent="SubViewportMapContainer/SubViewport/MapContextMenu"]
+[node name="PasteSector" type="Node" parent="MapScrollContent/SubViewportMapContainer/SubViewport/MapContextMenu"]
 script = ExtResource("12_331mg")
 
-[node name="UnitContextMenu" type="PopupMenu" parent="SubViewportMapContainer/SubViewport"]
+[node name="UnitContextMenu" type="PopupMenu" parent="MapScrollContent/SubViewportMapContainer/SubViewport"]
 unique_name_in_owner = true
 auto_translate_mode = 1
 size = Vector2i(100, 20)
 theme_override_fonts/font = ExtResource("3_6n7wx")
 submenu_popup_delay = 0.01
 
-[node name="DuplicateUnit" type="Node" parent="SubViewportMapContainer/SubViewport/UnitContextMenu"]
+[node name="DuplicateUnit" type="Node" parent="MapScrollContent/SubViewportMapContainer/SubViewport/UnitContextMenu"]
 script = ExtResource("14_xa2rc")
 
-[node name="RemoveUnit" type="Node" parent="SubViewportMapContainer/SubViewport/UnitContextMenu"]
+[node name="RemoveUnit" type="Node" parent="MapScrollContent/SubViewportMapContainer/SubViewport/UnitContextMenu"]
 script = ExtResource("11_3ytp4")
 
-[node name="MultiSectorMapContextMenu" type="PopupMenu" parent="SubViewportMapContainer/SubViewport"]
+[node name="MultiSectorMapContextMenu" type="PopupMenu" parent="MapScrollContent/SubViewportMapContainer/SubViewport"]
 unique_name_in_owner = true
 auto_translate_mode = 1
 theme_override_fonts/font = ExtResource("3_6n7wx")
 submenu_popup_delay = 0.01
 
-[node name="ChangeFaction" type="Node" parent="SubViewportMapContainer/SubViewport/MultiSectorMapContextMenu"]
+[node name="ChangeFaction" type="Node" parent="MapScrollContent/SubViewportMapContainer/SubViewport/MultiSectorMapContextMenu"]
 script = ExtResource("5_r6vs5")
 
-[node name="ChangeHeight" type="Node" parent="SubViewportMapContainer/SubViewport/MultiSectorMapContextMenu"]
+[node name="ChangeHeight" type="Node" parent="MapScrollContent/SubViewportMapContainer/SubViewport/MultiSectorMapContextMenu"]
 script = ExtResource("6_ixe4a")
 
-[node name="AddBuilding" type="Node" parent="SubViewportMapContainer/SubViewport/MultiSectorMapContextMenu"]
+[node name="AddBuilding" type="Node" parent="MapScrollContent/SubViewportMapContainer/SubViewport/MultiSectorMapContextMenu"]
 script = ExtResource("7_wljrt")
 
-[node name="AddSpecialBuilding" type="Node" parent="SubViewportMapContainer/SubViewport/MultiSectorMapContextMenu"]
+[node name="AddSpecialBuilding" type="Node" parent="MapScrollContent/SubViewportMapContainer/SubViewport/MultiSectorMapContextMenu"]
 script = ExtResource("8_g5uc3")
 
-[node name="CleanSector" type="Node" parent="SubViewportMapContainer/SubViewport/MultiSectorMapContextMenu"]
+[node name="CleanSector" type="Node" parent="MapScrollContent/SubViewportMapContainer/SubViewport/MultiSectorMapContextMenu"]
 script = ExtResource("10_g5mjj")
