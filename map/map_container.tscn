@@ -1,4 +1,4 @@
-[gd_scene load_steps=17 format=3 uid="uid://dy8lh8y52680p"]
+[gd_scene load_steps=18 format=3 uid="uid://dy8lh8y52680p"]
 
 [ext_resource type="Script" uid="uid://csetjcqkry6nh" path="res://map/map_container.gd" id="1_5foj2"]
 [ext_resource type="Script" uid="uid://si2jegr42s5w" path="res://map/map_renderer.gd" id="2_v1tro"]
@@ -16,6 +16,7 @@
 [ext_resource type="Script" uid="uid://cpsje4ux1ciwm" path="res://map/context_menu_builders/copy_sector_context_menu.gd" id="11_ngkm6"]
 [ext_resource type="Script" uid="uid://be4jnxwd4j0k3" path="res://map/context_menu_builders/paste_sector_context_menu.gd" id="12_331mg"]
 [ext_resource type="Script" uid="uid://dehn6gm7x063i" path="res://map/context_menu_builders/duplicate_unit.gd" id="14_xa2rc"]
+[ext_resource type="Script" uid="uid://di3tknub85acb" path="res://map/context_menu_builders/view_sector_in_3d_context_menu.gd" id="15_view3d"]
 
 [node name="MapContainer" type="ScrollContainer"]
 script = ExtResource("1_5foj2")
@@ -72,6 +73,9 @@ script = ExtResource("8_g5uc3")
 
 [node name="AddItem" type="Node" parent="SubViewportMapContainer/SubViewport/MapContextMenu"]
 script = ExtResource("9_t3ijr")
+
+[node name="ViewSectorIn3D" type="Node" parent="SubViewportMapContainer/SubViewport/MapContextMenu"]
+script = ExtResource("15_view3d")
 
 [node name="CleanSector" type="Node" parent="SubViewportMapContainer/SubViewport/MapContextMenu"]
 script = ExtResource("10_g5mjj")

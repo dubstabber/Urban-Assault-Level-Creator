@@ -103,3 +103,50 @@ static func frame_camera_to_map(camera: Camera3D, current_map_data: Node, sector
 		"max_h": mx,
 		"avg_h": avg_h,
 	}
+
+
+static func _height_at_playable_cell(hgt: PackedByteArray, w: int, h: int, sx: int, sy: int, height_scale: float) -> float:
+	var bw := w + 2
+	var bh := h + 2
+	if hgt.size() != bw * bh or w <= 0 or h <= 0:
+		return 0.0
+	var bx := clampi(sx + 1, 0, bw - 1)
+	var by := clampi(sy + 1, 0, bh - 1)
+	return float(hgt[by * bw + bx]) * height_scale
+
+
+static func frame_camera_to_sector(camera: Camera3D, current_map_data: Node, sector_sx: int, sector_sy: int, sector_size: float, height_scale: float) -> Dictionary:
+	if camera == null or current_map_data == null:
+		return {}
+	var w: int = int(current_map_data.horizontal_sectors)
+	var h: int = int(current_map_data.vertical_sectors)
+	if w <= 0 or h <= 0:
+		return {}
+	var sx := clampi(sector_sx, 0, w - 1)
+	var sy := clampi(sector_sy, 0, h - 1)
+	var hgt: PackedByteArray = current_map_data.hgt_map
+	var terrain_y := _height_at_playable_cell(hgt, w, h, sx, sy, height_scale)
+	var center := Vector3((float(sx) + 1.5) * sector_size, terrain_y, (float(sy) + 1.5) * sector_size)
+	var dist: float = maxf(sector_size * 12.0, float(max(w + 2, h + 2)) * sector_size * 0.25)
+	var pitch := deg_to_rad(-35.0)
+	var yaw := deg_to_rad(45.0)
+	apply_camera_rotation(camera, yaw, pitch)
+	var y_offset: float = UA_FRAMED_CAMERA_HEIGHT_ABOVE_TERRAIN
+	var forward := (-camera.global_transform.basis.z).normalized()
+	var fy := forward.y
+	if absf(fy) < 1e-3:
+		fy = -1e-3
+	var orbit_r: float = -y_offset / fy
+	var eye := center - forward * orbit_r
+	camera.global_position = eye
+	var far_dist: float = max(dist * 4.0, 50000.0)
+	camera.near = 0.1
+	camera.far = min(far_dist, 1.0e7)
+	return {
+		"framed": true,
+		"pitch": pitch,
+		"yaw": yaw,
+		"center": center,
+		"dist": dist,
+		"y_offset": y_offset,
+	}

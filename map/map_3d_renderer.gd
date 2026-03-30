@@ -472,6 +472,8 @@ func _ready() -> void:
 		_es.map_updated.connect(_on_map_updated)
 		_es.level_set_changed.connect(_on_level_set_changed)
 		_es.map_view_updated.connect(_on_map_view_updated)
+		if _es.has_signal("map_3d_focus_sector_requested"):
+			_es.map_3d_focus_sector_requested.connect(_on_map_3d_focus_sector_requested)
 		_es.map_3d_overlay_animations_changed.connect(_on_map_3d_overlay_animations_changed)
 		if _es.has_signal("hoststation_added"):
 			_es.hoststation_added.connect(_on_host_station_added)
@@ -1209,6 +1211,27 @@ func _frame_if_needed() -> void:
 	_yaw = float(frame_result.get("yaw", _yaw))
 	_framed = bool(frame_result.get("framed", false))
 	_update_geometry_distance_culling_visibility()
+
+
+func _on_map_3d_focus_sector_requested(sector_sx: int, sector_sy: int) -> void:
+	if _camera == null or not is_instance_valid(_camera):
+		return
+	var cmd := _current_map_data()
+	if cmd == null:
+		return
+	var w := int(cmd.horizontal_sectors)
+	var h := int(cmd.vertical_sectors)
+	if w <= 0 or h <= 0:
+		return
+	var frame_result := ViewController.frame_camera_to_sector(_camera, cmd, sector_sx, sector_sy, SECTOR_SIZE, HEIGHT_SCALE)
+	if frame_result.is_empty():
+		return
+	_pitch = float(frame_result.get("pitch", _pitch))
+	_yaw = float(frame_result.get("yaw", _yaw))
+	_framed = bool(frame_result.get("framed", false))
+	_update_geometry_distance_culling_visibility()
+	if _preview_refresh_active():
+		_bump_3d_viewport_rendering()
 
 func _on_map_changed() -> void:
 	if _skip_next_map_changed_refresh:

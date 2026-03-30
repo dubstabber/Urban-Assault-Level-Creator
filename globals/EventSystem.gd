@@ -28,6 +28,7 @@ signal map_updated
 signal unit_overlay_refresh_requested(unit_kind: String, unit_id: int)
 signal unit_position_committed
 signal map_view_updated
+signal map_3d_focus_sector_requested(sector_sx: int, sector_sy: int)
 signal map_3d_overlay_animations_changed
 signal sky_preview_requested(sky_name: String)
 signal sky_preview_reset_requested
