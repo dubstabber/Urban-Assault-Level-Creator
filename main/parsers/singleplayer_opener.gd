@@ -11,6 +11,15 @@ static func load_level() -> void:
 		EventSystem.open_map_failed.emit("path_inaccessible")
 		return
 	
+	var probe_len := mini(int(file.get_length()), 8192)
+	if probe_len > 0:
+		var probe := file.get_buffer(probe_len)
+		if UALegacyText.is_probably_binary_data(probe):
+			printerr("Error: File '%s' does not look like a text map (binary data?)" % CurrentMapData.map_path)
+			EventSystem.open_map_failed.emit("invalid_format")
+			return
+		file.seek(0)
+	
 	# Quick format validation: check if file contains required map sections
 	if not _is_valid_ldf_format(file):
 		printerr("Error: File '%s' is not a valid LDF format" % CurrentMapData.map_path)
@@ -87,9 +96,14 @@ static func load_level() -> void:
 	CurrentMapData.is_saved = true
 
 
+const _LDF_VALIDATE_MAX_LINE_BYTES := 65536
+const _LDF_VALIDATE_MAX_SCAN_BYTES := 262144
+
+
 static func _is_valid_ldf_format(file: FileAccess) -> bool:
-	# Scan file for required map sections with a reasonable limit
-	# to avoid reading entire large binary files
+	# Scan file for required map sections with a reasonable limit.
+	# Use bounded line reads so a newline-free binary file cannot stall on one huge `get_line()`.
+	# Cap total bytes scanned so binary with many short lines (e.g. PNG) cannot spin for 10k lines.
 	var lines_checked := 0
 	var max_lines_to_check := 10000 # Reasonable limit for LDF files
 	var found_typ_map := false
@@ -98,7 +112,14 @@ static func _is_valid_ldf_format(file: FileAccess) -> bool:
 	var found_blg_map := false
 	
 	while file.get_position() < file.get_length() and lines_checked < max_lines_to_check:
-		var line = file.get_line().strip_edges().to_lower()
+		if found_typ_map and found_own_map and found_hgt_map and found_blg_map:
+			return true
+		if file.get_position() >= _LDF_VALIDATE_MAX_SCAN_BYTES:
+			return false
+		var res: Dictionary = UALegacyText.read_line_bounded(file, _LDF_VALIDATE_MAX_LINE_BYTES)
+		if not res.get("ok", false):
+			return false
+		var line: String = str(res.get("line", "")).strip_edges().to_lower()
 		lines_checked += 1
 		
 		if line.begins_with("typ_map"):
@@ -109,8 +130,6 @@ static func _is_valid_ldf_format(file: FileAccess) -> bool:
 			found_hgt_map = true
 		elif line.begins_with("blg_map"):
 			found_blg_map = true
-		
-		# Early exit if we found all required sections
 		if found_typ_map and found_own_map and found_hgt_map and found_blg_map:
 			return true
 	

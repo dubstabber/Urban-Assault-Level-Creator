@@ -1,19 +1,20 @@
 extends FileDialog
 
 const _UALegacyText = preload("res://map/ua_legacy_text.gd")
+const _MAX_BEHAVIOR_JSON_BYTES := 8 * 1024 * 1024
 
 @onready var load_behavior_file_dialog: FileDialog = %LoadBehaviorFileDialog
 
 func _ready() -> void:
 	EventSystem.load_hs_behavior_dialog_requested.connect(popup)
 	load_behavior_file_dialog.file_selected.connect(func(path: String):
-		var behavior_json := _UALegacyText.read_file(path)
+		var behavior_json: String = _UALegacyText.read_utf8_text_file_up_to(path, _MAX_BEHAVIOR_JSON_BYTES)
 		if behavior_json.is_empty():
 			printerr("File '%s' could not be loaded" % path)
 			EventSystem.load_enemy_settings_failed.emit(path)
 			return
 
-		var trimmed := behavior_json.strip_edges()
+		var trimmed: String = behavior_json.strip_edges()
 		if not trimmed.begins_with("{") and not trimmed.begins_with("["):
 			printerr("File '%s' does not appear to be valid JSON" % path)
 			EventSystem.load_enemy_settings_failed.emit(path)
