@@ -4,11 +4,11 @@ ua_extract_from_usor.py
 
 Purpose:
 - Extract Urban Assault ground textures (SurfaceType indices 0..5) per environment set
-  from a local .usor tree or a UA install dir, and convert them to PNGs under
+  from a local UA install or extracted DATA tree, and convert them to PNGs under
   resources/terrain/textures/set{N}/ground_{i}.png.
 
 Key points:
-- .usor (the open-source UA code repo) does not include proprietary art assets.
+- Open-source UA tooling does not include proprietary art assets.
   This tool expects that you provide a manifest mapping, or that the target dir
   actually contains the textures in readable formats (e.g., .iff/.lbm/.bmp/.png).
 
@@ -19,7 +19,7 @@ Two modes:
      "set1": {"0": "path/GRASS.iff", "1": "path/DIRT.iff", ...},
      "set2": { ... }
    }
-   Paths are relative to --usor-dir. This is the most reliable way.
+   Paths are relative to --data-root. This is the most reliable way.
 
 2) Heuristic (best-effort):
    If no manifest is provided, we try to pick 6 files per set based on common
@@ -30,8 +30,8 @@ Dependencies:
   pip install pillow pillow-iff
 
 Usage examples:
-  python3 scripts/ua_extract_from_usor.py --usor-dir .usor --manifest .usor/ground_textures_manifest.json
-  python3 scripts/ua_extract_from_usor.py --usor-dir /path/to/UA --out-dir resources/terrain/textures --sets 1 2 3
+  python3 scripts/ua_extract_from_usor.py --data-root resources/ua/bundled --manifest ground_textures_manifest.json
+  python3 scripts/ua_extract_from_usor.py --data-root /path/to/UA --out-dir resources/terrain/textures --sets 1 2 3
 
 """
 import argparse
@@ -62,9 +62,9 @@ IMAGE_EXTS = {".iff", ".lbm", ".ilbm", ".bmp", ".png", ".tga", ".jpg", ".jpeg"}
 
 def parse_args():
     ap = argparse.ArgumentParser(
-        description="Extract UA ground textures from a .usor/UA tree")
-    ap.add_argument("--usor-dir", dest="usor_dir", default=".usor",
-                    help="Root directory to scan (default: .usor)")
+        description="Extract UA ground textures from a UA game data tree")
+    ap.add_argument("--data-root", dest="data_root", default="resources/ua/bundled",
+                    help="Root directory to scan (default: resources/ua/bundled)")
     ap.add_argument("--out-dir", dest="out_dir", default="resources/terrain/textures",
                     help="Output base dir (default: resources/terrain/textures)")
     ap.add_argument("--manifest", dest="manifest", default=None,
@@ -132,7 +132,7 @@ def convert_and_save(src: Path, out_path: Path):
 
 def main():
     args = parse_args()
-    usor_dir = Path(args.usor_dir).resolve()
+    data_root = Path(args.data_root).resolve()
     out_dir = Path(args.out_dir).resolve()
     sets: List[int] = args.sets if args.sets else [1, 2, 3, 4, 5, 6]
 
@@ -149,14 +149,14 @@ def main():
         if manifest and set_key in manifest:
             for idx_str, rel in manifest[set_key].items():
                 idx = int(idx_str)
-                mapping[idx] = usor_dir / rel
+                mapping[idx] = data_root / rel
         else:
-            # Heuristic: search within the usor_dir for candidates
-            cands = find_candidates(usor_dir)
+            # Heuristic: search within the data root for candidates
+            cands = find_candidates(data_root)
             guessed = pick_by_keywords(cands)
             if len(guessed) < 6:
                 # Write template and stop
-                tmpl_path = usor_dir / "ground_textures_manifest.json"
+                tmpl_path = data_root / "ground_textures_manifest.json"
                 write_manifest_template(tmpl_path, guessed)
                 raise SystemExit(
                     f"Could not heuristically find 6 textures for set {set_id}. "

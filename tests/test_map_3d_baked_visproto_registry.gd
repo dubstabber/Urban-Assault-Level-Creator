@@ -15,7 +15,7 @@ func run() -> int:
 	var set_id := 77
 	var game_data_type := "original"
 
-	var metadata_dir := "res://resources/ua/sets/set%d/metadata" % set_id
+	var metadata_dir := "res://resources/ua/bundled/sets/set%d/metadata" % set_id
 	_ensure_dir(metadata_dir)
 	var registry_path := "%s/visproto_base_names.json" % metadata_dir
 	var registry := {

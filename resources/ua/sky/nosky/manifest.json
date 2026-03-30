@@ -10,7 +10,6 @@
   "geometry_path": "res://resources/ua/sky/nosky/geometry.json",
   "textures": [],
   "source_files": {
-    "source_dir": "/run/media/ydro/WDC/gamedev-workspace/Urban Assault Level Creator/urban_assault_decompiled-master/assets/sky/nosky",
     "bas": "nosky.bas.json",
     "skeleton": "nosky.skl.json"
   },

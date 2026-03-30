@@ -1,0 +1,11 @@
+{
+	"schema_version": 1,
+	"set_id": 178,
+	"game_data_type": "original",
+	"base_names": [
+		"VPwSIMPL",
+		"VP_DFLAK",
+		"VP_RADA",
+		""
+	]
+}

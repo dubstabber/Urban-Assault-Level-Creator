@@ -29,7 +29,6 @@
     }
   ],
   "source_files": {
-    "source_dir": "/run/media/ydro/WDC/gamedev-workspace/Urban Assault Level Creator/urban_assault_decompiled-master/assets/sky/wowc",
     "bas": "wowc.bas.json",
     "skeleton": "complete.skl.json"
   },

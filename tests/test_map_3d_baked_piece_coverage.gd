@@ -8,10 +8,9 @@ const RUNTIME_FILES := [
 	"res://map/terrain/ua_authored_piece_library.gd",
 ]
 const FORBIDDEN_RUNTIME_ROOT_TOKENS := [
-	"urban_assault_decompiled-master",
-	".usor",
-	"ua_source_code_prototype",
-	"UA_source",
+	"assets/sets",
+	"DATA/SCRIPTS",
+	"openua/DATA",
 ]
 
 var _errors: Array[String] = []
@@ -28,7 +27,7 @@ func _check(cond: bool, msg: String) -> void:
 
 
 func _piece_registry_path_for_set(set_id: int) -> String:
-	return "res://resources/ua/sets/set%d/metadata/piece_registry.json" % set_id
+	return "res://resources/ua/bundled/sets/set%d/metadata/piece_registry.json" % set_id
 
 
 func _piece_registry_for_set(set_id: int) -> Dictionary:

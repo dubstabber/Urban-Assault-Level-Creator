@@ -10,7 +10,7 @@ from scripts.ua_convert_sky import ConversionError, convert_sky, write_registry
 
 
 REPO_ROOT = Path(__file__).resolve().parents[1]
-SOURCE_ROOT = REPO_ROOT / "urban_assault_decompiled-master" / "assets" / "sky"
+SOURCE_ROOT = REPO_ROOT / "resources" / "ua" / "sky_import"
 RUNTIME_ROOT = REPO_ROOT / "resources" / "ua" / "sky"
 
 

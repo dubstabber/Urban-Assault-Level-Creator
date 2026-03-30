@@ -1,0 +1,363 @@
+VP_BRGR1.base  ;  00 QUADER     source: MODELING/_MYKONIER/MYKO1
+VPfBRGR1.base  ;  01 |                                        |
+VPdBRGR1.base  ;  02 |                                        | upd.:
+VPwBRGR1.base  ;  03 |                                        | 25-Jun-98
+VPxBRGR1.base  ;  04 |                                        |
+VPgBRGR1.base  ;  05 +----------------------------------------+
+VP_BRGR2.base  ;  06 WÜRFEL     source: MODELING/_MYKONIER/MYKO1
+VPfBRGR2.base  ;  07 |                                        |
+VPdBRGR2.base  ;  08 |                                        |
+VPwBRGR2.base  ;  09 |                                        |
+VPxBRGR2.base  ;  10 |                                        |
+VPgBRGR2.base  ;  11 +----------------------------------------+
+VP_HUBI1.base  ;  12 GHARGOIL   source: MODELING/_KYTERNESER/GHARGOIL
+VPfHUBI1.base  ;  13 |                     |
+VPdHUBI1.base  ;  14 |                     |
+VPwHUBI1.base  ;  15 |                     |
+VPxHUBI1.base  ;  16 |                     |
+VPgHUBI1.base  ;  17 +---------------------+
+VP_PANZ1.base  ;  18 EISENHANS  source: MODELING/_TAERKASTEN/PANZER1
+VPfPANZ1.base  ;  19 |                                      |
+VPdPANZ1.base  ;  90 |                                      |
+VPwPANZ1.base  ;  21 |                                      |
+dummy.base     ;  22 S T A N D A R D D U M M Y !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+VPgPANZ1.base  ;  23 +--------------------------------------+
+VP_HUBI2.base  ;  24 LAWNMOWER  source: MODELING/_USER/LAWNMOWER
+VPfHUBI2.base  ;  25 |                     |
+VPdHUBI2.base  ;  26 | (50 Polygone !)     |
+VPwHUBI2.base  ;  27 |                     |
+VPxHUBI2.base  ;  28 |                     |
+VPgHUBI2.base  ;  29 +---------------------+
+VP_SIMPL.base  ;  30 Wiesel----------------------------------------+ User
+VPfSIMPL.base  ;  31 |                                             |
+dummy.base     ;  32 |                                             |
+VPwSIMPL.base  ;  33 |                                             |
+dummy.base     ;  34 S T A N D A R D D U M M Y !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+VPgSIMPL.base  ;  35 +---------------------------------------------+
+VP_TAERO.base  ;  36 TAERKASTENROBO
+dummy.base     ;  37
+dummy.base     ;  38 S T A N D A R D D U M M Y !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+dummy.base     ;  39 DEAD
+VP_FLAK2.base  ;  40 Flak normal
+VPfFLAK2.base  ;  41 Flak schießt
+VP_SATT1.base  ;  42 SCOUT      source: MODELING/_USER/SATELLIT
+dummy.base     ;  43 |                                             |
+VPdSATT1.base  ;  44 |                                             |
+dummy.base     ;  45 |                                             |
+VPxSATT1.base  ;  46 |                                             |
+VPgSATT1.base  ;  47 +---------------------------------------------+
+VP_FLSML.base  ;  48 KNUDDEL    source: MODELING/_USER/SIMPLFLUGIE
+VPfFLSML.base  ;  49 |                                             |
+VPdFLSML.base  ;  50 |                                             |
+VPwFLSML.base  ;  51 |                                             |
+VPxFLSML.base  ;  52 |                                             |
+VPgFLSML.base  ;  53 +---------------------------------------------+
+VP_FLUG1.base  ;  54 KYTFLUGI   source: MODELING/_KYTERNESER/KYT_FLUGIE
+VPfFLUG1.base  ;  55 |                                             |
+VPdFLUG1.base  ;  56 |                                             |
+dummy.base     ;  57 |                                             |
+VPxFLUG1.base  ;  58 |                                             |
+VPgFLUG1.base  ;  59 +---------------------------------------------+
+VP_GLID1.base  ;  60 WARHAMMER  source: MODELING/_USER/SIMPLFLUGIE
+VPfGLID1.base  ;  61 |                                             |
+VPdGLID1.base  ;  62 |                                             |
+VPwGLID1.base  ;  63 |                                             |
+VPxGLID1.base  ;  64 |                                             |
+VPgGLID1.base  ;  65 +---------------------------------------------+
+VP_RAKT1.base  ;  66 RAKETE     source:  MODELING/__GESCHOSSE/USE_THAT
+OP_EXPL1.base  ;  67 Explosion  source:  MODELING/__GESCHOSSE/USE_THAT
+VP_GRAN1.base  ;  68 GRANATE    source:  MODELING/__GESCHOSSE/GRANATEN
+OP_EXPL3.base  ;  69 EXPLOSION  source:  MODELING/__GESCHOSSE/USE_THAT
+OP_EXPL2.base  ;  70 EXPLOSION  source:  MODELING/__GESCHOSSE/USE_THAT
+VP_JET1.base   ;  71 ERAZER     source:  MODELING/_USER/ERAZER
+VPdJET1.base   ;  72 |                                     |
+VPgJET1.base   ;  73 |                                     |
+VPwJET1.base   ;  74 |                                     |
+VPxJET1.base   ;  75 |                                     |
+VPfJET1.base   ;  76 +-------------------------------------+
+VP_GLID2.base  ;  77 PHANTOM    source:  MODELING/_TAERKASTEN/Phantom
+VPdGLID2.base  ;  78 |                                             |
+VPgGLID2.base  ;  79 |                                             |
+VPwGLID2.base  ;  80 |                                             |
+VPxGLID2.base  ;  81 |                                             |
+VPfGLID2.base  ;  82 +---------------------------------------------+
+VP_WASP.base   ;  83 WASP       source:  MODELING/_USER/WASP
+VPdWASP.base   ;  84 |                                             |
+VPgWASP.base   ;  85 |                                             |
+VPwWASP.base   ;  86 |                                             |
+VPxWASP.base   ;  87 |                                             |
+VPfWASP.base   ;  88 +---------------------------------------------+
+VP_PANZ2.base  ;  89 JAGUAR     source:  MODELING/_USER/PANZRS
+VPdPANZ2.base  ;  90 |                                             |
+VPfPANZ2.base  ;  91 |                                             |
+VPwPANZ2.base  ;  92 |                                             |
+dummy.base     ;  93 S T A N D A R D D U M M Y
+VPgPANZ2.base  ;  94 +---------------------------------------------+
+VP_FLAK1.base  ;  95 +- Eine erste Flak ---------------------------+
+VPfFLAK1.base  ;  96 |                                             |
+VPgFLAK1.base  ;  97 +---------------------------------------------+
+VP_RAKT2.base  ;  98            source:  MODELING/__GESCHOSSE/USE_THAT
+OP_EIN1.base   ;  99  MGEINSCHUSS
+dummy.base     ; 100 S T A N D A R D D U M M Y
+VP_KPAN1.base  ; 101 TEKH       source:  MODELING/_KYTERNESER/KYT_Panzer
+VPfKPAN1.base  ; 102 |                                            |
+VPwKPAN1.base  ; 103 |                                            |
+VPgKPAN1.base  ; 104 |                                            |
+VPdKPAN1.base  ; 105 +--------------------------------------------+
+VP_HUBI3.base  ; 106 LAURIN     source:  MODELING/_USER/LAURIN
+VPdHUBI3.base  ; 107 |                                            |
+VPfHUBI3.base  ; 108 |                                            |
+VPwHUBI3.base  ; 109 |                                            |
+VPxHUBI3.base  ; 110 |                                            |
+VPgHUBI3.base  ; 111 +--------------------------------------------+
+OP_EXPL4.base  ; 112 Kleine Explosion    source:  MODELING/__GESCHOSSE/USE_THAT
+VP_RAKT3.base  ; 113 RAKETE              source:  MODELING/__GESCHOSSE/USE_THAT
+VP_RAKT4.base  ; 114 RAKETE (LAWNMOVER)  source:  MODELING/__GESCHOSSE/USE_THAT
+VP_ROBO.base   ; 115 +--------------USER-ROBO---------------------+
+VP_GIGNT.base  ; 116 GIGANT              source:  MODELING/_KYTERNESER/GIGANT
+VPdGIGNT.base  ; 117 |                                            |
+VPfGIGNT.base  ; 118 |                                            |
+VPwGIGNT.base  ; 119 |                                            |
+VPxGIGNT.base  ; 129 |                                            |
+VPgGIGNT.base  ; 121 +--------------------------------------------+
+VP_LASR1.base  ; 122 LASERSCHUSS    (einfacher Blitz)
+VP_LASEX.base  ; 123 LASEREXPLOSION (einfacher Laser-Einschuß)
+VP_LASR2.base  ; 124 LASERSCHUSS    (breit)
+VP_LASEY.base  ; 125 LASEREXPLOSION (BlitzGegrissel)
+VP_KROBO.base  ; 126 KYTROBO
+VP_BRGRO.base  ; 127 MYKOROBO            source:  MODELING/_MYKONIER/MYKOROBO
+dummy.base     ; 128
+VPdBRGRO.base  ; 129 EXPLOSION           source:  MODELING/_MYKONIER/MYKOROBO
+VP_GHTT.base   ; 130 Bruch-Wolke         source:  MODELING/__MISC/BRUCH
+VP_KLEIN.base  ; 131 Kleiner Brocken     source:  MODELING/__MISC/BRUCH
+VP_MITTL.base  ; 132 Mittlerer Brocken   source:  MODELING/__MISC/BRUCH
+VP_LFLAK.base  ; 133 Leuchtstrahl-Flak
+VPfLFLAK.base  ; 134 Flak mit Leuchtstrahl schießend
+VP_MFLAK.base  ; 135 MG-Flak klein
+VPfMFLAK.base  ; 136
+VPx.base       ; 137 Explosion für Flaks
+VP_GLOW.base   ; 138 Glow/SmokeParticle  source:  MODELING/__MISC/BRUCH
+VP_Xnew1.base  ; 139 EXPLOSION           source:  MODELING/__MISC/BRUCH
+VP_Xnew2.base  ; 140 EXPLOSION small     source:  MODELING/__MISC/BRUCH
+VP_Xnew3.base  ; 141 EXPLOSION large     source:  MODELING/__MISC/BRUCH
+VP_SULG1.base  ; 142 SULGOGARE
+VPxSULG1.base  ; 143 SULGOGARE  explodierend...
+VP_GRUEN.base  ; 144 SULGOGAREN-SCHUSS
+VP_XGRUN.base  ; 145 SULGOGAREN-SCHUSS Explosion
+VP_PANZ3.base  ; 146 TIGER               source:  MODELING/_USER/TIGER
+VPfPANZ3.base  ; 147 |                                  |
+VPwPANZ3.base  ; 148 |                                  |
+VPgPANZ3.base  ; 149 |                                  |
+VPdPANZ3.base  ; 150 +----------------------------------+
+VP_RADA.base   ; 151 Radarschuessel   ---+
+VPgRADA.base   ; 152     +---------------+
+VP_SATT2.base  ; 153 BRONSTEIJN          source:  MODELING/_TAERKASTEN/BRONSTEIJN
+VPdSATT2.base  ; 154 |                          |
+VPxSATT2.base  ; 155 |                          |
+VPgSATT2.base  ; 156 +--------------------------+
+VP_BLUSH.base  ; 157 VIERECKIGER LASER
+VP_RT.base     ; 158 PICO                source:  MODELING/_USER/PICO
+VPgRT.base     ; 159 |                                            |
+VPdRT.base     ; 160 |                                            |
+VP_RTX.base    ; 161 <-zugehörige-RAKETE source:  MODELING/__GESCHOSSE/GRANATEN
+VPwRT.base     ; 162 +--------------------------------------------+
+VP_TFLUG.base  ; 163 MNIOSJETZ           source:  MODELING/_TAERKASTEN/PANZER1
+VPfTFLUG.base  ; 164 DoppelDecker           |
+VPwTFLUG.base  ; 165 |                      |
+VPxTFLUG.base  ; 166 |                      |
+VPdTFLUG.base  ; 167 |                      |
+VPgTFLUG.base  ; 168 +----------------------+
+VP_BUGGY.base  ; 169 BUDJONOW            source:  MODELING/_USER/BUDJONOW
+VPfBUGGY.base  ; 170 |                                     |
+dummy.base     ; 171 |                                     |
+VPgBUGGY.base  ; 172 +-------------------------------------+
+VP_BOMBA.base  ; 173 MARAUDER            source:  MODELING/_USER/ERAZER
+VPxBOMBA.base  ; 174 |                                              |
+VPgBOMBA.base  ; 175 |                                              |
+VPwBOMBA.base  ; 176 +----------------------------------------------+
+VP_SULG2.base  ; 177 Miniatursulgogare
+VPfSULG2.base  ; 178 |                           |
+VPwSULG2.base  ; 179 |                           |
+VPxSULG2.base  ; 180 |                           |
+VPdSULG2.base  ; 181 |                           |
+VPgSULG2.base  ; 182 +---------------------------+
+Vp_MFLSH.base  ; 183 MYKONIER-FLAK (nur dünner Lichtstrahl)
+VP_BRGR3.base  ; 184 +--- MiniMYKONIER --------+
+VPDBRGR3.base  ; 185 |                         |
+dummy.base     ; 186 |                         |
+VPWBRGR3.base  ; 187 |                         |
+VPXBRGR3.base  ; 188 +-------------------------+
+VPXBSHOT.base  ; 189 EXPLO 3er MYKOSCHUSS      source: MODELING/_MYKONIER/MYKO1
+VP_BSHOT.base  ; 190 3er MYKOSCHUSS            source: MODELING/_MYKONIER/MYKO1
+OP_EIN2.base   ; 191 MG-Einschuss / bläulich
+VP_X2.base     ; 192 BIG EXPLOSION             source: MODELING/__MISC/BRUCH
+VP_HILLB.base  ; 193 mini-BruchBrocken
+VP_KYTIE.base  ; 194 Kyterneser-Bruch
+VP_STCKN.base  ; 195 Stecken/Bruch
+VP_D_AUS.base  ; 196 DUSTERWOLKE               source: MODELING/_TAERKASTEN/PANZER1
+VP_KSATT.base  ; 197 Kyterneser-Sattelit       source: MODELING/_KYTERNESER/GHARGOIL
+VPxKSATT.base  ; 198 |                                        |
+VPgKSATT.base  ; 199 +----------------------------------------+
+VP_BRGR4.base  ; 200 MYK-SATT. alles andere: BRGR2 !
+VP_TSERP.base  ; 201 SERP----------------------------------+ TAER
+VPxTSERP.base  ; 202   |                                   |
+VPgTSERP.base  ; 203   +-----------------------------------+
+VP_JUBEL.base  ; 204 SchnellBröckchen
+VPwTSERP.base  ; 205
+VP_XPILZ.base  ; 206 "ATOMPILZ"                source: MODELING/__MISC/BRUCH
+VP_MORSR.base  ; 207 BodenONLY-Flak-----+
+VPFMORSR.base  ; 208  ------------------+
+VP_NFOX.base   ; 209 FOX                       source: MODELING/_USER/NEWFOX
+VPwNFOX.base   ; 210 |                                                 |
+VPfNFOX.base   ; 211 +-------------------------------------------------+
+VP_SULG5.base  ; 212 Versuch eines weiteren Sulgogarens
+VP_SULX1.base  ; 213 Versuch eines speziellen SULG-D-FX
+VP_PANZ4.base  ; 214 +------------------ LEONID ------------------+ TAER
+VPwPANZ4.base  ; 215 |                                            |
+VPfPANZ4.base  ; 216 |                                            |
+VPgPANZ4.base  ; 217 +--------------------------------------------+
+VP_MIG.base    ; 218 TRICKINA       source:  MODELING/_KYTERNESER/MIG
+VPfMIG.base    ; 219 |                                                |
+VPwMIG.base    ; 220 |                                                |
+VPxMIG.base    ; 221 |                                                |
+VPgMIG.base    ; 222 +------------------------------------------------+
+VP_BSECT.base  ; 223 B.S. ROBO
+VP_RAKT5.base  ; 224 Rakete mit weißem Rauch
+OP_R3__1.base  ; 225 +- Roter Ring -+
+OP_R3__2.base  ; 226 |              |
+OP_R3__3.base  ; 227 +--------------+
+OP_RING4.base  ; 228 Wüste Lichtsrahlen !
+OP_R___1.base  ; 229 +-  blauer Ring      ------+
+OP_R___2.base  ; 230 |     |                    |
+OP_R___3.base  ; 231 |     |                    |
+OP_R___4.base  ; 232 |     V                    |
+OP_R___5.base  ; 233 |    wird transparent      |
+OP_R___6.base  ; 234 |                          |
+OP_R___7.base  ; 235 +--------------------------+
+VP_SPEDY.base  ; 236 SPEEDY --------------------------+ KYT
+VPwSPEDY.base  ; 237 |                                |
+VPfSPEDY.base  ; 238 |                                |
+VPgSPEDY.base  ; 239 +--------------------------------+
+VP_KUFO.base   ; 240 Ufo-----------+  KYT
+VPwKUFO.base   ; 241 |             |
+VPfKUFO.base   ; 242 +-------------+
+VP_SATT3.base  ; 243 TAERRADAR        source: MODELING/_TAERKASTEN/BRONSTEIJN
+VP_LSRED.base  ; 244 Roter LaserSchuß NORMAL
+VP_LSRE2.base  ; 245 Roter LaserSchuß klein
+VP_REDIN.base  ; 246 BRONSTEIJNEinschuß source: MODELING/__GESCHOSSE/LASER
+VP_LSRE3.base  ; 247 BRONSTEIJN-Schuß
+VP_ZEPPL.base  ; 248 +-- ZEPPELIN -----------------------+ TAER
+VPgZEPPL.base  ; 249 |                                   |
+VPxZEPPL.base  ; 250 +-----------------------------------+
+VP_MYKO1.base  ; 251 +---- MYKONIER JÄGER ------+
+VPgMYKO1.base  ; 252 +--------------------------+
+VP_MYKO3.base  ; 253 MYKONIER BOMBER
+OP_HHK1.base   ; 254 +--- SCALEFX - Rote Anmierte EinschußHalbkugel --+
+OP_HHK2.base   ; 255 |                                                |
+OP_HHK3.base   ; 256 |                                                |
+OP_HHK4.base   ; 257 |                                                |
+OP_HHK5.base   ; 258 |                                                |
+OP_HHK6.base   ; 259 |                                                |
+OP_HHK7.base   ; 260 +--------------------- transparentst ------------+
+OP_HK1.base    ; 261 +--- SCALEFX - Rote Kugel -----------------------+
+OP_HK2.base    ; 262 |                                                |
+OP_HK3.base    ; 263 |                                                |
+OP_HK4.base    ; 264 |                                                |
+OP_HK5.base    ; 265 |                                                |
+OP_HK6.base    ; 266 |                                                |
+OP_HK7.base    ; 267 +--------------------- transparentst ------------+
+VP_HUELS.base  ; 268 MNIOSJETZSCHUSS  source: MODELING/__GESCHOSSE/GRANATEN
+dummy.base     ; 269
+VP_MYKO2.base  ; 270 Mykonier   SMALL
+VP_MYKO4.base  ; 271 Mykonier   HEAVY
+VP_HUBI4.base  ; 272 GHARGOIL2
+VPgMYKO2.base  ; 273 nachgelieferte Genesis-Modelle--------------
+VPgMYKO3.base  ; 274                  |
+VPgMYKO4.base  ; 275                  |
+VPgBRGR3.base  ; 276                  |
+VPGSATT3.base  ; 277 -----------------+--------------------------
+VPwHUBI4.base  ; 278 GHARGOIL2 -----+
+VPfHUBI4.base  ; 279   +------------+
+VPgNFOX.base   ; 280 GENESIS NEW FOX Replacement
+VP_WOLK1.base  ; 281 Neuer ScaleFxRing source: MODELING/__MISC/FINALFANTASY
+VP_WOLK2.base  ; 282                                            |
+VP_WOLK3.base  ; 283                                        ----+
+VP_RAKT6.base  ; 284 MiniMized Rakete  source: MODELING/__GESCHOSSE/USE_THAT
+VP_GLIDW.base  ; 285 WARHAMMERWEAPNO   source: MODELING/__GESCHOSSE/FINALFX
+VP_XOLK1.base  ; 286 * WUSCHELRÖHRE      source: MODELING/__MISC/FINALFANTASY
+VP_XOLK2.base  ; 287 *                                              |
+VP_XOLK3.base  ; 288 *                                              |
+VP_SMAL1.base  ; 289 * Dünner Ring                                  |
+VP_SMAL2.base  ; 290                                                |
+VP_SMAL3.base  ; 291                                                |
+VP_SMAL4.base  ; 292                                                |
+VP_HFLA1.base  ; 293 HÄUSER FLASH                                   |
+VP_HFLA2.base  ; 294                                                |
+VP_HFLA3.base  ; 295                                                |
+VP_HWOL1.base  ; 296 * WOLKEN PLANES                                |
+VP_HWOL2.base  ; 297 *                                              |
+VP_HWOL3.base  ; 298 *                                              |
+VP_HWOL4.base  ; 299 * ---------------------------------------------+
+VP_DFLAK.base  ; 300 ZWILLINGSFLAK source: MODELING/__FLAKS/FLAK_VISPROTOS1
+VPfDFLAK.base  ; 301
+VP_GABEL.base  ; 302 MykoBodenFlak source: MODELING/__FLAKS/MykoFLAK
+VPfGABEL.base  ; 303
+VP_XFLKK.base  ; 304 Riesige BodenFlak source: MODELING/BUILDINGS/USERSBODENFLAK
+VPfXFLKK.base  ; 305
+VPgXFLKK.base  ; 306
+VPgDFLAK.base  ; 307 gMykoBodenFlak     source: MODELING/__FLAKS/MykoFLAK
+VP_BOMBE.base  ; 308 Detailierte Bombe  source: MODELING/__GESCHOSSE/BOMBE
+VPfTTTTT.base  ; 309 TAERKASTENFLAK     source: MODELING/BUILDINGS/TAERFLAK
+VPgTTTTT.base  ; 310   |                                              |
+VP_TTTTT.base  ; 311   +----------------------------------------------+
+VPgROBO.base   ; 312 BEAM USER ROBO
+VPgKROBO.base  ; 313 BEAM KYTR ROBO
+VPgBRGRO.base  ; 314 BEAM MYKO ROBO
+VPgTAERO.base  ; 315 BEAM TAER ROBO
+VP_GIGAL.base  ; 316 GigantenSchuß      source: MODELING/__GESCHOSSE/LASER
+VP_PHAN1.base  ; 317 PhantomSchuß       source: MODELING/__GESCHOSSE/GRANATEN
+OP_R4__1.base  ; 318 Roter ScalierRing etwas höher--+
+OP_R4__2.base  ; 319  |                             |
+OP_R4__3.base  ; 320  +-----------------------------+
+VPGBSECT.base  ; 321 GENESIS Black Sect Robo
+VPGSULG1.base  ; 322 GENESIS SulgogarenPilz
+VP_SULG2.base  ; 323 GENESIS SulgogarenWuschelDing
+VPGSULG5.base  ; 324 GENESIS SulgogarenKugel
+VP_MYKOF.base  ; 325 Neue MykonierFlak
+VPfMYKOF.base  ; 326 Neue MykonierFlak schießend
+VP_HUBI5.base  ; 327 GHARGOIL 3         source: MODELING/_KYTERNESER/GHARGOIL3 -----------+
+VPwHUBI5.base  ; 328  |                                                                   |
+VPfHUBI5.base  ; 329  |                                                                   |
+VPgHUBI5.base  ; 330  |                                                                   |
+VPxHUBI5.base  ; 331  +-------------------------------------------------------------------+
+VP_FLUG2.base  ; 332 METZEL HETZEL  source: Zeuch:MODELING/_TAERKASTEN/FLUGIE -------+
+VPxFLUG2.base  ; 333  |                                                              |
+VPwFLUG2.base  ; 334  |                                                              |
+VPgFLUG2.base  ; 335  |                                                              |
+VPfFLUG2.base  ; 336  +--------------------------------------------------------------+
+VP_TRAIN.base  ; 337 TrainingsRobo
+VP_BLUU1.base  ; 338 Hochkant-Skale-Ring
+VP_SUPAB.base  ; 339 SUPABOMB FX
+VP_FLBMB.base  ; 340 Flugie Langsam Bombe
+VPgTRAIN.base  ; 341 TrainingsRobo Genesis
+VP_TRAI1.base  ; 342 TrainingsVehicle
+VPgTRAI1.base  ; 343 TrainingsVehicle Genesis
+VP_ANI1.base   ; 344 Flachflicker
+VP_ANI2.base   ; 345
+VP_ANI3.base   ; 346
+VP_ANI4.base   ; 347
+VP_WUCH1.base  ; 348 Sternenkugel
+VP_WUCH2.base  ; 349   |
+VP_WUCH3.base  ; 350   |
+VP_WUCH4.base  ; 351   |
+VP_WUCH5.base  ; 352   |
+VP_GRAN9.base  ; 353 Viel Rauch an der GRanate
+VP_NEU01.base  ; 354 HEAVY MYKO Waffe
+VP_NEU02.base  ; 355 neue 5Po Waffe
+VP_NEU03.base  ; 356 rote Speedy Kugel
+VP_NEU04.base  ; 357 blau scale 1
+VP_NEU05.base  ; 358            2
+VP_NEU06.base  ; 359            3
+VP_RAKT9.base  ; 360 blaue MiniRakete
+VP_GRANA.base  ; 361 Weniger Rauch an der Granate
+>

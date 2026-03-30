@@ -1,0 +1,108 @@
+{
+ "VANM": [ 
+  {
+   "DATA": {
+    "class_id": "ilbm.class",
+    "frames": [ 
+     {
+      "frame_time": 40,
+      "vbmp_coords": [ 
+       [ 102, 161 ], 
+       [ 151, 161 ], 
+       [ 151, 254 ], 
+       [ 102, 254 ] ],
+      "vbmp_name": "FX2.ILBM"
+     }, 
+     {
+      "frame_time": 40,
+      "vbmp_coords": [ 
+       [ 96, 161 ], 
+       [ 145, 161 ], 
+       [ 145, 254 ], 
+       [ 96, 254 ] ],
+      "vbmp_name": "FX2.ILBM"
+     }, 
+     {
+      "frame_time": 40,
+      "vbmp_coords": [ 
+       [ 89, 161 ], 
+       [ 138, 161 ], 
+       [ 138, 254 ], 
+       [ 89, 254 ] ],
+      "vbmp_name": "FX2.ILBM"
+     }, 
+     {
+      "frame_time": 40,
+      "vbmp_coords": [ 
+       [ 82, 161 ], 
+       [ 131, 161 ], 
+       [ 131, 254 ], 
+       [ 82, 254 ] ],
+      "vbmp_name": "FX2.ILBM"
+     }, 
+     {
+      "frame_time": 40,
+      "vbmp_coords": [ 
+       [ 117, 161 ], 
+       [ 166, 161 ], 
+       [ 166, 254 ], 
+       [ 117, 254 ] ],
+      "vbmp_name": "FX2.ILBM"
+     }, 
+     {
+      "frame_time": 40,
+      "vbmp_coords": [ 
+       [ 104, 161 ], 
+       [ 153, 161 ], 
+       [ 153, 254 ], 
+       [ 104, 254 ] ],
+      "vbmp_name": "FX2.ILBM"
+     }, 
+     {
+      "frame_time": 40,
+      "vbmp_coords": [ 
+       [ 93, 161 ], 
+       [ 142, 161 ], 
+       [ 142, 254 ], 
+       [ 93, 254 ] ],
+      "vbmp_name": "FX2.ILBM"
+     }, 
+     {
+      "frame_time": 40,
+      "vbmp_coords": [ 
+       [ 93, 168 ], 
+       [ 142, 168 ], 
+       [ 142, 246 ], 
+       [ 93, 246 ] ],
+      "vbmp_name": "FX2.ILBM"
+     }, 
+     {
+      "frame_time": 40,
+      "vbmp_coords": [ 
+       [ 88, 183 ], 
+       [ 147, 183 ], 
+       [ 147, 240 ], 
+       [ 88, 240 ] ],
+      "vbmp_name": "FX2.ILBM"
+     }, 
+     {
+      "frame_time": 40,
+      "vbmp_coords": [ 
+       [ 105, 168 ], 
+       [ 148, 168 ], 
+       [ 148, 242 ], 
+       [ 105, 242 ] ],
+      "vbmp_name": "FX2.ILBM"
+     }, 
+     {
+      "frame_time": 40,
+      "vbmp_coords": [ 
+       [ 112, 164 ], 
+       [ 155, 164 ], 
+       [ 155, 251 ], 
+       [ 112, 251 ] ],
+      "vbmp_name": "FX2.ILBM"
+     } ]
+   }
+  } ]
+}

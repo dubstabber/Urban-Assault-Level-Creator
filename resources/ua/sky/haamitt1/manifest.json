@@ -29,7 +29,6 @@
     }
   ],
   "source_files": {
-    "source_dir": "/run/media/ydro/WDC/gamedev-workspace/Urban Assault Level Creator/urban_assault_decompiled-master/assets/sky/haamitt1",
     "bas": "haamitt1.bas.json",
     "skeleton": "horizon.skl.json"
   },

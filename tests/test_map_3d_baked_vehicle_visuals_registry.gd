@@ -16,7 +16,7 @@ func run() -> int:
 	var game_data_type := "original"
 	var vehicle_id := 123
 
-	var metadata_dir := "res://resources/ua/sets/set%d/metadata" % set_id
+	var metadata_dir := "res://resources/ua/bundled/sets/set%d/metadata" % set_id
 	_ensure_dir(metadata_dir)
 
 	_save_json("%s/visproto_base_names.json" % metadata_dir, {

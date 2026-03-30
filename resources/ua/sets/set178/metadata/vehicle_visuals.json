@@ -1,0 +1,39 @@
+{
+	"schema_version": 1,
+	"set_id": 178,
+	"game_data_type": "original",
+	"vehicles": {
+		"1": {
+			"slots": {
+				"wait": 0,
+				"normal": 0
+			},
+			"model": "tank"
+		},
+		"96": {
+			"slots": {
+				"wait": 1,
+				"normal": 3
+			},
+			"model": "tank"
+		},
+		"109": {
+			"slots": {
+				"wait": 2
+			},
+			"model": "tank"
+		},
+		"139": {
+			"slots": {
+				"wait": 2
+			},
+			"model": "tank"
+		},
+		"150": {
+			"slots": {
+				"wait": 3
+			},
+			"model": "tank"
+		}
+	}
+}

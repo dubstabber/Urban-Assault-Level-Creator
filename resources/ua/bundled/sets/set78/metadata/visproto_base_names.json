@@ -1,0 +1,11 @@
+{
+	"schema_version": 1,
+	"set_id": 78,
+	"game_data_type": "original",
+	"base_names": [
+		"",
+		"",
+		"vp_robo",
+		"vp_flak2"
+	]
+}

@@ -1,0 +1,63 @@
+{
+ "VANM": [ 
+  {
+   "DATA": {
+    "class_id": "ilbm.class",
+    "frames": [ 
+     {
+      "frame_time": 40,
+      "vbmp_coords": [ 
+       [ 181, 131 ], 
+       [ 118, 131 ], 
+       [ 118, 86 ], 
+       [ 181, 86 ] ],
+      "vbmp_name": "HUBI.ILBM"
+     }, 
+     {
+      "frame_time": 40,
+      "vbmp_coords": [ 
+       [ 181, 137 ], 
+       [ 118, 137 ], 
+       [ 118, 92 ], 
+       [ 181, 92 ] ],
+      "vbmp_name": "HUBI.ILBM"
+     }, 
+     {
+      "frame_time": 40,
+      "vbmp_coords": [ 
+       [ 181, 146 ], 
+       [ 118, 146 ], 
+       [ 118, 101 ], 
+       [ 181, 101 ] ],
+      "vbmp_name": "HUBI.ILBM"
+     }, 
+     {
+      "frame_time": 40,
+      "vbmp_coords": [ 
+       [ 181, 152 ], 
+       [ 118, 152 ], 
+       [ 118, 107 ], 
+       [ 181, 107 ] ],
+      "vbmp_name": "HUBI.ILBM"
+     }, 
+     {
+      "frame_time": 40,
+      "vbmp_coords": [ 
+       [ 181, 158 ], 
+       [ 118, 158 ], 
+       [ 118, 113 ], 
+       [ 181, 113 ] ],
+      "vbmp_name": "HUBI.ILBM"
+     }, 
+     {
+      "frame_time": 40,
+      "vbmp_coords": [ 
+       [ 181, 164 ], 
+       [ 118, 164 ], 
+       [ 118, 119 ], 
+       [ 181, 119 ] ],
+      "vbmp_name": "HUBI.ILBM"
+     } ]
+   }
+  } ]
+}

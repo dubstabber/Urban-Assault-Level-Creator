@@ -1,0 +1,54 @@
+{
+ "VANM": [ 
+  {
+   "DATA": {
+    "class_id": "ilbm.class",
+    "frames": [ 
+     {
+      "frame_time": 40,
+      "vbmp_coords": [ 
+       [ 241, 119 ], 
+       [ 248, 119 ], 
+       [ 248, 166 ], 
+       [ 241, 166 ] ],
+      "vbmp_name": "FX1.ILBM"
+     }, 
+     {
+      "frame_time": 40,
+      "vbmp_coords": [ 
+       [ 246, 119 ], 
+       [ 253, 119 ], 
+       [ 253, 166 ], 
+       [ 246, 166 ] ],
+      "vbmp_name": "FX1.ILBM"
+     }, 
+     {
+      "frame_time": 40,
+      "vbmp_coords": [ 
+       [ 237, 119 ], 
+       [ 244, 119 ], 
+       [ 244, 166 ], 
+       [ 237, 166 ] ],
+      "vbmp_name": "FX1.ILBM"
+     }, 
+     {
+      "frame_time": 40,
+      "vbmp_coords": [ 
+       [ 245, 119 ], 
+       [ 252, 119 ], 
+       [ 252, 166 ], 
+       [ 245, 166 ] ],
+      "vbmp_name": "FX1.ILBM"
+     }, 
+     {
+      "frame_time": 40,
+      "vbmp_coords": [ 
+       [ 240, 119 ], 
+       [ 249, 119 ], 
+       [ 249, 166 ], 
+       [ 240, 166 ] ],
+      "vbmp_name": "FX1.ILBM"
+     } ]
+   }
+  } ]
+}

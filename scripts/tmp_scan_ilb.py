@@ -2,7 +2,7 @@
 import sys, struct
 from pathlib import Path
 
-root = Path(sys.argv[1]) if len(sys.argv) > 1 else Path('.usor/openua/DATA/SET1')
+root = Path(sys.argv[1]) if len(sys.argv) > 1 else Path("resources/ua/bundled/sets/set1")
 files = sorted(list(root.rglob('*.ILB'))) + sorted(list(root.rglob('*.ilb')))
 
 def scan(path: Path):

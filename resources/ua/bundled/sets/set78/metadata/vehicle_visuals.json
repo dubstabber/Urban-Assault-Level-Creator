@@ -1,0 +1,14 @@
+{
+	"schema_version": 1,
+	"set_id": 78,
+	"game_data_type": "original",
+	"vehicles": {
+		"123": {
+			"slots": {
+				"wait": 2,
+				"normal": 3
+			},
+			"model": "tank"
+		}
+	}
+}

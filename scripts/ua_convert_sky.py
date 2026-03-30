@@ -391,7 +391,6 @@ def convert_sky(raw_name: str, source_root: Path, output_root: Path) -> dict[str
             for entry in sorted(texture_entries.values(), key=lambda item: item["bundle_file"])
         ],
         "source_files": {
-            "source_dir": str(sky_dir).replace("\\", "/"),
             "bas": bas_path.name,
             "skeleton": skeleton_path.name,
         },
@@ -440,7 +439,11 @@ def write_registry(output_root: Path, manifests: list[dict[str, Any]]) -> dict[s
 
 def parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser(description="Convert UA sky reference folders into self-contained project bundles")
-    parser.add_argument("--source-root", default="urban_assault_decompiled-master/assets/sky", help="Development/debug sky reference root")
+    parser.add_argument(
+        "--source-root",
+        default="resources/ua/sky_import",
+        help="Parent directory of per-sky asset folders (BAS/SKL); populate this or pass another path",
+    )
     parser.add_argument("--output-root", default="resources/ua/sky", help="Project-owned converted sky bundle root")
     parser.add_argument("--skies", nargs="+", required=True, help="Sky names or canonical ids to convert")
     return parser.parse_args()

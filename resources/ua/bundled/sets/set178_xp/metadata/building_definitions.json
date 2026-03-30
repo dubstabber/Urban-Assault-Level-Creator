@@ -1,0 +1,69 @@
+{
+	"schema_version": 1,
+	"set_id": 178,
+	"game_data_type": "metropolisDawn",
+	"definitions": [
+		{
+			"building_id": 74,
+			"sec_type": 208,
+			"attachments": [
+				{
+					"act": 0,
+					"vehicle_id": 108,
+					"ua_offset": {
+						"x": -300.0,
+						"y": -310.0,
+						"z": 300.0
+					},
+					"ua_direction": {
+						"x": 0.0,
+						"y": 0.0,
+						"z": 0.0
+					}
+				},
+				{
+					"act": 0,
+					"vehicle_id": 108,
+					"ua_offset": {
+						"x": -300.0,
+						"y": -310.0,
+						"z": -300.0
+					},
+					"ua_direction": {
+						"x": 0.0,
+						"y": 0.0,
+						"z": 0.0
+					}
+				},
+				{
+					"act": 0,
+					"vehicle_id": 108,
+					"ua_offset": {
+						"x": 300.0,
+						"y": -310.0,
+						"z": -300.0
+					},
+					"ua_direction": {
+						"x": 0.0,
+						"y": 0.0,
+						"z": 0.0
+					}
+				},
+				{
+					"act": 0,
+					"vehicle_id": 108,
+					"ua_offset": {
+						"x": 300.0,
+						"y": -310.0,
+						"z": 300.0
+					},
+					"ua_direction": {
+						"x": 0.0,
+						"y": 0.0,
+						"z": 0.0
+					}
+				}
+			]
+		}
+	]
+}

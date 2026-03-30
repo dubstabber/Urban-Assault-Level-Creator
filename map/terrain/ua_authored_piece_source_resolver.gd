@@ -53,9 +53,9 @@ static func first_existing_set_under_base(base: String, resolved_set_id: int, ga
 	return candidate
 
 static func set_root(set_id: int, game_data_type: String, external_source_root: String = "") -> String:
-	var resolved_set_id: int = max(set_id, 1)
+	# Runtime is bundled-only. Preserve parameter for call-site compatibility.
 	if not external_source_root.is_empty():
-		return first_existing_set_under_base(external_source_root, resolved_set_id, game_data_type)
+		pass
 	return _UAProjectDataRoots.first_existing_set_directory(set_id, game_data_type)
 
 static func dir_with_retail_fallback(root: String, relative_dir: String, game_data_type: String) -> String:

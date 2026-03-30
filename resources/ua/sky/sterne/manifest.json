@@ -22,7 +22,6 @@
     }
   ],
   "source_files": {
-    "source_dir": "/run/media/ydro/WDC/gamedev-workspace/Urban Assault Level Creator/urban_assault_decompiled-master/assets/sky/sterne",
     "bas": "sterne.bas.json",
     "skeleton": "sterne.skl.json"
   },

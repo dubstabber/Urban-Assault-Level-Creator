@@ -17,7 +17,7 @@ func run() -> int:
 	var building_id := 9001
 	var sec_type := 7
 
-	var metadata_dir := "res://resources/ua/sets/set%d/metadata" % set_id
+	var metadata_dir := "res://resources/ua/bundled/sets/set%d/metadata" % set_id
 	_ensure_dir(metadata_dir)
 
 	_save_json("%s/building_definitions.json" % metadata_dir, {

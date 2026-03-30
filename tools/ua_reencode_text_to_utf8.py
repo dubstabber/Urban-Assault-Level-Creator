@@ -18,7 +18,7 @@ Force source encoding:
 Pure shell alternative (when you know the source is Windows-1252):
   iconv -f WINDOWS-1252 -t UTF-8 -o file.utf8 file && mv file.utf8 file
 
-  find urban_assault_decompiled-master -name '*.scr' -print0 | while IFS= read -r -d '' f; do
+  find resources/ua/bundled -name '*.scr' -print0 | while IFS= read -r -d '' f; do
     iconv -f WINDOWS-1252 -t UTF-8 -o "$f.tmp" "$f" && mv "$f.tmp" "$f"
   done
 """
@@ -105,7 +105,7 @@ def main() -> int:
         "roots",
         nargs="+",
         type=Path,
-        help="Directories to walk (e.g. urban_assault_decompiled-master)",
+        help="Directories to walk (e.g. resources/ua/bundled)",
     )
     p.add_argument(
         "--extensions",

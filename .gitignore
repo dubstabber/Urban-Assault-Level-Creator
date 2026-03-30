@@ -33,17 +33,9 @@ Thumbs.db
 *.temp
 *.bak
 
-
-ua_source_code_prototype/
-.usor/
 docs/
-UA_source/
-urban_assault_decompiled-master/
-# Legacy Godot bake output (removed from tooling; safe to delete locally)
-resources/ua/sets/
-# Accidental editor/sync backups under bundled UA assets
-resources/ua/bundled/shared_scripts/**/*.bak
-resources/ua/bundled/shared_scripts/**/*.bak.*
+
+
 .augmentignore
 Godot_v4.5.1-stable_linux.x86_64
 debug-output.txt

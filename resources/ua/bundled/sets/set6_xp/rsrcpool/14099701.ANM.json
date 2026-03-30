@@ -1,0 +1,225 @@
+{
+ "VANM": [ 
+  {
+   "DATA": {
+    "class_id": "ilbm.class",
+    "frames": [ 
+     {
+      "frame_time": 40,
+      "vbmp_coords": [ 
+       [ 33, 199 ], 
+       [ 20, 190 ], 
+       [ 33, 180 ] ],
+      "vbmp_name": "MTL.ILBM"
+     }, 
+     {
+      "frame_time": 40,
+      "vbmp_coords": [ 
+       [ 38, 196 ], 
+       [ 21, 194 ], 
+       [ 28, 179 ] ],
+      "vbmp_name": "MTL.ILBM"
+     }, 
+     {
+      "frame_time": 40,
+      "vbmp_coords": [ 
+       [ 32, 191 ], 
+       [ 17, 197 ], 
+       [ 15, 181 ] ],
+      "vbmp_name": "MTL.ILBM"
+     }, 
+     {
+      "frame_time": 40,
+      "vbmp_coords": [ 
+       [ 25, 183 ], 
+       [ 18, 198 ], 
+       [ 5, 187 ] ],
+      "vbmp_name": "MTL.ILBM"
+     }, 
+     {
+      "frame_time": 40,
+      "vbmp_coords": [ 
+       [ 16, 179 ], 
+       [ 24, 193 ], 
+       [ 8, 197 ] ],
+      "vbmp_name": "MTL.ILBM"
+     }, 
+     {
+      "frame_time": 40,
+      "vbmp_coords": [ 
+       [ 16, 185 ], 
+       [ 29, 196 ], 
+       [ 15, 205 ] ],
+      "vbmp_name": "MTL.ILBM"
+     }, 
+     {
+      "frame_time": 40,
+      "vbmp_coords": [ 
+       [ 16, 200 ], 
+       [ 33, 199 ], 
+       [ 29, 215 ] ],
+      "vbmp_name": "MTL.ILBM"
+     }, 
+     {
+      "frame_time": 40,
+      "vbmp_coords": [ 
+       [ 15, 210 ], 
+       [ 29, 201 ], 
+       [ 33, 217 ] ],
+      "vbmp_name": "MTL.ILBM"
+     }, 
+     {
+      "frame_time": 40,
+      "vbmp_coords": [ 
+       [ 16, 223 ], 
+       [ 25, 209 ], 
+       [ 36, 221 ] ],
+      "vbmp_name": "MTL.ILBM"
+     }, 
+     {
+      "frame_time": 40,
+      "vbmp_coords": [ 
+       [ 19, 233 ], 
+       [ 22, 217 ], 
+       [ 37, 224 ] ],
+      "vbmp_name": "MTL.ILBM"
+     }, 
+     {
+      "frame_time": 40,
+      "vbmp_coords": [ 
+       [ 24, 239 ], 
+       [ 19, 224 ], 
+       [ 35, 223 ] ],
+      "vbmp_name": "MTL.ILBM"
+     }, 
+     {
+      "frame_time": 40,
+      "vbmp_coords": [ 
+       [ 29, 243 ], 
+       [ 17, 232 ], 
+       [ 31, 223 ] ],
+      "vbmp_name": "MTL.ILBM"
+     }, 
+     {
+      "frame_time": 40,
+      "vbmp_coords": [ 
+       [ 28, 239 ], 
+       [ 11, 237 ], 
+       [ 18, 222 ] ],
+      "vbmp_name": "MTL.ILBM"
+     }, 
+     {
+      "frame_time": 40,
+      "vbmp_coords": [ 
+       [ 30, 232 ], 
+       [ 16, 241 ], 
+       [ 11, 225 ] ],
+      "vbmp_name": "MTL.ILBM"
+     }, 
+     {
+      "frame_time": 40,
+      "vbmp_coords": [ 
+       [ 27, 225 ], 
+       [ 22, 241 ], 
+       [ 8, 231 ] ],
+      "vbmp_name": "MTL.ILBM"
+     }, 
+     {
+      "frame_time": 40,
+      "vbmp_coords": [ 
+       [ 27, 211 ], 
+       [ 22, 227 ], 
+       [ 8, 217 ] ],
+      "vbmp_name": "MTL.ILBM"
+     }, 
+     {
+      "frame_time": 40,
+      "vbmp_coords": [ 
+       [ 27, 199 ], 
+       [ 22, 215 ], 
+       [ 8, 205 ] ],
+      "vbmp_name": "MTL.ILBM"
+     }, 
+     {
+      "frame_time": 40,
+      "vbmp_coords": [ 
+       [ 27, 189 ], 
+       [ 22, 205 ], 
+       [ 8, 195 ] ],
+      "vbmp_name": "MTL.ILBM"
+     }, 
+     {
+      "frame_time": 40,
+      "vbmp_coords": [ 
+       [ 27, 170 ], 
+       [ 22, 186 ], 
+       [ 8, 176 ] ],
+      "vbmp_name": "MTL.ILBM"
+     }, 
+     {
+      "frame_time": 40,
+      "vbmp_coords": [ 
+       [ 44, 168 ], 
+       [ 39, 175 ], 
+       [ 25, 171 ] ],
+      "vbmp_name": "MTL.ILBM"
+     }, 
+     {
+      "frame_time": 40,
+      "vbmp_coords": [ 
+       [ 80, 141 ], 
+       [ 75, 148 ], 
+       [ 61, 144 ] ],
+      "vbmp_name": "MTL.ILBM"
+     }, 
+     {
+      "frame_time": 40,
+      "vbmp_coords": [ 
+       [ 44, 156 ], 
+       [ 42, 163 ], 
+       [ 37, 159 ] ],
+      "vbmp_name": "MTL.ILBM"
+     }, 
+     {
+      "frame_time": 40,
+      "vbmp_coords": [ 
+       [ 35, 158 ], 
+       [ 34, 164 ], 
+       [ 30, 160 ] ],
+      "vbmp_name": "MTL.ILBM"
+     }, 
+     {
+      "frame_time": 40,
+      "vbmp_coords": [ 
+       [ 26, 155 ], 
+       [ 25, 161 ], 
+       [ 21, 157 ] ],
+      "vbmp_name": "MTL.ILBM"
+     }, 
+     {
+      "frame_time": 40,
+      "vbmp_coords": [ 
+       [ 48, 201 ], 
+       [ 47, 207 ], 
+       [ 43, 203 ] ],
+      "vbmp_name": "MTL.ILBM"
+     }, 
+     {
+      "frame_time": 40,
+      "vbmp_coords": [ 
+       [ 44, 188 ], 
+       [ 43, 194 ], 
+       [ 39, 190 ] ],
+      "vbmp_name": "MTL.ILBM"
+     }, 
+     {
+      "frame_time": 40,
+      "vbmp_coords": [ 
+       [ 27, 180 ], 
+       [ 26, 190 ], 
+       [ 22, 184 ] ],
+      "vbmp_name": "MTL.ILBM"
+     } ]
+   }
+  } ]
+}

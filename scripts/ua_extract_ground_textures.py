@@ -10,18 +10,18 @@ Purpose:
 Usage:
   Auto from OBJECTS/SET.BAS (recommended):
     python3 scripts/ua_extract_ground_textures.py \
-      --in .usor/openua/DATA/SET1 --set 1 --auto-objects \
+      --in path/to/DATA/SET1 --set 1 --auto-objects \
       --out resources/terrain/textures/set1
 
   Manual mapping (fallback):
     python3 scripts/ua_extract_ground_textures.py \
-      --in .usor/openua/DATA/SET1 --set 1 \
+      --in path/to/DATA/SET1 --set 1 \
       --map 0:OBJECTS/SET.BAS:BODEN1.ILBM 1:OBJECTS/SET.BAS:BODEN2.ILBM ... \
       --out resources/terrain/textures/set1
 
   Legacy ILB hypothesis (not terrain; for reference only):
     python3 scripts/ua_extract_ground_textures.py \
-      --in .usor/openua/DATA/SET1 --set 1 --auto-ilb \
+      --in path/to/DATA/SET1 --set 1 --auto-ilb \
       --out resources/terrain/textures/set1
 
 Notes:
@@ -199,7 +199,7 @@ def parse_args():
     ap = argparse.ArgumentParser(
         description="Extract/convert UA ground textures to PNG")
     ap.add_argument("--in", dest="in_dir", required=True,
-                    help="Input directory (e.g., .usor/openua/DATA/SET1)")
+                    help="Input directory (e.g., path/to/DATA/SET1)")
     ap.add_argument("--set", dest="set_id", type=int,
                     required=True, help="Environment set id (1..6)")
     ap.add_argument("--map", dest="mapping", nargs=6, metavar="IDX:FILE",

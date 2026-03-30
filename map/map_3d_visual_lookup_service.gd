@@ -167,24 +167,9 @@ static func _metadata_file_candidates(set_id: int, game_data_type: String, metad
 	var sid := maxi(set_id, 1)
 	var relative_path := "metadata/%s" % filename
 	var out: Array[String] = []
-	var seen := {}
 	var primary := _UAProjectDataRoots.first_existing_path_under_set_roots(sid, normalized_game_data_type, relative_path)
 	if not primary.is_empty():
 		out.append(primary)
-		seen[primary] = true
-	var legacy_root := "res://resources/ua/sets"
-	var xp_suffix := "_xp" if normalized_game_data_type == "metropolisDawn" else ""
-	var legacy_candidates: Array[String] = [
-		"%s/set%d%s/%s" % [legacy_root, sid, xp_suffix, relative_path],
-	]
-	if normalized_game_data_type == "metropolisDawn":
-		legacy_candidates.append("%s/set%d/%s" % [legacy_root, sid, relative_path])
-	for candidate in legacy_candidates:
-		if seen.has(candidate):
-			continue
-		if FileAccess.file_exists(candidate):
-			out.append(candidate)
-			seen[candidate] = true
 	return out
 
 

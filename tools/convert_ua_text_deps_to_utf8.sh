@@ -11,8 +11,8 @@ set -euo pipefail
 # NOT intended for user-imported content (e.g. .ldf).
 #
 # Usage:
-#   tools/convert_ua_text_deps_to_utf8.sh --root "path/to/.usor/openua"
-#   tools/convert_ua_text_deps_to_utf8.sh --root "path/to/urban_assault_decompiled-master"
+#   tools/convert_ua_text_deps_to_utf8.sh --root "path/to/ua/game/data"
+#   tools/convert_ua_text_deps_to_utf8.sh --root "resources/ua/bundled"
 #   tools/convert_ua_text_deps_to_utf8.sh --root "path1" --root "path2"
 #
 # Options:

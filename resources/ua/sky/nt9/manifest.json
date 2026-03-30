@@ -29,7 +29,6 @@
     }
   ],
   "source_files": {
-    "source_dir": "/run/media/ydro/WDC/gamedev-workspace/Urban Assault Level Creator/urban_assault_decompiled-master/assets/sky/nt9",
     "bas": "nt9.bas.json",
     "skeleton": "horizon.skl.json"
   },

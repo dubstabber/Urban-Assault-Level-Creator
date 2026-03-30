@@ -12,7 +12,7 @@ const EDGE_SLOPE := Map3DRendererScript.EDGE_SLOPE
 const LOOKUP_TEST_SET_ID := 178
 # In this repo checkout, retail/BAS/SKLT source data (and the `objects/` folders)
 # live under the decompiled-master asset tree rather than `resources/ua/bundled/`.
-const LEGACY_SET_ROOT := "res://urban_assault_decompiled-master/assets/sets"
+const LEGACY_SET_ROOT := "res://resources/ua/bundled/sets"
 
 class MockPreloads:
 	extends Node
@@ -102,7 +102,7 @@ static func _ua_vec3(x: float, y: float, z: float) -> Vector3:
 	return Vector3(x, y, z)
 
 func _ensure_baked_renderer_lookup_registries() -> void:
-	var metadata_dir := "res://resources/ua/sets/set%d/metadata" % LOOKUP_TEST_SET_ID
+	var metadata_dir := "res://resources/ua/bundled/sets/set%d/metadata" % LOOKUP_TEST_SET_ID
 	_ensure_dir(metadata_dir)
 	_save_json("%s/visproto_base_names.json" % metadata_dir, {
 		"schema_version": 1,
@@ -179,7 +179,7 @@ func _ensure_baked_renderer_lookup_registries() -> void:
 			}
 		]
 	})
-	var xp_metadata_dir := "res://resources/ua/sets/set%d_xp/metadata" % LOOKUP_TEST_SET_ID
+	var xp_metadata_dir := "res://resources/ua/bundled/sets/set%d_xp/metadata" % LOOKUP_TEST_SET_ID
 	_ensure_dir(xp_metadata_dir)
 	_save_json("%s/visproto_base_names.json" % xp_metadata_dir, {
 		"schema_version": 1,
@@ -2339,7 +2339,7 @@ func test_project_source_root_contains_authored_animated_and_particle_content_fo
 	AuthoredPieceLibrary._clear_runtime_caches_for_tests()
 	AuthoredPieceLibrary.set_external_source_loading_enabled(true)
 	# Use the in-project (non-bundled) UA set tree for runtime piece extraction.
-	AuthoredPieceLibrary.set_external_source_root("res://urban_assault_decompiled-master/assets/sets")
+	AuthoredPieceLibrary.set_external_source_root("res://resources/ua/bundled/sets")
 	var piece := AuthoredPieceLibrary.build_piece_scene_root(6, "ST_ENDL4")
 	_check(piece != null, "ST_ENDL4 should instantiate directly from the populated project-contained source tree")
 	if piece != null:

@@ -1,0 +1,108 @@
+{
+ "VANM": [ 
+  {
+   "DATA": {
+    "class_id": "ilbm.class",
+    "frames": [ 
+     {
+      "frame_time": 80,
+      "vbmp_coords": [ 
+       [ 250, 51 ], 
+       [ 227, 51 ], 
+       [ 227, 30 ], 
+       [ 250, 30 ] ],
+      "vbmp_name": "FX1.ILBM"
+     }, 
+     {
+      "frame_time": 80,
+      "vbmp_coords": [ 
+       [ 244, 56 ], 
+       [ 224, 44 ], 
+       [ 233, 25 ], 
+       [ 253, 37 ] ],
+      "vbmp_name": "FX1.ILBM"
+     }, 
+     {
+      "frame_time": 80,
+      "vbmp_coords": [ 
+       [ 235, 56 ], 
+       [ 224, 35 ], 
+       [ 242, 25 ], 
+       [ 253, 46 ] ],
+      "vbmp_name": "FX1.ILBM"
+     }, 
+     {
+      "frame_time": 40,
+      "vbmp_coords": [ 
+       [ 228, 52 ], 
+       [ 230, 27 ], 
+       [ 249, 29 ], 
+       [ 247, 54 ] ],
+      "vbmp_name": "FX1.ILBM"
+     }, 
+     {
+      "frame_time": 80,
+      "vbmp_coords": [ 
+       [ 224, 45 ], 
+       [ 237, 24 ], 
+       [ 253, 36 ], 
+       [ 240, 57 ] ],
+      "vbmp_name": "FX1.ILBM"
+     }, 
+     {
+      "frame_time": 80,
+      "vbmp_coords": [ 
+       [ 224, 37 ], 
+       [ 244, 26 ], 
+       [ 253, 44 ], 
+       [ 233, 55 ] ],
+      "vbmp_name": "FX1.ILBM"
+     }, 
+     {
+      "frame_time": 80,
+      "vbmp_coords": [ 
+       [ 231, 27 ], 
+       [ 252, 34 ], 
+       [ 246, 54 ], 
+       [ 225, 47 ] ],
+      "vbmp_name": "FX1.ILBM"
+     }, 
+     {
+      "frame_time": 40,
+      "vbmp_coords": [ 
+       [ 240, 24 ], 
+       [ 253, 45 ], 
+       [ 237, 57 ], 
+       [ 224, 36 ] ],
+      "vbmp_name": "FX1.ILBM"
+     }, 
+     {
+      "frame_time": 80,
+      "vbmp_coords": [ 
+       [ 249, 29 ], 
+       [ 248, 53 ], 
+       [ 228, 52 ], 
+       [ 229, 28 ] ],
+      "vbmp_name": "FX1.ILBM"
+     }, 
+     {
+      "frame_time": 80,
+      "vbmp_coords": [ 
+       [ 253, 36 ], 
+       [ 241, 57 ], 
+       [ 224, 45 ], 
+       [ 236, 24 ] ],
+      "vbmp_name": "FX1.ILBM"
+     }, 
+     {
+      "frame_time": 80,
+      "vbmp_coords": [ 
+       [ 253, 43 ], 
+       [ 234, 56 ], 
+       [ 224, 38 ], 
+       [ 243, 25 ] ],
+      "vbmp_name": "FX1.ILBM"
+     } ]
+   }
+  } ]
+}

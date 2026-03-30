@@ -24,13 +24,13 @@ Notes
 - Textures should be seamless/tileable. Recommended size: 256–1024, power-of-two. Godot will import and mipmap automatically.
 
 Extraction guidance
-- The open-source UA code (.usor) contains loaders for legacy ILBM/IFF formats but does NOT include proprietary game art assets. You must legally obtain textures from your own Urban Assault installation.
-- Ground textures are embedded per set inside .usor/openua/DATA/SET{N}/OBJECTS/SET.BAS as EMRS resources under ilbm.class, typically named BODEN1.ILBM .. BODEN5.ILBM (German: “Boden” = ground). The image payloads are ILBM or VBMP forms.
+- Urban Assault uses loaders for legacy ILBM/IFF formats; proprietary art is not redistributed with this project. You must legally obtain textures from your own Urban Assault installation.
+- Ground textures are embedded per set inside `DATA/SET{N}/OBJECTS/SET.BAS` as EMRS resources under ilbm.class, typically named BODEN1.ILBM .. BODEN5.ILBM (German: “Boden” = ground). The image payloads are ILBM or VBMP forms.
 - Important: Many VBMPs have no embedded CMAP palette. UA falls back to PALETTE/Standard.pal per set. The extractor mirrors this behavior and applies that palette automatically when needed.
 
 Suggested workflow
 1) Run the extractor to pull ground textures directly from SET.BAS and write PNGs:
-   python3 scripts/ua_extract_ground_textures.py --in .usor/openua/DATA/SET1 --set 1 --auto-objects --out resources/terrain/textures/set1
+   python3 scripts/ua_extract_ground_textures.py --in path/to/DATA/SET1 --set 1 --auto-objects --out resources/terrain/textures/set1
    Repeat for sets 2..6.
 2) The script decodes VBMP/ILBM and maps:
    - SurfaceType 0: WATER/WASSER if present; otherwise falls back to BODEN1
