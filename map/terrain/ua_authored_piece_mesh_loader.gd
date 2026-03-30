@@ -1,6 +1,36 @@
 extends RefCounted
 class_name UAAuthoredPieceMeshLoader
 
+static var _mesh_cache := {}
+static var _animated_overlay_cache := {}
+static var _piece_overlay_emitters_cache := {}
+
+static func clear_runtime_caches() -> void:
+	_mesh_cache.clear()
+	_animated_overlay_cache.clear()
+	_piece_overlay_emitters_cache.clear()
+
+static func clear_runtime_caches_for_tests() -> void:
+	clear_runtime_caches()
+
+static func has_piece_mesh_cache(cache_key: String) -> bool:
+	return _mesh_cache.has(cache_key)
+
+static func get_cached_piece_mesh(cache_key: String):
+	return _mesh_cache.get(cache_key, null)
+
+static func cache_piece_build(cache_key: String, mesh, has_animated_surfaces: bool, has_emitters: bool):
+	_mesh_cache[cache_key] = mesh
+	_animated_overlay_cache[cache_key] = has_animated_surfaces
+	_piece_overlay_emitters_cache[cache_key] = has_emitters
+	return _mesh_cache[cache_key]
+
+static func piece_runtime_flags(cache_key: String) -> Dictionary:
+	return {
+		"has_animated_surfaces": bool(_animated_overlay_cache.get(cache_key, false)),
+		"has_emitters": bool(_piece_overlay_emitters_cache.get(cache_key, false)),
+	}
+
 static func build_piece_mesh(piece_source: Dictionary, set_id: int, surface_extractor: Callable, particle_extractor: Callable, mesh_surface_builder: Callable) -> Dictionary:
 	var bas_data: Dictionary = piece_source.get("bas_data", {})
 	var points: Array = piece_source.get("points", [])

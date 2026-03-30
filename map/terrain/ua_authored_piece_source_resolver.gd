@@ -7,9 +7,12 @@ const _UALegacyText = preload("res://map/ua_legacy_text.gd")
 static var _json_cache := {}
 static var _dir_cache := {}
 
-static func clear_runtime_caches_for_tests() -> void:
+static func clear_runtime_caches() -> void:
 	_json_cache.clear()
 	_dir_cache.clear()
+
+static func clear_runtime_caches_for_tests() -> void:
+	clear_runtime_caches()
 
 static func load_json(path: String) -> Dictionary:
 	if path.is_empty() or not FileAccess.file_exists(path):

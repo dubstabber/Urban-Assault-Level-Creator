@@ -5,8 +5,11 @@ const AnimatedSurfaceMeshInstanceScript = preload("res://map/terrain/ua_animated
 
 static var _anim_cache := {}
 
-static func clear_runtime_caches_for_tests() -> void:
+static func clear_runtime_caches() -> void:
 	_anim_cache.clear()
+
+static func clear_runtime_caches_for_tests() -> void:
+	clear_runtime_caches()
 
 static func load_anim_frames(set_id: int, anim_name: String, polygon: Array, game_data_type: String, external_source_loading_enabled: bool, anim_path_finder: Callable, json_loader: Callable, triangulator: Callable, bmpanim_uv_coercer: Callable) -> Array:
 	if not external_source_loading_enabled:

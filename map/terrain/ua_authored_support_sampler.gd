@@ -3,6 +3,25 @@ class_name UAAuthoredSupportSampler
 
 const SUPPORT_BUCKET_CELL_SIZE := 300.0
 
+static var _piece_sampler_cache := {}
+
+static func clear_runtime_caches() -> void:
+	_piece_sampler_cache.clear()
+
+static func clear_runtime_caches_for_tests() -> void:
+	clear_runtime_caches()
+
+static func has_piece_sampler_cache(cache_key: String) -> bool:
+	return _piece_sampler_cache.has(cache_key)
+
+static func get_cached_piece_sampler(cache_key: String) -> Dictionary:
+	var cached = _piece_sampler_cache.get(cache_key, {})
+	return cached if typeof(cached) == TYPE_DICTIONARY else {}
+
+static func store_piece_sampler(cache_key: String, sampler: Dictionary) -> Dictionary:
+	_piece_sampler_cache[cache_key] = sampler
+	return sampler
+
 static func piece_position_from_desc(desc: Dictionary, overlay_y_bias: float = 8.0) -> Vector3:
 	return Vector3(desc.get("origin", Vector3.ZERO)) + Vector3(0.0, overlay_y_bias + float(desc.get("y_offset", 0.0)), 0.0)
 

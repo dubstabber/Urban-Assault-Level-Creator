@@ -29,14 +29,8 @@ const ILBM_MASK_HAS_MASK := 1
 const ILBM_MASK_TRANSPARENT_COLOR := 2
 const BMPANIM_UV_SCALE := 256.0
 
-static var _mesh_cache := {}
-static var _animated_overlay_cache := {}
-static var _piece_overlay_emitters_cache := {}
 static var _piece_overlay_fast_path_count := 0
 static var _piece_overlay_slow_path_count := 0
-static var _material_cache := {}
-static var _texture_cache := {}
-static var _support_sampler_cache := {}
 static var _deformed_slurp_mesh_cache := {}
 static var _external_source_loading_enabled := true
 static var _external_source_root: String = ""
@@ -50,6 +44,14 @@ static func set_force_static_terrain_overlays(force: bool) -> void:
 static func is_force_static_terrain_overlays() -> bool:
 	return _force_static_terrain_overlays
 
+static func _clear_runtime_caches() -> void:
+	MeshLoader.clear_runtime_caches()
+	SourceResolver.clear_runtime_caches()
+	MaterialFactory.clear_runtime_caches()
+	AnimationBuilder.clear_runtime_caches()
+	SupportSampler.clear_runtime_caches()
+	_deformed_slurp_mesh_cache.clear()
+
 static func set_piece_game_data_type(game_data_type: String) -> void:
 	var n := game_data_type.strip_edges()
 	if n.is_empty():
@@ -57,16 +59,7 @@ static func set_piece_game_data_type(game_data_type: String) -> void:
 	if n == _piece_game_data_type:
 		return
 	_piece_game_data_type = n
-	_mesh_cache.clear()
-	_animated_overlay_cache.clear()
-	_piece_overlay_emitters_cache.clear()
-	SourceResolver.clear_runtime_caches_for_tests()
-	MaterialFactory.clear_runtime_caches_for_tests()
-	_material_cache.clear()
-	_texture_cache.clear()
-	AnimationBuilder.clear_runtime_caches_for_tests()
-	_support_sampler_cache.clear()
-	_deformed_slurp_mesh_cache.clear()
+	_clear_runtime_caches()
 
 static func reset_piece_overlay_build_counters() -> void:
 	_piece_overlay_fast_path_count = 0
@@ -79,26 +72,24 @@ static func get_piece_overlay_build_counters() -> Dictionary:
 	}
 
 static func set_external_source_loading_enabled(enabled: bool) -> void:
+	if _external_source_loading_enabled == enabled:
+		return
 	_external_source_loading_enabled = enabled
+	_clear_runtime_caches()
 
 static func set_external_source_root(path: String) -> void:
-	_external_source_root = path.strip_edges()
+	var normalized := path.strip_edges()
+	if normalized == _external_source_root:
+		return
+	_external_source_root = normalized
+	_clear_runtime_caches()
 
 static func _clear_runtime_caches_for_tests() -> void:
-	_mesh_cache.clear()
-	_animated_overlay_cache.clear()
-	_piece_overlay_emitters_cache.clear()
-	SourceResolver.clear_runtime_caches_for_tests()
-	MaterialFactory.clear_runtime_caches_for_tests()
-	_material_cache.clear()
-	_texture_cache.clear()
-	AnimationBuilder.clear_runtime_caches_for_tests()
-	_support_sampler_cache.clear()
-	_deformed_slurp_mesh_cache.clear()
 	_external_source_loading_enabled = true
 	_external_source_root = ""
 	_piece_game_data_type = "original"
 	_force_static_terrain_overlays = false
+	_clear_runtime_caches()
 
 static func _vector3_from_json(value) -> Vector3:
 	if typeof(value) == TYPE_VECTOR3:
@@ -182,21 +173,17 @@ static func _piece_support_sampler(set_id: int, base_name: String, warp_sig: Str
 	if cleaned.is_empty():
 		return {}
 	var cache_key := "piece:%d:%s:%s:%s" % [maxi(set_id, 1), cleaned, warp_sig, _piece_game_data_type.to_lower()]
-	if _support_sampler_cache.has(cache_key):
-		var cached = _support_sampler_cache[cache_key]
-		return cached if typeof(cached) == TYPE_DICTIONARY else {}
+	if SupportSampler.has_piece_sampler_cache(cache_key):
+		return SupportSampler.get_cached_piece_sampler(cache_key)
 	var mesh: Mesh = _load_piece_mesh(set_id, base_name)
 	if mesh == null or mesh.get_surface_count() == 0:
-		_support_sampler_cache[cache_key] = {}
-		return {}
+		return SupportSampler.store_piece_sampler(cache_key, {})
 	if not warp_sig.is_empty():
 		mesh = _deformed_slurp_mesh(mesh, desc)
 	if mesh == null or mesh.get_surface_count() == 0:
-		_support_sampler_cache[cache_key] = {}
-		return {}
+		return SupportSampler.store_piece_sampler(cache_key, {})
 	var sampler := SupportSampler.support_sampler_from_mesh(mesh)
-	_support_sampler_cache[cache_key] = sampler
-	return sampler
+	return SupportSampler.store_piece_sampler(cache_key, sampler)
 
 static func _support_sampler_from_mesh(mesh: Mesh) -> Dictionary:
 	return SupportSampler.support_sampler_from_mesh(mesh)
@@ -239,13 +226,10 @@ static func _load_piece_mesh(set_id: int, base_name: String) -> ArrayMesh:
 	if base_name.is_empty():
 		return null
 	var cache_key := "%d:%s:%s" % [set_id, base_name.to_lower(), _piece_game_data_type.to_lower()]
-	if _mesh_cache.has(cache_key):
-		return _mesh_cache[cache_key]
+	if MeshLoader.has_piece_mesh_cache(cache_key):
+		return MeshLoader.get_cached_piece_mesh(cache_key)
 	if not _external_source_loading_enabled:
-		_mesh_cache[cache_key] = null
-		_animated_overlay_cache[cache_key] = false
-		_piece_overlay_emitters_cache[cache_key] = false
-		return null
+		return MeshLoader.cache_piece_build(cache_key, null, false, false)
 	var piece_source := _load_piece_source(set_id, base_name)
 	var surface_extractor := func(bas_data: Dictionary, points: Array, polys: Array, resolved_set_id: int) -> Array:
 		return _extract_surfaces(bas_data, points, polys, resolved_set_id)
@@ -255,13 +239,12 @@ static func _load_piece_mesh(set_id: int, base_name: String) -> ArrayMesh:
 		return _mesh_surface_from_surface(surface, resolved_set_id)
 	var built := MeshLoader.build_piece_mesh(piece_source, set_id, surface_extractor, particle_extractor, mesh_surface_builder)
 	var mesh: ArrayMesh = built.get("mesh", null)
-	_animated_overlay_cache[cache_key] = bool(built.get("has_animated_surfaces", false))
-	_piece_overlay_emitters_cache[cache_key] = bool(built.get("has_emitters", false))
-	if mesh != null and mesh.get_surface_count() > 0:
-		_mesh_cache[cache_key] = mesh
-		return _mesh_cache[cache_key]
-	_mesh_cache[cache_key] = null
-	return _mesh_cache[cache_key]
+	return MeshLoader.cache_piece_build(
+		cache_key,
+		mesh if mesh != null and mesh.get_surface_count() > 0 else null,
+		bool(built.get("has_animated_surfaces", false)),
+		bool(built.get("has_emitters", false))
+	)
 
 static func _build_piece_node(set_id: int, base_name: String, raw_id: int) -> Node3D:
 	if base_name.is_empty():
@@ -287,8 +270,9 @@ static func build_piece_scene_root(set_id: int, base_name: String, raw_id: int =
 		return _build_piece_node(set_id, base_name, raw_id)
 	var mesh: ArrayMesh = _load_piece_mesh(set_id, base_name)
 	var cache_key := "%d:%s:%s" % [set_id, base_name.to_lower(), _piece_game_data_type.to_lower()]
-	var use_animated := bool(_animated_overlay_cache.get(cache_key, false))
-	var has_emitters := bool(_piece_overlay_emitters_cache.get(cache_key, false))
+	var runtime_flags := MeshLoader.piece_runtime_flags(cache_key)
+	var use_animated := bool(runtime_flags.get("has_animated_surfaces", false))
+	var has_emitters := bool(runtime_flags.get("has_emitters", false))
 	# Animated surfaces and particle emitters need the full piece node unless the editor
 	# explicitly requests static overlays for performance (`set_force_static_terrain_overlays`).
 	if mesh != null and mesh.get_surface_count() > 0 and (_force_static_terrain_overlays or (not use_animated and not has_emitters)):

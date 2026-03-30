@@ -8,9 +8,12 @@ const ILBM_MASK_TRANSPARENT_COLOR := 2
 static var _material_cache := {}
 static var _texture_cache := {}
 
-static func clear_runtime_caches_for_tests() -> void:
+static func clear_runtime_caches() -> void:
 	_material_cache.clear()
 	_texture_cache.clear()
+
+static func clear_runtime_caches_for_tests() -> void:
+	clear_runtime_caches()
 
 static func has_material_cache(cache_key: String) -> bool:
 	return _material_cache.has(cache_key)
