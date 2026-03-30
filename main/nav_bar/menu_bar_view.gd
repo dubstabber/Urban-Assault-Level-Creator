@@ -4,16 +4,19 @@ extends PopupMenu
 func _ready() -> void:
 	add_item("Show map properties panel")
 	add_separator()
-	add_check_item("Show 3D Preview")
-	add_check_item("Toggle 3D visibility range")
-	add_check_item("3D terrain overlay animations")
 	add_check_item("Toggle typ_map images")
 	add_check_item("Toggle typ_map values")
 	add_check_item("Toggle own_map values")
 	add_check_item("Toggle hgt_map values")
 	add_check_item("Toggle blg_map values")
+	add_separator()
+	add_check_item("Show 3D Preview")
+	add_check_item("Toggle 3D visibility range")
+	add_check_item("3D terrain overlay animations")
 	set_default_values()
 	index_pressed.connect(_on_index_pressed)
+	EventSystem.map_view_updated.connect(set_default_values)
+	about_to_popup.connect(set_default_values)
 
 
 func set_default_values() -> void:

@@ -18,7 +18,7 @@ var mode: States = States.Select:
 		EventSystem.editor_mode_changed.emit()
 
 # Editor view mode: true = 3D preview visible, false = 2D map visible
-var view_mode_3d := true:
+var view_mode_3d := false:
 	set(value):
 		view_mode_3d = value
 		EventSystem.map_view_updated.emit()

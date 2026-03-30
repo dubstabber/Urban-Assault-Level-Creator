@@ -40,6 +40,7 @@ window/size/viewport_width=1200
 window/size/viewport_height=685
 window/subwindows/embed_subwindows=false
 window/dpi/allow_hidpi=false
+window/per_pixel_transparency/allowed=true
 
 [gui]
 

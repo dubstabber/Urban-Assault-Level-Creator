@@ -348,12 +348,13 @@ split_offset = 750
 script = ExtResource("34_t1yuj")
 
 [node name="MapContainer" parent="PanelContainer/MarginContainer/VBoxContainer/HSplitContainer" instance=ExtResource("19_hkn6c")]
-visible = false
+visible = true
 layout_mode = 2
 focus_next = NodePath(".")
 focus_previous = NodePath(".")
 
 [node name="Map3DContainer" type="SubViewportContainer" parent="PanelContainer/MarginContainer/VBoxContainer/HSplitContainer"]
+visible = false
 layout_mode = 2
 stretch = true
 
