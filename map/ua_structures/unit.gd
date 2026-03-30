@@ -46,7 +46,13 @@ func _on_button_button_down():
 
 
 func _on_button_button_up():
+	var moved := init_pos != position
 	dragging = false
+	if moved:
+		EventSystem.unit_position_committed.emit()
+		var unit_kind := "host" if self is HostStation else ("squad" if self is Squad else "")
+		if not unit_kind.is_empty():
+			EventSystem.unit_overlay_refresh_requested.emit(unit_kind, int(get_instance_id()))
 
 
 func recalculate_limits():

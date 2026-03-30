@@ -1,0 +1,2763 @@
+;--------------------------------------------------------------------------------------------------------------
+;
+;       -           Y   o   u   r       P   e   r   s   o   n   a   l       A   M   O   K         -
+;
+;       FEINDFAHRZEUGE
+;
+;       updated:        12-11-96        	Sounds ausgelagert
+;                       	20-11-96        	Gigant und KYTFLUGIE korrigiert
+;                       	18-01-97        	WARHAMMER + PHANTOM sind nicht mehr usr
+;                       	07-FEB-97       	STATIC MYKO getuned
+;                       	13-FEB-97       	WARHAMMER back 2 usr
+;                       	19-Feb-97       	SULG5
+;                       	20-Feb-97       	TAER TANK 2
+;                        	26-Feb-97               KYT    MIG
+;                       	19-May-97       	Trickina teurer
+;                       	03-JUL-97       	neue KYTERNESER-Fahrzeuge
+;                       	04-JUL-97	alle neuen Fahrzeuge als DUMMIES rein
+;                       	12-Jul-97       	+ Floh: Taerkasten Leonid korrigiert       
+;                                       		+ Floh: Kyt Speedy korrigiert
+;                                       		+ Floh: Kyt Ufo korrigiert (experimentell)
+;                       	13-Jul-97       	+ Floh: Taer-Zeppelin gefixt
+;                                       		+ Floh: Taer-Doppeldecker gefixt
+;		15-Jul-97		Mykonier Visprotos eingetragen
+;				TAER SATT + MYKONIER Visprotos korrigiert
+;				NetzAbschuß-Pos übernommen
+;		17-Jul-97		Neue Wireframes für alle Feinde
+;		25-Jul-97		fehlende MYKO-Genesen und GARGHOIL 2  nachgeliefert
+;		06-Aug-97	Garghoil 2 fehlende Zustände nachgeschoben
+;		02-Sep-97	Korrekturen an den 2 UrMykoniern (Wireframes waren falsch)
+;		11-Sep-97	Finetuning BRONSTEIJN + OTSCHKO
+;		28-Sep-97	vo_types eingetragen (floh)
+;				SCALEFX eingetragen (bernd)
+;		13-SEP-97	KYT Bomber getuned
+;				gun_angles gecheckt
+;		16-Dez-97	Myko schwer fix
+;		19-Dez-97	Ufo teurer
+;		22-Dez-97	Stefan: Job-Budgets angepasst
+;		06-Jan-98	Stefan: Speedy und 5PO wenig billiger
+;		07-Jan-98	Bernd: fehlende Wires GARGHOIL 2 nachgeschoben
+;				alle DFX bei Panzern auf MEGADEATH gestellt
+;		14-Jan-98	Stefan: X01 in Schild rutergesetzt, Mykonier Namen
+;		22-Jan-98	Stefan: Budgets für Speedy, Ghagoil und Ghagoil 2 geändert
+;		28-Jan-98	Bernd: GHARGOIL 3 anstelle FLUGIE
+;		29-Jan-98	Bernd: HETZEL + FYUGII nach hinten
+;		30-Jan-98	Stefan: Hetzel Nummer vom Mnosjetz, Mnosjetz richtige Budgets
+;		02-Feb-98	Stefan: Zeppelin und Mnosjetz Nummern getauscht
+;		02-Feb-98	Stefan: Mnosjetz bischen teurer
+;		02-Feb-98	Bernd: GENESIS-Zustände für Sulgogaren nachgetragen, 
+;				TypeIcons für neue Fahrzeuge
+;		11-Feb-98	Stefan: neue Fahrzeuge: Gigant und Bronsteijn mit User Icon
+;		23-Feb-98	Stefan: Sulgogaren verändert
+;		24-Feb-98	Stefan: 73 + 36 stirbt nach 1. Schuss
+;		25-Feb-98	Stefan: Planes schlechte Budgets versus Robo, 36 geändert
+;		26-Feb-98	Stefan: 36 teurer, Gigant billiger
+;		27-Feb-98	Stefan: 73 teurer, Taerkasten Budgets geändert
+;		04-Mar-98	Stefan: 28 MG raufgesetzt
+;		05-Mar-98	Stefan: Budgets Taerkasten geändert
+;		10-Mar-98	Stefan: Zeppelin, 35, Budget geändert
+;		11-Mar-98	Stefan: Tekh dreht sich schneller
+;		16-Mar-98	Bernd: Neue Icons für die Sulgogaren
+;		18-Mär-98	Stefan: Tekh und Gigant geändert
+;		03-Apr-98	Stefan: Tekh besser gepanzert
+;		06-Apr-98	Stefan: Tekh langsamer, Tonne
+;		15-Apr-98	Bernd: Aussehen TUT TONNE
+;		05-Mai-98	Stefan: 138 JobBudgets
+;		06-Mai-98	Stefan: 130 Jobbudgets
+;		12-May-98	Bernd: Serp jetzt Plane und nicht mehr Gleiter
+;		14-Mai-98	Stefan: 22, 26, 32, 33, 37 Angriffsradien geändert
+;		18-Mai-98	Stefan: Tekh fährt näher ran
+;		18-Mai-98	Stefan: Tonne schild runter
+;		15-Jun-98	Bernd: Sulgogaren Radar in ein Ufo umgewandelt
+;		16-jun-98	Bernd: 	TUT TONNE going down visproto
+;					Serp und Ufo Shield reduziert und Radius minimal erhöht
+;		22-jun-98	Bernd: User-Bronsteijn teurer
+;				Heavy Myko fliegt höher
+;				5po fliegt höher / abschußpos tiefer
+;		27-Jun-98	BETATESTERLÄRM ! Gigant/Modi Gigant Shield auf 35 (RAID BUG)
+;		01-Jul-98		Bernd: Neue HUD Wireframes für TRICKINA und alle Giganten
+;				alle Mykos
+;		02-jul-98		Neuer TUt-Dummy der sch(ie)ßt
+;		03-Jul-98		Stefan: Hetzel fliegt enger
+;				Bernd: more HUD Wireframes
+;		08-Jul-98		Bernd: YING HUD gewechselt
+;
+;       (C) 1996-1998   B.Beyreuther / A.Flemming / A.Weissflog
+;
+;----------------------------------------------------------------------------------------------------
+;
+;       PHANTOM
+;   
+;       Formerly known as Batmobil. Gleiter, schwer.
+;
+;
+new_vehicle     8
+		model                   =       plane
+		name                    =       PHANTOM
+		energy          	=       30000
+		shield          =       80
+		wireframe	=	wireless/otlGLID2.sklt
+
+
+	hud_wireframe	=	wireless\nhb.sklt
+	wpn_wireframe_1	=	wireless\nh4.sklt
+	wpn_wireframe_2	=	wireless\nha.sklt
+	mg_wireframe	=	wireless\nh8.sklt
+
+
+		vo_type		=	9	; heavy aircraft
+
+        	mass            =       200
+        	force           =       15000
+        	maxrot          =       1.1
+        	airconst        =       220
+        height          =       350
+        radius          =       80
+        overeof         =       25
+        vwr_radius      =       40
+        vwr_overeof     =       30
+
+        adist_sector    =       900                     
+        adist_bact      =       900
+        sdist_sector    =       400
+        sdist_bact      =       500
+
+        vp_normal       =       77                      ; siehe visproto.lst
+        vp_fire         =       82
+        vp_megadeth     =       78
+        vp_wait         =       80
+        vp_dead         =       81
+        vp_genesis      =       79
+        type_icon       =       6
+
+        pal_explode_slot                =       1                               ; ROT
+        pal_explode_mag0        =       0
+        pal_explode_mag1        =       1
+        pal_explode_time                =       160
+
+        shk_explode_slot                =       1
+        shk_explode_time        =       220
+        shk_explode_mag0        =       4
+        shk_explode_mag1        =       4
+        shk_explode_x           =       1
+        shk_explode_y           =       0
+        shk_explode_z           =       0
+        shk_explode_mute        =       0.9
+
+        dest_fx = death_42_0_-20_0      
+        dest_fx = death_43_-20_30_20
+        dest_fx = death_44_20_20_50
+        dest_fx = death_46_11_-30_0     
+        dest_fx = death_84_-20_-10_-20 
+        dest_fx = death_81_-20_-10_-20
+        dest_fx = death_84_+20_-20_-20
+        dest_fx = death_45_25_0_0
+
+        dest_fx = megadeth_21_0_-20_0	; Kleiner WRING
+        dest_fx = megadeth_20_0_-20_0	; Kleiner WRING
+
+
+        weapon          =       8                       ; siehe weapon.lst
+        mgun            =       49                      ; siehe weapon.lst
+        gun_angle       	=       	0
+        ; gun_radius                            ; DEFAULT
+        gun_power       =       10000
+        fire_x                  =       15.0
+        fire_y          =       5.0
+        fire_z                  =       0.0
+
+        job_fightrobo           = 	3		; 8
+        job_fightflyer          = 10
+        job_fighthelicopter     = 10		; 9
+        job_fighttank           = 1		; 4
+        job_conquer             = 2
+        job_reconnoitre         = 6
+end
+
+;---------------------------------------------------------------------------------------------------
+;
+;       KYTERNESER HOOVERCRAFT / called SPEEDY
+;
+;       Leichter, extrem wendiger BodenGleiter
+;       Floh: ist etwas teurer, dafür minimal Schild (wegen Polygonanzahl)
+;
+new_vehicle 22
+                model           = tank
+                name            = SPEEDY              ; FIXME!
+	wireframe	=	wireless/otlSPEDY.sklt
+
+	hud_wireframe	=	wireless\nhe.sklt
+	wpn_wireframe_1	=	wireless\nhh.sklt
+	wpn_wireframe_2	=	wireless\nh4.sklt
+	mg_wireframe	=	wireless\nhg.sklt
+
+
+	vo_type		=	1	; light tank
+
+                energy          = 15000		; 16000
+                shield          = 3			; 1
+                mass            = 300
+                force           = 9000
+                maxrot          = 2.5
+                airconst        = 100			; 70
+                height          = 12
+                radius          = 25
+                overeof         = 12
+                vwr_radius      = 35
+                vwr_overeof     = 25
+
+                adist_sector    = 630				; 600
+                adist_bact      = 500
+                sdist_sector    = 100
+                sdist_bact      = 430			; 400
+
+                radar           = 1
+
+                vp_normal       = 236                             ; siehe visproto.lst
+                vp_fire         = 238
+                vp_megadeth     = 90
+                vp_wait         = 237
+                vp_dead         = 194
+                vp_genesis      = 239
+                type_icon       = g
+
+                pal_explode_slot = 1       ; ROT
+                pal_explode_mag0 = 0
+                pal_explode_mag1 = 0.75
+                pal_explode_time = 120
+
+                weapon           = 22
+                gun_angle        = 0.3                             
+                mgun             = 49                              ; siehe weap.scr
+                gun_power        = 2000
+                fire_x           = 0
+                fire_y           = -15
+                fire_z           = 0
+                dest_fx = megadeth_42_0_-20_0
+                dest_fx = megadeth_46_-20_0_20
+                dest_fx = megadeth_46_20_0_20
+                dest_fx = megadeth_46_0_0_0
+                dest_fx = megadeth_46_-20_0_-20
+                dest_fx = megadeth_81_-20_-20_-20
+                dest_fx = megadeth_86_+20_-20_-20
+                dest_fx = megadeth_43_25_-50_0
+
+        job_fightrobo           = 4
+        job_fightflyer          = 5			; 2
+        job_fighthelicopter     = 6		; 4
+        job_fighttank           = 3
+        job_conquer             = 5
+        job_reconnoitre         = 4
+
+end
+
+;------------------------------------------------------------------------------------------------------
+;
+;       KYT UFO
+;   
+;       Das kyternesianische Gegenstück zum Knuddel
+;
+new_vehicle     23
+        model           =       plane
+        name            =       UFO
+	wireframe	=	wireless/otlKUFO.sklt
+
+	hud_wireframe	=	wireless\nh1.sklt
+	wpn_wireframe_1	=	wireless\nh3.sklt
+	wpn_wireframe_2	=	wireless\nh5.sklt
+	mg_wireframe	=	wireless\nh2.sklt
+
+	vo_type		=	7	; light aircraft
+
+        energy          =      8000 			; 5000
+        shield          =       4			; 9
+        mass            =       200
+        force           =       10000
+        maxrot          =       1.9
+        airconst        =       130			;100
+        height          =       100
+        radius          =       40			; 30
+        overeof         =       12
+        vwr_radius      =       30
+        vwr_overeof     =       30
+
+        adist_sector    =       327                     
+        adist_bact      =       823
+        sdist_sector    =       200
+        sdist_bact      =       150
+
+        radar           =       1
+
+        vp_normal       =       240                     ; siehe visproto.lst
+        vp_fire         =       242
+        vp_megadeth     =       50
+        vp_wait         =       241
+        vp_dead         =       194
+        vp_genesis      =       53
+        type_icon       =       k
+
+        pal_explode_slot        = 1                               ; ROT
+        pal_explode_mag0        = 0
+        pal_explode_mag1        = 0.5
+        pal_explode_time        = 160
+
+        shk_explode_slot        = 1
+        shk_explode_time        = 200
+        shk_explode_mag0        = 1
+        shk_explode_mag1        = 0
+        shk_explode_x           = 0.5
+        shk_explode_y           = 0.2
+        shk_explode_z           = 0
+        shk_explode_mute        = 0.1
+        
+
+        dest_fx = death_42_50_-20_0     
+        dest_fx = death_46_-2_-30_20
+        dest_fx = death_46_-20_-20_50
+        dest_fx = death_46_11_-30_0     
+        dest_fx = death_86_-20_-10_-20 
+        dest_fx = death_81_2_-10_-20
+        dest_fx = death_86_-20_-20_-20
+        dest_fx = death_46_-25_-10_0
+
+        weapon          =       23              ; siehe weap.scr
+        mgun            =       49              ; siehe weap.scr
+        gun_angle       =       0           
+        ; gun_radius                            ; DEFAULT
+        gun_power       =       6000
+        fire_x          =       0
+        fire_y          =       0
+        fire_z          =       0
+
+        job_fightrobo           = 2		; 5
+        job_fightflyer          = 6
+        job_fighthelicopter     = 6
+        job_fighttank           = 1
+        job_conquer             = 3
+        job_reconnoitre         = 7
+
+end
+
+
+;---------------------------------------------------------------------------------------------------
+;
+;       KYTERNESER HUBI
+;  
+;       Helicopter, das klassische Modell.
+;       Relativ langsam und träge, aber böse, böse...
+;
+new_vehicle     24
+        model                   =       heli
+        name                    =       GHARGOIL
+	wireframe	=	wireless/otlHUBI1.sklt
+	vo_type		=	4	; medium heli
+
+        energy          =       9500
+        shield          =       55
+        mass            =       400
+        force           =       5600
+        maxrot          =       0.8
+        airconst        =       120
+        height          =       200
+        radius          =       40
+        overeof         =       20
+        vwr_radius      =       30
+        vwr_overeof     =       30
+
+        vp_normal       =       12                      ; siehe visproto.lst
+        vp_fire         =       13
+        vp_megadeth     =       14
+        vp_wait         =       15
+        vp_dead         =       16
+        vp_genesis      =       17
+        type_icon       =       i
+
+        dest_fx = death_41_0_-20_0      
+        dest_fx = death_42_-20_0_20
+        dest_fx = death_43_20_0_20
+        dest_fx = death_45_0_0_0        
+        dest_fx = death_46_-20_0_-20 
+        dest_fx = death_81_-10_-12_-20
+        dest_fx = death_46_+20_-20_-20
+        dest_fx = death_84_15_-25_0
+        dest_fx = death_117_0_-25_0
+
+        dest_fx = megadeth_124_0_0_0	; ROTE STRAHLS
+
+
+        pal_explode_slot                =       1               ; ROT
+        pal_explode_mag0        =       0
+        pal_explode_mag1        =       1
+        pal_explode_time                =       200
+        shk_explode_slot                =       1
+        shk_explode_time        =       200
+        shk_explode_mag0        =       4
+        shk_explode_mag1        =       3
+        shk_explode_x           =       1
+        shk_explode_y           =       0
+        shk_explode_z           =       0
+        shk_explode_mute        =       1
+        
+        weapon          =       24              ; siehe weap.scr
+        mgun            =       49              ; SOLLTE MAL NOCH N SPEZIELLES TEIL BEKOMMEN !
+        gun_angle       =       0
+        gun_power       =       5000
+        fire_x                  =       15
+        fire_y          =       5
+        fire_z                  =       0
+        adist_sector            =       1000
+        adist_bact              =         750
+        sdist_sector    =         150
+        sdist_bact      =       250
+
+        job_fightrobo           = 3
+        job_fightflyer          = 2
+        job_fighthelicopter     = 4
+        job_fighttank           = 5
+        job_conquer             = 6
+        job_reconnoitre         = 4
+
+end
+
+;---------------------------------------------------------------------------------------------------
+;
+;       	ehemals KytERNESER FLUGIE, Agrar-Flugzeug zur WindBestäubung.
+; 	JETZT: GHARGOIL 3 a cool bomber
+;
+new_vehicle     25
+        model                   =       	 	plane
+        name                    =       GHAGOIL_3
+	wireframe	=	wireless/otlHUBI5.sklt		; FIXME
+	vo_type		=	9	; heavy aircraft
+
+        energy          =       20000   
+        shield          =       10      
+        mass            =       400
+        force           =       7000
+        maxrot          =       1.0		; 0.8		; vorher 0.4
+        airconst        =       120
+        height          =       350 		; 250
+        radius          =       60
+        overeof         =       25
+        vwr_radius      =       40
+        vwr_overeof     =       30
+
+        	vp_normal       	=       327		; 54              ; siehe visproto.lst
+        	vp_fire         	=       329		; 55
+        	vp_megadeth     	=       56
+        	vp_wait         	=       328		; 54
+        	vp_dead         	=       331		; 58
+        	vp_genesis      	=       330		; 59
+
+        type_icon       =       D
+        
+        shk_explode_slot                =       1
+        shk_explode_time        =       200
+        shk_explode_mag0        =       4
+        shk_explode_mag1        =       3
+        shk_explode_x           =       1
+        shk_explode_y           =       0
+        shk_explode_z           =       0
+        shk_explode_mute        =       1
+
+        weapon          =       25              ; siehe weapon.scr
+        ; mgun 
+        gun_angle       =       0           
+        fire_x                  =       15
+        fire_y          =       5
+        fire_z                  =       0
+
+	adist_sector 	=	1250                  	
+    	adist_bact  	= 	1200
+	sdist_sector	=	300
+	sdist_bact	=	300
+
+
+        dest_fx = death_41_0_-20_0      
+        dest_fx = death_45_-20_0_20
+        dest_fx = death_45_20_0_20
+        dest_fx = death_46_0_0_0        
+        dest_fx = death_84_-20_0_-20    
+        dest_fx = death_42_-20_-20_-20
+        dest_fx = death_43_+20_-20_-20
+        dest_fx = death_47_25_-50_0
+
+        dest_fx = megadeth_123_0_-20_0	; ROTER RING (klein)
+        dest_fx = megadeth_126_0_-20_0	; ROTER WOUPS
+
+        job_fightrobo           = 2		; 3
+        job_fightflyer          = 1
+        job_fighthelicopter     = 2		; 3
+        job_fighttank           = 10		; 7
+        job_conquer             = 10
+        job_reconnoitre         = 5
+
+end
+
+;---------------------------------------------------------------------------------------------------
+;
+;       KYTERNESER PANZER
+;  
+;       Hm... der Kyterneser-Panzer...
+;
+new_vehicle     26
+        model                   =       tank
+        name                    =       TEKH
+	wireframe	=	wireless/otlKPAN1.sklt
+
+	hud_wireframe	=	wireless\nhe.sklt
+	wpn_wireframe_1	=	wireless\nhh.sklt
+	wpn_wireframe_2	=	wireless\nhi.sklt
+	mg_wireframe	=	wireless\nhf.sklt
+
+	vo_type		=	3	; heavy tank
+
+        energy          =       25000			; 30000
+        shield          =       70				; 65 43 80
+        mass            =       400
+        force           =       5300				; 5300
+        maxrot          =       0.7				;0.7 0.5
+        airconst        =      140.0 			;120 190 200.0
+        radius          =       70				;60
+        overeof         =       10.0
+        adist_sector    =       800
+        adist_bact      =       650
+        sdist_sector    =       400
+        sdist_bact      =       400
+
+        vp_normal       =       101                     ; siehe visproto.lst
+        vp_fire         =       102
+        vp_megadeth     =       105
+        vp_wait         =       103
+        vp_dead         =       105
+        vp_genesis      =       104
+        type_icon       =       h
+
+        weapon          =       26                      ; siehe weap.scr
+        mgun            =       49
+        gun_angle       =       0.3
+        gun_power       =       6000
+        fire_x                  =       0
+        fire_y          =       -15
+        fire_z                  =       0
+
+        adist_sector    =       1000		;750
+        adist_bact      =       1300		; 860
+        sdist_sector    =       50
+        sdist_bact      =      250		; 450 200
+
+        	dest_fx                 =       megadeth_41_50_-40_0       
+        	dest_fx                 =       megadeth_46_-20_-30_10
+        	dest_fx                 =       megadeth_46_40_-20_20
+        	dest_fx                 =       megadeth_46_30_-10_0       
+        	dest_fx                 =       megadeth_46_-30_-30_-20 
+        	dest_fx                 =       megadeth_81_-10_-23_-40
+        	dest_fx                 =       megadeth_46_+20_-24_-50
+        	dest_fx 	=       	megadeth_46_25_-10_10
+        	dest_fx	= 	megadeth_125_0_0_0		; BEIN
+        	dest_fx	= 	megadeth_124_0_0_0		; STRAHLS
+
+        job_fightrobo           = 7
+        job_fightflyer          = 1
+        job_fighthelicopter     = 4		; 7
+        job_fighttank           = 8
+        job_conquer             = 7
+        job_reconnoitre         = 1
+
+end
+
+;------------------------------------------------------------------------------------------------------------------
+;
+;       GIGANT
+;  
+;       URALTER extrem polygonintensiver Fluggleiter mit LASER
+;       angemessenes GegenStück zum LAWNMOWER
+;
+new_vehicle     27
+        model                   =       glider
+        name                    =       GIGANT
+	wireframe	=	wireless/otlGIGNT.sklt
+
+
+	hud_wireframe	=	wireless\nhc.sklt
+	wpn_wireframe_1	=	wireless\nh3.sklt
+	wpn_wireframe_2	=	wireless\nh5.sklt
+	mg_wireframe	=	wireless\nh2.sklt
+
+
+	vo_type		=	9	; heavy aircraft
+
+        energy          =       45000                   ; 55000Um die Anwendung etwas zu reduzieren
+        shield          =       35	; 50 25 30                      ; hab ich die Energie hochgesetzt (*3),
+        mass            =       600                     ; und dafür den Shield runter (/3).
+        force           =       12000
+        maxrot          =       2
+        airconst        =       180.0
+        height          =       100.0
+        radius          =       90.0
+        overeof         =       15.0
+        vp_normal       =       116             ; siehe visproto.lst
+        vp_fire         =       118
+        vp_megadeth     =       117
+        vp_wait         =       119
+        vp_dead         =       120
+        vp_genesis      =       121
+        type_icon       =       n
+
+        shk_explode_slot                =       1
+        shk_explode_time        =       200
+        shk_explode_mag0        =       5
+        shk_explode_mag1        =       3
+        shk_explode_x           =       1
+        shk_explode_y           =       1
+        shk_explode_z           =       0
+        shk_explode_mute        =       0.1
+
+        weapon          =       27                 ; siehe weap.scr
+        mgun            =       49
+        gun_angle       =       0
+        gun_power       =       8000    
+        fire_x                  =       15
+        fire_y          	=       20
+        fire_z                  =       0
+        adist_sector    =       1200            ; is nich zuweit ?                      
+        adist_bact      =       1000
+        sdist_sector    =       340
+        sdist_bact      =       440
+
+        dest_fx = death_21_0_0_0	; Kleiner WRING
+
+        dest_fx = megadeth_21_0_-20_0	; Kleiner WRING
+        dest_fx = megadeth_20_0_-20_0	; Kleiner WRING
+
+        dest_fx                 =       death_41_0_-20_0        
+        dest_fx                 =       death_42_-20_0_20
+        dest_fx                 =       death_43_20_0_20
+        dest_fx                 =       death_45_0_0_0  
+        dest_fx                 =       death_46_-20_0_-20 
+        dest_fx                 =       death_42_-20_-20_-20
+        dest_fx                 =       death_46_+20_-20_-20
+        dest_fx                 =       death_44_25_-50_0
+
+        job_fightrobo           = 10
+        job_fightflyer          = 	2		; 7
+        job_fighthelicopter     = 3		; 8 
+        job_fighttank           = 1
+        job_conquer             = 1
+        job_reconnoitre         = 3
+
+end
+
+;--------------------------------------------------------------------------------------------------------------
+;
+;       *** modified KYTERNESER HUBI
+;  
+;       Helicopter, das klassische Modell. Fliegt höher als das normale Modell !
+;       Relativ langsam und träge, aber böse, böse...
+;
+new_vehicle     28
+        model                   =       heli
+        name                    =       GHARGOIL_2
+	wireframe	=	wireless/otlHUBI4.sklt	; FIXME!
+	vo_type		=	8		; heavy heli
+
+        energy          =       19000
+        shield          =       60
+        mass            =       400
+        force           =       5600
+        maxrot          =       0.8
+        airconst        =       130.0		; 120
+        height          =       600.0           ; Fliegt anders hoch (bei Bedarf ändern !)
+        radius          =       40.0
+        overeof         =       20.0
+        vwr_radius      =       30.0
+        vwr_overeof     =       30.0
+
+        vp_normal       =       272                      ; siehe visproto.lst
+        vp_fire         =       279			; FIXME!
+        vp_megadeth     =       14
+        vp_wait         =       278			; FIXME!
+        vp_dead         =       16
+        vp_genesis      =       17
+
+        type_icon       =       j
+
+        pal_explode_slot                =       1               ; ROT
+        pal_explode_mag0        =       0
+        pal_explode_mag1        =       1
+        pal_explode_time                =       200
+        shk_explode_slot                =       1
+        shk_explode_time        =       200
+        shk_explode_mag0        =       4
+        shk_explode_mag1        =       3
+        shk_explode_x           =       1
+        shk_explode_y           =       0
+        shk_explode_z           =       0
+        shk_explode_mute        =       1
+
+        weapon          =       28    
+        mgun            =       49              ; siehe weap.scr
+        gun_angle       =       0
+        num_weapons = 2
+        gun_power       =       10000
+        fire_x                  =       30
+        fire_y          =       5
+        fire_z                  =       0
+
+
+        adist_sector            =         1000
+        adist_bact              =         1000
+        sdist_sector    =         300
+        sdist_bact      =         400
+
+        dest_fx                 =       death_41_0_-20_0        
+        dest_fx                 =       death_42_-20_0_20
+        dest_fx                 =       death_41_20_0_20
+        dest_fx                 =       death_45_0_0_0  
+        dest_fx                 =       death_46_-20_0_-20 
+        dest_fx                 =       death_81_-20_-20_-20
+        dest_fx                 =       death_46_+20_-20_-20
+        dest_fx                 =       death_41_25_-50_0
+
+
+        dest_fx = megadeth_124_0_0_0	; ROTE STRAHLS
+        dest_fx = megadeth_21_0_-30_0	; WUASCHEL KLEIN
+
+
+        job_fightrobo           = 7
+        job_fightflyer          = 3
+        job_fighthelicopter     = 7
+        job_fighttank           = 8
+        job_conquer             = 8
+        job_reconnoitre         = 3
+
+end
+
+;----------------------------------------------------------------------------------
+;
+;       OHRMU
+;   
+;       KYTERNESER-Aufklärungs-Satellit mit großem Radarbereich.
+;
+new_vehicle     29
+        model                   =       ufo
+        name                    =       OHRMU
+	wireframe	=	wireless/otlKSATT.sklt
+	vo_type		=	A	; scout
+
+        energy          =       6000
+        shield          =       5
+        mass            =       400
+        force           =       27000
+        maxrot          =       1.8
+        airconst        =       120.0
+        height          =       500
+        radius          =       30.0
+        overeof         =       12.0
+        vwr_radius      =       30.0
+        vwr_overeof     =       30.0
+
+        adist_sector    =       150             ; der soll ja immer schoen drueber rum kurven                   
+        adist_bact      =       100
+        sdist_sector    =       10
+        sdist_bact      =       50
+
+        radar           =       4               ; <----- SEINE FUNKTION !
+
+        vp_normal       =       197                     ; siehe visproto.lst
+        vp_fire         =       197
+        vp_megadeth     =       44              ; wie der User-Satt.
+        vp_wait         =       197             ; WAIT = NORMAL
+        vp_dead         =       198
+        vp_genesis      =       199
+        type_icon       =       p
+
+        pal_explode_slot                =       1                               ; ROT
+        pal_explode_mag0        =       0
+        pal_explode_mag1        =       0.5
+        pal_explode_time                =       100
+
+        shk_explode_slot                =       1
+        shk_explode_time        =       200
+        shk_explode_mag0        =       1
+        shk_explode_mag1        =       0
+        shk_explode_x           =       1
+        shk_explode_y           =       0
+        shk_explode_z           =       0
+        shk_explode_mute        =       1
+        
+        dest_fx                 =       death_41_0_-20_0                ; Das sollte reichen.   
+        dest_fx                 =       death_46_-20_0_20
+        dest_fx                 =       death_46_20_0_20
+        dest_fx                 =       death_46_0_10_0 
+
+        ; weapon                                                                ; keine Bewaffnung
+        ; mgun
+
+        job_fightrobo           = 0
+        job_fightflyer          = 0
+        job_fighthelicopter     = 0
+        job_fighttank           = 0
+        job_conquer             = 0
+        job_reconnoitre         = 10
+
+end
+
+;------------------------------------------------------------------------------------------------------------------
+;
+;       modified GIGANT
+;  
+;       URALTER extrem polygonintensiver Fluggleiter mit LASER
+;       angemessenes GegenStück zum LAWNMOWER
+;       ... wie modified GHARGOIL... um das FlugVerhalten zu modifizieren.
+;
+new_vehicle     30
+        model                   =       glider                  ; JA! Es ist ein Gleiter... hm.
+        name                    =       GIGANT
+		wireframe	=	wireless/otlGIGNT.sklt
+	hud_wireframe	=	wireless\nhc.sklt
+	wpn_wireframe_1	=	wireless\nh3.sklt
+	wpn_wireframe_2	=	wireless\nh5.sklt
+	mg_wireframe	=	wireless\nh2.sklt
+
+
+		vo_type		=	9	; heavy aircraft
+
+        energy          =       44500                   ; 50000 Um die Anwendung etwas zu reduzieren
+        shield          =       35		; 55  30                      ; hab ich die Energie hochgesetzt (*3),
+        mass            =       600                     ; und dafür den Shield runter (/3).
+        force           =       12000
+        maxrot          =       2
+        airconst        =       180.0
+        height          =       200.0           ; original 100 ... wahrscheinlich besser gegen Robo
+        radius          =       90.0
+        overeof         =       15.0
+        vp_normal       =       116             ; siehe visproto.lst
+        vp_fire         =       118
+        vp_megadeth     =       117
+        vp_wait         =       119
+        vp_dead         =       120
+        vp_genesis      =       121
+        type_icon       =       o
+
+        shk_explode_slot                =       1
+        shk_explode_time        =       200
+        shk_explode_mag0        =       5
+        shk_explode_mag1        =       3
+        shk_explode_x           =       1
+        shk_explode_y           =       1
+        shk_explode_z           =       0
+        shk_explode_mute        =       0.1
+
+        weapon          =       27                   ; siehe weap.scr
+        mgun            =       49
+        gun_angle       =       0
+        gun_power       =       8000    
+        fire_x                  =       15.0
+        fire_y          =       5.0
+        fire_z                  =       0.0
+        adist_sector    =       1200            ; is nich zuweit ?                      
+        adist_bact      =       1000
+        sdist_sector    =       340
+        sdist_bact      =       440
+
+        dest_fx = death_21_0_0_0	; Kleiner WRING
+
+        dest_fx = megadeth_21_0_-20_0	; Kleiner WRING
+        dest_fx = megadeth_20_0_-20_0	; Kleiner WRING
+
+        dest_fx                 =       death_41_0_-20_0        
+        dest_fx                 =       death_42_-20_0_20
+        dest_fx                 =       death_43_20_0_20
+        dest_fx                 =       death_45_0_0_0  
+        dest_fx                 =       death_46_-20_0_-20 
+        dest_fx                 =       death_42_-20_-20_-20
+        dest_fx                 =       death_46_+20_-20_-20
+        dest_fx                 =       death_44_25_-50_0
+
+        job_fightrobo           = 10
+        job_fightflyer          = 3			; 7
+        job_fighthelicopter     = 3		; 8
+        job_fighttank           = 1
+        job_conquer             = 1
+        job_reconnoitre         = 4
+
+end
+
+;--------------------------------------------------------------------
+;
+;       KYTERNESER MIG
+;
+;       Klassisches Mig-Modell
+;       Etwas schneller als der ERAZER.
+;
+new_vehicle     31
+        model                   =       plane
+        name                    =       TRICKINA
+	wireframe	=	wireless/otlMIG.sklt
+
+	hud_wireframe	=	wireless\nh1.sklt
+	wpn_wireframe_1	=	wireless\nh3.sklt
+	wpn_wireframe_2	=	wireless\nh5.sklt
+	mg_wireframe	=	wireless\nh2.sklt
+
+
+	vo_type		=	8	; medium aircraft	
+
+        energy          =       35000                   ; noch teurer
+        shield          =       25
+        mass            =       200
+        force           =       25000
+        maxrot          =       1.1
+        airconst        =       180.0
+        height          =       350.0
+        radius          =       80.0
+        overeof         =       25.0
+        vwr_radius      =       40.0
+        vwr_overeof     =       30.0
+
+        adist_sector    =       900                     
+        adist_bact      =       900
+        sdist_sector    =       400
+        sdist_bact      =       500
+
+        vp_normal       =       218                     ; siehe visproto.lst
+        vp_fire         =       219
+        vp_megadeth     =       72
+        vp_wait         =       220
+        vp_dead         =       221
+        vp_genesis      =       222
+        type_icon       =       m
+        
+        pal_explode_slot                =       1                               ; ROT
+        pal_explode_mag0        =       0
+        pal_explode_mag1        =       1
+        pal_explode_time                =       160
+
+        shk_explode_slot                =       1
+        shk_explode_time        =       200
+        shk_explode_mag0        =       4
+        shk_explode_mag1        =       3
+        shk_explode_x           =       1
+        shk_explode_y           =       0
+        shk_explode_z           =       0
+        shk_explode_mute        =       1
+
+        weapon          =       31                 ; siehe weapon.lst
+        mgun            =       49                ; siehe weapon.lst
+        gun_angle               =       0
+        ;   gun_radius                          ; DEFAULT
+        gun_power       =       7000
+        fire_x                  =       15.0
+        fire_y          =       5.0
+        fire_z                  =       0.0
+
+        dest_fx = death_42_0_-20_0      
+        dest_fx = death_43_-20_30_20
+        dest_fx = death_44_20_20_50
+        dest_fx = death_46_11_70_0      
+        dest_fx = death_84_-20_0_-20 
+        dest_fx = death_81_-20_-10_-20
+        dest_fx = death_84_+20_-20_-20
+        dest_fx = death_45_25_50_0
+
+        job_fightrobo           = 3		; 7
+        job_fightflyer          = 10
+        job_fighthelicopter     = 8
+        job_fighttank           = 2
+        job_conquer             = 1
+        job_reconnoitre         = 6
+
+end
+
+
+;--------------------------------------------------------------------------------------------------------------------
+;
+;       TAERKASTEN-PANZER
+;
+;       Der feierliche alte Taerkasten-Panzer.
+;
+new_vehicle     32
+        model           =       tank
+        name            =       EISENHANS
+	wireframe	=	wireless/otlPANZ1.sklt
+	hud_wireframe	=	wireless\nhe.sklt
+	wpn_wireframe_1	=	wireless\nhh.sklt
+	wpn_wireframe_2	=	wireless\nhi.sklt
+	mg_wireframe	=	wireless\nhf.sklt
+
+	vo_type		=	2	; medium tank
+
+        energy          =       11000
+        shield          =       80		;75
+        mass            =       400
+        force           =       5000
+        maxrot          =       0.8
+        airconst        =       150.0
+        radius          =       60
+        overeof         =       18
+        vp_normal       =       18              ; siehe visproto.lst
+        vp_fire         =       19
+        vp_megadeth     =       20
+        vp_wait         =       21
+        vp_dead         =       22
+        vp_genesis      =       23
+        type_icon       =       2
+        
+        shk_explode_slot        =       1
+        shk_explode_time        =       200
+        shk_explode_mag0        =       4
+        shk_explode_mag1        =       3
+        shk_explode_x           =       1
+        shk_explode_y           =       0
+        shk_explode_z           =       0
+        shk_explode_mute        =       1
+    
+        weapon          =       32                ; siehe weapo.scr
+        mgun            =       49   
+        gun_angle       =       0.3
+        gun_power       =       10000
+        fire_x          =       0
+        fire_y          =       -15
+        fire_z          =       0
+
+        adist_sector    =       900                     
+        adist_bact      =       900
+        sdist_sector    =       200		;400
+        sdist_bact      =       100		;400
+
+        dest_fx         =       megadeth_41_6_-30_2        
+        dest_fx         =       megadeth_46_-20_-2_10
+        dest_fx         =       megadeth_46_14_-16_12
+        dest_fx         =       megadeth_86_11_-40_7       
+        dest_fx         =       megadeth_46_-30_-40_-30 
+        dest_fx         =       megadeth_81_-10_-23_-40
+        dest_fx         =       megadeth_46_+20_-24_-50
+        dest_fx         =       megadeth_46_25_-50_0
+
+        job_fightrobo           = 	3		; 2
+        job_fightflyer          = 2			; 3
+        job_fighthelicopter     = 3		; 4
+        job_fighttank           = 	5		; 4
+        job_conquer             = 	6		; 5
+        job_reconnoitre         = 3
+
+end
+;---------------------------------------------------------------------------------------------------
+;
+;       TAERKASTEN Eindecker
+;  
+;
+new_vehicle     33
+        model           =       plane
+        name            =       HETZEL
+	wireframe	=	wireless/otlFLUG2.sklt
+
+	hud_wireframe	=	wireless\nhj.sklt
+	wpn_wireframe_1	=	wireless\nh4.sklt
+	wpn_wireframe_2	=	wireless\nha.sklt
+	mg_wireframe	=	wireless\nh8.sklt
+
+
+	vo_type		=	9	; heavy aircraft
+
+        energy          =       18000
+        shield          =       77		;85
+        mass            =       400
+        force           =       7200
+        maxrot          =       1.0		;0.6 0.4
+        airconst        =       200.0
+        height          =       150.0  ; 250.0 ; 350.0
+        radius          =       60.0
+        overeof         =       25.0
+        vwr_radius      =       40.0
+        vwr_overeof     =       30.0
+       
+       vp_normal       =       332             ; siehe visproto.lst
+        vp_fire         =       336
+        vp_megadeth     =       167
+        vp_wait         =       334
+        vp_dead         =       333
+        vp_genesis      =       335
+        type_icon       =       z
+        
+        shk_explode_slot        =       1
+        shk_explode_time        =       200
+        shk_explode_mag0        =       4
+        shk_explode_mag1        =       3
+        shk_explode_x           =       1
+        shk_explode_y           =       0
+        shk_explode_z           =       0
+        shk_explode_mute        =       1
+
+        weapon          =       33              ; siehe weapon.scr
+        num_weapons	=	1	; 2
+        ; mgun
+        gun_angle       =       0           
+        fire_x          =       0
+        fire_y          =       5
+        fire_z          =       0
+        adist_sector    =       1500                    
+        adist_bact      =       2000    ; flieht er damit ?
+        sdist_sector    =       10
+        sdist_bact      =       10
+
+        dest_fx                 =       death_41_6_-50_2        
+        dest_fx                 =       death_46_-20_-40_10
+        dest_fx                 =       death_84_40_-33_20
+        dest_fx                 =       death_42_11_-40_7       
+        dest_fx                 =       death_46_-30_-40_-30 
+        dest_fx                 =       death_81_-10_-23_-40
+        dest_fx                 =       death_46_+20_-24_-50
+        dest_fx                 =       death_43_25_-50_0
+
+        job_fightrobo           = 	7		; 6
+        job_fightflyer          = 	4		; 7
+        job_fighthelicopter     = 7		; 5 8
+        job_fighttank           = 6		; 5
+        job_conquer             = 6
+        job_reconnoitre         = 6
+
+end
+;----------------------------------------------------------------------------------
+;
+;       BRONSTEIJN
+;   
+;       KAMPFSATELLIT-Satellit
+;       mit den absolut tödlichsten Waffen.
+;       (PS.: Hubschrauber-FlugModell)
+;
+new_vehicle     34
+        model                   =       heli
+        name                    =       BRONSTEIJN
+	wireframe	=	wireless/otlSATT2.sklt
+	vo_type		=	9	; heavy aircraft
+
+        energy          =       40000
+        shield          =       25              
+        mass            =       350
+        force           =       7500
+        maxrot          =       5
+        airconst        =       70.0
+        height          =       250.0
+                radius          =       60.0
+        overeof         =       12.0
+        vwr_radius      =       60.0
+        vwr_overeof     =       30.0
+        adist_sector    =       800                  
+        adist_bact      =       750
+        sdist_sector    =       0
+        sdist_bact      =              400              
+
+        vp_normal       =       153                     ; siehe visproto.lst
+        vp_fire         =       153
+        vp_megadeth     =       154
+        vp_wait         =       153
+        vp_dead         =       155
+        vp_genesis      =       156
+        type_icon       =       8
+ 
+        gun_angle               =       	0	; 0.3     Hier kanns eben ja NICHT ruhig schief rauskommen !
+        weapon                                  =       34      ; siehe WEAP.SCR
+
+        pal_explode_slot                =       1                               ; ROT
+        pal_explode_mag0        =       0
+        pal_explode_mag1        =       0.5
+        pal_explode_time                =       100
+
+        shk_explode_slot                =       1
+        shk_explode_time        =       200
+        shk_explode_mag0        =       4
+        shk_explode_mag1        =       3
+        shk_explode_x           =       1
+        shk_explode_y           =       0
+        shk_explode_z           =       0
+        shk_explode_mute        =       1
+        
+        dest_fx                 =       death_48_26_-10_2               ; Hier lasse ich einige seiner Waffen explodieren.      
+        dest_fx                 =       death_41_-20_-37_10
+        dest_fx                 =       death_42_14_-46_20
+        dest_fx                 =       death_41_11_-41_7       
+        dest_fx                 =       death_45_-30_-24_-30 
+        dest_fx                 =       death_81_-11_-23_-40
+        dest_fx                 =       death_46_+20_-24_-25
+        dest_fx                 =       death_84_21_-26_1
+
+        job_fightrobo           = 	6		; 8
+        job_fightflyer          = 1			; 4
+        job_fighthelicopter     = 6		; 9
+        job_fighttank           = 10
+        job_conquer             = 9
+        job_reconnoitre         = 2
+
+end
+
+;----------------------------------------------------------------------------------
+;
+;       OTSCHKO (Das Auge.)
+;   
+;       Satellit mit großem Radarbereich.
+;       Kaum Panzerung.
+;
+new_vehicle     35
+        model                   =       ufo
+        name                    =       OTSCHKO
+	wireframe	=	wireless/otlSATT3.sklt
+	vo_type		=	A	; scout
+
+        energy          =      7000 			;10000
+        shield          =       50              
+        mass            =       350
+        force           =      15000			; 8500
+        maxrot          =       1.5
+        airconst        =       70
+        height          =       500
+                radius          =       60
+        overeof         =       12
+        vwr_radius      =       60
+        vwr_overeof     =       30
+        adist_sector    =       800                  
+        adist_bact      =       750
+        sdist_sector    =       0
+        sdist_bact      =              400              
+        radar           =       4
+
+        vp_normal     	=       243                     ; siehe visproto.lst
+        vp_fire         		=       243
+        vp_megadeth	=       154
+        vp_wait         		=       243
+        vp_dead        	 	=       155
+        vp_genesis      	=       277
+
+        type_icon       	=       9
+ 
+        gun_angle               =       0.3
+
+        pal_explode_slot                =       1                               ; ROT
+        pal_explode_mag0        =       0
+        pal_explode_mag1        =       0.5
+        pal_explode_time                =       100
+
+        shk_explode_slot                =       1
+        shk_explode_time        =       200
+        shk_explode_mag0        =       4
+        shk_explode_mag1        =       3
+        shk_explode_x           =       1
+        shk_explode_y           =       0
+        shk_explode_z           =       0
+        shk_explode_mute        =       1
+        
+        dest_fx                 =       death_48_26_-10_2               ; Hier lasse ich einige seiner Waffen explodieren.      
+        dest_fx                 =       death_41_-20_-37_10
+        dest_fx                 =       death_42_14_-46_20
+        dest_fx                 =       death_41_11_-41_7       
+        dest_fx                 =       death_45_-30_-24_-30 
+        dest_fx                 =       death_81_-11_-23_-40
+        dest_fx                 =       death_46_+20_-24_-25
+        dest_fx                 =       death_84_21_-26_1
+
+        job_fightrobo           = 0
+        job_fightflyer          = 0
+        job_fighthelicopter     = 0
+        job_fighttank           = 0
+        job_conquer             = 0
+        job_reconnoitre         = 9		; 10
+
+end
+
+;---------------------------------------------------------------------------------------------------
+;
+;       TAERKASTIK SERP (Die SICHEL)
+;  
+;
+new_vehicle     36
+        model                   =       plane	; glider
+        name                    =       SERP
+	wireframe	=	wireless/otlTSERP.sklt
+
+	hud_wireframe	=	wireless\nhj.sklt
+	wpn_wireframe_1	=	wireless\nh4.sklt
+	wpn_wireframe_2	=	wireless\nha.sklt
+	mg_wireframe	=	wireless\nh8.sklt
+
+
+	vo_type		=	7	; light aircraft
+
+        energy          =     9000			; 5000 9000
+        shield          =       45			; 80
+        mass            =       400
+        force           =       27000			; 30000
+        maxrot          =       5			; 2
+        airconst        =       200			;250
+        height          =       300
+        radius          =       50			; 40
+        overeof         =       20
+        vwr_radius      =       30
+        vwr_overeof     =       30
+        kill_after_shot = 1			; TOT nach 1. Schuss
+  
+        vp_normal       =       201                     	; siehe visproto.lst
+        vp_fire         =       201
+        vp_megadeth     =       14
+        vp_wait         =       205
+        vp_dead         =       202
+        vp_genesis      =       203
+        type_icon       =       7
+
+        dest_fx = death_41_0_-20_0      
+        dest_fx = death_42_-20_0_20
+        dest_fx = death_43_20_0_20
+        dest_fx = death_45_0_0_0        
+        dest_fx = death_46_-20_0_-20 
+        dest_fx = death_81_-10_-12_-20
+        dest_fx = death_46_+20_-20_-20
+        dest_fx = death_84_15_-25_0
+
+        pal_explode_slot                =       1               ; ROT
+        pal_explode_mag0        =       0
+        pal_explode_mag1        =       1
+        pal_explode_time                =       200
+        shk_explode_slot                =       1
+        shk_explode_time        =       200
+        shk_explode_mag0        =       4
+        shk_explode_mag1        =       3
+        shk_explode_x           =       1
+        shk_explode_y           =       0
+        shk_explode_z           =       0
+        shk_explode_mute        =       1
+        
+        weapon          =       36              ; siehe weap.scr
+        ; mgun                  Kein!      
+        gun_angle       =       0
+        gun_power       =       5000
+        fire_x                  =       15
+        fire_y          =       5
+        fire_z                  =       0
+        adist_sector            =       1000
+        adist_bact              =         750
+        sdist_sector    =         150
+        sdist_bact      =       250
+
+        job_fightrobo           = 5		; 7
+        job_fightflyer          = 9
+        job_fighthelicopter     = 8
+        job_fighttank           = 1
+        job_conquer             = 1
+        job_reconnoitre         = 7
+
+end
+
+;--------------------------------------------------------------------------------------------------------------------
+;
+;       TAERKASTEN-PANZER MEGAFETT
+;
+;       Ganz neuer megafetter Panzer
+;
+new_vehicle     37
+        model           =       tank
+        name            =       LEONID
+	wireframe	=	wireless/otlPANZ4.sklt
+	hud_wireframe	=	wireless\nhe.sklt
+	wpn_wireframe_1	=	wireless\nhh.sklt
+	wpn_wireframe_2	=	wireless\nhi.sklt
+	mg_wireframe	=	wireless\nhf.sklt
+
+	vo_type		=	3	; heavy tank
+
+        energy          =       28000
+        shield          =       86
+        mass            =       800
+        force           =       13000
+        maxrot          =       0.5
+        airconst        =       1000.0
+        radius          =       80
+        overeof         =       20
+        vp_normal       =       214             ; siehe visproto.lst
+        vp_fire         =       216
+        vp_megadeth     =       20              ; FIXME!
+        vp_wait         =       215
+        vp_dead         =       22              ; FIXME!
+        vp_genesis      =       217
+        type_icon       =       3
+        
+        shk_explode_slot        =       1
+        shk_explode_time        =       200
+        shk_explode_mag0        =       4
+        shk_explode_mag1        =       3
+        shk_explode_x           =       1
+        shk_explode_y           =       0
+        shk_explode_z           =       0
+        shk_explode_mute        =       1
+    
+        weapon          =       37                ; siehe weap.scr
+        mgun            =       49   
+        gun_angle       =       0.3
+        gun_power       =       10000
+        fire_x          =       0
+        fire_y          =       -15
+        fire_z          =        0
+
+        adist_sector    =      900		; 900                     
+        adist_bact      =       700
+        sdist_sector    =      50			; 400
+        sdist_bact      =       40			; 400
+
+        dest_fx         =       megadeth_41_6_-30_2        
+        dest_fx         =       megadeth_46_-20_-2_10
+        dest_fx         =       megadeth_46_14_-16_12
+        dest_fx         =       megadeth_86_11_-40_7       
+        dest_fx         =       megadeth_46_-30_-40_-30 
+        dest_fx         =       megadeth_81_-10_-23_-40
+        dest_fx         =       megadeth_46_+20_-24_-50
+        dest_fx         =       megadeth_46_25_-50_0
+
+        job_fightrobo           = 	8		; 7
+        job_fightflyer          = 1
+        job_fighthelicopter     = 5		; 7
+        job_fighttank           = 8		; 8
+        job_conquer             = 	5		; 7
+        job_reconnoitre         = 1
+
+end
+;---------------------------------------------------------------------------------------------------
+;
+;       TAERKASTEN FLUGIE / TAERCASTIC BIPLANE
+;  
+;       DoppelDecker / BIPLANE 
+;
+new_vehicle     38
+        model           =       plane
+        name            =       MNOSJETZ
+	wireframe	=	wireless/otlTFLUG.sklt
+	vo_type		=	9	; heavy aircraft
+
+        energy          =       20000
+        shield          =       77		;85
+        mass            =       400
+        force           =       7200
+        maxrot          =       0.6		;0.4
+        airconst        =       200.0
+        height          =       150.0  ; 250.0 ; 350.0
+        radius          =       60.0
+        overeof         =       25.0
+        vwr_radius      =       40.0
+        vwr_overeof     =       30.0
+        vp_normal       =       163             ; siehe visproto.lst
+        vp_fire         =       164
+        vp_megadeth     =       167
+        vp_wait         =       165
+        vp_dead         =       166
+        vp_genesis      =       168
+        type_icon       =       5
+        
+        shk_explode_slot        =       1
+        shk_explode_time        =       200
+        shk_explode_mag0        =       4
+        shk_explode_mag1        =       3
+        shk_explode_x           =       1
+        shk_explode_y           =       0
+        shk_explode_z           =       0
+        shk_explode_mute        =       1
+
+        weapon          =       38              ; siehe weapon.scr
+num_weapons	=	1	; 2
+        ; mgun
+        gun_angle       =       0           
+        fire_x          =       0
+        fire_y          =       5
+        fire_z          =       0
+        adist_sector    =       1500                    
+        adist_bact      =       1500    ; flieht er damit ?
+        sdist_sector    =       10
+        sdist_bact      =       10
+
+        dest_fx                 =       death_41_6_-50_2        
+        dest_fx                 =       death_46_-20_-40_10
+        dest_fx                 =       death_84_40_-33_20
+        dest_fx                 =       death_42_11_-40_7       
+        dest_fx                 =       death_46_-30_-40_-30 
+        dest_fx                 =       death_81_-10_-23_-40
+        dest_fx                 =       death_46_+20_-24_-50
+        dest_fx                 =       death_43_25_-50_0
+
+        job_fightrobo           = 	3
+        job_fightflyer          = 	1
+        job_fighthelicopter     = 2
+        job_fighttank           = 9
+        job_conquer             = 10
+        job_reconnoitre         = 6
+
+end
+;------------------------------------------------------------------------------------------------------------------
+;
+;	MYKONIER SCHWER
+; 
+new_vehicle     	63
+        model                   =       heli
+        name                    =       5P2
+	wireframe	=	wireless/otlMYKO4.sklt
+
+	hud_wireframe	=	wireless\nh6.sklt
+	wpn_wireframe_1	=	wireless\nh7.sklt
+	wpn_wireframe_2	=	wireless\nh9.sklt
+	mg_wireframe	=	wireless\nh4.sklt
+
+
+	vo_type		=	9	; heavy aircraft
+
+        energy          	=       50000
+        shield          =       21
+        mass            =       600
+        force           =       12000
+        maxrot          =       2
+        airconst        =       180.0
+        height          =       350		; 100.0
+        radius          =       90.0
+        overeof         =       60.0
+
+        vp_normal	=       271             ; siehe visproto.lst
+        vp_fire         	=       271
+        vp_wait         =       271
+
+        vp_megadeth     	=	8
+        vp_dead     		=	275
+        vp_genesis      	=	275
+
+        type_icon       	=       	u
+
+        shk_explode_slot                =       1
+        shk_explode_time        =       200
+        shk_explode_mag0        =       5
+        shk_explode_mag1        =       3
+        shk_explode_x           =       1
+        shk_explode_y           =       1
+        shk_explode_z           =       0
+        shk_explode_mute        =       0.1
+
+        weapon          =       63                 ; siehe weap.scr
+        ; mgun            =       49	kein 
+        gun_angle       =       0
+        gun_power       =       8000    
+        fire_x                  =       15.0
+        fire_y          =       20
+        fire_z                  =       0.0
+        adist_sector    =       1200            ; is nich zuweit ?                      
+        adist_bact      =       1000
+        sdist_sector    =       340
+        sdist_bact      =       440
+
+        dest_fx                 =       death_41_0_-20_0        
+        dest_fx                 =       death_42_-20_0_20
+        dest_fx                 =       death_43_20_0_20
+        dest_fx                 =       death_45_0_0_0  
+        dest_fx                 =       death_46_-20_0_-20 
+        dest_fx                 =       death_42_-20_-20_-20
+        dest_fx                 =       death_46_+20_-20_-20
+        dest_fx                 =       death_44_25_-50_0
+
+        job_fightrobo           = 6		; 9
+        job_fightflyer          = 2			; 6
+        job_fighthelicopter     = 7		; 10
+        job_fighttank           = 10
+        job_conquer             = 9		; 10
+        job_reconnoitre         = 3
+
+end
+
+;-----------------------------------------------------------------------------------------------------
+;
+;       MYKONIER        1
+;  
+;       ...äh
+;
+new_vehicle 64
+        model           =       zeppelin
+        name                    =       XO1
+	wireframe	=	wireless/otlBRGR1.sklt
+	hud_wireframe	=	wireless\nh6.sklt
+	wpn_wireframe_1	=	wireless\nh7.sklt
+	wpn_wireframe_2	=	wireless\nh9.sklt
+	mg_wireframe	=	wireless\nh4.sklt
+
+	vo_type		=	8	; medium aircraft
+
+        energy          =       19000
+        shield          =       58			; 65
+        mass            =       400
+        force           =       5000
+        maxrot          =       2.0
+        airconst        =       150.0
+        height          =       200.0
+        radius          =       70.0
+        overeof         =       35.0
+        vwr_radius      =       50.0
+        vwr_overeof     =       30.0
+
+        	vp_normal       =       0                       ; siehe visproto.lst
+        	vp_fire         	=       1
+        	vp_megadeth     =       2
+        	vp_wait         =       3
+        	vp_dead         =       4
+	vp_genesis      	=       5
+
+        type_icon       =       r
+
+        shk_explode_slot                =       1
+        shk_explode_time        =       200
+        shk_explode_mag0        =       4
+        shk_explode_mag1        =       3
+        shk_explode_x           =       1
+        shk_explode_y           =       0
+        shk_explode_z           =       0
+        shk_explode_mute        =       1
+
+        weapon          =       64                      ; siehe weap.scr
+        ; mgun          =       keins           ; SOLLTE MAL NOCH STRANGE GEMACHT WERDEN !
+        gun_angle       =       0             
+        fire_x                  =       0
+        fire_y          =       25
+        fire_z                  =      30
+        
+        adist_sector    =       700                     
+        adist_bact      =       700
+        sdist_sector    =       300
+        sdist_bact      =       300
+
+        dest_fx = death_17_0_0_0      			; Blauer Dünner Ring
+
+        dest_fx                 =       death_48_26_-10_2               
+        dest_fx                 =       death_41_-20_-37_10
+        dest_fx                 =       death_46_14_-46_20
+        dest_fx                 =       death_48_11_-41_7       
+        dest_fx                 =       death_46_-30_-24_-30 
+        dest_fx                 =       death_85_-11_-23_-40
+        dest_fx                 =       death_46_+20_-24_-25
+        dest_fx                 =       death_84_21_-26_1
+
+        job_fightrobo           = 10
+        job_fightflyer          = 5			; 6
+        job_fighthelicopter     = 6		; 8 
+        job_fighttank           = 1
+        job_conquer             = 2		; 1
+        job_reconnoitre         = 4
+
+end
+
+;-------------------------------------------------------------------------------------------
+;
+;       MYKONIER        2  
+;
+;       echt widernatuerlich...  
+;
+new_vehicle     65
+        model                   =       heli
+        name                    =       5PO
+	wireframe	=	wireless/otlBRGR2.sklt
+	hud_wireframe	=	wireless\nh6.sklt
+	wpn_wireframe_1	=	wireless\nh7.sklt
+	wpn_wireframe_2	=	wireless\nh9.sklt
+	mg_wireframe	=	wireless\nh4.sklt
+
+	vo_type		=	7		; light aircraft
+
+        energy          =       14000		;15000
+        shield          =       56			; 50
+        mass            =       400
+        force           =       14000
+        maxrot          =       3.0
+        airconst        =       80
+        height          =       150
+        radius          =       80
+        overeof         =       12
+        vwr_radius      =       30
+        vwr_overeof     =       30
+
+        fire_x                  =       15.0
+        fire_y          =       40
+        fire_z                  =       0.0
+
+
+        vp_normal       =       6               ; siehe visproto.lst
+        vp_fire         =       7
+        vp_megadeth     =       8
+        vp_wait         =       9
+        vp_dead         =       10
+
+vp_genesis      	=       	11
+
+        type_icon       =       q
+
+        shk_explode_slot                =       1
+        shk_explode_time        =       200
+        shk_explode_mag0        =       4
+        shk_explode_mag1        =       3
+        shk_explode_x           =       1
+        shk_explode_y           =       0
+        shk_explode_z           =       0
+        shk_explode_mute        =       1
+
+        weapon          =       65
+        ; mgun          =       keins           ; SOLLTE MAL NOCH STRANGE GEMACHT WERDEN !
+        gun_angle       =       0       
+
+        adist_sector    =       1000                    
+        adist_bact      =       1000
+        sdist_sector    =       50
+        sdist_bact      =       400
+
+        dest_fx = death_17_0_0_0      			; Blauer Dünner Ring
+
+        dest_fx                 =       death_48_26_-10_2               
+        dest_fx                 =       death_41_-20_-37_10
+        dest_fx                 =       death_46_14_-46_20
+        dest_fx                 =       death_48_11_-41_7       
+        dest_fx                 =       death_46_-30_-24_-30 
+        dest_fx                 =       death_85_-11_-23_-40
+        dest_fx                 =       death_46_+20_-24_-25
+        dest_fx                 =       death_84_21_-26_1
+
+        job_fightrobo           = 3
+        job_fightflyer          = 2			; 6
+        job_fighthelicopter     = 4		; 7
+        job_fighttank           = 8
+        job_conquer             = 8
+        job_reconnoitre         = 6
+
+end
+
+;-------------------------------------------------------------------------------------------
+;
+;       MYKONIER        3
+;
+;       STATIC.
+;
+new_vehicle     66
+        model                   =       zeppelin
+        name                    =       STTC       ; (Boje)
+	wireframe	=	wireless/otlBRGR3.sklt
+	hud_wireframe	=	wireless\nh6.sklt
+	wpn_wireframe_1	=	wireless\nh7.sklt
+	wpn_wireframe_2	=	wireless\nh9.sklt
+	mg_wireframe	=	wireless\nh4.sklt
+
+	vo_type		=	B	; generic
+
+        energy          =       35000
+        shield          =       1
+        mass            =       50
+        force           =       60
+        maxrot          =       3
+        airconst        =       30
+        height          =       20.0
+        radius          =       20.0
+        overeof         =       20.0
+        vwr_radius      =       20.0
+        vwr_overeof     =       20.0
+
+        vp_normal       =       184             ; siehe visproto.lst
+        vp_fire         =       186
+        vp_megadeth     =       185
+        vp_wait         =       187
+        vp_dead         =       188
+
+vp_genesis      	=       	276
+
+        type_icon       =       s
+
+        shk_explode_slot                =       1
+        shk_explode_time        =       200
+        shk_explode_mag0        =       4
+        shk_explode_mag1        =       3
+        shk_explode_x           =       1
+        shk_explode_y           =       0
+        shk_explode_z           =       0
+        shk_explode_mute        =       1
+
+        weapon          =       66
+        ; mgun          =       keins           ; SOLLTE MAL NOCH STRANGE GEMACHT WERDEN !
+        gun_angle       =       0       
+
+        adist_sector    =       1000                    
+        adist_bact      =       1000
+        sdist_sector    =       50
+        sdist_bact      =       400
+
+        dest_fx                 =       death_48_26_-10_2               
+        dest_fx                 =       death_41_-20_-37_10
+        dest_fx                 =       death_46_14_-46_20
+        dest_fx                 =       death_41_11_-41_7       
+        dest_fx                 =       death_46_-30_-24_-30 
+        dest_fx                 =       death_86_-11_-23_-40
+        dest_fx                 =       death_46_+20_-24_-25
+        dest_fx                 =       death_81_21_-26_1
+
+        job_fightrobo           = 1
+        job_fightflyer          = 2
+        job_fighthelicopter     = 3
+        job_fighttank           = 9
+        job_conquer             = 1
+        job_reconnoitre         = 1		; 2
+
+end
+
+;----------------------------------------------------------------------------------
+;
+;       MYKO4  /  RADAR
+;   
+;       MYKONIER-Aufklärungs-Satellit mit großem Radarbereich.
+;
+new_vehicle     67
+        model                   =       ufo
+        name                    =       RDR
+	wireframe	=	wireless/otlBRGR4.sklt
+	vo_type		=	A	; scout
+
+        energy          =       5500
+        shield          =       10
+        mass            =       200
+        force           =       27000
+        maxrot          =       2.8
+        airconst        =       120.0
+        height          =       450.0           ; nich so hoch , sonst Probleme mit Abschießen          
+        radius          =       30.0
+        overeof         =       12.0
+        vwr_radius      =       30.0
+        vwr_overeof     =       30.0
+
+        vp_normal       =       200             ; siehe visproto.lst
+        vp_fire         =       200
+        vp_megadeth     =       22              ; unsichtbar
+        vp_wait         =       200
+        vp_dead         =       8
+        vp_genesis      =       11              ; ist ein unsichtbarer dummy, da diese ** IM ** ROBO generiert werden.
+
+	vp_genesis      	=       	252  	; alle Mykonier gleich
+
+        
+        adist_sector    =       150             ; der soll ja immer schoen drueber rum kurven                   
+        adist_bact      =       100
+        sdist_sector    =       10
+        sdist_bact      =       50
+
+        radar           =       4               ; <----- SEINE FUNKTION !
+
+        type_icon       =       x
+
+        pal_explode_slot                =       1                               ; ROT
+        pal_explode_mag0        =       0
+        pal_explode_mag1        =       0.5
+        pal_explode_time                =       100
+
+        shk_explode_slot                =       1
+        shk_explode_time        =       200
+        shk_explode_mag0        =       1
+        shk_explode_mag1        =       0
+        shk_explode_x           =       1
+        shk_explode_y           =       0
+        shk_explode_z           =       0
+        shk_explode_mute        =       1
+        
+        ; weapon                          ; keine Bewaffnung
+        ; mgun
+
+        dest_fx                 =       death_48_26_-10_2               
+        dest_fx                 =       death_41_-20_-37_10
+        dest_fx                 =       death_46_14_-46_20
+        dest_fx                 =       death_48_11_-41_7       
+        dest_fx                 =       death_46_-30_-24_-30 
+        dest_fx                 =       death_85_-11_-23_-40
+        dest_fx                 =       death_46_+20_-24_-25
+        dest_fx                 =       death_86_21_-26_1
+
+        job_fightrobo           = 0
+        job_fightflyer          = 0
+        job_fighthelicopter     = 0
+        job_fighttank           = 0
+        job_conquer             = 0
+        job_reconnoitre         = 10
+
+end
+
+;----------------------------------------------------------------------------------------------------------------
+;
+;	MYKONIER LEicht
+;
+;
+new_vehicle 	68
+    	model     		= 	tank
+    	name      		= 	0815
+	wireframe	=	wireless/otlMYKO2.sklt
+
+	hud_wireframe	=	wireless\nh6.sklt
+	wpn_wireframe_1	=	wireless\nhh.sklt
+	wpn_wireframe_2	=	wireless\nhi.sklt
+	mg_wireframe	=	wireless\nhf.sklt
+
+
+	vo_type		=	1	; light tank
+
+    	energy      	= 	9500
+    	shield      	= 	25
+    	mass        	= 	300
+    	force       	= 	10000
+    	maxrot      	= 	1
+    	airconst    	= 	120
+	; height                          	; DEFAULT
+    	radius      	= 	35
+    	overeof     	= 	11
+    	vwr_radius  	= 	35
+    	vwr_overeof 	= 	40 		; 30
+	adist_sector	=	650	
+	adist_bact              =  	550        	
+	sdist_sector	=	150		; Aufgrund der LenkRaketen darf er nicht so dicht ranfahren !
+	sdist_bact	=	400
+	radar		=	1
+
+    	vp_normal   	= 	270
+    	vp_fire     	= 	270
+    	vp_wait     	= 	270
+
+	vp_megadeth     	=       	8
+	vp_dead         	=       	273
+ 	vp_genesis      	=       	273
+
+
+    	type_icon   	= 	t
+
+	pal_explode_slot		=	1	; ROT
+	pal_explode_mag0	=	0
+	pal_explode_mag1	=	0.75
+	pal_explode_time		=	120
+	
+    	weapon      	= 	68                 	; siehe weap.scr
+	gun_angle	=	0.3		; PANZER auf 0.3 / Luftfahrzeuge auf NULL
+    	mgun        	= 	49                	; siehe weap.scr
+	gun_power	=	4000
+    	fire_x      		= 	0
+    	fire_y      	= 	-15
+    	fire_z      		= 	0
+
+	dest_fx = megadeth_42_0_-20_0	
+	dest_fx = megadeth_46_-20_0_20
+	dest_fx = megadeth_46_20_0_20
+	dest_fx = megadeth_46_0_0_0	
+	dest_fx = megadeth_46_-20_0_-20 
+	dest_fx = megadeth_81_-20_-20_-20
+	dest_fx = megadeth_86_+20_-20_-20
+	dest_fx = megadeth_43_25_-50_0
+
+        job_fightrobo           = 1
+        job_fightflyer          = 5			; 3
+        job_fighthelicopter     = 6		; 4
+        job_fighttank           = 2		; 3
+        job_conquer             = 4
+        job_reconnoitre         = 3
+
+end
+
+;--------------------------------------------------------------------
+;
+;       MYKONIER FAST/ JAEGER
+;
+new_vehicle     69
+        model                   =       plane
+        name                    =       X00A
+	wireframe	=	wireless/otlMYKO1.sklt
+	hud_wireframe	=	wireless\nh6.sklt
+	wpn_wireframe_1	=	wireless\nh7.sklt
+	wpn_wireframe_2	=	wireless\nh9.sklt
+	mg_wireframe	=	wireless\nh4.sklt
+
+	vo_type		=	7	; light aircraft
+
+        energy          	=       30000 
+        shield          	=       10
+        mass            	=       200
+        force           	=       25000
+        maxrot          	=       2.5
+        airconst        	=       130
+        height          	=       300
+        radius          	=       80
+        overeof         	=       25
+        vwr_radius	=       40
+        vwr_overeof =       30
+
+        adist_sector	=       900                     
+        adist_bact	=       900
+        sdist_sector	=       400
+        sdist_bact	=       500
+
+        vp_normal       	=       251
+        vp_fire         		=       251
+        vp_wait         		=       251
+
+        vp_megadeth     	=       8
+        vp_dead         	=       252
+        vp_genesis      	=       252
+        type_icon       	=       v
+        
+        pal_explode_slot	=       1                               ; ROT
+        pal_explode_mag0	=       0
+        pal_explode_mag1	=       1
+        pal_explode_time	=       160
+
+        shk_explode_slot	=       1
+        shk_explode_time	=       200
+        shk_explode_mag0	=       4
+        shk_explode_mag1	=       3
+        shk_explode_x	=       1
+        shk_explode_y           	=       0
+        shk_explode_z           	=       0
+        shk_explode_mute	=       1
+
+        weapon          	=       69
+        ; mgun            	=       49        kein MG
+        gun_angle               =       0
+        ;   gun_radius                          ; DEFAULT
+        gun_power       =       7000
+        fire_x                  =       15.0
+        fire_y          =       5.0
+        fire_z                  =       0.0
+
+        dest_fx = death_17_0_0_0      			; Blauer Dünner Ring
+
+        dest_fx = death_42_0_-20_0      
+        dest_fx = death_43_-20_30_20
+        dest_fx = death_44_20_20_50
+        dest_fx = death_46_11_70_0      
+        dest_fx = death_84_-20_0_-20 
+        dest_fx = death_81_-20_-10_-20
+        dest_fx = death_84_+20_-20_-20
+        dest_fx = death_45_25_50_0
+
+        job_fightrobo           = 	3		; 5
+        job_fightflyer          = 10
+        job_fighthelicopter     = 8		; 7
+        job_fighttank           = 2
+        job_conquer             = 1
+        job_reconnoitre         = 6
+
+end
+
+;-------------------------------------------------------------------------------------------
+;
+;       MYKONIER        BOMBER
+;
+;
+new_vehicle 	70
+    	model     		= 	plane
+    	name      		= 	AMB52
+	wireframe	=	wireless/otlMYKO3.sklt
+	vo_type		=	9	; heavy aircraft
+
+    	energy      	= 	45000
+    	shield      	= 	1
+    	mass        	= 	400
+    	force       	= 	10000
+    	maxrot      	= 	1.5
+    	airconst    	= 	200
+    	height      	= 	550		; sollte schon satt hoch fliegen !
+    	radius      	= 	80
+    	overeof     	= 	25
+    	vwr_radius  	= 	40
+    	vwr_overeof 	= 	30
+	radar		=	2
+
+	adist_sector 	=	1250                  	
+    	adist_bact  	= 	1200
+	sdist_sector	=	300
+	sdist_bact	=	300
+
+    	vp_normal   	= 	253                	; Bomber
+    	vp_fire     	= 	253
+    	vp_wait     	= 	253
+
+    	vp_megadeth 	= 	8	
+    	vp_dead     	= 	274
+    	vp_genesis  	= 	274
+    	type_icon   	= 	w
+
+	pal_explode_slot		=	1				; ROT
+	pal_explode_mag0	=	0
+	pal_explode_mag1	=	1
+	pal_explode_time		=	160
+
+	shk_explode_slot		= 	1
+	shk_explode_time	= 	200
+	shk_explode_mag0	= 	4
+	shk_explode_mag1	=	3
+	shk_explode_x		=	1
+	shk_explode_y		=	0
+	shk_explode_z		= 	0
+	shk_explode_mute	=	0.1
+
+	dest_fx = death_42_0_20_0	
+	dest_fx = death_43_-20_30_20
+	dest_fx = death_44_20_20_40
+	dest_fx = death_46_11_30_0	
+	dest_fx = death_42_-20_0_-20 
+	dest_fx = death_81_-10_10_-20
+	dest_fx = death_81_+10_20_-20
+	dest_fx = death_84_15_50_0
+	
+   	weapon      	= 	70
+    	; mgun        	= 	49                	; kein MG
+	gun_angle             =	0
+	;   gun_radius                      	; DEFAULT
+	;   gun_power                       	; DEFAULT
+    	fire_x      		= 	15.0
+    	fire_y      	= 	5.0
+    	fire_z      		= 	0.0
+
+        job_fightrobo           = 4		; 6
+        job_fightflyer          = 1
+        job_fighthelicopter     = 3
+        job_fighttank           = 10
+        job_conquer             = 10
+        job_reconnoitre         = 5
+
+end
+;---------------------------------------------------------------------------------------------------
+;
+;       SULGOGARE
+;  
+;       MIT FLUGZEUG-FLUGVERHALTEN
+;
+new_vehicle     71
+        model                   =       plane
+        name                    =       MOAUS-Z
+        energy          =       20000   
+        shield          =       30      
+        mass            =       400
+        force           =       7000
+        maxrot          =       1.5
+        airconst        =       120
+        height          =       150 
+        radius          =       30
+        overeof         =       25.0
+        vwr_radius      =       40.0
+        vwr_overeof     =       30.0
+        vp_normal       =       212             ; siehe visproto.lst
+        vp_fire         =       212
+        vp_megadeth     =       22              ; DUMMY
+        vp_wait         =       212             ; WAIT = NORMAL
+        vp_dead         =       143
+        vp_genesis      =       324
+        type_icon       =	<	; Extra Icon für die Map
+        
+        shk_explode_slot                =       1
+        shk_explode_time        =       200
+        shk_explode_mag0        =       4
+        shk_explode_mag1        =       3
+        shk_explode_x           =       1
+        shk_explode_y           =       0
+        shk_explode_z           =       0
+        shk_explode_mute        =       1
+
+        weapon          =       71              ; siehe weapon.scr
+        mgun            =       112
+        gun_angle       =       0           
+        fire_x                  =       15
+        fire_y          =       5
+        fire_z                  =       0
+        adist_sector    =       1100                    
+        adist_bact      =       2500    ; flieht er damit ?
+        sdist_sector    =       10
+        sdist_bact      =       10
+
+        dest_fx = death_119_0_-10_0     
+        dest_fx = death_119_-4_0_20
+        dest_fx = death_120_0_150_0
+        dest_fx = death_81_0_0_0        
+        dest_fx = death_81_-20_0_-20    
+        dest_fx = death_81_-20_-0_-4
+        dest_fx = death_81_0_-20_-20
+        dest_fx = death_119_25_0_0
+        dest_fx = death_119_-10_0_0
+
+        job_fightrobo           = 5
+        job_fightflyer          = 10
+        job_fighthelicopter     = 9
+        job_fighttank           = 3
+        job_conquer             = 5
+        job_reconnoitre         = 5
+
+end
+
+;------------------------------------------------------------------------------------------------------
+;
+;        SULGOGAR 1
+;   
+;       SchleimBatzen.
+;       Achtung:  Wird auch als SULGOGAREN-ROBO verwendet !
+;
+new_vehicle     72
+        model                   =       zeppelin
+        name                    =       AMM-O
+        energy          =       30000
+        shield          =       50
+        mass            =       400
+        force           =       5000
+        maxrot          =       2.0
+        airconst        =       150.0
+        height          =       200.0
+        radius          =       70.0
+        overeof         =       35.0
+        vwr_radius      =       50.0
+        vwr_overeof     =       30.0
+        vp_normal       =       142                     ; siehe visproto.lst
+        vp_fire         =       142
+        vp_megadeth     =       22
+        vp_wait         =       142
+        vp_dead         =       143
+        vp_genesis      =       322
+        type_icon       =       >		; Extra Icon für die Map
+
+        weapon          =       72                      ; SULGOGARENSCHLEIM
+        mgun            =       112
+        gun_angle       =       0       
+        fire_x                  =       0
+        fire_y          =       10
+        fire_z                  =       0
+
+        adist_sector    =       750                     
+        adist_bact      =       700
+        sdist_sector    =       100
+        sdist_bact      =       400
+
+        dest_fx = death_119_0_-10_0     
+        dest_fx = death_119_-4_0_20
+        dest_fx = death_120_0_150_0
+        dest_fx = death_81_0_0_0        
+        dest_fx = death_81_-20_0_-20    
+        dest_fx = death_81_-20_-0_-4
+        dest_fx = death_81_0_-20_-20
+        dest_fx = death_119_25_0_0
+        dest_fx = death_119_-10_0_0
+
+        job_fightrobo           = 10
+        job_fightflyer          = 8
+        job_fighthelicopter     = 9
+        job_fighttank           = 7
+        job_conquer             = 7
+        job_reconnoitre         = 3
+
+end
+
+;------------------------------------------------------------------------------------------------------
+;
+;        SULGOGAR 2
+;   
+;       MINIATURSCHLEIM.  Fliegend.
+;
+new_vehicle     73
+        model                   =      plane 			; heli
+        name                    =       WHOA-N
+        energy          =      6000 			; 1200 12000
+        shield          =       3.3			; 10 1
+        mass            =       40
+        force           =       5600
+        maxrot          =       3.5			; 2.8
+        airconst        =       75              		; 50.0
+        height          =       200.0 
+        radius          =       5.0
+        overeof         =       50.0
+        vwr_radius      =       25.0
+        vwr_overeof     =       25.0
+        vp_normal       =       177                     ; siehe visproto.lst
+        vp_fire         =       178
+        vp_megadeth     =       181
+        vp_wait         =       179
+        vp_dead         =       180
+        vp_genesis      =       323
+        type_icon       =       .		; Extra Icon für die Map
+        kill_after_shot = 1		; TOT nach 1. Schuss
+        
+        weapon          =       73              ; siehe weap.scr
+        mgun            =       112             ; siehe weap.scr
+        gun_angle       =       0
+        gun_power       =       13000
+        fire_x                  =       15
+        fire_y          =       5
+        fire_z                  =       0
+        adist_sector            =       800
+        adist_bact              =       750
+        sdist_sector    =       50
+        sdist_bact      =       20
+
+        job_fightrobo           = 1
+        job_fightflyer          = 3
+        job_fighthelicopter     = 5
+        job_fighttank           = 	9
+        job_conquer             = 	4
+        job_reconnoitre         = 7
+
+end
+
+;------------------------------------------------------------------------------------------------------
+;
+;        SULGOGAR 3
+;   
+;       RADARSCHLEIM
+;
+new_vehicle     74
+        model                   =       ufo		; heli
+        name                    =       ROA-O
+        energy          =       6000           		; ZehnMal mehr !
+        shield          =       20
+        mass            =       40
+        force           =       5600
+        radar           =       4               ; !
+        maxrot          =       2.8
+        airconst        =       50.0
+        height          =       400.0           ; Fliegt anders hoch (bei Bedarf ändern !)
+        radius          =       5.0
+        overeof         =       50.0
+        vwr_radius      =       25.0
+        vwr_overeof     =       25.0
+        vp_normal       =       177                     ; siehe visproto.lst
+        vp_fire         =       178
+        vp_megadeth     =       181
+        vp_wait         =       179
+        vp_dead         =       180
+        vp_genesis      =       323
+        type_icon       =       '		; neues icon für die Map
+        
+        ; weapon
+        ; mgun        
+        gun_angle       =       0
+        gun_power       =       13000
+        fire_x                  =       15
+        fire_y          =       5
+        fire_z                  =       0
+        adist_sector            =         1000
+        adist_bact              =         850
+        sdist_sector    =         350
+        sdist_bact      =         420
+
+        job_fightrobo           = 0
+        job_fightflyer          = 0
+        job_fighthelicopter     = 0
+        job_fighttank           = 0
+        job_conquer             = 0
+        job_reconnoitre         = 10
+
+end
+
+;---------------------------------------------------------------------------------------------------
+;
+;	KytERNESER FLUGIE, Agrar-Flugzeug zur WindBestäubung.
+;
+new_vehicle     130
+        model                   =       plane
+        name                    =       FYUGII
+	wireframe	=	wireless/otlFLUG1.sklt		; FIXME
+	vo_type		=	9	; heavy aircraft
+
+        energy          =       20000   
+        shield          =       10      
+        mass            =       400
+        force           =       7000
+        maxrot          =       1.0		; 0.8		; vorher 0.4
+        airconst        =       120
+        height          =       350 		; 250
+        radius          =       60
+        overeof         =       25
+        vwr_radius      =       40
+        vwr_overeof     =       30
+
+        	vp_normal       	=       54              ; siehe visproto.lst
+        	vp_fire         	=       55
+        	vp_megadeth     	=       56
+        	vp_wait         	=       54
+        	vp_dead         	=       58
+        	vp_genesis      	=       59
+
+        type_icon       =       l
+        
+        shk_explode_slot                =       1
+        shk_explode_time        =       200
+        shk_explode_mag0        =       4
+        shk_explode_mag1        =       3
+        shk_explode_x           =       1
+        shk_explode_y           =       0
+        shk_explode_z           =       0
+        shk_explode_mute        =       1
+
+        weapon          =       17              ; siehe weapon.scr
+        ; mgun 
+        gun_angle       =       0           
+        fire_x                  =       15
+        fire_y          =       5
+        fire_z                  =       0
+
+	adist_sector 	=	1250                  	
+    	adist_bact  	= 	1200
+	sdist_sector	=	300
+	sdist_bact	=	300
+
+
+        dest_fx = death_41_0_-20_0      
+        dest_fx = death_45_-20_0_20
+        dest_fx = death_45_20_0_20
+        dest_fx = death_46_0_0_0        
+        dest_fx = death_84_-20_0_-20    
+        dest_fx = death_42_-20_-20_-20
+        dest_fx = death_43_+20_-20_-20
+        dest_fx = death_47_25_-50_0
+
+        dest_fx = megadeth_123_0_-20_0	; ROTER RING (klein)
+        dest_fx = megadeth_126_0_-20_0	; ROTER WOUPS
+
+        job_fightrobo           = 7		; 3
+        job_fightflyer          = 7
+        job_fighthelicopter     = 8		; 3
+        job_fighttank           = 4		; 7
+        job_conquer             = 2
+        job_reconnoitre         = 5
+
+end
+;--------------------------------------------------------------------------------------------------------------------
+;
+;       TAERKASTEN ZEPPELIN
+;
+;       TEMPLATE /  FIXME physix + optix !
+;
+new_vehicle     131
+        model           =       zeppelin
+        name            =       ZEPPELIN
+	wireframe	=	wireless/otlZEPPL.sklt
+	vo_type		=	9	; heavy aircraft
+
+        energy          =       50000
+        shield          =       95
+        mass            =       100  			; 100
+        force           =       3333			; 3000
+        maxrot          =       0.25
+        airconst        =       570			; 550
+        height          =       250
+        radius          =       150
+        overeof         =       50
+        vwr_radius      =       100
+        vwr_overeof     =       50
+        vp_normal       =       248                     ; siehe visproto.lst
+        vp_fire         =       248	
+        vp_megadeth     =       204
+        vp_wait         =       248
+        vp_dead         =       250
+        vp_genesis      =       249             ; FIXME 
+        type_icon       =       4
+        radar       	= 	5
+        shk_explode_slot        =       1
+        shk_explode_time        =       200
+        shk_explode_mag0        =       4
+        shk_explode_mag1        =       3
+        shk_explode_x           =       1
+        shk_explode_y           =       0
+        shk_explode_z           =       0
+        shk_explode_mute        =       1
+
+        weapon          =       18                      ; FIXME !
+        ; mgun          =       keins           ; FIXME !
+        gun_angle       =       0             
+        fire_x          =       0
+        fire_y          =       -50
+        fire_z          =       -16
+        
+        adist_sector    =       250                     
+        adist_bact      =       100
+        sdist_sector    =       50
+        sdist_bact      =       5
+
+        dest_fx         =       death_48_26_-10_2               
+        dest_fx         =       death_41_-20_-37_10
+        dest_fx         =       death_46_14_-46_20
+        dest_fx         =       death_48_11_-41_7       
+        dest_fx         =       death_46_-30_-24_-30 
+        dest_fx         =       death_85_-11_-23_-40
+        dest_fx         =       death_46_+20_-24_-25
+        dest_fx         =       death_84_21_-26_1
+
+        job_fightrobo           = 3		; 5
+        job_fightflyer          = 1
+        job_fighthelicopter     = 1
+        job_fighttank           = 6		; 5
+        job_conquer             = 7		; 7
+        job_reconnoitre         = 10		; 9 8
+
+end
+
+;------------------------------------------------------------------------------------------------------------------
+;
+;       User -GIGANT
+;  
+;       URALTER extrem polygonintensiver Fluggleiter mit LASER
+;       angemessenes GegenStück zum LAWNMOWER
+;
+new_vehicle     133
+        model                   =       glider
+        name                    =       GIGANT
+	wireframe	=	wireless/otlGIGNT.sklt
+
+	hud_wireframe	=	wireless\nhc.sklt
+	wpn_wireframe_1	=	wireless\nh3.sklt
+	wpn_wireframe_2	=	wireless\nh5.sklt
+	mg_wireframe	=	wireless\nh2.sklt
+
+
+	vo_type		=	9	; heavy aircraft
+
+        energy          =       55000                   ; Um die Anwendung etwas zu reduzieren
+        shield          =       50			;30                      ; hab ich die Energie hochgesetzt (*3),
+        mass            =       600                     ; und dafür den Shield runter (/3).
+        force           =       12000
+        maxrot          =       2
+        airconst        =       180.0
+        height          =       100.0
+        radius          =       90.0
+        overeof         =       15.0
+        vp_normal       =       116             ; siehe visproto.lst
+        vp_fire         =       118
+        vp_megadeth     =       117
+        vp_wait         =       119
+        vp_dead         =       120
+        vp_genesis      =       121
+        type_icon       =       )
+
+        shk_explode_slot                =       1
+        shk_explode_time        =       200
+        shk_explode_mag0        =       5
+        shk_explode_mag1        =       3
+        shk_explode_x           =       1
+        shk_explode_y           =       1
+        shk_explode_z           =       0
+        shk_explode_mute        =       0.1
+
+        weapon          =       27                 ; siehe weap.scr
+        mgun            =       49
+        gun_angle       =       0
+        gun_power       =       8000    
+        fire_x                  =       15
+        fire_y          	=       20
+        fire_z                  =       0
+        adist_sector    =       1200            ; is nich zuweit ?                      
+        adist_bact      =       1000
+        sdist_sector    =       340
+        sdist_bact      =       440
+
+        dest_fx = death_21_0_0_0	; Kleiner WRING
+
+        dest_fx = megadeth_21_0_-20_0	; Kleiner WRING
+        dest_fx = megadeth_20_0_-20_0	; Kleiner WRING
+
+        dest_fx                 =       death_41_0_-20_0        
+        dest_fx                 =       death_42_-20_0_20
+        dest_fx                 =       death_43_20_0_20
+        dest_fx                 =       death_45_0_0_0  
+        dest_fx                 =       death_46_-20_0_-20 
+        dest_fx                 =       death_42_-20_-20_-20
+        dest_fx                 =       death_46_+20_-20_-20
+        dest_fx                 =       death_44_25_-50_0
+
+        job_fightrobo           = 10
+        job_fightflyer          = 	2		; 7
+        job_fighthelicopter     = 3		; 8 
+        job_fighttank           = 1
+        job_conquer             = 1
+        job_reconnoitre         = 3
+
+end
+
+;----------------------------------------------------------------------------------
+;
+;       User - BRONSTEIJN
+;   
+;       KAMPFSATELLIT-Satellit
+;       mit den absolut tödlichsten Waffen.
+;       (PS.: Hubschrauber-FlugModell)
+;
+new_vehicle     134
+        model                   =       heli
+        name                    =       BRONSTEIJN
+	wireframe	=	wireless/otlSATT2.sklt
+	vo_type		=	9	; heavy aircraft
+
+        energy          =       50000
+        shield          =       25              
+        mass            =       350
+        force           =       7500
+        maxrot          =       5
+        airconst        =       70.0
+        height          =       250.0
+                radius          =       60.0
+        overeof         =       12.0
+        vwr_radius      =       60.0
+        vwr_overeof     =       30.0
+        adist_sector    =       800                  
+        adist_bact      =       750
+        sdist_sector    =       0
+        sdist_bact      =              400              
+
+        vp_normal       =       153                     ; siehe visproto.lst
+        vp_fire         =       153
+        vp_megadeth     =       154
+        vp_wait         =       153
+        vp_dead         =       155
+        vp_genesis      =       156
+        type_icon       =       (
+ 
+        gun_angle               =       	0	; 0.3     Hier kanns eben ja NICHT ruhig schief rauskommen !
+        weapon                                  =       20	; ACHTUNG ! Neu
+
+        pal_explode_slot                =       1                               ; ROT
+        pal_explode_mag0        =       0
+        pal_explode_mag1        =       0.5
+        pal_explode_time                =       100
+
+        shk_explode_slot                =       1
+        shk_explode_time        =       200
+        shk_explode_mag0        =       4
+        shk_explode_mag1        =       3
+        shk_explode_x           =       1
+        shk_explode_y           =       0
+        shk_explode_z           =       0
+        shk_explode_mute        =       1
+        
+        dest_fx                 =       death_48_26_-10_2               ; Hier lasse ich einige seiner Waffen explodieren.      
+        dest_fx                 =       death_41_-20_-37_10
+        dest_fx                 =       death_42_14_-46_20
+        dest_fx                 =       death_41_11_-41_7       
+        dest_fx                 =       death_45_-30_-24_-30 
+        dest_fx                 =       death_81_-11_-23_-40
+        dest_fx                 =       death_46_+20_-24_-25
+        dest_fx                 =       death_84_21_-26_1
+
+        job_fightrobo           = 	6		; 8
+        job_fightflyer          = 1			; 4
+        job_fighthelicopter     = 6		; 9
+        job_fighttank           = 10
+        job_conquer             = 9
+        job_reconnoitre         = 2
+
+end
+
+;----------------------------------------------------------------------------------
+;
+;       Tonne
+;   
+;       als Zielscheibe für Tutorial
+;       mit absolut garkeinen überhauptnicht waffen
+;       mit Satteliten Flugmodell
+
+new_vehicle     138
+        model           =       zeppelin
+        name            =       Tonne
+	vo_type		=	9	; heavy aircraft
+
+        energy          =       50000
+        shield          =       30			; 65
+        mass            =       100  			; 100
+        force           =       3333			; 3000
+        maxrot          =       0.25
+        airconst        =       570			; 550
+        height          =       250
+        radius          =       250
+        overeof         =       100
+        vwr_radius      =       100
+        vwr_overeof     =       50
+
+        	vp_normal 	=       	342	; siehe visproto.lst
+        	vp_fire         	=       	342
+        	vp_megadeth     	=       	117	; wie der User-Satt.
+        	vp_wait         	=       	342	; WAIT = NORMAL
+        	vp_dead         	=       	343
+        	vp_genesis      	=       	343
+
+        type_icon       =       _
+
+        ; weapon          =       19                      ; FIXME !
+        ; mgun          =       keins           ; FIXME !
+        gun_angle       =       0             
+        fire_x          =       0
+        fire_y          =       -50
+        fire_z          =       -16
+        
+        adist_sector    =       250                     
+        adist_bact      =       100
+        sdist_sector    =       50
+        sdist_bact      =       5
+
+        dest_fx         =       death_41_-20_-37_10
+        dest_fx         =       death_46_14_-46_20
+
+        job_fightrobo           = 	10
+        job_fightflyer          = 10
+        job_fighthelicopter     = 10	
+        job_fighttank           = 10
+        job_conquer             = 10
+        job_reconnoitre         = 10
+
+end
+
+;----------------------------------------------------------------------------------
+;
+;       Tonne
+;   
+;       als Zielscheibe für Tutorial
+;       mit absolut garkeinen überhauptnicht waffen
+;       mit Satteliten Flugmodell
+
+new_vehicle     142
+        model           =       zeppelin
+        name            =       Tonne
+	vo_type		=	9	; heavy aircraft
+
+        energy          =       40000
+        shield          =       30			; 65
+        mass            =       100  			; 100
+        force           =       3333			; 3000
+        maxrot          =       1.5
+        airconst        =       270			; 550
+        height          =       250
+        radius          =       150
+        overeof         =       100
+        vwr_radius      =       100
+        vwr_overeof     =       50
+
+        	vp_normal 	=       	342	; siehe visproto.lst
+        	vp_fire         	=       	342
+        	vp_megadeth     	=       	117	; wie der User-Satt.
+        	vp_wait         	=       	342	; WAIT = NORMAL
+        	vp_dead         	=       	343
+        	vp_genesis      	=       	343
+
+        type_icon       =       _
+
+        weapon          =       19
+        ; mgun          =       keins           ; FIXME !
+        gun_angle       =       0             
+        fire_x          =       0
+        fire_y          =       -50
+        fire_z          =       -16
+        
+              adist_sector    = 800				; 600
+                adist_bact      = 700
+                sdist_sector    = 300
+                sdist_bact      = 500			; 400
+
+        dest_fx         =       death_41_-20_-37_10
+        dest_fx         =       death_46_14_-46_20
+
+        job_fightrobo           = 	10
+        job_fightflyer          = 10
+        job_fighthelicopter     = 10	
+        job_fighttank           = 10
+        job_conquer             = 10
+        job_reconnoitre         = 10
+
+end
+
+
+;-------------------------------------------------------------------------------------------------------------
+;                       end     of      feinde
+;-------------------------------------------------------------------------------------------------------------

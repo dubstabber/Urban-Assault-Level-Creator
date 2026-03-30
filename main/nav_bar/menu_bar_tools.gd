@@ -23,9 +23,9 @@ func _on_index_pressed(index: int) -> void:
 		"Switch to building design mode":
 			%TypMapDesignerContainer.visible = not %TypMapDesignerContainer.visible
 		"Resize the map":
-			%ResizeMapWindow.popup()
+			%ResizeMapWindow.popup.call_deferred()
 		"Generate buildings randomly":
-			%RandomizeTypMapConfirmationDialog.popup()
+			%RandomizeTypMapConfirmationDialog.popup.call_deferred()
 		"Open map in text editor":
 			_open_map_in_text_editor()
 
@@ -35,8 +35,7 @@ func _open_map_in_text_editor() -> void:
 		printerr("Error: No map is currently opened")
 		EventSystem.open_map_in_text_editor_failed.emit("no_map_opened")
 		return
-	
-	# Open file with default text editor
+
 	OS.shell_open(CurrentMapData.map_path)
 
 

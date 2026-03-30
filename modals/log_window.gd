@@ -36,7 +36,7 @@ func display_messages() -> void:
 	
 	for message in EditorState.warning_messages:
 		logs_list.add_item(message, warning_icon)
-	popup()
+	popup.call_deferred()
 
 
 func close() -> void:

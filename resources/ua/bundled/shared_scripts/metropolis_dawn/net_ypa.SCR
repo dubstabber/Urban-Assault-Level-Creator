@@ -1,0 +1,20 @@
+;--------------------------------------------------------------------------------------------------------------------------------------
+;
+;   	-           Y   o   u   r       P   e   r   s   o   n   a   l       A   M   O   K         -
+;
+;          	S T A R T U P S C R I P T        für                 S P I E L A N F A N G 
+;
+;	29-May-98	Bernd	BUGFIX Das NETRFLAK.SCR war nicht geincluded !!!
+;
+;	(C) 1996-1998 	B.Beyreuther / A.Flemming / A.Weissflog
+;
+include data:scripts/user.scr      		; die User-Vehikel
+include data:scripts/feinde.scr      		; die Feind-Fahrzeuge
+include data:scripts/weap_u.scr         	; User-Waffen
+include data:scripts/weap_f.scr         	; Feind-Waffen
+include data:scripts/net_bldg.scr        	; alle Buildings
+include data:scripts/net_robo.scr       	; ROBOS 
+include data:scripts/bruch.scr       		; Gebäude-Bruch / Brocken / Rauch
+include data:scripts/flaks.scr		; stationäre FLAKS und Radar-Schüssel
+include data:scripts/netrflak.scr		; Modifizieren des UserRobos für Netzspiel
+include data:scripts/ssnd.scr		; das MODIFY-Script zum Eintragen aller FINALEN SOUNDS von SILVIUS

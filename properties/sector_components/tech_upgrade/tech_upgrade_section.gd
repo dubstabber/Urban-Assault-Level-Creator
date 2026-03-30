@@ -32,6 +32,7 @@ func _ready() -> void:
 				16: CurrentMapData.typ_map[EditorState.selected_sector_idx] = 103
 				65: CurrentMapData.typ_map[EditorState.selected_sector_idx] = 110
 			CurrentMapData.blg_map[EditorState.selected_sector_idx] = building_id
+			EventSystem.typ_map_cells_edited.emit([EditorState.selected_sector_idx])
 			EventSystem.map_updated.emit()
 		)
 	sound_type_option_button.item_selected.connect(func(index: int):

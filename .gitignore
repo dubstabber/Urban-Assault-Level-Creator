@@ -21,6 +21,7 @@ export_presets.cfg
 .idea/
 .augment/
 .windsurf/
+.cursor/
 
 # OS-generated files
 .DS_Store
@@ -35,8 +36,10 @@ Thumbs.db
 .usor/
 PLANNING.md
 TASK.md
-resources/ua/
 scripts/
 tests/
 docs/
 ua_source_code_prototype/
+.augmentignore
+Godot_v4.5.1-stable_linux.x86_64
+debug-output.txt

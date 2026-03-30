@@ -37,18 +37,21 @@ func _on_save_button_pressed() -> void:
 	CurrentMapData.music = music_option_button.get_item_id(music_option_button.selected)
 	CurrentMapData.min_break = int(min_break_line_edit.text)
 	CurrentMapData.max_break = int(max_break_line_edit.text)
-	hide()
-	music_button.text = "Play"
-	music_button.button_pressed = false
-	music_player.stop()
+	_close_window(false)
 	EventSystem.map_updated.emit()
 
 
 func _on_cancel_button_pressed() -> void:
+	_close_window(true)
+
+
+func _close_window(reset_sky_preview: bool) -> void:
 	hide()
 	music_button.text = "Play"
 	music_button.button_pressed = false
 	music_player.stop()
+	if reset_sky_preview:
+		EventSystem.sky_preview_reset_requested.emit()
 
 
 func get_option_index_by_text(option_button: OptionButton, text: String) -> int:
@@ -60,7 +63,12 @@ func get_option_index_by_text(option_button: OptionButton, text: String) -> int:
 
 func _on_sky_option_button_item_selected(index: int) -> void:
 	var sky_text = sky_option_button.get_item_text(index)
-	sky_texture.texture = Preloads.get_sky(sky_text)
+	_preview_sky(sky_text)
+
+
+func _preview_sky(sky_name: String) -> void:
+	sky_texture.texture = Preloads.get_sky(sky_name)
+	EventSystem.sky_preview_requested.emit(sky_name)
 
 
 func _on_music_button_toggled(toggled_on: bool) -> void:
@@ -78,10 +86,10 @@ func _on_music_button_toggled(toggled_on: bool) -> void:
 
 
 func _on_pick_sky_button_pressed() -> void:
-	sky_picker_window.popup()
+	sky_picker_window.popup.call_deferred()
 
 
 func _on_sky_picker_window_sky_selected(sky_name: String) -> void:
 	var index = get_option_index_by_text(sky_option_button, sky_name)
 	sky_option_button.select(index)
-	sky_texture.texture = Preloads.skies[sky_name]
+	_preview_sky(sky_name)

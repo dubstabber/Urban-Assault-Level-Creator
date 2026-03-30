@@ -1,0 +1,1412 @@
+;----------------------------------------------------------------------------------------------------------------------------------------------------------------
+;
+;   	-           Y   o   u   r       P   e   r   s   o   n   a   l       A   M   O   K         -
+;
+;	Gebäude-Bruch-Stücke, KaschierExplosjonen, GERÄUSCH-VISPROTOS
+;
+;	THE FINE ART OF MAKING KAWUMM! & KAZONG!
+;
+;	created:		10-07-96
+;	updated:		26-11-96			Sounds ausgelagert
+;			07-01-97			nochmals neue FX dazu
+;			18-Feb-97		SULG DFX
+;			22-MAY-97		kommentiert
+;			27-May-97		Sound-BruchFx
+;			12-JUN-97		Neue ScaleFX
+;			24-SEP-97		Neue ScaleFX
+;			25/26-SEP-97		Neue ScaleFX
+;			17-Feb-98		DA SUPABOMB RING
+;			19-Feb-98		DASUPAOMB Bugfix
+;			05-mar-98		Hochkant scfx für TaerROBO
+;			29-May-98		STERNENHELL
+;			16-Jun-98		Die NOISY FX auf Megadeth umgestellt
+;			27-Jun-98		Blauer Bodeneinschlags-Scale Effekt
+;			
+;
+;	DEATH		:		Explosion
+;	MEGADEATH	:		Aufprall
+;
+;	(C) 1996-1998 	B.Beyreuther / A.Flemming / A.Weissflog
+;
+;---------------------------------------------------------------------------------------------------------------------------------------------------------------
+;
+;	BRUCH	NOISY GROSSKRATER	EXPLO SHAKE PALETTE		*** NEW		
+;	
+;	Spezieller NOISE: Größere Gebäude ------------------> Krater 	
+;
+new_vehicle 	39
+    	model     		= 	plane
+    	name      		=	N_MEDX
+    	type_icon	=	I				; DEBUGICON
+    	energy   		= 	100
+    	shield      	= 	1
+    	mass        	= 	1				; HACK
+    	force       	= 	6000
+    	maxrot      	= 	0.2
+    	airconst    	= 	180.0
+    	radius      	= 	1.0
+    	vp_normal   	= 	160
+    	vp_fire     	= 	22				
+    	vp_megadeth 	= 	22				; unnötig
+    	vp_wait     	= 	22
+    	vp_dead    	= 	160
+    	vp_genesis  	= 	160
+
+	shk_explode_slot		= 	1
+	shk_explode_time	= 	350
+	shk_explode_mag0	=	0.25
+	shk_explode_mag1	=	0
+	shk_explode_x		= 	1
+	shk_explode_y		= 	1
+	shk_explode_z		= 	0.0
+	shk_explode_mute	=	0.06
+	pal_explode_slot		=	1
+	pal_explode_mag0	=	0.1
+	pal_explode_mag1	=	0
+	pal_explode_time		=	250
+
+	dest_fx	= megadeth_118_0_-50_0		; HÄUSERFX
+end
+
+
+;----------------------------------------------------------------------------------------------
+;
+;       	STECKENBRUCH
+;	ein einfacher Stab (Blech oder Holz), kein Rauch
+;	bei Aufprall ganz kleine "Verschwinde-"Explosion 
+;
+new_vehicle 40
+    	model     		= 	plane
+    	name      		=	B_STECKEN
+    	type_icon	=	I		; DEBUG
+    	energy   		= 	10000
+    	shield      	= 	1
+    	mass        	= 	150
+    	force       	= 	6000
+    	maxrot      	= 	3.0
+    	airconst    	= 	40.0
+    	radius      	= 	1.0
+    	vp_normal   	= 	195                	
+    	vp_fire     	= 	22
+    	vp_megadeth 	= 	137
+    	vp_wait     	= 	22
+    	vp_dead    	= 	195
+    	vp_genesis  	= 	195
+end
+
+;----------------------------------------------------------------------------------------------
+;
+;       	BRUCHSTÜCK	
+;	ein mittler Brocken aus Metall/Blech
+;	bei Aufprall kleine "Verschwinde-"Explosion
+;
+new_vehicle 41
+    	model     		= 	plane
+    	name      		=	B_KYTBRUCH
+    	type_icon	=	I		; DEBUG
+    	energy   		= 	100000
+    	shield      	= 	1
+    	mass        	= 	100
+    	force       	= 	6000
+    	maxrot      	= 	3.0
+    	airconst    	= 	60.0
+    	radius      	= 	10.0
+    	vp_normal   	= 	194		; KYTERNESERKLUMPEN
+    	vp_fire     	= 	22
+    	vp_megadeth 	= 	67		; einfache Explosion
+    	vp_wait     	= 	22
+    	vp_dead    	= 	194		; KYTERNESERKLUMPEN
+    	vp_genesis  	= 	194
+end
+
+;-----------------------------------------------------------------------------------------------
+;
+;	Additional Destruction Explosion 1
+;	A.D.Explosions sind Varianten der üblichen Explosionen
+;	Es werden die selben Explosionen verwendet/re-used,  wie sie auch an 
+;	verschiedenen Fahrzeugen dran sind.
+;	42 ist die kleinste von den dreien (42-44)
+;	Für 42,43,44,47 gilt: sie treten stets nur als zusätzliche SahneHäubchen-
+;	Explos auf. 
+; 	
+new_vehicle 42
+    	model     		= 	plane
+    	name      		=	B_ADDEXPLO1
+    	type_icon	=	I		; DEBUG
+    	energy   		= 	100
+    	shield      	= 	1
+    	mass        	= 	1000
+    	force       	= 	6000
+    	maxrot      	= 	0.2
+    	airconst    	= 	180.0
+    	radius      	= 	1.0
+    	vp_normal   	= 	185
+    	vp_fire     	= 	22
+    	vp_megadeth 	= 	22		; unnötig
+    	vp_wait     	= 	22
+    	vp_dead    	= 	185
+    	vp_genesis  	= 	185
+end
+
+;-----------------------------------------------------------------------------------------------
+;
+;	Additional Destruction Explosion 2
+;	A.D.Explosions sind Varianten der üblichen Explosionen
+;	Es werden die selben Explosionen verwendet/re-used,  wie sie auch an 
+;	verschiedenen Fahrzeugen dran sind.
+;	43 ist die mittlere von diesen dreien (42-44)
+; 	
+new_vehicle 43
+    	model     		= 	plane
+    	name      		=	B_ADDEXPLO2
+    	type_icon	=	I		; DEBUG
+    	energy   		= 	100
+    	shield      	= 	1
+    	mass        	= 	1000
+    	force       	= 	6000
+    	maxrot      	= 	0.2
+    	airconst    	= 	180.0
+    	radius      	= 	1.0
+    	vp_normal   	= 	167
+    	vp_fire     	= 	22
+    	vp_megadeth 	= 	22		; unnötig
+    	vp_wait     	= 	22
+    	vp_dead    	= 	167
+    	vp_genesis  	= 	167
+end
+
+;-----------------------------------------------------------------------------------------------
+;
+;	Additional Destruction Explosion 3
+;	A.D.Explosions sind Varianten der üblichen Explosionen
+;	Es werden die selben Explosionen verwendet/re-used,  wie sie auch an 
+;	verschiedenen Fahrzeugen dran sind.
+;	43 ist die größte von den dreien (42-44)
+; 	
+new_vehicle 44
+    	model     		= 	plane
+    	name      		=	B_ADDEXPLO3
+    	type_icon	=	I		; DEBUG
+    	energy   		= 	100
+    	shield      	= 	1
+    	mass        	= 	1000
+    	force       	= 	6000
+    	maxrot      	= 	0.2
+    	airconst    	= 	180.0
+    	radius      	= 	1.0
+    	vp_normal   	= 	160
+    	vp_fire     	= 	22
+    	vp_megadeth 	= 	22		; unnötig
+    	vp_wait     	= 	22
+    	vp_dead    	= 	160
+    	vp_genesis  	= 	160
+end
+
+;------------------------------------------------------------------------------------------
+;
+;       	DUSTERWOLKENAUSSTOSS 	
+;	Ein brennender Brocken mit schwarzem Rauch.
+;	Es gilt: alles was hier schwarzer Rauch genannt wird, ist  in der
+;	D3D-Version mit echtem ALPHA BLENDING weiß... :-)
+;
+new_vehicle 45
+    	model     		= 	heli
+    	name      		=	B_DUSTERWOLKE
+    	type_icon	=	I		; DEBUG
+    	energy   		= 	100000
+    	shield      	= 	1
+    	mass        	= 	60
+    	force       	= 	6000
+    	maxrot      	= 	3.0
+    	airconst    	= 	1
+    	radius      	= 	10.0
+    	vp_normal   	=	196
+    	vp_fire     	= 	22
+    	vp_megadeth 	=	140
+    	vp_wait     	= 	22
+    	vp_dead    	=	196
+    	vp_genesis  	= 	196
+end
+
+;------------------------------------------------------------------------------------------
+;
+;       	MINIBROCKEN	
+;	
+;	ein unspektakulärer kleiner Eisen-Brocken
+;
+new_vehicle 46
+    	model     		= 	heli
+    	name      		=	B_MINIBROCKEN
+    	type_icon	=	I		; DEBUG
+    	energy   		= 	100000
+    	shield      	= 	1
+    	mass        	= 	40
+    	force       	= 	6000
+    	maxrot      	= 	3.0
+    	airconst    	= 	20
+    	radius      	= 	10.0
+    	vp_normal   	=	193
+    	vp_fire     	= 	22
+    	vp_megadeth 	=	22
+    	vp_wait     	= 	22
+    	vp_dead    	=	193
+    	vp_genesis  	= 	193
+end
+
+;-----------------------------------------------------------------------------------------------
+;
+;	Additional Destruction Explosion 4
+;	A.D.Explosions sind Varianten der üblichen Explosionen
+;	Es werden die selben Explosionen verwendet/re-used,  wie sie auch an 
+;	verschiedenen Fahrzeugen dran sind.
+;	Das hier ist eine richtige fette...
+; 	
+new_vehicle 47
+    	model     		= 	plane
+    	name      		=	B_FATTESTEXPLO
+    	type_icon	=	I		; DEBUG
+    	energy   		= 	100
+    	shield      	= 	1
+    	mass        	= 	1000
+    	force       	= 	6000
+    	maxrot      	= 	0.2
+    	airconst    	= 	180.0
+    	radius      	= 	1.0
+    	vp_normal   	= 	192		; VP_X2
+    	vp_fire     	= 	22
+    	vp_megadeth 	= 	22		; unnötig
+    	vp_wait     	= 	22
+    	vp_dead    	= 	192
+    	vp_genesis  	= 	192
+end
+
+;-----------------------------------------------------------------------------------------------
+;
+;	BlueExplonalZeukx
+;
+;	Blaues Elektro/Blitz-Gegrissel
+; 	
+new_vehicle	48
+        	model                   	=       	plane
+        	name          	=       	B_BLUEEXPLONALZEUKX
+    	
+	vp_normal   	= 	157			
+    	vp_fire     	= 	157
+    	vp_dead     	= 	125
+    	vp_wait     	= 	157
+    	vp_megadeth 	= 	125
+    	vp_genesis  	= 	125
+
+	energy    	= 	120000
+    	mass      		= 	10.0
+    	force     		= 	26000
+    	maxrot    		= 	3.0
+    	airconst  	= 	100.0
+        	radius          	=       	5
+
+	type_icon	=	I			;DEBUGICON 	
+
+    	pal_goingdown_slot		=	2
+	pal_goingdown_mag0		=	0.5
+	pal_goingdown_mag1		=	0.5
+end
+
+;------------------------------------------------------------------------------------------------
+;
+;	Von 49 bis ...	liegen die neuen SOUND-"DummiEs"
+;	Eigentlich sind es keine. Weil: ich nehm die typischsten Sachen
+;	und fertige einfach eine Kopie davon an, die dann vertont wird, und
+;	NUR EINMAL  an die Häuser rangebunden wird, gar nicht an die Fahrzeuge.
+;	Also: man sieht schon was.
+;	WISCHDSCH: Alle SOUND-DUMMIES haben THE SPECIAL MASS: ONE.
+;	This is  a  hack,  diese Brockerln werden aussortiert und NICHT bewegt,
+;	damitzz die DopplerEffekte nich gibbt. 
+;
+;	TYPISCH	IST 	FÜR 	DIE 	MEISTEN	HÄUSER:
+;		INTAKT		----------->	1.ZerstörungsStufe	:	49 NOISY DUSTERWOLKE
+;		1.ZerstörungsStufe	----------->	2.ZerstörungsStufe	:	51 NOISY MEDIUM EXPLO (SHK+PAL)
+;		2.ZerstörungsStufe	----------->	KRATER		:	52 NOISY SMALL    EXPLO (SHK+PAL)	
+;
+;	NOISY DUSTERWOLKE
+;
+;	Die bekannte Dusterwolke.  
+;	HÄUSER:	INTAKT ------------------->	ANGEKNACKST / ANGERÄUCHERT
+; 	
+new_vehicle 	49
+    	model     		= 	plane
+    	name      		=	N_DUSTERWOLKE
+    	type_icon	=	I					; DEBUGICON
+    	energy   		= 	100
+    	shield      	= 	1
+    	mass        	= 	1					; HACK
+    	force       	= 	6000
+    	maxrot      	= 	0.2
+    	airconst    	= 	180.0
+    	radius      	= 	1.0
+    	vp_normal   	= 	130     
+    	vp_fire     	= 	22
+    	vp_megadeth 	= 	22
+    	vp_wait     	= 	22
+    	vp_dead    	= 	130
+    	vp_genesis  	= 	130
+end
+
+;------------------------------------------------------------------------------------------------
+;
+;	NOISY BIG EXPLO SHAKE PALETTE	
+;	
+;	GROSSE FETTE EXPLOSION / SEHR GROSSE, SEKTORFÜLLENDE GEBÄUDE
+;	HÄUSER:	ANGEKNACKST -------------------> RICHTIG EINGESTÜRZT / SCHWER ANGESCHLAGEN
+; 	
+new_vehicle 	50
+    	model     		= 	plane
+    	name      		=	N_BIGX
+    	type_icon	=	I				; DEBUGICON
+    	energy   		= 	100
+    	shield      	= 	1
+    	mass        	= 	1				; HACK
+    	force       	= 	6000
+    	maxrot      	= 	0.2
+    	airconst    	= 	180.0
+    	radius      	= 	1.0
+    	vp_normal   	= 	34				; dummy                
+    	vp_fire     	= 	22				; dummy
+    	vp_megadeth 	= 	141	
+    	vp_wait     	= 	38				; dummy
+    	vp_dead    	= 	141
+    	vp_genesis  	= 	141
+
+	shk_explode_slot		= 	1
+	shk_explode_time	= 	250
+	shk_explode_mag0	=	0.5
+	shk_explode_mag1	=	0
+	shk_explode_x		= 	1
+	shk_explode_y		= 	1
+	shk_explode_z		= 	0.0
+	shk_explode_mute	=	0.06
+	pal_explode_slot		=	1
+	pal_explode_mag0	=	0.2
+	pal_explode_mag1	=	0
+	pal_explode_time		=	250
+
+	dest_fx	= megadeth_118_0_-100_0		; HÄUSERFX
+	dest_fx	= megadeth_124_0_0_0		; HÄUSERFX
+
+end
+
+;------------------------------------------------------------------------------------------------
+;
+;	NOISY MEDIUM EXPLO SHAKE PALETTE
+;	
+;	GROSSE EXPLOSION / GROSSE UND NORMALE GEBÄUDE
+;	HÄUSER:	ANGEKNACKST -------------------> RICHTIG EINGESTÜRZT / SCHWER ANGESCHLAGEN
+; 	
+new_vehicle 	51
+    	model     		= 	plane
+    	name      		=	N_MEDX
+    	type_icon	=	I				; DEBUGICON
+    	energy   		= 	100
+    	shield      	= 	1
+    	mass        	= 	1				; HACK
+    	force       	= 	6000
+    	maxrot      	= 	0.2
+    	airconst    	= 	180.0
+    	radius      	= 	1.0
+    	vp_normal   	= 	160
+    	vp_fire     	= 	22				
+    	vp_megadeth 	= 	22				; unnötig
+    	vp_wait     	= 	22
+    	vp_dead    	= 	160
+    	vp_genesis  	= 	160
+
+	shk_explode_slot		= 	1
+	shk_explode_time	= 	250
+	shk_explode_mag0	=	0.25
+	shk_explode_mag1	=	0
+	shk_explode_x		= 	1
+	shk_explode_y		= 	1
+	shk_explode_z		= 	0.0
+	shk_explode_mute	=	0.06
+	pal_explode_slot		=	1
+	pal_explode_mag0	=	0.1
+	pal_explode_mag1	=	0
+	pal_explode_time		=	250
+
+	dest_fx	= megadeth_118_0_-50_0		; HÄUSERFX
+end
+
+;------------------------------------------------------------------------------------------------
+;
+;	NOISY  SMALL  EXPLO SHAKE PALETTE
+;	
+;	EXPLOSION /  KLEINE GEBÄUDE 
+;	HÄUSER:	ANGEKNACKST -------------------> RICHTIG EINGESTÜRZT / SCHWER ANGESCHLAGEN
+; 	
+new_vehicle 	52
+    	model     		= 	plane
+    	name      		=	N_SMALLX
+    	type_icon	=	I			; DEBUGICON
+    	energy   		= 	100
+    	shield      	= 	1
+    	mass        	= 	1			; HACK
+    	force       	= 	6000
+    	maxrot      	= 	0.2
+    	airconst    	= 	180.0
+    	radius      	= 	1.0
+    	vp_normal   	= 	185
+    	vp_fire     	= 	22
+    	vp_megadeth 	= 	22			; unnötig
+    	vp_wait     	= 	22
+    	vp_dead    	= 	185
+    	vp_genesis  	= 	185
+
+	shk_explode_slot		= 	1
+	shk_explode_time	= 	250
+	shk_explode_mag0	=	0.125
+	shk_explode_mag1	=	0
+	shk_explode_x		= 	1
+	shk_explode_y		= 	1
+	shk_explode_z		= 	0.0
+	shk_explode_mute	=	0.06
+	pal_explode_slot		=	1
+	pal_explode_mag0	=	0.05
+	pal_explode_mag1	=	0
+	pal_explode_time		=	250
+end
+
+;------------------------------------------------------------------------------------------------
+;
+;	NOISY GESPLITTER
+;	
+;	Kleinere GartenZäune, Masten, etc. splittern auseinander.
+;	Optisch:	 Brocken, Steine (Splitter?) werden weggeschleudert...
+; 	
+new_vehicle 	53
+	model     		= 	plane
+	type_icon	=	I			; DEBUGICON    	
+	name      		=	N_GESPLITTER
+    	energy   		= 	100
+    	shield      	= 	1
+    	mass        	= 	1			; HACK
+    	force       	= 	6000
+    	maxrot      	= 	0.2
+    	airconst    	= 	180.0
+    	radius      	= 	1.0
+    	vp_normal   	= 	137                		; VPX.base
+    	vp_fire     	= 	22
+    	vp_megadeth 	= 	22			; unnötig
+    	vp_wait     	= 	22
+    	vp_dead    	= 	137			; VPX.base
+    	vp_genesis  	= 	137
+end
+
+;------------------------------------------------------------------------------------------------
+;
+;	NOISY ZERBRÖSEL
+;	
+;	Felsen, SteinSäulen, SteinTore werden zerlegt.
+;	Optisch: SteinBrocken werden weggeschleudert...
+; 	
+new_vehicle 	54
+	model     		= 	plane
+	type_icon	=	I			; DEBUGICON    	
+	name      		=	N_ZERBROESEL
+    	energy   		= 	100
+    	shield      	= 	1
+    	mass        	= 	1			; HACK
+    	force       	= 	6000
+    	maxrot      	= 	0.2
+    	airconst    	= 	180.0
+    	radius      	= 	1.0
+    	vp_normal   	= 	137                		; VPX.base
+    	vp_fire     	= 	22
+    	vp_megadeth 	= 	22			; unnötig
+    	vp_wait     	= 	22
+    	vp_dead    	= 	137			; VPX.base
+    	vp_genesis  	= 	137
+end
+
+;------------------------------------------------------------------------------------------------
+;
+;	NOISY BLECHBRUCH
+;	
+;	STAHLPlatten werden zerhaun und verbeult.
+;	Kraftwerke, Bunker etc.
+;	Optisch: Eine Explosion.
+; 	
+new_vehicle 	55
+    	model     		= 	plane
+    	name      		=	N_BLECHBRUCH
+    	type_icon	=	I		; DEBUGICON    
+	energy   		= 	100
+    	shield      	= 	1
+    	mass        	= 	1		; HACK
+    	force       	= 	6000
+    	maxrot      	= 	0.2
+    	airconst    	= 	180.0
+    	radius      	= 	1.0
+    	vp_normal   	= 	139                	; VP_Xnew1.base
+    	vp_fire     	= 	22
+    	vp_megadeth 	= 	22		; unnötig
+    	vp_wait     	= 	22
+    	vp_dead    	= 	139		; VP_Xnew1.base
+    	vp_genesis  	= 	139
+
+	dest_fx	= megadeth_124_0_-100_0		; HÄUSERFX
+
+end
+
+;------------------------------------------------------------------------------------------------
+;
+;       	EINE SCHWARZE WOLKE 
+;
+;	Das ist der ALLROUND-Kaschier-Rauch, der ist jeweils bis zu 10mal an
+;	einstürzenden Altbauten  dran (ist in der D3D-Alpha-Version weiß !)...
+;	Weiterhin ist er Standard als Zusatz-Desructiont-Fx an allen Fahrzeugen.
+;	Will heißen: wo´s kracht taucht dieser Qualm auf und grisselt eine Weile rum.
+; 	
+new_vehicle 81
+    	model     		= 	plane
+    	name      		=	B_WOLKE
+    	type_icon	=	I		; DEBUG
+    	energy   		= 	100
+    	shield      	= 	1
+    	mass        	= 	1000
+    	force       	= 	6000
+    	maxrot      	= 	0.2
+    	airconst    	= 	180.0
+    	radius      	= 	1.0
+    	vp_normal   	= 	130                	; VP_GHTT.base
+    	vp_fire     	= 	22
+    	vp_megadeth 	= 	22		; braucht die Wolke nicht
+    	vp_wait     	= 	22
+    	vp_dead    	= 	130		; VP_GHTT.base
+    	vp_genesis  	= 	130
+end
+
+;----------------------------------------------------------------------------------------------
+;
+;       	EIN MITTLERER BROCKEN MIT RAUCH 	
+;
+;	SteinBrocken, RauchFahne... small "VErschwinde-"Explosion 
+;
+new_vehicle 82
+    	model     		= 	plane
+    	name      		=	B_KLEIN
+    	type_icon	=	I		; DEBUG
+    	energy   		= 	100000
+    	shield      	= 	1
+    	mass        	= 	70
+    	force       	= 	6000
+    	maxrot      	= 	3.0
+    	airconst    	= 	70.0
+    	radius      	= 	10.0
+    	vp_normal   	= 	131                	; VP_KLEIN.base
+    	vp_fire     	= 	22
+    	vp_megadeth 	= 	140		; VP_Xnew2.base
+    	vp_wait     	= 	22
+    	vp_dead    	= 	131		; VP_KLEIN.base
+    	vp_genesis  	= 	131
+end
+
+;----------------------------------------------------------------------------
+;
+;       	EIN GROSSER BROCKEN MIT RAUCH 	
+;
+;	dicker fetter SteinBrocken, der langsam zu Boden stürzt , RauchFahne... "VErschwinde-"Explosion 
+;
+new_vehicle 83
+    	model     		= 	plane
+    	name      		=	B_MITTEL
+    	type_icon	=	I		; DEBUG
+    	energy   		= 	100
+    	shield      	= 	1
+    	mass        	= 	900
+    	force       	= 	6000
+    	maxrot      	= 	3.0
+    	airconst    	= 	180.0
+    	radius      	= 	25.0
+    	vp_normal   	= 	132                	; VP_MITTL.base
+    	vp_fire     	= 	22
+    	vp_megadeth 	= 	137		; VPx.base
+    	vp_wait     	= 	22
+    	vp_dead    	= 	132		; VP_MITTL.base
+    	vp_genesis  	= 	132
+end
+
+;------------------------------------------------------------------------------------------
+;
+;       	EIN SEHR KLEINER Glühender BROCKEN MIT RAUCH 	
+;
+;	Der echte Klassiker unter den Brocken... Wie der Name schon sagt.
+;	Die Rauchfahne ist ziemlich lang...
+;
+new_vehicle 84
+    	model     		= 	heli
+    	name      		=	B_GLOW
+    	type_icon	=	I		; DEBUG
+    	energy   		= 	100000
+    	shield      	= 	1
+    	mass        	= 	60
+    	force       	= 	6000
+    	maxrot      	= 	3.0
+    	airconst    	= 	1
+    	radius      	= 	10.0
+    	vp_normal   	= 	138		; VP_GLOW.base
+    	vp_fire     	= 	22
+    	vp_megadeth 	=	140		; VP_Xnew2.base (small Rotbrocken-X)
+    	vp_wait     	= 	22
+    	vp_dead    	= 	138		; VP_GLOW.base
+    	vp_genesis  	= 	138
+end
+
+;-----------------------------------------------------------------------------------------------
+;
+;       	Die neue Explosion (mit TRACY-Particles) 
+;
+;	Eine SEHR DEUTLICHE und besonders schöne Explosion
+;	mit massivem Transparenzen-Gebrauch.
+;	Standard-Zusatz-Explosion.
+; 	
+new_vehicle 85
+    	model     		= 	plane
+    	name      		=	B_EXPLO
+    	type_icon	=	I		; DEBUG    
+	energy   		= 	100
+    	shield      	= 	1
+    	mass        	= 	1000
+    	force       	= 	6000
+    	maxrot      	= 	0.2
+    	airconst    	= 	180.0
+    	radius      	= 	1.0
+    	vp_normal   	= 	139                	; VP_Xnew1.base
+    	vp_fire     	= 	22
+    	vp_megadeth 	= 	22		; unnötig
+    	vp_wait     	= 	22
+    	vp_dead    	= 	139		; VP_Xnew1.base
+    	vp_genesis  	= 	139
+end
+
+;-----------------------------------------------------------------------------------------------
+;
+;	Kleine Magellansche BRUCHBROCKENWOLKE
+;
+;	Auseinanderspritzende (Stein-)Brocken... in großer menge
+;	und sehr klein. 
+; 	
+;
+new_vehicle 86
+	model     		= 	plane
+	type_icon	=	I		; DEBUG    	
+	name      		=	B_BROCKN
+    	energy   		= 	100
+    	shield      	= 	1
+    	mass        	= 	1000
+    	force       	= 	6000
+    	maxrot      	= 	0.2
+    	airconst    	= 	180.0
+    	radius      	= 	1.0
+    	vp_normal   	= 	137                	; VPX.base
+    	vp_fire     	= 	22
+    	vp_megadeth 	= 	22		; unnötig
+    	vp_wait     	= 	22
+    	vp_dead    	= 	137		; VPX.base
+    	vp_genesis  	= 	137
+end
+
+;-----------------------------------------------------------------------------------------------
+;
+;	Sehr Große Explosion mit Brocken
+;
+;	Sehr, sehr große BASISEXPLOSION.
+; 	
+new_vehicle 87
+    	model     		= 	plane
+    	name      		=	B_BIGEXPLO
+    	type_icon	=	I		; DEBUG
+    	energy   		= 	100
+    	shield      	= 	1
+    	mass        	= 	1000
+    	force       	= 	6000
+    	maxrot      	= 	0.2
+    	airconst    	= 	180.0
+    	radius      	= 	1.0
+    	vp_normal   	= 	141                	; VP_Xnew3.base
+    	vp_fire     	= 	22
+    	vp_megadeth 	= 	22		; unnötig
+    	vp_wait     	= 	22
+    	vp_dead    	= 	141		; VP_Xnew3.base
+    	vp_genesis  	= 	141
+end
+
+
+;-----------------------------------------------------------------------------------------------
+;
+;	Sehr Große Explosion mit Brocken, SHAKEFX und PALFX
+;
+;	Enspricht der 87 nur mit SHAKE und Paletten-Effekt.
+;	Die 88 war DESTRUCTION-FX Nummer 1.
+;	Wurde inztwischen aber durch die neuen NOISY-EFFECTS ersetzt.
+; 	
+new_vehicle 88
+    	model     		= 	plane
+    	name      		=	B_BIGEXPLO
+    	type_icon	=	I		; DEBUG
+    	energy   		= 	100
+    	shield      	= 	1
+    	mass        	= 	1		; HACK
+    	force       	= 	6000
+    	maxrot      	= 	0.2
+    	airconst    	= 	180.0
+    	radius      	= 	1.0
+    	vp_normal   	= 	34	; dummy                
+    	vp_fire     	= 	22	; dummy
+    	vp_megadeth 	= 	141	
+    	vp_wait     	= 	38	; dummy
+    	vp_dead    	= 	141
+    	vp_genesis  	= 	141
+
+	shk_explode_slot		= 	1
+	shk_explode_time	= 	250
+	shk_explode_mag0	=	0.5
+	shk_explode_mag1	=	0
+	shk_explode_x		= 	1
+	shk_explode_y		= 	1
+	shk_explode_z		= 	0.0
+	shk_explode_mute	=	0.06
+	pal_explode_slot		=	1
+	pal_explode_mag0	=	0.2
+	pal_explode_mag1	=	0
+	pal_explode_time		=	250
+end
+
+;-----------------------------------------------------------------------------------------------
+;
+;	SPRITZBROCKEN
+;
+;	Schnelle MiniaturBrocken-Schleuder
+;	Auseinanderspritzende (Stein-)Brocken... in noch größerer menge
+;	und sehr weit...
+;	
+;	
+; 	
+new_vehicle 117
+    	model     		= 	plane
+    	name      		=	SPRITZBROCKEN
+    	type_icon	=	I		; DEBUG
+    	energy   		= 	100
+    	shield      	= 	1
+    	mass        	= 	1000
+    	force       	= 	6000
+    	maxrot      	= 	0.2
+    	airconst    	= 	180.0
+    	radius      	= 	1.0
+    	vp_normal   	= 	204
+    	vp_fire     	= 	22
+    	vp_megadeth 	= 	22		; unnötig
+    	vp_wait     	= 	22
+    	vp_dead    	= 	204
+    	vp_genesis  	= 	204
+end
+
+;------------------------------------------------------------------------------------------
+;
+;       	SULGBRUCH
+;
+;	Dies ist ein stranger Effekt der nur an explodierenden
+;	Sulgogaren hängt.
+;	Er besteht aus ... glühender Brocken (?).... und RauchSpuren.
+;	Er hängt ca. 4x an einem toten Sulg
+;
+new_vehicle 119
+    	model     		= 	heli
+    	name      		=	B_SULGBRUCH
+    	type_icon	=	I		; DEBUG
+    	energy   		= 	100000
+    	shield      	= 	1
+    	mass        	= 	60
+    	force       	= 	6000
+    	maxrot      	= 	3
+    	airconst    	= 	1
+    	radius      	= 	2
+    	vp_normal   	= 	213
+    	vp_fire     	= 	22
+    	vp_megadeth 	=	145		; VP_Xnew2.base (small Rotbrocken-X)
+    	vp_wait     	= 	22
+    	vp_dead    	= 	213
+    	vp_genesis  	= 	213
+end
+
+;-----------------------------------------------------------------------------------------------
+;
+;	BlueExplonalZeukx 2
+;
+;	Das ist reiner Paletten Effekt, der an toten Sulgs
+;	dranhängt.
+; 	
+new_vehicle	120
+        	model                   	=       	plane
+        	name          	=       	B_BLUEEXPLONAL2
+    	
+	vp_normal   	= 	157			
+    	vp_fire     	= 	157
+    	vp_dead     	= 	125
+    	vp_wait     	= 	157
+    	vp_megadeth 	= 	125
+    	vp_genesis  	= 	125
+
+	energy    	= 	12
+    	mass      		= 	2100
+    	force     		= 	20
+    	maxrot    		= 	3
+    	airconst  	= 	10
+        	radius          	=       	2
+
+	type_icon	=	I			;DEBUGICON 	
+
+    	pal_goingdown_slot		=	3
+	pal_goingdown_mag0		=	0.1
+	pal_goingdown_mag1		=	0.1
+end
+
+;-----------------------------------------------------------------------------------------------
+;
+;	SCALEFX RED BIG	Großer Roter Scale Ring KYTERNESER-ROBO klein
+; 	
+new_vehicle	121
+        	model                   	=       	plane
+        	name          	=       	S_REDBIG
+	vp_normal   	= 	22			
+    	vp_fire     	= 	22
+    	vp_dead     	= 	22
+    	vp_wait     	= 	22
+    	vp_megadeth 	= 	22
+    	vp_genesis  	= 	22
+	energy    	= 	10
+    	mass      		= 	10
+    	force     		= 	10
+    	maxrot    		= 	1
+    	airconst  	= 	10
+        	radius          	=       	10
+	type_icon	=	I	
+	scale_fx =  0.1_5_2_2000_225_225_225_225_226_226_227
+end
+
+;-----------------------------------------------------------------------------------------------
+;
+;	SCALEFX BLUE BIG Blauer Ring am User-Robo
+;			      und am MYKONIER-ROBO
+;	cool ! 	
+;
+new_vehicle	122
+        	model                   	=       	plane
+        	name          	=       	S_BLUE1BIG
+	vp_normal   	= 	22			
+    	vp_fire     	= 	22
+    	vp_dead     	= 	22
+    	vp_wait     	= 	22
+    	vp_megadeth 	= 	22
+    	vp_genesis  	= 	22
+	energy    	= 	10
+    	mass      		= 	10
+    	force     		= 	10
+    	maxrot    		= 	1
+    	airconst  	= 	10
+        	radius          	=       	10
+	type_icon	=	I	
+        	scale_fx                =       0.5_15_-9_3000_229_230_231_232_233_234_235     ; 255
+end
+
+;-----------------------------------------------------------------------------------------------
+;
+;	SCALEFX RED SMALL kleiner roter Ring am BRONSTEIJN EINSCHUSS
+; 	
+new_vehicle	123
+        	model                   	=       	plane
+        	name          	=       	S_REDSMALL
+	vp_normal   	= 	22			
+    	vp_fire     	= 	22
+    	vp_dead     	= 	22
+    	vp_wait     	= 	22
+    	vp_megadeth 	= 	22
+    	vp_genesis  	= 	22
+	energy    	= 	10
+    	mass      		= 	10
+    	force     		= 	10
+    	maxrot    		= 	0.1
+    	airconst  	= 	10
+        	radius          	=       	10
+	type_icon	=	I	
+	scale_fx =  0.01_0.5_0.2_1000_225_225_225_225_226_226_227
+end
+
+;-----------------------------------------------------------------------------------------------
+;
+;	SCALEFX STRAHLS	cool! 
+; 	
+new_vehicle	124
+        	model                   	=       	plane
+        	name          	=       	S_STRAHLS
+	vp_normal   	= 	22			
+    	vp_fire     	= 	22
+    	vp_dead     	= 	22
+    	vp_wait     	= 	22
+    	vp_megadeth 	= 	22
+    	vp_genesis  	= 	22
+	energy    	= 	10
+    	mass      		= 	10
+    	force     		= 	10
+    	maxrot    		= 	10
+    	airconst  	= 	10
+        	radius          	=       	10
+	type_icon	=	I	
+	scale_fx =  0.01_2_2_500_228_228_228_228_228_228_228	; 750
+end
+
+;-----------------------------------------------------------------------------------------------
+;
+;	SCALEFX REDIN Roter Einschuss-Kegel (BRONSTEIJN.Einschuss Teil 2)
+; 	
+new_vehicle	125
+        	model                   	=       	plane
+        	name          	=       	S_EINSSS
+	vp_normal   	= 	22			
+    	vp_fire     	= 	34
+    	vp_dead     	= 	 100
+    	vp_wait     	= 	93
+    	vp_megadeth 	= 	 100
+    	vp_genesis  	= 	22
+	energy    	= 	10
+    	mass      		= 	10
+    	force     		= 	10
+    	maxrot    		= 	1
+    	airconst  	= 	10
+        	radius          	=       	10
+	type_icon	=	I	
+	scale_fx 		=  	5_-3_-3_750_246
+end
+
+;-----------------------------------------------------------------------------------------------
+;
+;	SCALEFX REDKUGL rote EInschussKugel (hängt am LAWNMOWER Einschuss)
+; 	
+new_vehicle	126
+        	model                   	=       	plane
+        	name          	=       	S_KUGL
+	vp_normal   	= 	22
+    	vp_fire     	= 	34
+    	vp_dead     	= 	38
+    	vp_wait     	= 	93
+    	vp_megadeth 	= 	100
+    	vp_genesis  	= 	22
+	energy    	= 	10
+    	mass      		= 	10
+    	force     		= 	10
+    	maxrot    		= 	10
+    	airconst  	= 	10
+        	radius          	=       	10
+	type_icon	=	I	
+	scale_fx 		=  	0.1_0.2_5_400_256_257_258_259_260
+end
+
+;-----------------------------------------------------------------------------------------------
+;
+;	SCALEFX BLUE SMALL	cool ! 	
+;
+new_vehicle	127
+        	model                   	=       	plane
+        	name          	=       	S_BLUE1SMALL
+	vp_normal   	= 	22			
+    	vp_fire     	= 	22
+    	vp_dead     	= 	22
+    	vp_wait     	= 	22
+    	vp_megadeth 	= 	22
+    	vp_genesis  	= 	22
+	energy    	= 	10
+    	mass      		= 	10
+    	force     		= 	10
+    	maxrot    		= 	10
+    	airconst  	= 	10
+        	radius          	=       	10
+	type_icon	=	I	
+        	scale_fx                	=       	0.1_2_2_1000_229_230_231_232_233_234_235     ; 255
+end
+
+;-----------------------------------------------------------------------------------------------
+;
+;	SPECIAL SCFX WUSCHELRING (Plastischer Scale-Ring)
+;
+new_vehicle	21
+        	model                   	=       	plane
+        	name          	=       	S_WUSCHELRING
+
+        	vp_normal       	=       22                   	; siehe visproto.lst
+        	vp_fire   		=       22			; FIXME!
+        	vp_megadeth     	=       22
+        	vp_wait 		=       22			; FIXME!
+        	vp_dead         	=       22
+        	vp_genesis     	=       22
+
+	energy    	= 	10000
+    	mass      		= 	10
+    	force     		= 	10
+    	maxrot    		= 	25
+    	airconst  	= 	10
+        	radius          	=       	10
+	type_icon	=	I	
+
+        	scale_fx                	=       	0.05_4_-7_600_281_282_282_283_283_283
+end
+
+;-----------------------------------------------------------------------------------------------
+;
+;	SPECIAL SCFX / Rote Kugel ... is nicht so toll...
+;
+new_vehicle	20
+        	model                   	=       	plane
+        	name          	=       	S_KUGGL
+
+        	vp_normal       	=       22                   	; siehe visproto.lst
+        	vp_fire   		=       22			; FIXME!
+        	vp_megadeth     	=       22
+        	vp_wait 		=       22			; FIXME!
+        	vp_dead         	=       22
+        	vp_genesis     	=       22
+
+	energy    	= 	10000
+    	mass      		= 	10
+    	force     		= 	10
+    	maxrot    		= 	20
+    	airconst  	= 	10
+        	radius          	=       	10
+	type_icon	=	I	
+
+        	scale_fx                	=       	0.1_4_-8_1000_261_262_263_264_265_266_267
+;        	scale_fx                	=       	0.1_3_-4_1000_261_262_263_264_265_266_267	; Bremst fast auf NULL ab
+end
+
+;----------------------------------------------------------------------------------------------------
+;
+;	SPECIAL SCFX  GLOWING MYKONIERROBO 
+;
+new_vehicle	19
+        	model                   	=       	plane
+        	name          	=       	S_MYKOROGLOW
+
+        	vp_normal       	=       22                   	; siehe visproto.lst
+        	vp_fire   		=       22			; FIXME!
+        	vp_megadeth     	=       22
+        	vp_wait 		=       22			; FIXME!
+        	vp_dead         	=       22
+        	vp_genesis     	=       22
+
+	energy    	= 	10000
+    	mass      		= 	10
+    	force     		= 	10
+    	maxrot    		= 	10
+    	airconst  	= 	10
+        	radius          	=       	10
+	type_icon	=	I	
+
+        	scale_fx                	=       	6_1_-0.5_1000_11			; geht wieder rückwärts
+end
+
+;-----------------------------------------------------------------------------------------------
+;
+;	SPECIAL SCFX WUSCHELRING  GROSS(Plastischer großer Scale-Ring)
+;
+new_vehicle	18
+        	model                   	=       	plane
+        	name          	=       	S_GWUSCHELRING
+
+        	vp_normal       	=       22                   	; siehe visproto.lst
+        	vp_fire   		=       22			; FIXME!
+        	vp_megadeth     	=       22
+        	vp_wait 		=       22			; FIXME!
+        	vp_dead         	=       22
+        	vp_genesis     	=       22
+
+	energy    	= 	10000
+    	mass      		= 	10
+    	force     		= 	10
+    	maxrot    		= 	25
+    	airconst  	= 	10
+        	radius          	=       	10
+	type_icon	=	I	
+
+        	scale_fx                	=       	0.2_10_-8_2000_281_282_282_283_283_283
+end
+
+;-----------------------------------------------------------------------------------------------
+;
+;	DÜNNER RING
+;
+new_vehicle	17
+        	model                   	=       	plane
+        	name          	=       	S_DUENNRING
+
+        	vp_normal       	=       22                   	; siehe visproto.lst
+        	vp_fire   		=       22			; FIXME!
+        	vp_megadeth     	=       22
+        	vp_wait 		=       22			; FIXME!
+        	vp_dead         	=       22
+        	vp_genesis     	=       22
+
+	energy    	= 	10000
+    	mass      		= 	10
+    	force     		= 	10
+    	maxrot    		= 	2
+    	airconst  	= 	10
+        	radius          	=       	10
+	type_icon	=	I	
+
+        	scale_fx                	=       	0.01_4.5_-4_1500_292_291_290_289
+end
+
+
+;-----------------------------------------------------------------------------------------------
+;
+;	SCFX HÄUSER ZEUX
+;
+new_vehicle	118
+        	model                   	=       	plane
+        	name          	=       	S_HAEUSERZEUX
+
+        	vp_normal       	=       22                   	; siehe visproto.lst
+        	vp_fire   		=       22			; FIXME!
+        	vp_megadeth     	=       22
+        	vp_wait 		=       22			; FIXME!
+        	vp_dead         	=       22
+        	vp_genesis     	=       22
+
+	energy    	= 	10000
+    	mass      		= 	10
+    	force     		= 	10
+    	maxrot    		= 	0.00001
+    	airconst  	= 	10
+        	radius          	=       	10
+	type_icon	=	I	
+
+        	scale_fx                	=       	0.6_2_-5_500_293_294_295
+end
+
+
+;-----------------------------------------------------------------------------------------------
+;
+;	SCFX WOLKE1
+;
+new_vehicle	96
+        	model                   	=       	plane
+        	name          	=       	S_WOLKE1
+
+        	vp_normal       	=       22                   	; siehe visproto.lst
+        	vp_fire   		=       22			; FIXME!
+        	vp_megadeth     	=       22
+        	vp_wait 		=       22			; FIXME!
+        	vp_dead         	=       22
+        	vp_genesis     	=       22
+
+	energy    	= 	10000
+    	mass      		= 	10
+    	force     		= 	10
+    	maxrot    		= 	0.0001
+    	airconst  	= 	10
+        	radius          	=       	10
+	type_icon	=	I	
+
+        	scale_fx                	=       	0.01_2_-2_1500_296
+end
+
+
+;-----------------------------------------------------------------------------------------------
+;
+;	SPECIAL SCFX BOMBENDOME an der Zeppelin Bombe
+;
+new_vehicle	128
+        	model                   	=       	plane
+        	name          	=       	S_BOMB1
+
+        	vp_normal       	=       22                   	; siehe visproto.lst
+        	vp_fire   		=       22			; FIXME!
+        	vp_megadeth     	=       22
+        	vp_wait 		=       22			; FIXME!
+        	vp_dead         	=       22
+        	vp_genesis     	=       22
+
+	energy    	= 	10000
+    	mass      		= 	10
+    	force     		= 	10
+    	maxrot    		= 	25
+    	airconst  	= 	10
+        	radius          	=       	10
+	type_icon	=	I	
+        	scale_fx                	=       	0.05_8_-8_1800_261_262_263_264_265_266_267_268
+end
+
+;-----------------------------------------------------------------------------------------------
+;
+;	SCALEFX RED BIG an der Bombe des Zeppelins
+; 	
+new_vehicle	129
+        	model                   	=       	plane
+        	name          	=       	S_BOMB2
+	vp_normal   	= 	22			
+    	vp_fire     	= 	22
+    	vp_dead     	= 	22
+    	vp_wait     	= 	22
+    	vp_megadeth 	= 	22
+    	vp_genesis  	= 	22
+	energy    	= 	10
+    	mass      		= 	10
+    	force     		= 	10
+    	maxrot    		= 	1
+    	airconst  	= 	10
+        	radius          	=       	10
+	type_icon	=	I	
+	scale_fx =  0.1_5_2_2000_318_319_320
+end
+
+
+;-----------------------------------------------------------------------------------------------
+;
+;	DA SUPABOMB RING
+;
+new_vehicle	135
+        	model                   	=       	plane
+        	name          	=       	DASUPABOMB
+
+        	vp_normal       	=       339                   	; siehe visproto.lst
+        	vp_fire   		=       22			; FIXME!
+        	vp_megadeth     	=       22
+        	vp_wait 		=       339			; FIXME!
+        	vp_dead         	=       22
+        	vp_genesis     	=       22
+
+	energy    	= 	10000
+    	mass      		= 	10
+    	force     		= 	10
+    	maxrot    		= 	0.00001
+    	airconst  	= 	10
+        	radius          	=       	10
+	type_icon	=	I	
+
+end
+
+
+;-----------------------------------------------------------------------------------------------
+;
+;	DÜNNER RING
+;
+new_vehicle	136
+        	model                   	=       	plane
+        	name          	=       	S_HOCHKANT
+
+        	vp_normal       	=       22                   	; siehe visproto.lst
+        	vp_fire   		=       22			; FIXME!
+        	vp_megadeth     	=       22
+        	vp_wait 		=       22			; FIXME!
+        	vp_dead         	=       22
+        	vp_genesis     	=       22
+
+	energy    	= 	10000
+    	mass      		= 	10
+    	force     		= 	10
+
+    	airconst  	= 	10
+        	radius          	=       	10
+	type_icon	=	I	
+
+        	scale_fx                	=       	0.01_2.5_-2_1500_338
+end
+
+;-----------------------------------------------------------------------------------------------
+;
+;	STERNENHELL
+;
+new_vehicle	150
+        	model                   	=       	plane
+        	name          	=       	S_STERNENHELL
+
+        	vp_normal       	=       22                   	; siehe visproto.lst
+        	vp_fire   		=       22			; FIXME!
+        	vp_megadeth     	=       22
+        	vp_wait 		=       22			; FIXME!
+        	vp_dead         	=       22
+        	vp_genesis     	=       22
+
+	energy    	= 	10000
+    	mass      		= 	10
+    	force     		= 	10
+
+    	airconst  	= 	10
+        	radius          	=       	10
+	type_icon	=	I
+
+	maxrot		=	0.5
+
+        	scale_fx                	=       	3_3_-2_550_348_349_350_351_352
+;        	scale_fx                	=       	2_3_-2_250_348_349_350_351_352 (kleinere Variante wird evtl. nochmal benötigt)
+end
+
+
+;-----------------------------------------------------------------------------------------------
+;
+;	HELLAUF1
+;
+new_vehicle	151
+        	model                   	=       	plane
+        	name          	=       	S_HELLAUF1
+
+        	vp_normal       	=       22                   	; siehe visproto.lst
+        	vp_fire   		=       22			; FIXME!
+        	vp_megadeth     	=       22
+        	vp_wait 		=       22			; FIXME!
+        	vp_dead         	=       22
+        	vp_genesis     	=       22
+
+	energy    	= 	10000
+    	mass      		= 	10
+    	force     		= 	10
+
+    	airconst  	= 	10
+        	radius          	=       	10
+	type_icon	=	I
+
+	maxrot		=	0.5
+
+        	scale_fx                	=       	2_2_-3_150_345
+end
+
+;-----------------------------------------------------------------------------------------------
+;
+;	Blauer BombeneinschlagsWusch
+;
+new_vehicle	152
+        	model                   	=       	plane
+        	name          	=       	S_Bombenwusch
+
+        	vp_normal       	=       22                   	; siehe visproto.lst
+        	vp_fire   		=       22			; FIXME!
+        	vp_megadeth     	=       22
+        	vp_wait 		=       22			; FIXME!
+        	vp_dead         	=       22
+        	vp_genesis     	=       22
+
+	energy    	= 	10000
+    	mass      		= 	10
+    	force     		= 	10
+
+    	airconst  	= 	10
+        	radius          	=       	10
+	type_icon	=	I
+
+	maxrot		=	0.5
+
+ 	scale_fx                	=       	0.01_4.5_-4_1500_357_358_359
+
+end
+
+
+;-------------------------------------------------------------------------------------------------------------
+;		ENDE 	OFF 	DIE 	BROCKEN
+;-------------------------------------------------------------------------------------------------------------

@@ -1,0 +1,81 @@
+{
+ "VANM": [ 
+  {
+   "DATA": {
+    "class_id": "ilbm.class",
+    "frames": [ 
+     {
+      "frame_time": 40,
+      "vbmp_coords": [ 
+       [ 70, 218 ], 
+       [ 36, 255 ], 
+       [ 0, 219 ], 
+       [ 33, 182 ] ],
+      "vbmp_name": "FX2.ILBM"
+     }, 
+     {
+      "frame_time": 40,
+      "vbmp_coords": [ 
+       [ 68, 252 ], 
+       [ 2, 253 ], 
+       [ 2, 184 ], 
+       [ 67, 184 ] ],
+      "vbmp_name": "FX2.ILBM"
+     }, 
+     {
+      "frame_time": 40,
+      "vbmp_coords": [ 
+       [ 33, 182 ], 
+       [ 70, 218 ], 
+       [ 36, 255 ], 
+       [ 0, 219 ] ],
+      "vbmp_name": "FX2.ILBM"
+     }, 
+     {
+      "frame_time": 40,
+      "vbmp_coords": [ 
+       [ 67, 184 ], 
+       [ 68, 252 ], 
+       [ 2, 253 ], 
+       [ 2, 184 ] ],
+      "vbmp_name": "FX2.ILBM"
+     }, 
+     {
+      "frame_time": 40,
+      "vbmp_coords": [ 
+       [ 0, 219 ], 
+       [ 33, 182 ], 
+       [ 70, 218 ], 
+       [ 36, 255 ] ],
+      "vbmp_name": "FX2.ILBM"
+     }, 
+     {
+      "frame_time": 40,
+      "vbmp_coords": [ 
+       [ 2, 184 ], 
+       [ 67, 184 ], 
+       [ 68, 252 ], 
+       [ 2, 253 ] ],
+      "vbmp_name": "FX2.ILBM"
+     }, 
+     {
+      "frame_time": 40,
+      "vbmp_coords": [ 
+       [ 36, 255 ], 
+       [ 0, 219 ], 
+       [ 33, 182 ], 
+       [ 70, 218 ] ],
+      "vbmp_name": "FX2.ILBM"
+     }, 
+     {
+      "frame_time": 40,
+      "vbmp_coords": [ 
+       [ 2, 253 ], 
+       [ 2, 184 ], 
+       [ 67, 184 ], 
+       [ 68, 252 ] ],
+      "vbmp_name": "FX2.ILBM"
+     } ]
+   }
+  } ]
+}

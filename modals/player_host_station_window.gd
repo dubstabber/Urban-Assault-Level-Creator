@@ -10,11 +10,11 @@ func _ready() -> void:
 
 func _on_about_to_popup() -> void:
 	if CurrentMapData.host_stations.get_child_count() <= 0:
-		%NoHostStationLabel.show()
+		%NoHostStationLabel.show.call_deferred()
 		%HostStationContainer.hide()
 	else:
 		%NoHostStationLabel.hide()
-		%HostStationContainer.show()
+		%HostStationContainer.show.call_deferred()
 		
 		for child in %HostStationContainer.get_children():
 			child.queue_free()

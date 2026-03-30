@@ -1,0 +1,63 @@
+{
+ "VANM": [ 
+  {
+   "DATA": {
+    "class_id": "ilbm.class",
+    "frames": [ 
+     {
+      "frame_time": 200,
+      "vbmp_coords": [ 
+       [ 2, 169 ], 
+       [ 2, 164 ], 
+       [ 37, 164 ], 
+       [ 37, 169 ] ],
+      "vbmp_name": "CITY1.ILBM"
+     }, 
+     {
+      "frame_time": 200,
+      "vbmp_coords": [ 
+       [ 2, 159 ], 
+       [ 2, 154 ], 
+       [ 37, 154 ], 
+       [ 37, 159 ] ],
+      "vbmp_name": "CITY1.ILBM"
+     }, 
+     {
+      "frame_time": 120,
+      "vbmp_coords": [ 
+       [ 2, 140 ], 
+       [ 2, 135 ], 
+       [ 37, 135 ], 
+       [ 37, 140 ] ],
+      "vbmp_name": "CITY1.ILBM"
+     }, 
+     {
+      "frame_time": 120,
+      "vbmp_coords": [ 
+       [ 2, 123 ], 
+       [ 2, 118 ], 
+       [ 37, 118 ], 
+       [ 37, 123 ] ],
+      "vbmp_name": "CITY1.ILBM"
+     }, 
+     {
+      "frame_time": 200,
+      "vbmp_coords": [ 
+       [ 2, 133 ], 
+       [ 2, 128 ], 
+       [ 37, 128 ], 
+       [ 37, 133 ] ],
+      "vbmp_name": "CITY1.ILBM"
+     }, 
+     {
+      "frame_time": 200,
+      "vbmp_coords": [ 
+       [ 2, 152 ], 
+       [ 2, 147 ], 
+       [ 37, 147 ], 
+       [ 37, 152 ] ],
+      "vbmp_name": "CITY1.ILBM"
+     } ]
+   }
+  } ]
+}

@@ -86,25 +86,36 @@ func _ready() -> void:
 	)
 	xpos_host_station_line_edit.text_submitted.connect(func(text_value: String):
 		var pos_x := clampi(int(text_value), 1205, ((CurrentMapData.horizontal_sectors + 1) * 1200) - 5)
-		if EditorState.selected_unit.position.x != pos_x:
+		var moved: bool = EditorState.selected_unit.position.x != pos_x
+		if moved:
 			CurrentMapData.is_saved = false
 			xpos_host_station_line_edit.text = str(pos_x)
-			print(pos_x)
 		EditorState.selected_unit.position.x = pos_x
+		if moved:
+			EventSystem.unit_position_committed.emit()
+			EventSystem.unit_overlay_refresh_requested.emit("host", int(EditorState.selected_unit.get_instance_id()))
 		)
 	ypos_host_station_line_edit.text_submitted.connect(func(text_value: String):
 		var pos_y := int(text_value) if int(text_value) <= 0 else -int(text_value)
-		if EditorState.selected_unit.pos_y != pos_y:
+		var moved: bool = EditorState.selected_unit.pos_y != pos_y
+		if moved:
 			CurrentMapData.is_saved = false
 			ypos_host_station_line_edit.text = str(pos_y)
 		EditorState.selected_unit.pos_y = pos_y
+		if moved:
+			EventSystem.unit_position_committed.emit()
+			EventSystem.unit_overlay_refresh_requested.emit("host", int(EditorState.selected_unit.get_instance_id()))
 		)
 	zpos_host_station_line_edit.text_submitted.connect(func(text_value: String):
 		var pos_z := clampi(abs(int(text_value)), 1205, ((CurrentMapData.vertical_sectors + 1) * 1200) - 5)
-		if EditorState.selected_unit.position.y != pos_z:
+		var moved: bool = EditorState.selected_unit.position.y != pos_z
+		if moved:
 			CurrentMapData.is_saved = false
 			zpos_host_station_line_edit.text = "-%s" % str(pos_z)
 		EditorState.selected_unit.position.y = pos_z
+		if moved:
+			EventSystem.unit_position_committed.emit()
+			EventSystem.unit_overlay_refresh_requested.emit("host", int(EditorState.selected_unit.get_instance_id()))
 		)
 	conquering_h_slider.value_changed.connect(func(value_changed: int):
 		if EditorState.selected_unit.con_budget != value_changed:

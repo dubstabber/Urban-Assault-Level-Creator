@@ -1,0 +1,53 @@
+{
+  "canonical_id": "sterne",
+  "family": "custom",
+  "aliases": [
+    "sterne"
+  ],
+  "scene_path": "res://resources/ua/sky/sterne/sky.tscn",
+  "mesh_paths": [
+    "res://resources/ua/sky/sterne/mesh/sky.obj"
+  ],
+  "material_paths": [
+    "res://resources/ua/sky/sterne/mesh/sky.mtl"
+  ],
+  "geometry_path": "res://resources/ua/sky/sterne/geometry.json",
+  "textures": [
+    {
+      "source_name": "HIMMEL7.ILBM",
+      "source_file": "HIMMEL7.ILBM.bmp",
+      "bundle_path": "res://resources/ua/sky/sterne/textures/himmel7_ilbm.png",
+      "width": 256,
+      "height": 256
+    }
+  ],
+  "source_files": {
+    "bas": "sterne.bas.json",
+    "skeleton": "sterne.skl.json"
+  },
+  "bounds": {
+    "min": [
+      -4500.0,
+      -0.0,
+      -4290.0
+    ],
+    "max": [
+      4340.0,
+      1080.0,
+      4190.0
+    ]
+  },
+  "flags": {
+    "has_geometry": true,
+    "double_sided": true,
+    "uses_alpha": false,
+    "unshaded": true
+  },
+  "surface_count": 32,
+  "polygon_count": 32,
+  "vertex_count": 25,
+  "notes": [
+    "Converted from development/debug sky references; runtime should load only project-owned bundle files.",
+    "Geometry preserves UA-authored local X, flips source-down Y upward, and mirrors Z into the editor preview space."
+  ]
+}

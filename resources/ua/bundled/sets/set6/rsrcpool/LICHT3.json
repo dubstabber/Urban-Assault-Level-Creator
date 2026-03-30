@@ -1,0 +1,189 @@
+{
+ "VANM": [ 
+  {
+   "DATA": {
+    "class_id": "ilbm.class",
+    "frames": [ 
+     {
+      "frame_time": 80,
+      "vbmp_coords": [ 
+       [ 254, 34 ], 
+       [ 254, 84 ], 
+       [ 252, 84 ], 
+       [ 252, 34 ] ],
+      "vbmp_name": "CITY1.ILBM"
+     }, 
+     {
+      "frame_time": 80,
+      "vbmp_coords": [ 
+       [ 254, 48 ], 
+       [ 254, 98 ], 
+       [ 252, 98 ], 
+       [ 252, 48 ] ],
+      "vbmp_name": "CITY1.ILBM"
+     }, 
+     {
+      "frame_time": 80,
+      "vbmp_coords": [ 
+       [ 255, 72 ], 
+       [ 255, 122 ], 
+       [ 250, 122 ], 
+       [ 250, 72 ] ],
+      "vbmp_name": "CITY1.ILBM"
+     }, 
+     {
+      "frame_time": 80,
+      "vbmp_coords": [ 
+       [ 255, 79 ], 
+       [ 255, 129 ], 
+       [ 250, 129 ], 
+       [ 250, 79 ] ],
+      "vbmp_name": "CITY1.ILBM"
+     }, 
+     {
+      "frame_time": 80,
+      "vbmp_coords": [ 
+       [ 255, 85 ], 
+       [ 255, 135 ], 
+       [ 250, 135 ], 
+       [ 250, 85 ] ],
+      "vbmp_name": "CITY1.ILBM"
+     }, 
+     {
+      "frame_time": 80,
+      "vbmp_coords": [ 
+       [ 255, 94 ], 
+       [ 255, 144 ], 
+       [ 250, 144 ], 
+       [ 250, 94 ] ],
+      "vbmp_name": "CITY1.ILBM"
+     }, 
+     {
+      "frame_time": 80,
+      "vbmp_coords": [ 
+       [ 255, 102 ], 
+       [ 255, 152 ], 
+       [ 250, 152 ], 
+       [ 250, 102 ] ],
+      "vbmp_name": "CITY1.ILBM"
+     }, 
+     {
+      "frame_time": 80,
+      "vbmp_coords": [ 
+       [ 255, 111 ], 
+       [ 255, 161 ], 
+       [ 250, 161 ], 
+       [ 250, 111 ] ],
+      "vbmp_name": "CITY1.ILBM"
+     }, 
+     {
+      "frame_time": 80,
+      "vbmp_coords": [ 
+       [ 255, 118 ], 
+       [ 255, 168 ], 
+       [ 250, 168 ], 
+       [ 250, 118 ] ],
+      "vbmp_name": "CITY1.ILBM"
+     }, 
+     {
+      "frame_time": 80,
+      "vbmp_coords": [ 
+       [ 255, 126 ], 
+       [ 255, 176 ], 
+       [ 250, 176 ], 
+       [ 250, 126 ] ],
+      "vbmp_name": "CITY1.ILBM"
+     }, 
+     {
+      "frame_time": 80,
+      "vbmp_coords": [ 
+       [ 255, 133 ], 
+       [ 255, 183 ], 
+       [ 250, 183 ], 
+       [ 250, 133 ] ],
+      "vbmp_name": "CITY1.ILBM"
+     }, 
+     {
+      "frame_time": 80,
+      "vbmp_coords": [ 
+       [ 255, 140 ], 
+       [ 255, 190 ], 
+       [ 250, 190 ], 
+       [ 250, 140 ] ],
+      "vbmp_name": "CITY1.ILBM"
+     }, 
+     {
+      "frame_time": 80,
+      "vbmp_coords": [ 
+       [ 255, 147 ], 
+       [ 255, 197 ], 
+       [ 250, 197 ], 
+       [ 250, 147 ] ],
+      "vbmp_name": "CITY1.ILBM"
+     }, 
+     {
+      "frame_time": 80,
+      "vbmp_coords": [ 
+       [ 255, 154 ], 
+       [ 255, 204 ], 
+       [ 250, 204 ], 
+       [ 250, 154 ] ],
+      "vbmp_name": "CITY1.ILBM"
+     }, 
+     {
+      "frame_time": 80,
+      "vbmp_coords": [ 
+       [ 255, 162 ], 
+       [ 255, 212 ], 
+       [ 250, 212 ], 
+       [ 250, 162 ] ],
+      "vbmp_name": "CITY1.ILBM"
+     }, 
+     {
+      "frame_time": 80,
+      "vbmp_coords": [ 
+       [ 255, 171 ], 
+       [ 255, 221 ], 
+       [ 250, 221 ], 
+       [ 250, 171 ] ],
+      "vbmp_name": "CITY1.ILBM"
+     }, 
+     {
+      "frame_time": 80,
+      "vbmp_coords": [ 
+       [ 255, 179 ], 
+       [ 255, 229 ], 
+       [ 250, 229 ], 
+       [ 250, 179 ] ],
+      "vbmp_name": "CITY1.ILBM"
+     }, 
+     {
+      "frame_time": 80,
+      "vbmp_coords": [ 
+       [ 255, 189 ], 
+       [ 255, 239 ], 
+       [ 250, 239 ], 
+       [ 250, 189 ] ],
+      "vbmp_name": "CITY1.ILBM"
+     }, 
+     {
+      "frame_time": 80,
+      "vbmp_coords": [ 
+       [ 255, 199 ], 
+       [ 255, 249 ], 
+       [ 250, 249 ], 
+       [ 250, 199 ] ],
+      "vbmp_name": "CITY1.ILBM"
+     }, 
+     {
+      "frame_time": 80,
+      "vbmp_coords": [ 
+       [ 253, 202 ], 
+       [ 253, 252 ], 
+       [ 251, 252 ], 
+       [ 251, 202 ] ],
+      "vbmp_name": "CITY1.ILBM"
+     } ]
+   }
+  } ]
+}

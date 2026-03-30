@@ -1,0 +1,53 @@
+{
+  "canonical_id": "h",
+  "family": "custom",
+  "aliases": [
+    "h"
+  ],
+  "scene_path": "res://resources/ua/sky/h/sky.tscn",
+  "mesh_paths": [
+    "res://resources/ua/sky/h/mesh/sky.obj"
+  ],
+  "material_paths": [
+    "res://resources/ua/sky/h/mesh/sky.mtl"
+  ],
+  "geometry_path": "res://resources/ua/sky/h/geometry.json",
+  "textures": [
+    {
+      "source_name": "verlauf.ilbm",
+      "source_file": "verlauf.ilbm.bmp",
+      "bundle_path": "res://resources/ua/sky/h/textures/verlauf_ilbm.png",
+      "width": 256,
+      "height": 256
+    }
+  ],
+  "source_files": {
+    "bas": "h.bas.json",
+    "skeleton": "h.skl.json"
+  },
+  "bounds": {
+    "min": [
+      -3185.0,
+      -1060.0,
+      -3239.0
+    ],
+    "max": [
+      3292.0,
+      2288.0,
+      3239.0
+    ]
+  },
+  "flags": {
+    "has_geometry": true,
+    "double_sided": true,
+    "uses_alpha": false,
+    "unshaded": true
+  },
+  "surface_count": 50,
+  "polygon_count": 50,
+  "vertex_count": 32,
+  "notes": [
+    "Converted from development/debug sky references; runtime should load only project-owned bundle files.",
+    "Geometry preserves UA-authored local X, flips source-down Y upward, and mirrors Z into the editor preview space."
+  ]
+}

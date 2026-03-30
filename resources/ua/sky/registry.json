@@ -1,0 +1,869 @@
+{
+  "version": 1,
+  "entries": {
+    "1998_01": {
+      "family": "complete",
+      "aliases": [
+        "1998_01"
+      ],
+      "manifest_path": "res://resources/ua/sky/1998_01/manifest.json",
+      "scene_path": "res://resources/ua/sky/1998_01/sky.tscn",
+      "source_files": {
+        "bas": "1998_01.bas.json",
+        "skeleton": "complete.skl.json"
+      }
+    },
+    "1998_02": {
+      "family": "complete",
+      "aliases": [
+        "1998_02"
+      ],
+      "manifest_path": "res://resources/ua/sky/1998_02/manifest.json",
+      "scene_path": "res://resources/ua/sky/1998_02/sky.tscn",
+      "source_files": {
+        "bas": "1998_02.bas.json",
+        "skeleton": "complete.skl.json"
+      }
+    },
+    "1998_03": {
+      "family": "complete",
+      "aliases": [
+        "1998_03"
+      ],
+      "manifest_path": "res://resources/ua/sky/1998_03/manifest.json",
+      "scene_path": "res://resources/ua/sky/1998_03/sky.tscn",
+      "source_files": {
+        "bas": "1998_03.bas.json",
+        "skeleton": "complete.skl.json"
+      }
+    },
+    "1998_05": {
+      "family": "complete",
+      "aliases": [
+        "1998_05"
+      ],
+      "manifest_path": "res://resources/ua/sky/1998_05/manifest.json",
+      "scene_path": "res://resources/ua/sky/1998_05/sky.tscn",
+      "source_files": {
+        "bas": "1998_05.bas.json",
+        "skeleton": "complete.skl.json"
+      }
+    },
+    "1998_06": {
+      "family": "complete",
+      "aliases": [
+        "1998_06"
+      ],
+      "manifest_path": "res://resources/ua/sky/1998_06/manifest.json",
+      "scene_path": "res://resources/ua/sky/1998_06/sky.tscn",
+      "source_files": {
+        "bas": "1998_06.bas.json",
+        "skeleton": "complete.skl.json"
+      }
+    },
+    "am_1": {
+      "family": "horizon",
+      "aliases": [
+        "am_1"
+      ],
+      "manifest_path": "res://resources/ua/sky/am_1/manifest.json",
+      "scene_path": "res://resources/ua/sky/am_1/sky.tscn",
+      "source_files": {
+        "bas": "am_1.bas.json",
+        "skeleton": "horizon.skl.json"
+      }
+    },
+    "am_2": {
+      "family": "horizon",
+      "aliases": [
+        "am_2"
+      ],
+      "manifest_path": "res://resources/ua/sky/am_2/manifest.json",
+      "scene_path": "res://resources/ua/sky/am_2/sky.tscn",
+      "source_files": {
+        "bas": "am_2.bas.json",
+        "skeleton": "horizon.skl.json"
+      }
+    },
+    "am_3": {
+      "family": "horizon",
+      "aliases": [
+        "am_3"
+      ],
+      "manifest_path": "res://resources/ua/sky/am_3/manifest.json",
+      "scene_path": "res://resources/ua/sky/am_3/sky.tscn",
+      "source_files": {
+        "bas": "am_3.bas.json",
+        "skeleton": "horizon.skl.json"
+      }
+    },
+    "arz1": {
+      "family": "horizon",
+      "aliases": [
+        "arz1"
+      ],
+      "manifest_path": "res://resources/ua/sky/arz1/manifest.json",
+      "scene_path": "res://resources/ua/sky/arz1/sky.tscn",
+      "source_files": {
+        "bas": "arz1.bas.json",
+        "skeleton": "horizon.skl.json"
+      }
+    },
+    "asky2": {
+      "family": "custom",
+      "aliases": [
+        "asky2"
+      ],
+      "manifest_path": "res://resources/ua/sky/asky2/manifest.json",
+      "scene_path": "res://resources/ua/sky/asky2/sky.tscn",
+      "source_files": {
+        "bas": "asky2.bas.json",
+        "skeleton": "ASKY2.skl.json"
+      }
+    },
+    "braun1": {
+      "family": "custom",
+      "aliases": [
+        "braun1"
+      ],
+      "manifest_path": "res://resources/ua/sky/braun1/manifest.json",
+      "scene_path": "res://resources/ua/sky/braun1/sky.tscn",
+      "source_files": {
+        "bas": "braun1.bas.json",
+        "skeleton": "braun1.skl.json"
+      }
+    },
+    "ct6": {
+      "family": "custom",
+      "aliases": [
+        "ct6"
+      ],
+      "manifest_path": "res://resources/ua/sky/ct6/manifest.json",
+      "scene_path": "res://resources/ua/sky/ct6/sky.tscn",
+      "source_files": {
+        "bas": "ct6.bas.json",
+        "skeleton": "ct6.skl.json"
+      }
+    },
+    "h": {
+      "family": "custom",
+      "aliases": [
+        "h"
+      ],
+      "manifest_path": "res://resources/ua/sky/h/manifest.json",
+      "scene_path": "res://resources/ua/sky/h/sky.tscn",
+      "source_files": {
+        "bas": "h.bas.json",
+        "skeleton": "h.skl.json"
+      }
+    },
+    "h7": {
+      "family": "horizon",
+      "aliases": [
+        "h7"
+      ],
+      "manifest_path": "res://resources/ua/sky/h7/manifest.json",
+      "scene_path": "res://resources/ua/sky/h7/sky.tscn",
+      "source_files": {
+        "bas": "h7.bas.json",
+        "skeleton": "horizon.skl.json"
+      }
+    },
+    "haamitt1": {
+      "family": "horizon",
+      "aliases": [
+        "haamitt1"
+      ],
+      "manifest_path": "res://resources/ua/sky/haamitt1/manifest.json",
+      "scene_path": "res://resources/ua/sky/haamitt1/sky.tscn",
+      "source_files": {
+        "bas": "haamitt1.bas.json",
+        "skeleton": "horizon.skl.json"
+      }
+    },
+    "haamitt4": {
+      "family": "horizon",
+      "aliases": [
+        "haamitt4"
+      ],
+      "manifest_path": "res://resources/ua/sky/haamitt4/manifest.json",
+      "scene_path": "res://resources/ua/sky/haamitt4/sky.tscn",
+      "source_files": {
+        "bas": "haamitt4.bas.json",
+        "skeleton": "horizon.skl.json"
+      }
+    },
+    "mod2": {
+      "family": "horizon",
+      "aliases": [
+        "mod2"
+      ],
+      "manifest_path": "res://resources/ua/sky/mod2/manifest.json",
+      "scene_path": "res://resources/ua/sky/mod2/sky.tscn",
+      "source_files": {
+        "bas": "mod2.bas.json",
+        "skeleton": "horizon.skl.json"
+      }
+    },
+    "mod4": {
+      "family": "horizon",
+      "aliases": [
+        "mod4"
+      ],
+      "manifest_path": "res://resources/ua/sky/mod4/manifest.json",
+      "scene_path": "res://resources/ua/sky/mod4/sky.tscn",
+      "source_files": {
+        "bas": "mod4.bas.json",
+        "skeleton": "horizon.skl.json"
+      }
+    },
+    "mod5": {
+      "family": "horizon",
+      "aliases": [
+        "mod5"
+      ],
+      "manifest_path": "res://resources/ua/sky/mod5/manifest.json",
+      "scene_path": "res://resources/ua/sky/mod5/sky.tscn",
+      "source_files": {
+        "bas": "mod5.bas.json",
+        "skeleton": "horizon.skl.json"
+      }
+    },
+    "mod7": {
+      "family": "horizon",
+      "aliases": [
+        "mod7"
+      ],
+      "manifest_path": "res://resources/ua/sky/mod7/manifest.json",
+      "scene_path": "res://resources/ua/sky/mod7/sky.tscn",
+      "source_files": {
+        "bas": "mod7.bas.json",
+        "skeleton": "horizon.skl.json"
+      }
+    },
+    "mod8": {
+      "family": "horizon",
+      "aliases": [
+        "mod8"
+      ],
+      "manifest_path": "res://resources/ua/sky/mod8/manifest.json",
+      "scene_path": "res://resources/ua/sky/mod8/sky.tscn",
+      "source_files": {
+        "bas": "mod8.bas.json",
+        "skeleton": "horizon.skl.json"
+      }
+    },
+    "mod9": {
+      "family": "horizon",
+      "aliases": [
+        "mod9"
+      ],
+      "manifest_path": "res://resources/ua/sky/mod9/manifest.json",
+      "scene_path": "res://resources/ua/sky/mod9/sky.tscn",
+      "source_files": {
+        "bas": "mod9.bas.json",
+        "skeleton": "horizon.skl.json"
+      }
+    },
+    "moda": {
+      "family": "horizon",
+      "aliases": [
+        "moda"
+      ],
+      "manifest_path": "res://resources/ua/sky/moda/manifest.json",
+      "scene_path": "res://resources/ua/sky/moda/sky.tscn",
+      "source_files": {
+        "bas": "moda.bas.json",
+        "skeleton": "horizon.skl.json"
+      }
+    },
+    "modb": {
+      "family": "horizon",
+      "aliases": [
+        "modb"
+      ],
+      "manifest_path": "res://resources/ua/sky/modb/manifest.json",
+      "scene_path": "res://resources/ua/sky/modb/sky.tscn",
+      "source_files": {
+        "bas": "modb.bas.json",
+        "skeleton": "horizon.skl.json"
+      }
+    },
+    "nacht1": {
+      "family": "horizon",
+      "aliases": [
+        "nacht1"
+      ],
+      "manifest_path": "res://resources/ua/sky/nacht1/manifest.json",
+      "scene_path": "res://resources/ua/sky/nacht1/sky.tscn",
+      "source_files": {
+        "bas": "nacht1.bas.json",
+        "skeleton": "horizon.skl.json"
+      }
+    },
+    "nacht2": {
+      "family": "custom",
+      "aliases": [
+        "nacht2"
+      ],
+      "manifest_path": "res://resources/ua/sky/nacht2/manifest.json",
+      "scene_path": "res://resources/ua/sky/nacht2/sky.tscn",
+      "source_files": {
+        "bas": "nacht2.bas.json",
+        "skeleton": "ct1.skl.json"
+      }
+    },
+    "newtry5": {
+      "family": "horizon",
+      "aliases": [
+        "newtry5"
+      ],
+      "manifest_path": "res://resources/ua/sky/newtry5/manifest.json",
+      "scene_path": "res://resources/ua/sky/newtry5/sky.tscn",
+      "source_files": {
+        "bas": "newtry5.bas.json",
+        "skeleton": "horizon.skl.json"
+      }
+    },
+    "nosky": {
+      "family": "nosky",
+      "aliases": [
+        "nosky"
+      ],
+      "manifest_path": "res://resources/ua/sky/nosky/manifest.json",
+      "scene_path": "res://resources/ua/sky/nosky/sky.tscn",
+      "source_files": {
+        "bas": "nosky.bas.json",
+        "skeleton": "nosky.skl.json"
+      }
+    },
+    "nt1": {
+      "family": "horizon",
+      "aliases": [
+        "nt1"
+      ],
+      "manifest_path": "res://resources/ua/sky/nt1/manifest.json",
+      "scene_path": "res://resources/ua/sky/nt1/sky.tscn",
+      "source_files": {
+        "bas": "nt1.bas.json",
+        "skeleton": "horizon.skl.json"
+      }
+    },
+    "nt2": {
+      "family": "horizon",
+      "aliases": [
+        "nt2"
+      ],
+      "manifest_path": "res://resources/ua/sky/nt2/manifest.json",
+      "scene_path": "res://resources/ua/sky/nt2/sky.tscn",
+      "source_files": {
+        "bas": "nt2.bas.json",
+        "skeleton": "horizon.skl.json"
+      }
+    },
+    "nt3": {
+      "family": "horizon",
+      "aliases": [
+        "nt3"
+      ],
+      "manifest_path": "res://resources/ua/sky/nt3/manifest.json",
+      "scene_path": "res://resources/ua/sky/nt3/sky.tscn",
+      "source_files": {
+        "bas": "nt3.bas.json",
+        "skeleton": "horizon.skl.json"
+      }
+    },
+    "nt5": {
+      "family": "horizon",
+      "aliases": [
+        "nt5"
+      ],
+      "manifest_path": "res://resources/ua/sky/nt5/manifest.json",
+      "scene_path": "res://resources/ua/sky/nt5/sky.tscn",
+      "source_files": {
+        "bas": "nt5.bas.json",
+        "skeleton": "horizon.skl.json"
+      }
+    },
+    "nt6": {
+      "family": "horizon",
+      "aliases": [
+        "nt6"
+      ],
+      "manifest_path": "res://resources/ua/sky/nt6/manifest.json",
+      "scene_path": "res://resources/ua/sky/nt6/sky.tscn",
+      "source_files": {
+        "bas": "nt6.bas.json",
+        "skeleton": "horizon.skl.json"
+      }
+    },
+    "nt7": {
+      "family": "horizon",
+      "aliases": [
+        "nt7"
+      ],
+      "manifest_path": "res://resources/ua/sky/nt7/manifest.json",
+      "scene_path": "res://resources/ua/sky/nt7/sky.tscn",
+      "source_files": {
+        "bas": "nt7.bas.json",
+        "skeleton": "horizon.skl.json"
+      }
+    },
+    "nt8": {
+      "family": "horizon",
+      "aliases": [
+        "nt8"
+      ],
+      "manifest_path": "res://resources/ua/sky/nt8/manifest.json",
+      "scene_path": "res://resources/ua/sky/nt8/sky.tscn",
+      "source_files": {
+        "bas": "nt8.bas.json",
+        "skeleton": "horizon.skl.json"
+      }
+    },
+    "nt9": {
+      "family": "horizon",
+      "aliases": [
+        "nt9"
+      ],
+      "manifest_path": "res://resources/ua/sky/nt9/manifest.json",
+      "scene_path": "res://resources/ua/sky/nt9/sky.tscn",
+      "source_files": {
+        "bas": "nt9.bas.json",
+        "skeleton": "horizon.skl.json"
+      }
+    },
+    "nta": {
+      "family": "horizon",
+      "aliases": [
+        "nta"
+      ],
+      "manifest_path": "res://resources/ua/sky/nta/manifest.json",
+      "scene_path": "res://resources/ua/sky/nta/sky.tscn",
+      "source_files": {
+        "bas": "nta.bas.json",
+        "skeleton": "horizon.skl.json"
+      }
+    },
+    "s3_1": {
+      "family": "horizon",
+      "aliases": [
+        "s3_1"
+      ],
+      "manifest_path": "res://resources/ua/sky/s3_1/manifest.json",
+      "scene_path": "res://resources/ua/sky/s3_1/sky.tscn",
+      "source_files": {
+        "bas": "s3_1.bas.json",
+        "skeleton": "horizon.skl.json"
+      }
+    },
+    "s3_4": {
+      "family": "horizon",
+      "aliases": [
+        "s3_4"
+      ],
+      "manifest_path": "res://resources/ua/sky/s3_4/manifest.json",
+      "scene_path": "res://resources/ua/sky/s3_4/sky.tscn",
+      "source_files": {
+        "bas": "s3_4.bas.json",
+        "skeleton": "horizon.skl.json"
+      }
+    },
+    "smod1": {
+      "family": "horizon",
+      "aliases": [
+        "smod1"
+      ],
+      "manifest_path": "res://resources/ua/sky/smod1/manifest.json",
+      "scene_path": "res://resources/ua/sky/smod1/sky.tscn",
+      "source_files": {
+        "bas": "smod1.bas.json",
+        "skeleton": "horizon.skl.json"
+      }
+    },
+    "smod2": {
+      "family": "horizon",
+      "aliases": [
+        "smod2"
+      ],
+      "manifest_path": "res://resources/ua/sky/smod2/manifest.json",
+      "scene_path": "res://resources/ua/sky/smod2/sky.tscn",
+      "source_files": {
+        "bas": "smod2.bas.json",
+        "skeleton": "horizon.skl.json"
+      }
+    },
+    "smod3": {
+      "family": "horizon",
+      "aliases": [
+        "smod3"
+      ],
+      "manifest_path": "res://resources/ua/sky/smod3/manifest.json",
+      "scene_path": "res://resources/ua/sky/smod3/sky.tscn",
+      "source_files": {
+        "bas": "smod3.bas.json",
+        "skeleton": "horizon.skl.json"
+      }
+    },
+    "smod4": {
+      "family": "horizon",
+      "aliases": [
+        "smod4"
+      ],
+      "manifest_path": "res://resources/ua/sky/smod4/manifest.json",
+      "scene_path": "res://resources/ua/sky/smod4/sky.tscn",
+      "source_files": {
+        "bas": "smod4.bas.json",
+        "skeleton": "horizon.skl.json"
+      }
+    },
+    "smod5": {
+      "family": "horizon",
+      "aliases": [
+        "smod5"
+      ],
+      "manifest_path": "res://resources/ua/sky/smod5/manifest.json",
+      "scene_path": "res://resources/ua/sky/smod5/sky.tscn",
+      "source_files": {
+        "bas": "smod5.bas.json",
+        "skeleton": "horizon.skl.json"
+      }
+    },
+    "smod6": {
+      "family": "horizon",
+      "aliases": [
+        "smod6"
+      ],
+      "manifest_path": "res://resources/ua/sky/smod6/manifest.json",
+      "scene_path": "res://resources/ua/sky/smod6/sky.tscn",
+      "source_files": {
+        "bas": "smod6.bas.json",
+        "skeleton": "horizon.skl.json"
+      }
+    },
+    "smod7": {
+      "family": "horizon",
+      "aliases": [
+        "smod7"
+      ],
+      "manifest_path": "res://resources/ua/sky/smod7/manifest.json",
+      "scene_path": "res://resources/ua/sky/smod7/sky.tscn",
+      "source_files": {
+        "bas": "smod7.bas.json",
+        "skeleton": "horizon.skl.json"
+      }
+    },
+    "smod8": {
+      "family": "horizon",
+      "aliases": [
+        "smod8"
+      ],
+      "manifest_path": "res://resources/ua/sky/smod8/manifest.json",
+      "scene_path": "res://resources/ua/sky/smod8/sky.tscn",
+      "source_files": {
+        "bas": "smod8.bas.json",
+        "skeleton": "horizon.skl.json"
+      }
+    },
+    "sterne": {
+      "family": "custom",
+      "aliases": [
+        "sterne"
+      ],
+      "manifest_path": "res://resources/ua/sky/sterne/manifest.json",
+      "scene_path": "res://resources/ua/sky/sterne/sky.tscn",
+      "source_files": {
+        "bas": "sterne.bas.json",
+        "skeleton": "sterne.skl.json"
+      }
+    },
+    "wow1": {
+      "family": "complete",
+      "aliases": [
+        "wow1"
+      ],
+      "manifest_path": "res://resources/ua/sky/wow1/manifest.json",
+      "scene_path": "res://resources/ua/sky/wow1/sky.tscn",
+      "source_files": {
+        "bas": "wow1.bas.json",
+        "skeleton": "complete.skl.json"
+      }
+    },
+    "wow5": {
+      "family": "complete",
+      "aliases": [
+        "wow5"
+      ],
+      "manifest_path": "res://resources/ua/sky/wow5/manifest.json",
+      "scene_path": "res://resources/ua/sky/wow5/sky.tscn",
+      "source_files": {
+        "bas": "wow5.bas.json",
+        "skeleton": "complete.skl.json"
+      }
+    },
+    "wow7": {
+      "family": "complete",
+      "aliases": [
+        "wow7"
+      ],
+      "manifest_path": "res://resources/ua/sky/wow7/manifest.json",
+      "scene_path": "res://resources/ua/sky/wow7/sky.tscn",
+      "source_files": {
+        "bas": "wow7.bas.json",
+        "skeleton": "complete.skl.json"
+      }
+    },
+    "wow8": {
+      "family": "complete",
+      "aliases": [
+        "wow8"
+      ],
+      "manifest_path": "res://resources/ua/sky/wow8/manifest.json",
+      "scene_path": "res://resources/ua/sky/wow8/sky.tscn",
+      "source_files": {
+        "bas": "wow8.bas.json",
+        "skeleton": "complete.skl.json"
+      }
+    },
+    "wow9": {
+      "family": "complete",
+      "aliases": [
+        "wow9"
+      ],
+      "manifest_path": "res://resources/ua/sky/wow9/manifest.json",
+      "scene_path": "res://resources/ua/sky/wow9/sky.tscn",
+      "source_files": {
+        "bas": "wow9.bas.json",
+        "skeleton": "complete.skl.json"
+      }
+    },
+    "wowa": {
+      "family": "complete",
+      "aliases": [
+        "wowa"
+      ],
+      "manifest_path": "res://resources/ua/sky/wowa/manifest.json",
+      "scene_path": "res://resources/ua/sky/wowa/sky.tscn",
+      "source_files": {
+        "bas": "wowa.bas.json",
+        "skeleton": "complete.skl.json"
+      }
+    },
+    "wowb": {
+      "family": "complete",
+      "aliases": [
+        "wowb"
+      ],
+      "manifest_path": "res://resources/ua/sky/wowb/manifest.json",
+      "scene_path": "res://resources/ua/sky/wowb/sky.tscn",
+      "source_files": {
+        "bas": "wowb.bas.json",
+        "skeleton": "complete.skl.json"
+      }
+    },
+    "wowc": {
+      "family": "complete",
+      "aliases": [
+        "wowc"
+      ],
+      "manifest_path": "res://resources/ua/sky/wowc/manifest.json",
+      "scene_path": "res://resources/ua/sky/wowc/sky.tscn",
+      "source_files": {
+        "bas": "wowc.bas.json",
+        "skeleton": "complete.skl.json"
+      }
+    },
+    "wowd": {
+      "family": "complete",
+      "aliases": [
+        "wowd"
+      ],
+      "manifest_path": "res://resources/ua/sky/wowd/manifest.json",
+      "scene_path": "res://resources/ua/sky/wowd/sky.tscn",
+      "source_files": {
+        "bas": "wowd.bas.json",
+        "skeleton": "complete.skl.json"
+      }
+    },
+    "wowe": {
+      "family": "complete",
+      "aliases": [
+        "wowe"
+      ],
+      "manifest_path": "res://resources/ua/sky/wowe/manifest.json",
+      "scene_path": "res://resources/ua/sky/wowe/sky.tscn",
+      "source_files": {
+        "bas": "wowe.bas.json",
+        "skeleton": "complete.skl.json"
+      }
+    },
+    "wowf": {
+      "family": "complete",
+      "aliases": [
+        "wowf"
+      ],
+      "manifest_path": "res://resources/ua/sky/wowf/manifest.json",
+      "scene_path": "res://resources/ua/sky/wowf/sky.tscn",
+      "source_files": {
+        "bas": "wowf.bas.json",
+        "skeleton": "complete.skl.json"
+      }
+    },
+    "wowh": {
+      "family": "complete",
+      "aliases": [
+        "wowh"
+      ],
+      "manifest_path": "res://resources/ua/sky/wowh/manifest.json",
+      "scene_path": "res://resources/ua/sky/wowh/sky.tscn",
+      "source_files": {
+        "bas": "wowh.bas.json",
+        "skeleton": "complete.skl.json"
+      }
+    },
+    "wowi": {
+      "family": "complete",
+      "aliases": [
+        "wowi"
+      ],
+      "manifest_path": "res://resources/ua/sky/wowi/manifest.json",
+      "scene_path": "res://resources/ua/sky/wowi/sky.tscn",
+      "source_files": {
+        "bas": "wowi.bas.json",
+        "skeleton": "complete.skl.json"
+      }
+    },
+    "wowj": {
+      "family": "complete",
+      "aliases": [
+        "wowj"
+      ],
+      "manifest_path": "res://resources/ua/sky/wowj/manifest.json",
+      "scene_path": "res://resources/ua/sky/wowj/sky.tscn",
+      "source_files": {
+        "bas": "wowj.bas.json",
+        "skeleton": "complete.skl.json"
+      }
+    },
+    "x1": {
+      "family": "complete",
+      "aliases": [
+        "x1"
+      ],
+      "manifest_path": "res://resources/ua/sky/x1/manifest.json",
+      "scene_path": "res://resources/ua/sky/x1/sky.tscn",
+      "source_files": {
+        "bas": "x1.bas.json",
+        "skeleton": "complete.skl.json"
+      }
+    },
+    "x2": {
+      "family": "complete",
+      "aliases": [
+        "x2"
+      ],
+      "manifest_path": "res://resources/ua/sky/x2/manifest.json",
+      "scene_path": "res://resources/ua/sky/x2/sky.tscn",
+      "source_files": {
+        "bas": "x2.bas.json",
+        "skeleton": "complete.skl.json"
+      }
+    },
+    "x4": {
+      "family": "complete",
+      "aliases": [
+        "x4"
+      ],
+      "manifest_path": "res://resources/ua/sky/x4/manifest.json",
+      "scene_path": "res://resources/ua/sky/x4/sky.tscn",
+      "source_files": {
+        "bas": "x4.bas.json",
+        "skeleton": "complete.skl.json"
+      }
+    },
+    "x5": {
+      "family": "complete",
+      "aliases": [
+        "x5"
+      ],
+      "manifest_path": "res://resources/ua/sky/x5/manifest.json",
+      "scene_path": "res://resources/ua/sky/x5/sky.tscn",
+      "source_files": {
+        "bas": "x5.bas.json",
+        "skeleton": "complete.skl.json"
+      }
+    },
+    "x7": {
+      "family": "complete",
+      "aliases": [
+        "x7"
+      ],
+      "manifest_path": "res://resources/ua/sky/x7/manifest.json",
+      "scene_path": "res://resources/ua/sky/x7/sky.tscn",
+      "source_files": {
+        "bas": "x7.bas.json",
+        "skeleton": "complete.skl.json"
+      }
+    },
+    "x8": {
+      "family": "complete",
+      "aliases": [
+        "x8"
+      ],
+      "manifest_path": "res://resources/ua/sky/x8/manifest.json",
+      "scene_path": "res://resources/ua/sky/x8/sky.tscn",
+      "source_files": {
+        "bas": "x8.bas.json",
+        "skeleton": "complete.skl.json"
+      }
+    },
+    "x9": {
+      "family": "complete",
+      "aliases": [
+        "x9"
+      ],
+      "manifest_path": "res://resources/ua/sky/x9/manifest.json",
+      "scene_path": "res://resources/ua/sky/x9/sky.tscn",
+      "source_files": {
+        "bas": "x9.bas.json",
+        "skeleton": "complete.skl.json"
+      }
+    },
+    "xa": {
+      "family": "complete",
+      "aliases": [
+        "xa"
+      ],
+      "manifest_path": "res://resources/ua/sky/xa/manifest.json",
+      "scene_path": "res://resources/ua/sky/xa/sky.tscn",
+      "source_files": {
+        "bas": "xa.bas.json",
+        "skeleton": "complete.skl.json"
+      }
+    },
+    "xb": {
+      "family": "complete",
+      "aliases": [
+        "xb"
+      ],
+      "manifest_path": "res://resources/ua/sky/xb/manifest.json",
+      "scene_path": "res://resources/ua/sky/xb/sky.tscn",
+      "source_files": {
+        "bas": "xb.bas.json",
+        "skeleton": "complete.skl.json"
+      }
+    },
+    "xc": {
+      "family": "complete",
+      "aliases": [
+        "xc"
+      ],
+      "manifest_path": "res://resources/ua/sky/xc/manifest.json",
+      "scene_path": "res://resources/ua/sky/xc/sky.tscn",
+      "source_files": {
+        "bas": "xc.bas.json",
+        "skeleton": "complete.skl.json"
+      }
+    }
+  }
+}

@@ -1,0 +1,13 @@
+{
+	"schema_version": 1,
+	"set_id": 178,
+	"game_data_type": "metropolisDawn",
+	"vehicles": {
+		"63": {
+			"slots": {
+				"wait": 0
+			},
+			"model": "tank"
+		}
+	}
+}

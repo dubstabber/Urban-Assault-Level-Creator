@@ -6,7 +6,7 @@ func  _ready() -> void:
 		if CurrentMapData.horizontal_sectors == 0 or CurrentMapData.vertical_sectors == 0:
 			return
 		if CurrentMapData.map_path.is_empty():
-			%SaveLevelFileDialog.popup()
+			%SaveLevelFileDialog.popup.call_deferred()
 			await %SaveLevelFileDialog.visibility_changed
 			close_requested.emit()
 		else:

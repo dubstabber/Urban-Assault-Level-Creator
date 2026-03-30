@@ -12,10 +12,10 @@ func _ready() -> void:
 func _on_index_pressed(index: int) -> void:
 	match get_item_text(index):
 		"Additional information":
-			%AdditionalInformationWindow.popup()
+			%AdditionalInformationWindow.popup.call_deferred()
 		"Campaign maps":
-			%CampaignMapsWindow.popup()
+			%CampaignMapsWindow.popup.call_deferred()
 		"Keyboard shortcuts":
-			%KeyboardShortcutsWindow.popup()
+			%KeyboardShortcutsWindow.popup.call_deferred()
 		"About":
-			%AboutWindow.popup()
+			%AboutWindow.popup.call_deferred()

@@ -11,13 +11,19 @@ func _on_ok_button_pressed() -> void:
 	hide()
 	
 	if typ_map_spin_box.value >= 0 and typ_map_spin_box.value < 256:
+		var edited_typ_indices: Array = []
 		if EditorState.selected_sectors.size() > 1 and CurrentMapData.hgt_map.size() > 0:
 			for sector_dict in EditorState.selected_sectors:
 				if sector_dict.has("idx"):
 					CurrentMapData.typ_map[sector_dict.idx] = int(typ_map_spin_box.value)
+					edited_typ_indices.append(sector_dict.idx)
+			if not edited_typ_indices.is_empty():
+				EventSystem.typ_map_cells_edited.emit(edited_typ_indices)
 			EventSystem.map_updated.emit()
 		elif EditorState.selected_sector_idx >= 0 and CurrentMapData.typ_map.size() > 0:
 			CurrentMapData.typ_map[EditorState.selected_sector_idx] = int(typ_map_spin_box.value)
+			edited_typ_indices.append(EditorState.selected_sector_idx)
+			EventSystem.typ_map_cells_edited.emit(edited_typ_indices)
 			EventSystem.map_updated.emit()
 	else:
 		printerr("Wrong typ_map value: ", typ_map_spin_box.value)
@@ -32,7 +38,7 @@ func _on_about_to_popup() -> void:
 
 
 func _on_typ_map_picker_button_pressed() -> void:
-	%TypMapPickerWindow.popup()
+	%TypMapPickerWindow.popup.call_deferred()
 
 
 func _on_typ_map_picker_window_building_selected(index: int) -> void:

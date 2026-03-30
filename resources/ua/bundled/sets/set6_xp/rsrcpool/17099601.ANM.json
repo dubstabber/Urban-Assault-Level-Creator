@@ -1,0 +1,27 @@
+{
+ "VANM": [ 
+  {
+   "DATA": {
+    "class_id": "ilbm.class",
+    "frames": [ 
+     {
+      "frame_time": 40,
+      "vbmp_coords": [ 
+       [ 0, 170 ], 
+       [ 45, 170 ], 
+       [ 45, 209 ], 
+       [ 0, 209 ] ],
+      "vbmp_name": "MTL.ILBM"
+     }, 
+     {
+      "frame_time": 40,
+      "vbmp_coords": [ 
+       [ 0, 213 ], 
+       [ 45, 213 ], 
+       [ 45, 252 ], 
+       [ 0, 252 ] ],
+      "vbmp_name": "MTL.ILBM"
+     } ]
+   }
+  } ]
+}

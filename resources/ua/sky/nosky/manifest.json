@@ -1,0 +1,41 @@
+{
+  "canonical_id": "nosky",
+  "family": "nosky",
+  "aliases": [
+    "nosky"
+  ],
+  "scene_path": "res://resources/ua/sky/nosky/sky.tscn",
+  "mesh_paths": [],
+  "material_paths": [],
+  "geometry_path": "res://resources/ua/sky/nosky/geometry.json",
+  "textures": [],
+  "source_files": {
+    "bas": "nosky.bas.json",
+    "skeleton": "nosky.skl.json"
+  },
+  "bounds": {
+    "min": [
+      0.0,
+      0.0,
+      0.0
+    ],
+    "max": [
+      0.0,
+      0.0,
+      0.0
+    ]
+  },
+  "flags": {
+    "has_geometry": false,
+    "double_sided": true,
+    "uses_alpha": false,
+    "unshaded": true
+  },
+  "surface_count": 0,
+  "polygon_count": 0,
+  "vertex_count": 1,
+  "notes": [
+    "Converted from development/debug sky references; runtime should load only project-owned bundle files.",
+    "Geometry preserves UA-authored local X, flips source-down Y upward, and mirrors Z into the editor preview space."
+  ]
+}

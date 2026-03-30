@@ -1,0 +1,8 @@
+newmtl mat_braun2_ilbm
+Ka 1.000 1.000 1.000
+Kd 1.000 1.000 1.000
+Ks 0.000 0.000 0.000
+d 1.000
+illum 1
+map_Kd ../textures/braun2_ilbm.png
+

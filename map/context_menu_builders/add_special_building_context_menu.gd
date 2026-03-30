@@ -42,14 +42,19 @@ func _id_pressed(id: int) -> void:
 
 func add_special_building(building_id: int, typ_map: int, own_map: int) -> void:
 	if CurrentMapData.blg_map.size() > 0:
+		var edited_typ_indices: Array = []
 		if EditorState.selected_sectors.size() > 1:
 			for sector_dict in EditorState.selected_sectors:
 				if sector_dict.has("idx"):
 					CurrentMapData.blg_map[sector_dict.idx] = building_id
 					CurrentMapData.typ_map[sector_dict.idx] = typ_map
 					CurrentMapData.own_map[sector_dict.idx] = own_map
+					edited_typ_indices.append(sector_dict.idx)
 		elif EditorState.selected_sector_idx >= 0:
 			CurrentMapData.blg_map[EditorState.selected_sector_idx] = building_id
 			CurrentMapData.typ_map[EditorState.selected_sector_idx] = typ_map
 			CurrentMapData.own_map[EditorState.selected_sector_idx] = own_map
+			edited_typ_indices.append(EditorState.selected_sector_idx)
+		if not edited_typ_indices.is_empty():
+			EventSystem.typ_map_cells_edited.emit(edited_typ_indices)
 		EventSystem.map_updated.emit()

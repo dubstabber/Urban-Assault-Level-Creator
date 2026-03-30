@@ -1,0 +1,577 @@
+;-----------------------------------------------------------------------------------------------
+;
+;       	Y   o   u   r       P   e   r   s   o   n   a   l       A   M   O   K      
+;
+;       	INTERNETZWERKROBOS
+;
+;	upd.:	02-Feb-98	Neue Icons nachgetragen und BS + SULG rausgeschmissen
+;		09-Feb-98	BeamFX für alle Robos
+;		09-Mar-98	Spezielle Flaklose Internet-Netzwerk-Robos
+;		31-Mar-98	Dir-Structure geändert
+;		02-Jun-98	Bernd: Shield  erhöht und jeder Robo hat eine Flak
+;		03-Jun-98	Shield nochmal erhöht, Flakplatzierung verbessert
+;		04-06-98		Stefan: Positionen von Flaks für Kyt und User geändert
+;		09-06-98		Stefan:  Inet-Robo-Gun nun 159 auskommentierte Zeilen raus
+;		06-07-98		Stefan: Taerrobofalk hochgesetzt
+;       	(C) 1996-1998        B.Beyreuther / A.Flemming / A.Weissflog
+;
+;-----------------------------------------------------------------------------------------------
+;
+;	USERROBO (Resistance)
+;
+new_vehicle 56
+         	model          =       robo
+         	name           =       STATION_USR
+        	energy          =       5000000                ; WIRD DIESER WERT DANN ÜBERSCHRIEBEN ????
+        	shield          =       85	; 60
+        	mass            =       10000.0
+        	force           =       40000.0
+        	maxrot          =       1.0
+        	airconst        =       200.0
+        	height          =       200.0
+        	radius          =       200.0           ; siehe auch Robo-Extension-Attrs weiter unten
+        	overeof         =       150.0
+        	vwr_radius      =       200.0
+        	vwr_overeof     =       100.0
+        	radar           =       3
+        
+        	vp_normal       =       115                     ; siehe visproto.lst
+        	vp_fire         =       115
+        	vp_megadeth     =       141                     ;
+        	vp_wait         =       115
+        	vp_dead         =       8               ;             
+        	vp_genesis      =       312
+
+        	type_icon       =       Q
+
+        	pal_build_slot          =       7
+        	pal_build_time          =       1000
+        	shk_build_slot          =       1
+        	shk_build_time          =       3000
+
+; BEAM-FX
+
+        	pal_beamin_slot                 =       7               ; INVERSE / TUERKIS
+        	pal_beamin_time                 =       2300            ; ca. 2 Sekunden (= genau wies Sample )
+        	pal_beamin_mag0         =       0.0
+        	pal_beamin_mag1         =       2.0
+        	shk_beamin_slot         =       1
+        	shk_beamin_mag0 =       0
+        	shk_beamin_mag1 =       2       
+        	shk_beamin_time         =       2300    
+
+        	pal_beamout_slot        =       7               
+        	pal_beamout_time        =       1000            ; ca. 1 Sekunde
+        	pal_beamout_mag0        =       2.0
+        	pal_beamout_mag1        =       0.0
+        	shk_beamout_slot        =       1
+        	shk_beamout_mag0        =       0
+        	shk_beamout_mag1        =       2       
+        	shk_beamout_time        =       1000    
+
+; ROBO EXITUS
+        	pal_explode_slot                        =       4
+        	pal_explode_mag0                =       5
+        	pal_explode_mag1                =       0
+        	pal_explode_time                        =       1500
+
+        	shk_explode_slot                        =       1
+        	shk_explode_mag0                =       2
+        	shk_explode_mag1                =       0
+        	shk_explode_time                =       5000
+        	shk_explode_mute                =       0.02
+
+        	dest_fx = death_122_0_0_0                       ; SCALERING
+
+        	dest_fx = death_47_0_-5_0       
+        	dest_fx = death_87_-20_0_40
+        	dest_fx = death_44_50_0_20
+        	dest_fx = death_87_0_0_0        
+        	dest_fx = death_43_-20_0_-30 
+        	dest_fx = death_81_-25_-2_-30
+        	dest_fx = death_88_+30_-2_-50
+        	dest_fx = death_40_5_-5_5       
+        	dest_fx = death_41_-10_10_-10
+        	dest_fx = death_42_5_-5_-12
+        	dest_fx = death_45_1_2_3        
+        	dest_fx = death_46_7_-7_-23 
+        	dest_fx = death_82_-5_2_3
+        	dest_fx = death_84_30_2_-5
+        	dest_fx = death_84_13_-15_30
+        
+; Robo Extensions
+
+        robo_data_slot                  =       0
+
+        robo_viewer_x           =       0.0             ; Die ROBO-Kamera
+        robo_viewer_y           =       140.0
+        robo_viewer_z           =       125.0
+        robo_viewer_max_up      =       0.4
+        robo_viewer_max_down    =       1.2
+        robo_viewer_max_side    =       3.5
+
+;       Zuerst die Waffenstationen
+;       Beachte !       
+;       Als FLAKS des USER-ROBOS die WaffenSlots 90...99 verwenden !
+
+; der Replikator (dürfte bei User-Robo doch eh egal sein)
+
+        robo_dock_x             =       0
+        robo_dock_y             =       80
+        robo_dock_z             =       0
+
+; ROBO-KOLLISSION
+; Jetzt, beim nicht bewegenden ROBO, brauche ich nicht mehr so viel Kugeln.
+
+        robo_coll_num           =       6
+
+; Ein große Kugel die den Body einhüllt
+
+        robo_coll_act                   =       0
+        robo_coll_x                     =       0
+        robo_coll_y                     =       -50
+        robo_coll_z                     =       0
+        robo_coll_radius        =       240
+
+; Einige kleine für den Mast übereinander-gestapelt
+ 
+        robo_coll_act                   =       1
+        robo_coll_x                     =       0
+        robo_coll_y                     =       -90
+        robo_coll_z                     =       0
+        robo_coll_radius        =       100
+
+        robo_coll_act                   =       2
+        robo_coll_x                     =       0
+        robo_coll_y                     =       -200
+        robo_coll_z                     =       0
+        robo_coll_radius        =       50
+
+        robo_coll_act                   =       3
+        robo_coll_x                     =       0
+        robo_coll_y                     =       -250
+        robo_coll_z                     =       0
+        robo_coll_radius        =       50
+
+        robo_coll_act                   =       4
+        robo_coll_x                     =       0
+        robo_coll_y                     =       -300
+        robo_coll_z                     =       0
+        robo_coll_radius        =       50
+
+        robo_coll_act                   =       5
+        robo_coll_x                     =       0
+        robo_coll_y                     =       -350
+        robo_coll_z                     =       0
+        robo_coll_radius        =       40
+
+       robo_num_guns           =       	1
+        robo_act_gun            	=       	0               ; Richtige Flak
+    	robo_gun_pos_x  	= 	0.0
+    	robo_gun_pos_y  	= 	-390.0
+    	robo_gun_pos_z  	= 	0
+    	robo_gun_dir_x  		= 	0.0		; guckt nach vorn
+    	robo_gun_dir_y  		= 	0.0
+    	robo_gun_dir_z  		= 	1.0	
+        robo_gun_type   	=       	159             
+        robo_gun_name    	=       	FLAK1
+
+end 
+; -----------------------------------------------------------------------------------------------------------------------OF USER ROBO
+
+;---------------------------------------------------------------------------------------------------------------------------------------------------
+;
+;       GHORKOV STATION (Buegeleisen)
+;
+new_vehicle     57
+        model           =       robo
+        name            =       GHORKOV
+
+        robo_does_twist
+        robo_does_flux
+
+        energy          =       5000000
+        shield          =       85	; 60
+        mass            =       10000.0
+        force           =       40000.0
+        maxrot          =       1.0
+        airconst        =       200.0
+        height          =       340.0
+        radius          =       250.0           ; siehe auch Robo-Extension-Attrs weiter unten
+        overeof         =       150.0
+        vwr_radius      =       200.0
+        vwr_overeof     =       100.0
+        radar           =       3
+
+        vp_normal       =       126                     ; siehe visproto.lst
+        vp_fire         =       36
+        vp_megadeth     =       22                      ; dummy.base, nix zu sehen
+        vp_wait         =       115
+        vp_dead         =       2                       ; dummy.base, nix zu sehen
+        vp_genesis      =       313
+        type_icon       = 	X
+
+
+;------------------------------------------------------------------------ROBO-EXITUS------------------------
+; BEAM-FX
+
+	pal_beamin_slot 		= 	7		; INVERSE / TUERKIS
+	pal_beamin_time 		= 	2300		; ca. 2 Sekunden (= genau wies Sample )
+	pal_beamin_mag0 	= 	0.0
+	pal_beamin_mag1 	= 	2.0
+	shk_beamin_slot		=	1
+	shk_beamin_mag0	=	0
+	shk_beamin_mag1	=	2	
+	shk_beamin_time		=	2300	
+
+	pal_beamout_slot 	= 	7		
+	pal_beamout_time 	= 	1000		; ca. 1 Sekunde
+	pal_beamout_mag0 	= 	2.0
+	pal_beamout_mag1 	= 	0.0
+	shk_beamout_slot	=	1
+	shk_beamout_mag0	=	0
+	shk_beamout_mag1	=	2	
+	shk_beamout_time	=	1000	
+
+        pal_explode_slot                        =       4
+        pal_explode_mag0                =       5
+        pal_explode_mag1                =       0
+        pal_explode_time                        =       1500
+
+        shk_explode_slot                        =       1
+        shk_explode_mag0                =       2
+        shk_explode_mag1                =       0
+        shk_explode_time                =       5000
+        shk_explode_mute                =       0.02
+
+        dest_fx = death_47_0_-5_0       
+        dest_fx = death_85_-20_0_40
+        dest_fx = death_42_50_0_20
+        dest_fx = death_87_0_0_0        
+        dest_fx = death_43_-20_0_-30 
+        dest_fx = death_81_-25_-2_-30
+        dest_fx = death_40_+30_-2_-50
+        dest_fx = death_40_35_-5_0
+        dest_fx = death_40_5_-5_5       
+        dest_fx = death_40_-10_10_-10
+        dest_fx = death_40_5_-5_-12
+        dest_fx = death_41_1_2_3        
+        dest_fx = death_41_7_-7_-23 
+        dest_fx = death_41_-5_2_3
+        dest_fx = death_41_30_2_-5
+
+; Robo Extensions
+; zuerst die Waffenstationen
+
+        robo_data_slot                  =       1
+        
+        robo_viewer_x           =       0.0             ; Die ROBO-Kamera
+        robo_viewer_y           =       220.0
+        robo_viewer_z           =       0.0
+        robo_viewer_max_up      =       0.0
+        robo_viewer_max_down    =       1.4
+        robo_viewer_max_side    =       3.7
+
+       
+;       Der Replikator
+
+        robo_dock_x             =       0       ; Mal sehn...
+        robo_dock_y             =       0
+        robo_dock_z             =       0
+
+; ...dann die Kollisions-Kugeln (??????????????????????????????????????????)
+
+        robo_coll_num           =       6
+
+    ; die einzige Kugel, die ich um den Robo spanne
+        robo_coll_act                   =       0
+        robo_coll_x                     =       0
+        robo_coll_y                     =       -50
+        robo_coll_z                     =       0
+        robo_coll_radius        =       200     
+
+    ; die nächsten Kugeln dienen der Kollisionsverhütung
+        robo_coll_act                   =       1
+        robo_coll_x                     =       -180
+        robo_coll_y                     =       -50
+        robo_coll_z                     =       100
+        robo_coll_radius        =        0
+
+        robo_coll_act                   =       2
+        robo_coll_x                     =       180
+        robo_coll_y                     =       -50
+        robo_coll_z                     =       100
+        robo_coll_radius        =       0
+
+        robo_coll_act                   =       3
+        robo_coll_x                     =       0
+        robo_coll_y                     =       50
+        robo_coll_z                     =       180
+        robo_coll_radius        =       0
+
+        robo_coll_act                   =       4
+        robo_coll_x                     =       90
+        robo_coll_y                     =       -25
+        robo_coll_z                     =       140
+        robo_coll_radius        =       0
+
+        robo_coll_act                   =       5
+        robo_coll_x                     =       90
+        robo_coll_y                     =       25
+        robo_coll_z                     =       140
+        robo_coll_radius        =       0
+
+        robo_num_guns       	=       	1
+    	robo_gun_pos_x  	= 	0
+    	robo_gun_pos_y  	= 	-300.0
+    	robo_gun_pos_z  	= 	100
+    	robo_gun_dir_x  		= 	0.0
+    	robo_gun_dir_y  		=	0.0
+    	robo_gun_dir_z  		= 	1.0
+        robo_gun_type        	=       	161
+        robo_gun_name     	=       	FLAK1
+end
+ 
+;---------------------------------------------------------------------------------------------------------------------------------------------------
+;
+;               MYKONIERROBO
+;               Böse, Böse !  
+;
+new_vehicle     58
+        model           =       robo
+        name            =       MYKONIAC
+
+        robo_does_twist
+        robo_does_flux
+
+        energy          =       10000
+        shield          =       85	; 60
+        mass            =       10000.0
+        force           =       40000.0
+        maxrot          =       2.0
+        airconst        =       200
+        height          =       400
+        radius          =       250             ; siehe auch Robo-Extension-Attrs weiter unten
+        overeof         =       250
+        radar           =       3
+
+        vp_normal       =       127                     ; laut visproto.lst
+        vp_fire         =       127                     ; Kein extra FIR-Zustand
+        vp_megadeth     =       129                     ; Aufschlag
+        vp_wait         =       127                     ; Kein extra WAIT-Zustand
+        vp_dead         =       128                     ; EXPLOSION    
+        vp_genesis      =       314                  
+        type_icon       =	Y
+
+;------------------------------------------------------------------------ROBO-EXITUS------------------------    
+; BEAM-FX
+
+	pal_beamin_slot 		= 	7		; INVERSE / TUERKIS
+	pal_beamin_time 		= 	2300		; ca. 2 Sekunden (= genau wies Sample )
+	pal_beamin_mag0 	= 	0.0
+	pal_beamin_mag1 	= 	2.0
+	shk_beamin_slot		=	1
+	shk_beamin_mag0	=	0
+	shk_beamin_mag1	=	2	
+	shk_beamin_time		=	2300	
+
+	pal_beamout_slot 	= 	7		
+	pal_beamout_time 	= 	1000		; ca. 1 Sekunde
+	pal_beamout_mag0 	= 	2.0
+	pal_beamout_mag1 	= 	0.0
+	shk_beamout_slot	=	1
+	shk_beamout_mag0	=	0
+	shk_beamout_mag1	=	2	
+	shk_beamout_time	=	1000	
+
+
+        pal_explode_slot                        =       2       ; BLAU
+        pal_explode_mag0                =       5
+        pal_explode_mag1                =       0
+        pal_explode_time                        =       1500
+
+        shk_explode_slot                        =       1
+        shk_explode_mag0                =       2
+        shk_explode_mag1                =       0
+        shk_explode_time                =       5000
+        shk_explode_mute                =       0.02
+
+        dest_fx = death_47_20_0_0       
+        dest_fx = death_85_-20_0_40
+        dest_fx = death_42_50_0_20
+        dest_fx = death_87_0_0_0        
+        dest_fx = death_43_-20_0_-30 
+        dest_fx = death_81_-25_-2_-30
+        dest_fx = death_40_5_-50_5      
+        dest_fx = death_41_-10_10_-10
+        dest_fx = death_40_5_-50_-12
+        dest_fx = death_40_1_20_3       
+        dest_fx = death_40_7_-30_-23 
+        dest_fx = death_82_-5_20_3
+        dest_fx = death_117_30_20_-5
+
+
+; Robo Extensions
+; zuerst die Waffenstationen  
+
+        robo_data_slot                  =       2
+
+        robo_viewer_x           =       0.0             ; Die ROBO-Kamera
+        robo_viewer_y           =       350.0
+        robo_viewer_z           =       0.0
+        robo_viewer_max_up      =       0.0
+        robo_viewer_max_down    =       1.4
+        robo_viewer_max_side    =       3.6
+
+; der Replikator, liegt auch im Inneren der Station, deshalb muß ich Genesis bei denen auch nicht modeln
+        robo_dock_x             =       0
+        robo_dock_y             =       0
+        robo_dock_z             =       0
+
+;  KOLLISSION
+        robo_coll_num 	=       	1
+        robo_coll_act	=       	0
+        robo_coll_x		=       	0
+        robo_coll_y		=       	0
+        robo_coll_z   	=       	0
+        robo_coll_radius        	=       	450	; 350     
+
+; Zusätzlich bei Gelegenheit nochmal an jeder Ecke eine Zusatzkugel anbringen !
+
+        robo_num_guns        	=       	1
+        robo_act_gun          	=       	0
+        robo_gun_pos_x        	=       	0	; 0
+        robo_gun_pos_y    	=       	-500	;  200
+        robo_gun_pos_z   	=       	0	; 0
+        robo_gun_dir_x  	=       	1
+        robo_gun_dir_y   	=       	0
+        robo_gun_dir_z      	=       	1
+        robo_gun_type     	=       	162
+        robo_gun_name        	=       	FLAK1 
+
+end 
+; --------------------------------------------------------------------------------------------------------------------OF MYKONIER ROBO
+
+
+;---------------------------------------------------------------------------------------------------------------------------------------------------
+;
+;       TAERKASTENROBO
+;
+new_vehicle     60
+        model           =       robo
+        name            =       TAERCAST
+        energy          =       5000000
+        shield          =       85	; 60
+        mass            =       10000.0
+        force           =       40000.0
+        maxrot          =       1.0
+        airconst                =       200.0
+        height          =       350.0
+        radius          =       150.0           ; siehe auch Robo-Extension-Attrs weiter unten
+        overeof                 =       150.0
+        vwr_radius      =       200.0
+        vwr_overeof     =       100.0
+        radar           =       3
+
+        vp_normal       =       36              ; siehe visproto.lst
+        vp_fire         =       36
+        vp_megadeth     =       38              ; im Moment noch nix zu sehen
+        vp_wait         =       37
+        vp_dead         =       39              ; im Moment noch nix zu sehen
+        vp_genesis      =       315
+
+        type_icon       =       1
+
+;------------------------------------------------------------------------ROBO-EXITUS------------------------    
+; BEAM-FX
+
+	pal_beamin_slot 		= 	7		; INVERSE / TUERKIS
+	pal_beamin_time 		= 	2300		; ca. 2 Sekunden (= genau wies Sample )
+	pal_beamin_mag0 	= 	0.0
+	pal_beamin_mag1 	= 	2.0
+	shk_beamin_slot		=	1
+	shk_beamin_mag0	=	0
+	shk_beamin_mag1	=	2	
+	shk_beamin_time		=	2300	
+
+	pal_beamout_slot 	= 	7		
+	pal_beamout_time 	= 	1000		; ca. 1 Sekunde
+	pal_beamout_mag0 	= 	2.0
+	pal_beamout_mag1 	= 	0.0
+	shk_beamout_slot	=	1
+	shk_beamout_mag0	=	0
+	shk_beamout_mag1	=	2	
+	shk_beamout_time	=	1000	
+
+        pal_explode_slot                        =       4       ; invdark
+        pal_explode_mag0                =       5
+        pal_explode_mag1                =       0
+        pal_explode_time                        =       1500
+
+        shk_explode_slot                        =       1
+        shk_explode_mag0                =       2
+        shk_explode_mag1                =       0
+        shk_explode_time                =       5000
+        shk_explode_mute                =       0.02
+
+        dest_fx = death_47_20_0_0       
+        dest_fx = death_82_-20_0_40
+        dest_fx = death_82_50_0_20
+        dest_fx = death_83_0_0_0        
+        dest_fx = death_83_-20_0_-30 
+        dest_fx = death_84_-25_-2_-30
+        dest_fx = death_44_35_-5_0
+        dest_fx = death_41_5_-50_5      
+        dest_fx = death_41_-10_10_-10
+        dest_fx = death_82_5_-5_-12
+        dest_fx = death_40_1_2_3        
+        dest_fx = death_84_7_-3_-23 
+        dest_fx = death_82_-5_2_3
+        dest_fx = death_41_30_2_-5
+
+
+; Robo Extensions
+; zuerst die Waffenstationen
+
+        robo_data_slot          =       3
+        robo_viewer_x           =       0.0             ; Die ROBO-Kamera
+        robo_viewer_y           =       145.0
+        robo_viewer_z           =       0.0
+        robo_viewer_max_up      =       0.0
+        robo_viewer_max_down    =       1.4
+        robo_viewer_max_side    =       3.6
+
+; der Replikator
+
+        robo_dock_x             =       0
+        robo_dock_y             =       80
+        robo_dock_z             =       0
+
+; ...dann die Kollisions-Kugeln
+
+        robo_coll_num           =       1
+
+; die einzige Kugel, die ich um den Robo spanne
+        robo_coll_act                   =       0
+        robo_coll_x                     =       0
+        robo_coll_y                     =       0
+        robo_coll_z                     =       0
+        robo_coll_radius        =       300     
+
+        robo_num_guns   		=       	1
+        robo_act_gun                    	=       	0      
+        robo_gun_pos_x          	=       	100
+        robo_gun_pos_y          	=       	-250		; 100
+        robo_gun_pos_z          	=       	100
+        robo_gun_dir_x          		=       	0
+        robo_gun_dir_y          		=       	0
+        robo_gun_dir_z          		=       	1
+        robo_gun_type           		=       	160
+
+end 
+
+include data:scripts/netrflak.scr      		; die USER ROBO Flak stark stellen
+
+;--------------------------------------------------------------------------------------------------------------------------
+;                       ENDE            ROBOS
+;-------------------------------------------------------------------------------------------------------------------------

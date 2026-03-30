@@ -1,0 +1,53 @@
+{
+  "canonical_id": "ct6",
+  "family": "custom",
+  "aliases": [
+    "ct6"
+  ],
+  "scene_path": "res://resources/ua/sky/ct6/sky.tscn",
+  "mesh_paths": [
+    "res://resources/ua/sky/ct6/mesh/sky.obj"
+  ],
+  "material_paths": [
+    "res://resources/ua/sky/ct6/mesh/sky.mtl"
+  ],
+  "geometry_path": "res://resources/ua/sky/ct6/geometry.json",
+  "textures": [
+    {
+      "source_name": "ct6.ILBM",
+      "source_file": "ct6.ILBM.bmp",
+      "bundle_path": "res://resources/ua/sky/ct6/textures/ct6_ilbm.png",
+      "width": 256,
+      "height": 256
+    }
+  ],
+  "source_files": {
+    "bas": "ct6.bas.json",
+    "skeleton": "ct6.skl.json"
+  },
+  "bounds": {
+    "min": [
+      -4491.0,
+      -550.0,
+      -4284.0
+    ],
+    "max": [
+      4347.0,
+      539.0,
+      4195.0
+    ]
+  },
+  "flags": {
+    "has_geometry": true,
+    "double_sided": true,
+    "uses_alpha": false,
+    "unshaded": true
+  },
+  "surface_count": 32,
+  "polygon_count": 32,
+  "vertex_count": 25,
+  "notes": [
+    "Converted from development/debug sky references; runtime should load only project-owned bundle files.",
+    "Geometry preserves UA-authored local X, flips source-down Y upward, and mirrors Z into the editor preview space."
+  ]
+}

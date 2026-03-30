@@ -1,0 +1,87 @@
+extends RefCounted
+
+const CASE_NAMES := [
+	"small_visible_flat",
+	"medium_visible_varied",
+	"large_visible_varied",
+	"set6_ptcl_visible",
+	"large_hidden_refresh_workflow",
+]
+
+
+static func all_case_names() -> Array:
+	return CASE_NAMES.duplicate()
+
+
+static func get_case(case_name: String) -> Dictionary:
+	match case_name:
+		"small_visible_flat":
+			return _make_case(case_name, "8x8 visible baseline terrain build", 8, 8, 1, "flat", [0, 1, 2, 3], true, 1, false, {"case_elapsed_ms_max": 1000.0, "build_total_ms_max": 1000.0})
+		"medium_visible_varied":
+			return _make_case(case_name, "24x24 visible mixed-height terrain and slurp workload", 24, 24, 1, "rolling", [0, 1, 2, 3, 4, 5], true, 1, false, {"case_elapsed_ms_max": 3000.0, "build_total_ms_max": 3000.0})
+		"large_visible_varied":
+			return _make_case(case_name, "64x64 visible large-map terrain and overlay baseline", 64, 64, 1, "rolling", [0, 1, 2, 3, 4, 5], true, 1, false, {"case_elapsed_ms_max": 8000.0, "build_total_ms_max": 8000.0})
+		"set6_ptcl_visible":
+			return _make_case(case_name, "6x6 visible set6 PTCL-heavy authored overlay case", 6, 6, 6, "terraced", [234, 235], true, 1, false, {"case_elapsed_ms_max": 1500.0, "build_total_ms_max": 1500.0})
+		"large_hidden_refresh_workflow":
+			return _make_case(case_name, "64x64 hidden-preview update burst followed by reactivation", 64, 64, 1, "rolling", [0, 1, 2, 3, 4, 5], false, 6, true, {"hidden_burst_elapsed_ms_max": 50.0, "build_total_ms_max": 8000.0, "expect_pending_refresh_before_reactivate": true, "expect_no_build_before_reactivate": true, "expect_pending_refresh_after_run": false})
+	return {}
+
+
+static func apply_map_data(target: Node, map_data: Dictionary) -> bool:
+	if target == null or map_data.is_empty():
+		return false
+	for key in ["horizontal_sectors", "vertical_sectors", "level_set", "hgt_map", "typ_map", "blg_map", "beam_gates", "tech_upgrades", "stoudson_bombs"]:
+		target.set(key, map_data.get(key, target.get(key)))
+	return true
+
+
+static func _make_case(case_name: String, description: String, w: int, h: int, set_id: int, height_mode: String, typ_palette: Array, start_visible: bool, map_update_burst: int, reactivate_after_burst: bool, smoke_budgets: Dictionary) -> Dictionary:
+	return {
+		"name": case_name,
+		"description": description,
+		"map_data": _make_map_data(w, h, set_id, height_mode, typ_palette),
+		"workflow": {
+			"start_visible": start_visible,
+			"map_update_burst": map_update_burst,
+			"reactivate_after_burst": reactivate_after_burst,
+		},
+		"smoke_budgets": smoke_budgets.duplicate(true),
+	}
+
+
+static func _make_map_data(w: int, h: int, set_id: int, height_mode: String, typ_palette: Array) -> Dictionary:
+	var hgt := PackedByteArray()
+	hgt.resize((w + 2) * (h + 2))
+	for y in range(h + 2):
+		for x in range(w + 2):
+			hgt[y * (w + 2) + x] = clampi(_height_value(x, y, height_mode), 0, 255)
+	var palette := typ_palette if not typ_palette.is_empty() else [0]
+	var typ := PackedByteArray()
+	typ.resize(w * h)
+	for y in range(h):
+		for x in range(w):
+			typ[y * w + x] = clampi(int(palette[(x + y * 3) % palette.size()]), 0, 255)
+	var blg := PackedByteArray()
+	blg.resize(w * h)
+	return {
+		"horizontal_sectors": w,
+		"vertical_sectors": h,
+		"level_set": set_id,
+		"hgt_map": hgt,
+		"typ_map": typ,
+		"blg_map": blg,
+		"beam_gates": [],
+		"tech_upgrades": [],
+		"stoudson_bombs": [],
+	}
+
+
+static func _height_value(x: int, y: int, height_mode: String) -> int:
+	match height_mode:
+		"flat":
+			return 0
+		"terraced":
+			return ((x % 5) * 2 + (y % 4) * 3) % 30
+		_:
+			return (x * 11 + y * 7 + ((x * y) % 13)) % 24

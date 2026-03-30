@@ -1,0 +1,45 @@
+;--------------------------------------------------------------------------------------------------------------------------------------
+;
+;   	-           Y   o   u   r       P   e   r   s   o   n   a   l       A   M   O   K         -
+;
+;	Modifiziert die Flaks des USer-Robos fÃ¼r Netzwerkspiele, da er ja
+;	im SinglePLayerSpiel sehr niedrig anfÃ¤ngt und erst geupgradet
+;	wird.
+;
+;	29-May-98	Bernd: Der User war im Vergleich zu den anderen noch viel zu schwach !!!
+;			ENERGY stark erhÃ¶ht
+;			und zum Angleichen der Werte:
+;			Life Time runter (war betrÃ¤chlich hÃ¶her als bei den anderen !)
+;			SHOTTIME etwas lÃ¤nger
+;
+;	(C) 1996-1998 	B.Beyreuther / A.Flemming / A.Weissflog
+;
+;-------------------------------------------------------------------------------------------------------------------------------------
+modify_weapon 90
+	energy		=	13333	; 8000
+	life_time		=	3500	; 4000
+        	shot_time       	=       	1000	; 950
+        	shot_time_user  	=       	650
+end
+
+modify_weapon 91
+	energy		=	13333
+	life_time		=	3500
+        	shot_time       	=       	1000
+        	shot_time_user  	=       	650
+end
+
+modify_weapon 92
+	energy		=	13333
+	life_time		=	3500
+        	shot_time       	=       	1000
+        	shot_time_user  	=       	650
+end
+
+modify_weapon 93
+	energy		=	13333
+	life_time		=	3500
+        	shot_time       	=       	1000
+        	shot_time_user  	=       	650
+end
+

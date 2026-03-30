@@ -1,0 +1,97 @@
+{
+	"schema_version": 1,
+	"set_id": 178,
+	"game_data_type": "original",
+	"definitions": [
+		{
+			"building_id": 25,
+			"sec_type": 3,
+			"attachments": []
+		},
+		{
+			"building_id": 35,
+			"sec_type": 245,
+			"attachments": []
+		},
+		{
+			"building_id": 28,
+			"sec_type": 205,
+			"attachments": [
+				{
+					"act": 0,
+					"vehicle_id": 96,
+					"ua_offset": {
+						"x": 0.0,
+						"y": -425.0,
+						"z": 0.0
+					},
+					"ua_direction": {
+						"x": 1.0,
+						"y": 0.0,
+						"z": 0.0
+					}
+				}
+			]
+		},
+		{
+			"building_id": 28,
+			"sec_type": 240,
+			"attachments": [
+				{
+					"act": 0,
+					"vehicle_id": 139,
+					"ua_offset": {
+						"x": 0.0,
+						"y": -425.0,
+						"z": 0.0
+					},
+					"ua_direction": {
+						"x": 1.0,
+						"y": 0.0,
+						"z": 0.0
+					}
+				}
+			]
+		},
+		{
+			"building_id": 20,
+			"sec_type": 199,
+			"attachments": [
+				{
+					"act": 0,
+					"vehicle_id": 150,
+					"ua_offset": {
+						"x": 0.0,
+						"y": 0.0,
+						"z": 0.0
+					},
+					"ua_direction": {
+						"x": 0.0,
+						"y": 0.0,
+						"z": 1.0
+					}
+				}
+			]
+		},
+		{
+			"building_id": 3,
+			"sec_type": 204,
+			"attachments": [
+				{
+					"act": 0,
+					"vehicle_id": 109,
+					"ua_offset": {
+						"x": 30.0,
+						"y": -530.0,
+						"z": 0.0
+					},
+					"ua_direction": {
+						"x": -1.0,
+						"y": 0.0,
+						"z": 0.0
+					}
+				}
+			]
+		}
+	]
+}

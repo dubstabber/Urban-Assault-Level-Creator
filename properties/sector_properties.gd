@@ -24,33 +24,33 @@ func _ready() -> void:
 
 func _update_properties() -> void:
 	if EditorState.selected_sectors.size() > 1:
-		no_sector_label.hide()
+		no_sector_label.hide.call_deferred()
 		return
 	if (CurrentMapData.horizontal_sectors > 0 and CurrentMapData.vertical_sectors > 0
 		and EditorState.border_selected_sector_idx >= 0):
-		no_sector_label.hide()
+		no_sector_label.hide.call_deferred()
 		
-		sector_properties_container.show()
+		sector_properties_container.show.call_deferred()
 		sector_position_label.text = "Selected sector X:%s Y:%s" % [EditorState.selected_sector.x, EditorState.selected_sector.y]
 		
 		if (EditorState.selected_sector.x == 0 or EditorState.selected_sector.y == 0 or
 			EditorState.selected_sector.x == (CurrentMapData.horizontal_sectors + 1) or
 			EditorState.selected_sector.y == (CurrentMapData.vertical_sectors + 1)):
-			border_info_label.show()
-			sector_info_container.hide()
-			sector_info_container_separator.hide()
-			sector_info_container_separator2.hide()
-			building_text_label.hide()
-			building_texture.hide()
-			invalid_typ_map_label.hide()
+			border_info_label.show.call_deferred()
+			sector_info_container.hide.call_deferred()
+			sector_info_container_separator.hide.call_deferred()
+			sector_info_container_separator2.hide.call_deferred()
+			building_text_label.hide.call_deferred()
+			building_texture.hide.call_deferred()
+			invalid_typ_map_label.hide.call_deferred()
 			return
 		else:
-			border_info_label.hide()
-			sector_info_container.show()
-			sector_info_container_separator.show()
-			sector_info_container_separator2.show()
-			building_text_label.show()
-			building_texture.show()
+			border_info_label.hide.call_deferred()
+			sector_info_container.show.call_deferred()
+			sector_info_container_separator.show.call_deferred()
+			sector_info_container_separator2.show.call_deferred()
+			building_text_label.show.call_deferred()
+			building_texture.show.call_deferred()
 		
 		if CurrentMapData.own_map[EditorState.selected_sector_idx] == 0:
 			sector_owner_label.text = "Neutral"
@@ -74,22 +74,22 @@ func _update_properties() -> void:
 			special_building_label.text = 'Unknown'
 		if ((CurrentMapData.blg_map[EditorState.selected_sector_idx] == 62 and CurrentMapData.level_set in [3, 4, 5]) or
 			(CurrentMapData.blg_map[EditorState.selected_sector_idx] == 55 and CurrentMapData.level_set in [2, 5])):
-			invalid_blg_map_label.show()
+			invalid_blg_map_label.show.call_deferred()
 		else:
-			invalid_blg_map_label.hide()
+			invalid_blg_map_label.hide.call_deferred()
 		if CurrentMapData.blg_map[EditorState.selected_sector_idx] == 62 and CurrentMapData.level_set in [1, 6]:
-			warning_blg_map_label.show()
+			warning_blg_map_label.show.call_deferred()
 		else:
-			warning_blg_map_label.hide()
+			warning_blg_map_label.hide.call_deferred()
 		
 		building_text_label.text = "Building %s" % CurrentMapData.typ_map[EditorState.selected_sector_idx]
 		if Preloads.building_side_images[CurrentMapData.level_set].has(CurrentMapData.typ_map[EditorState.selected_sector_idx]):
-			building_texture.show()
+			building_texture.show.call_deferred()
 			building_texture.texture = Preloads.building_side_images[CurrentMapData.level_set][CurrentMapData.typ_map[EditorState.selected_sector_idx]]
-			invalid_typ_map_label.hide()
+			invalid_typ_map_label.hide.call_deferred()
 		else:
-			building_texture.hide()
-			invalid_typ_map_label.show()
+			building_texture.hide.call_deferred()
+			invalid_typ_map_label.show.call_deferred()
 	else:
-		no_sector_label.show()
-		sector_properties_container.hide()
+		no_sector_label.show.call_deferred()
+		sector_properties_container.hide.call_deferred()

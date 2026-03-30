@@ -1,0 +1,2913 @@
+;--------------------------------------------------------------------------------------------------------------------------------------
+;
+;	Y   o   u   r       P   e   r   s   o   n   a   l       A   M   O   K
+;
+;       	Waffen
+;
+;               12-Jul-97       floh    	+ Taerkasten Leonid Waffe (37) korrigiert
+;                                       		+ Kyt Speedy Waffe gefixt 
+;                                       		+ Kyt Ufo Waffe gefixt                                      
+;               13-Jul-97       floh    	+ Taer-Doppeldecker Waffe gefixt
+;                                       		+ Taer-Zeppelin Waffe gefixt        
+;	15-Jul-97	       bernd	+ neue Waffe für Mykonier generiert	
+;	23-Jul-97			+ die Wireframes für die FeindWaffen nachgetragen
+;	31-Jul-97	       bernd	+ Feind- und UserWaffen getrennt 	
+;	13-Aug-97     bernd	+ User-Flaks etwas aufgebohrt
+;	27-Aug-97		+ TAERKASTEN Huesle
+;	10-Sep-97      bernd	+ Der USER-ROBO hat MG-Flaks nicht länger
+;	12-Sep-97      bernd	+ MYKONIERFLAK-Netzwerk speziell
+;	26-Sep-97      bernd	+ überarbeitet: SCALE FX für BRONSTEIJN
+;	27-Sep-97      bernd	+ USR ROBO Flak oben und hinten in der Stärke halbiert
+;	13-OCT-97    bernd	+ bei einigen kleinen Waffen die Masse reduziert
+;	25-OCT-97    bernd	+ SMALL USR AA FLAK
+;	19-NOV-97    bernd	+ KYTERFLAK
+;	05-Dez-97      Stefan	+ Faktoren
+;	12-Dec-97     bernd	+ bugfixing
+;	12-Dez-97      Stefan	+ Radius nachgetragen
+;	15-Dez-97      Stefan	+ Radius fix
+;	16-Dez-97      Stefan	+ Myko schwer fix
+;	17-Dec-97     bernd	+ neue Optik für PhantomWaffe und GigantWaffe
+;	19-Dez-97      Stefan	+ fix Taerflak, Gigant, X01, Speedy, Sulg Bomb
+;	22-Dez-97      Stefan	+ fix Phantom Shottime
+;	06-Jan-98      bernd	+ Phantom Einschuß
+;	09-Jan-98      Stefan	+ kleiner Mykonier + 5PO Schuß trifft nun
+;	14-Jan-98      Stefan	+ Schwerwe Myk. Schuß verstärkt, 5PO Lifitime runter
+;				   Small Myk. und Mnosjetz Schuß stärker
+;	21-Jan-98      Stefan	+ User-Robo schießt nicht mehr über 3 Sektoren
+;	26-Jan-98      Stefan	+ User- Robo Guns runtergesetzt auf 10 % da nun Upgrates
+;	28-Jan-98      Stefan	+ Small AA-Flak schwächer
+;	29-Jan-98      Bernd	+ Waffen für neue Vehicle
+;	30-Jan-98      Stefan	+ Waffe Mnosjetz und Hetzel ausgetauscht, Mosjetz Butgets 
+;	02-Feb-98     Stefan	+ Zeppelin und Mnosjetz Nummern getauscht
+;	02-Feb-98     Bernd	+ Fehlende Waffe für Neue Mykonier-Flak nachgetragen
+;	10-Feb-98     Bernd	+ ACHTUNG! Die ROBO FLAKGranaten liegen jetzt in Weapon U
+;	23-Feb-98     Stefan	+ Sulogs geändert
+;	24-Feb-98     Stefan	+ 36 Waffe stärker, 73 Waffe schwächer, 8, 31 Lifetime ohne runter
+;				+ 25 Salve, Bomber Radius grösser
+;	25-Feb-98     Stefan	+ 63,65 Salve, Bomber Radius original, 38 Radius grösser, Planes 
+;				+ schlecht versus Robo, 100, 108, 111, 117 mit Multiplikatoren
+;	26-Feb-98     Stefan	+ 63 schwerer
+;	06-Feb-98     Stefan	+ 25 Schuss schwächer
+;	10-Feb-98     Stefan	+ Zeppelin trifft Hubschrauber, Flugzeug schlechter
+;	18-Mär-98    Stefan	+ Tekh stärker
+;	03-Apr-98    Bernd	+ Lifetime Mykonierflak höher -> Schuß weiter
+;	06-Apr-98    Stefan	+ Waffe für Tonne
+;	15-Apr-98    Bernd	+ Flugie : Neues Waffen Aussehen
+;	29-Apr-98    Stefan	+ Flugie: Waffe trifft besser, 5P2 Waffe schwächer
+;	08-May-98  Bernd		+ BS Waffen etwas runter, weil die Flaks jetzt 100% Shield haben
+;	14-Mai-98   Stefan	+ Multiplikatoren von 22 und 68 runter
+;	29-may-08  		Bernd: MykoRoboNetzwerkWaffe 80 (die bisher nicht verwendet wurde) wird jetzt verwendet und
+;				hat den selben Wert wie alle Netzwerkrobos
+;				Bernd: TaerkastenWaffe Shottime USer runtergesetzt, um im Multi auszugleichen
+;	02-06-98	     Stefan	32 Waffe rauf, 72 Waffe rauf
+;	09-06-98      Stefan	Internet-Robo-Flaks hinzugefügt (120 User, 121 Ghor, 122 Myk, 123 Taer), Waffenstärke von 81 und 84 vertauscht
+;	17-jun-98	Bernd	Modifikator für UFO auf ROBO runter
+;	23-Jun-98	Bernd	User-bronsteijn hat jetzt eigene Waffe
+;				Neue Effekte für Speedy, Heavy Myko, 5po
+;	24-jun-98	Bernd	KYT hatte sowohl normal als auch als inet-Robo fehlerhaft missiles - geändert in rockets
+;	25-jun-98	Bernd	Trickina ROBO MOD von 0.5 auf 0.3
+;				User Bronsteijn von 0.8 auf 0.9
+;	27-Jun-98	Bernd	Kleiner KyterneserRobo hat jetzt Waffen-Aussehen vom Gigant
+;	07-jul-98		Bernd	5pO Reichweite runtergedreht
+;				
+;       	(C) 1996-1998   B.Beyreuther / A.Flemming / A.Weissflog
+;
+;----------------------------------------------------------------------------------------------------------------
+;
+;       STRONG ARM II
+;   
+;       WAFFE FÜR PHANTOM / ACHTUNG - IST JETZT TAERTKASTISCH
+;       Lenkrakete, fett und langsam, haut aber durch. Evtl. noch modifizieren!
+;
+new_weapon      8               
+        model                   =       missile
+        name                    =       STRONGARM2
+        wireframe       =       wireless/otlw8.sklt
+
+        energy          =       50000
+
+        mass            =       5.0
+        radius          =       40
+        force           =       3000
+        maxrot          =       1.5
+        airconst        =       10
+        start_speed     =       250
+        life_time       =       3000
+        life_time_nt	=     1200
+        drive_time    = 	3999
+        shot_time       	=       2500		;2000
+        shot_time_user  	=       2500		;1000
+
+        type_icon       =       I       ; debug
+
+        	vp_normal       	=       	317
+        	vp_fire         	=       	317
+        	vp_dead         	=       	70
+        	vp_wait         	=       	317
+        	vp_megadeth     	=       	70
+        	vp_genesis      	=       	317
+
+        shk_hit_slot            =       1
+        shk_hit_time            =       400
+        shk_hit_mag0            =       0.8
+        shk_hit_mag1            =       0
+        shk_hit_z               =       0.0
+        shk_hit_mute            =       0.04
+
+        pal_hit_slot            	=       4
+        pal_hit_mag0            	=       0.1
+        pal_hit_mag1            	=       0
+        pal_hit_time            	=       140
+
+        energy_tank		= 0.5
+        energy_heli		= 1.5
+        energy_flyer		= 1.5
+        energy_robo		= 0.5		;0.7 1
+
+        radius_tank		= 40
+        radius_heli		= 60
+        radius_flyer		= 60
+        radius_robo		= 20		; 40
+end
+
+;--------------------------------------------------------------------------------------------
+;
+;       	BOMBE FÜR KYTERNESER-FUYGII
+;
+new_weapon      17
+        	model           	=       	bomb
+        	name                    	=       	FYUGISM
+        	wireframe       	=       	wireless/otlw25.sklt
+
+        	energy          	=       	7000		; 50000
+        	mass                    	=       	1.3		; 500
+        	force                   	=       	10
+        	maxrot                  	=       	1.5
+        	airconst        	=       	10		; 10
+        	radius                  	=       	300		; 85
+        	start_speed     	=       	10
+        	shot_time       	=       	200		; 1800 2000
+        	shot_time_user  	=       	200		; 1800 2000  
+	salve_shots	=	30		; 30
+	salve_delay	=	10000
+        	life_time               	=       	50000
+
+        	type_icon       	=       	I       	; debug
+
+        	vp_normal       	=       	340	; 68
+        	vp_fire         	=       	68
+        	vp_dead         	=       	67
+        	vp_wait         	=       	68
+        	vp_megadeth     	=       	70
+        	vp_genesis      	=     	68
+
+        	pal_hit_slot     	=       	3
+        	pal_hit_mag0	=       	0.5
+        	pal_hit_mag1	=      	 2
+        	pal_hit_time 	=       	120
+
+        	shk_hit_slot  	=       	1       	; nicht vergessen !
+        	shk_hit_mag0 	=       	1		; 2
+        	shk_hit_mag1 	=       	0
+        	shk_hit_time	=       	150		; 400
+        	shk_hit_x	=       	0.03     		; 0.3 HOCH und RUNTER
+        	shk_hit_y	=       	0.03		; 0.3
+        	shk_hit_z	=       	0
+
+        energy_tank		= 1.5
+        energy_heli		= 1
+        energy_flyer		= 1
+        energy_robo		= 1
+
+        radius_tank		= 400
+        radius_heli		= 250
+        radius_flyer		= 200
+        radius_robo		= 400
+
+end
+;--------------------------------------------------------------------------
+;
+;       16TONS
+;
+;       WAFFE FÜR ZEPPELIN
+;
+new_weapon      18
+        	model           	=       	bomb
+        	name            	=       	16TONS
+        	wireframe       	=       	wireless/otlw38.sklt
+
+        	energy          	=       	300000
+        	mass            	=       	16000
+        	force           	=       	0
+        	maxrot          	=       	1.5
+        	airconst        	=       	10
+        	radius          	=       	410		;410 200		; zu gross ???
+        	start_speed     	=       	0
+        	shot_time       	=       	10000		;15000
+        	shot_time_user  	=       	7000		;10000
+        	life_time       	=       	10000
+
+        	type_icon       	=       	I       		; debug
+
+        	vp_normal       	=       	308
+        	vp_fire         	=       	308
+        	vp_dead         	=       	67
+        	vp_wait         	=       	308
+        	vp_megadeth     	=       	70
+        	vp_genesis      	=       	308
+
+        	pal_hit_slot    	=       	3
+        	pal_hit_mag0    	=       	0.5
+        	pal_hit_mag1    	=       	2
+        	pal_hit_time    	=       	120
+
+        	shk_hit_slot    	=       	1       		; nicht vergessen !
+        	shk_hit_mag0    	=       	2
+        	shk_hit_mag1    	=       	0
+        	shk_hit_time    	=       	700
+        	shk_hit_x       	=       	0.4     		; HOCH und RUNTER
+        	shk_hit_y       	=       	0.3
+        	shk_hit_z       	=       	0.1
+
+
+	dest_fx                 =       	megadeth_129_0_0_0
+	dest_fx                 =       	megadeth_128_0_0_0
+
+
+        energy_tank		= 1.5
+        energy_heli		= 1
+        energy_flyer		= 1
+        energy_robo		= 1
+
+        radius_tank		= 820
+        radius_heli		= 20
+        radius_flyer		= 10
+        radius_robo		= 410
+
+end
+;-----------------------------------------------------------------------------------------------------------
+;
+;       Gully
+;
+;       WAFFE FÜR Tonne
+;       Kleine schnelle Lenkrakete
+;
+new_weapon     19
+        model           =       missile
+        name            =       Gully
+        wireframe       =       wireless/otlw22.sklt
+
+        energy          =       1000
+        mass            =       40
+        force           =       12000	 		; 6000
+        maxrot          =       5.0
+        airconst        =       100
+        radius	= 	200
+        start_speed     =       200
+        life_time       =       2000
+        shot_time       =       1500
+        shot_time_user  =       1500
+        
+        type_icon       =       I       ; debug
+
+        vp_normal       =       68
+        vp_fire         =       245
+        vp_dead         =       67
+        vp_wait         =       245
+        vp_megadeth     =       67
+        vp_genesis      =       98
+
+end
+;-----------------------------------------------------------------------------------------------------------------
+;  
+;       User-BRONSTEIJNS_NEFFE
+;
+;       Waffe für BRONSTEIJN (Killer-Satellitt) in User-Hand
+;       LASER-FLASH / HAUT absolut übel rein.
+;
+new_weapon 	20
+        model                   =       rocket
+        name                    =       UserBRONSTEIJNS_NEFFE
+        wireframe       =       wireless/otlw34.sklt
+
+        vp_normal       =       247                     
+        vp_fire         =       157
+        vp_dead         =       160      ; der ScaleFX bringts   
+        vp_wait         =       157
+        vp_megadeth     =       160      ; der ScaleFX bringts
+        vp_genesis      =       157
+
+        energy          =       120000
+        mass                    =       10.0
+        force                   =       26000
+        maxrot                  =       3.0
+        airconst        =       100.0
+        start_speed     =       470
+        life_time       =       1500                            
+        shot_time               =       1000
+        shot_time_user     =    3000
+        radius          =       160		;120
+
+        	type_icon       =       I       ; debug
+
+        	pal_hit_slot            =       2
+        	pal_hit_mag0            =       0.5
+        	pal_hit_mag1            =       2
+        	pal_hit_time            =       120
+        
+        	shk_hit_slot            	=       1
+        	shk_hit_time            	=       450
+        	shk_hit_mag0            	=       2
+        	shk_hit_mag1            	=       0
+        	shk_hit_mute            	=       0.1
+        	shk_hit_z               	=       0
+        	shk_hit_x               	=       1
+       	shk_hit_y               	=       0       
+        
+        	dest_fx                 =       	megadeth_123_0_0_0
+       	dest_fx                 =       	death_123_0_0_0
+        	dest_fx                 =       	megadeth_125_0_0_0 
+        	dest_fx                 =       	death_125_0_0_0 
+
+        energy_tank		= 1
+        energy_heli		= 1
+        energy_flyer		= 0.5
+        energy_robo		= 0.8
+
+        radius_tank		= 320
+        radius_heli		= 80
+        radius_flyer		= 20
+        radius_robo		= 160
+
+
+end
+
+;-----------------------------------------------------------------------------------------------------------
+;
+;       ChickenWing
+;
+;       WAFFE FÜR SPEEDY
+;       Kleine schnelle Lenkrakete
+;
+new_weapon      22
+        model           =       missile
+        name            =       CHICKENWING
+        wireframe       =       wireless/otlw22.sklt
+
+        energy          =       5000
+        mass            =       40
+        force           =       12000	 		; 6000
+        maxrot          =       5.0
+        airconst        =       100
+        radius	= 	20
+        start_speed     =       340
+        life_time       =       2000
+        shot_time       =       500
+        shot_time_user  =       300
+        
+        type_icon       =       I       ; debug
+
+        vp_normal       =       356	; 245
+        vp_fire         =       356		; 245
+        vp_dead         =       67
+        vp_wait         =       356		; 245
+        vp_megadeth     =       67
+        vp_genesis      =       98
+
+        pal_hit_slot            =       4
+        pal_hit_mag0            =       0.03
+        pal_hit_mag1            =       0
+        pal_hit_time            =       80
+
+        energy_tank		= 0.7		; 1
+        energy_heli		= 1		; 1.5
+        energy_flyer		= 1		; 1.5
+        energy_robo		= 0.7		; 1
+
+        radius_tank		= 20
+        radius_heli		= 40
+        radius_flyer		= 80
+        radius_robo		= 20
+
+end
+
+;----------------------------------------------------------------------------------------------------------------
+;
+;       JeanMichel
+;
+;       WAFFE FÜR KYTERNESER-UFO
+;       Sehr kleine schnelle ungelenkte Rakete (Laser ?)
+;
+new_weapon      23
+        model           =       rocket
+        name            =       JEANMICHEL
+        wireframe       =       wireless/otlw23.sklt
+
+        energy          =       3000
+        mass            =       10
+        force           =       6000
+        maxrot          =       5.0
+        airconst        =       20
+        start_speed     =       340
+        life_time       =       2000
+        shot_time       =       700
+        shot_time_user  =       700			;1100
+	radius	=	40
+        
+        type_icon       =       I       ; debug
+
+        vp_normal       =       245
+        vp_fire         =       245
+        vp_dead         =       67
+        vp_wait         =       245
+        vp_megadeth     =       67
+        vp_genesis      =       98
+
+        shk_hit_slot    = 1
+        shk_hit_time    = 300
+        shk_hit_mag0    = 0.5
+        shk_hit_mag1    = 0
+        shk_hit_z       = 0.0
+
+        pal_hit_slot    =       4
+        pal_hit_mag0    =       0.03
+        pal_hit_mag1    =       0
+        pal_hit_time    =       80
+
+        energy_tank		= 0.5
+        energy_heli		= 1.5
+        energy_flyer		= 1.5
+        energy_robo		= 0.3		; 0.5
+
+        radius_tank		= 40
+        radius_heli		= 60
+        radius_flyer		= 60
+        radius_robo		= 20		; 40
+
+end
+
+;--------------------------------------------------------------------------------------------------------
+;
+;       ACHILLES
+;
+;       WAFFE FÜR KYTERNESER-HUBI.
+;       Luft-Boden-Rakete, nicht gelenkt, mittlere Verwüstung.
+;
+new_weapon      24
+        model           =       rocket
+        name            =       ACHILLES
+        wireframe       =       wireless/otlw24.sklt
+
+        energy          =       27000
+        mass                    =       50.0
+        force                   =       5000.0
+        maxrot                  =       1.2
+        airconst                =       80.0
+        start_speed     =       90
+        life_time               =       2500
+       shot_time             = 2300			;2500        
+       shot_time_user   = 900				;1000
+	radius	=	50
+
+        type_icon       =       I       ; debug
+
+        vp_normal       =       113
+        vp_fire         =       113
+        vp_dead         =       67
+        vp_wait         =       113
+        vp_megadeth     =       69
+        vp_genesis      =       113
+
+        pal_hit_slot            =       1
+        pal_hit_mag0            =       0
+        pal_hit_mag1            =       0.3
+        pal_hit_time            =       120
+        shk_hit_slot            =       1
+        shk_hit_time            =       350
+        shk_hit_mag0            =       1
+        shk_hit_mag1            =       0
+        shk_hit_mute            =       0.02
+
+        energy_tank		= 1.5
+        energy_heli		= 1
+        energy_flyer		= 0.5
+        energy_robo		= 1
+
+        radius_tank		= 100
+        radius_heli		= 50
+        radius_flyer		= 50
+        radius_robo		= 50
+
+end
+
+;--------------------------------------------------------------------------------------------
+;
+;       	TILLIE_WILLIE
+; 
+;       	BOMBE FÜR GHARGOIL3
+;
+new_weapon      25
+        	model           	=       	bomb
+        	name                    	=       	TILLIE_WILLIE
+        	wireframe       	=       	wireless/otlw25.sklt
+
+        	energy          	=       	10000		; 20000 50000
+        	mass                    	=       	500
+        	force                   	=       	0
+        	maxrot                  	=       	1.5
+        	airconst        	=       	10
+        	radius                  	=       	170		; 85
+        	start_speed     	=       	0
+        	shot_time       	=       	200		;2000
+        	shot_time_user  	=       	400		;2000  
+	salve_shots	=	7
+	salve_delay	=	5000
+        	life_time               	=       	10000
+
+        	type_icon       	=       	I       	; debug
+
+        	vp_normal       	=       	68
+        	vp_fire         	=       	68
+        	vp_dead         	=       	67
+        	vp_wait         	=       	68
+        	vp_megadeth     	=       	70
+        	vp_genesis      	=     	68
+
+        	pal_hit_slot     	=       	3
+        	pal_hit_mag0	=       	0.5
+        	pal_hit_mag1	=      	 2
+        	pal_hit_time 	=       	120
+
+        	shk_hit_slot  	=       	1       	; nicht vergessen !
+        	shk_hit_mag0 	=       	2
+        	shk_hit_mag1 	=       	0
+        	shk_hit_time	=       	400
+        	shk_hit_x	=       	0.3     	; HOCH und RUNTER
+        	shk_hit_y	=       	0.3
+        	shk_hit_z	=       	0
+
+        energy_tank		= 1.5
+        energy_heli		= 1
+        energy_flyer		= 1
+        energy_robo		= 1
+
+        radius_tank		= 340
+        radius_heli		= 40
+        radius_flyer		= 40
+        radius_robo		= 170
+end
+
+;----------------------------------------------------------------------------------------------
+;
+;       ION_TICHY
+;
+;       WAFFE FÜR KYTERNESER-PANZER.
+;       Panzer-Granate, schnell und wirkungsvoll
+;
+new_weapon      26
+        model                   =       grenade
+        name                    =       ION_TICHY
+        wireframe       =       wireless/otlw26.sklt
+
+        energy          =      42000		; 18650				; 20000
+        mass                    =       50.0
+        force                   =       100.0
+        maxrot                  =       1.5
+        airconst        =       10.0
+        start_speed     =       200
+        life_time               =       1800
+        shot_time       =       2700				;2900
+        shot_time_user  =  1200				; 900
+	radius	=	25
+        type_icon       =       I       ; debug
+
+        vp_normal       =       68
+        vp_fire         =       68
+        vp_dead         =       67
+        vp_wait         =       68
+        vp_megadeth     =       70
+        vp_genesis      =       68
+
+        shk_hit_slot    = 1
+        shk_hit_time    = 500
+        shk_hit_mag0    = 0.8
+        shk_hit_z       = 0.0
+
+        pal_hit_slot            =       4
+        pal_hit_mag0            =       0.05
+        pal_hit_mag1            =       0
+        pal_hit_time            =       120
+
+        energy_tank		= 1
+        energy_heli		= 0.7
+        energy_flyer		= 0.5
+        energy_robo		= 1.5
+
+        radius_tank		= 37.5
+        radius_heli		= 25
+        radius_flyer		= 25
+        radius_robo		= 25
+
+end
+
+;-----------------------------------------------------------------------------------------
+;
+;       COHEN
+;   
+;       WAFFE FÜR DEN KYTERNESER-GIGANTEN
+;       Laser.
+;
+new_weapon      27
+        model                   =       rocket
+        name                    =       COHEN
+        wireframe       =       wireless/otlw27.sklt
+
+        energy          =       31000
+        mass                    =       50.0
+        force                   =       15000.0
+        maxrot                  =       1.2
+        airconst        =       40.0
+        start_speed     =       270
+        life_time       =      950		 	;1900,  2000
+        shot_time       =       300
+        shot_time_user =  400
+        type_icon       =       I       ; debug
+	radius	=	20
+
+        	vp_normal       	=       	316
+        	vp_dead         	=	70
+        	vp_megadeth     	=       	70
+        	vp_genesis      	=       	22      ; DUMMY
+        	vp_fire         	=       	22      ; DUMMY
+        	vp_wait         	=       	22      ; DUMMY
+
+        shk_hit_slot            =       1
+        shk_hit_time            =       420
+        shk_hit_mag0            =       1
+        shk_hit_mag1            =       0.5
+        shk_hit_z               =       0.1
+        shk_hit_y               =       0.2
+        shk_hit_x               =       0.4
+        shk_hit_mute            =       0.02
+
+        pal_hit_slot            =       4
+        pal_hit_mag0            =       0.2
+        pal_hit_mag1            =       0
+        pal_hit_time            =       180
+
+        energy_tank		= 0.3
+        energy_heli		= 0.7
+        energy_flyer		= 0.7
+        energy_robo		= 1
+
+        radius_tank		= 6
+        radius_heli		= 14
+        radius_flyer		= 14
+        radius_robo		= 20
+
+end
+
+;--------------------------------------------------------------------------------------------------------
+;
+;       ACHILLES2
+;
+;       WAFFE FÜR KYTERNESER-MODI-HUBI.
+;       Luft-Boden-Rakete, nicht gelenkt, mittlere Verwüstung, bischen schwächer aber doppelt.
+;
+new_weapon      28
+        model           =       rocket
+        name            =       DOPPELPOPEL
+        wireframe       =       wireless/otlw28.sklt
+
+        energy          =       25000
+        mass                    =       50.0
+        force                   =       5000.0
+        maxrot                  =       1.2
+        airconst                =       80.0
+        start_speed     =       90
+        life_time               =       2500
+       shot_time             = 2500			; 3000        
+       shot_time_user   = 1000
+	radius	=	50
+
+        type_icon       =       I       ; debug
+
+        vp_normal       =       113
+        vp_fire         =       113
+        vp_dead         =       67
+        vp_wait         =       113
+        vp_megadeth     =       69
+        vp_genesis      =       113
+
+        pal_hit_slot            =       1
+        pal_hit_mag0            =       0
+        pal_hit_mag1            =       0.3
+        pal_hit_time            =       120
+        shk_hit_slot            =       1
+        shk_hit_time            =       350
+        shk_hit_mag0            =       1
+        shk_hit_mag1            =       0
+        shk_hit_mute            =       0.02
+
+        energy_tank		= 1.5
+        energy_heli		= 1
+        energy_flyer		= 0.5
+        energy_robo		= 1
+
+        radius_tank		= 100
+        radius_heli		= 50
+        radius_flyer		= 50
+        radius_robo		= 50
+
+end
+
+
+;----------------------------------------------------------------------------------------------------------------
+;
+;       Don´t worry about missing:
+;
+;       29	Ormu hat keine
+;       30      modified Gigant: nutzt  27
+;
+;-----------------------------------------------------------------------------------------------------------------
+;  
+;       TRICHINENBEFALL
+;
+;       Waffe für KYTERNESER-JAGDFLUGZEUG
+;
+new_weapon      31
+        name            =       TRICHINENBEFALL
+        model                   =       missile
+        wireframe       =       wireless/otlw31.sklt
+
+        energy          =       30000
+        mass                    =       20
+        force                   =       10000
+        maxrot                  =       3
+        airconst        =       40
+        start_speed     =       150
+        life_time       =       6000     
+        life_time_nt        = 1100
+        drive_time              =       5999
+        shot_time       =       600
+        shot_time_user =  600
+	radius	=	40
+        type_icon       =       I       ; debug
+
+        vp_normal       =       114
+        vp_fire         =       114
+        vp_dead         =       67
+        vp_wait         =       66
+        vp_megadeth     =       69
+        vp_genesis      =       114
+        
+        shk_hit_slot            =       1
+        shk_hit_time            =       300
+        shk_hit_mag0            =       0.5
+        shk_hit_mag1            =       0
+        shk_hit_z               =       0.0
+        shk_hit_mute            =       0.02
+
+        pal_hit_slot            =       4
+        pal_hit_mag0            =       0.1
+        pal_hit_mag1            =       0
+        pal_hit_time            =       160
+
+        energy_tank		= 0.5
+        energy_heli		= 1.5
+        energy_flyer		= 1.5
+        energy_robo		= 0.3		; 0.5
+
+        radius_tank		= 40
+        radius_heli		= 60
+        radius_flyer		= 60
+        radius_robo		= 20		; 40
+
+end
+
+
+;----------------------------------------------------------------------------------------------------------------
+;       TAERKASTEN-WAFFEN               32...48
+;----------------------------------------------------------------------------------------------------------------
+;
+;       FOGGWULF
+;
+;       WAFFE FÜR TAERKASTENPANZER.
+;       Panzer-Granate, schnell und wirkungsvoll
+;
+new_weapon      32
+        model                   =       grenade
+        name                    =       FOGGWULF
+        wireframe       =       wireless/otlw32.sklt
+
+        energy          =       	18000		; 13800
+        mass                    =       50.0
+        force                   =       100.0
+        maxrot                  =       1.5
+        airconst        =       10.0
+        start_speed     =       200
+        life_time               =       1800
+        shot_time       =       	2300		; 2000
+        shot_time_user  =       	1100		; 1000
+	radius	=	20
+
+        type_icon       =       I       ; debug
+
+        vp_normal       =       68
+        vp_fire         =       68
+        vp_dead         =       67
+        vp_wait         =       68
+        vp_megadeth     =       70
+        vp_genesis      =       68
+
+        shk_hit_slot            =       1
+        shk_hit_time            =       320
+        shk_hit_mag0            =       0.5
+        shk_hit_mag1            =       0
+        shk_hit_z               =       0.2
+        shk_hit_y               =       0.2
+        shk_hit_x               =       0.2
+        shk_hit_mute            =       0.02
+
+        pal_hit_slot            =       4
+        pal_hit_mag0            =       0.07
+        pal_hit_mag1            =       0
+        pal_hit_time            =       160
+
+        energy_tank		= 1
+        energy_heli		= 0.7
+        energy_flyer		= 0.5
+        energy_robo		= 1.5
+
+        radius_tank		= 30
+        radius_heli		= 20
+        radius_flyer		= 20
+        radius_robo		= 20
+
+end
+;--------------------------------------------------------------------------------------------
+;
+;       METZEL
+; 
+;       Waffe für Taerkasten Eindecker. Schweres langsames MG mit
+;       Explosiv-Geschossen, entspricht
+;
+new_weapon      33
+        model           =       rocket
+        name            =       METZEL
+        wireframe       =       wireless/otlw33.sklt
+
+        energy          =  8000			; 6000 4000
+        mass            =       5.0
+        radius          =       50
+        force           =       1000
+        maxrot          =       1.5
+        airconst        =       10
+        start_speed     =       250
+        life_time       =       2500
+        drive_time    = 	2499
+        shot_time       	=       333
+        shot_time_user  	=       333
+        type_icon       =       I       ; debug
+
+        vp_normal       =       268
+        vp_fire         =       268
+        vp_dead         =       99
+        vp_wait         =       268
+        vp_megadeth     =       99
+        vp_genesis      =       268
+
+        shk_hit_slot    =       1
+        shk_hit_time    =       400
+        shk_hit_mag0    =       0.8
+        shk_hit_mag1    =       0
+        shk_hit_x       =       0.2
+        shk_hit_y       =       0.2
+        shk_hit_z       =       0.0
+        shk_hit_mute    =       0.04
+
+        pal_hit_slot    =       4
+        pal_hit_mag0    =       0.05
+        pal_hit_mag1    =       0
+        pal_hit_time    =       120
+
+        energy_tank		= 1.5
+        energy_heli		= 1
+        energy_flyer		= 0.5
+        energy_robo		= 1
+
+        radius_tank		= 100
+        radius_heli		= 50
+        radius_flyer		= 50
+        radius_robo		= 50
+
+end
+;-----------------------------------------------------------------------------------------------------------------
+;  
+;       BRONSTEIJNS_NEFFE
+;
+;       Waffe für BRONSTEIJN (Killer-Satellitt) 
+;       LASER-FLASH / HAUT absolut übel rein.
+;
+new_weapon 34
+        model                   =       rocket
+        name                    =       BRONSTEIJNS_NEFFE
+        wireframe       =       wireless/otlw34.sklt
+
+        vp_normal       =       247                     
+        vp_fire         =       157
+        vp_dead         =       160      ; der ScaleFX bringts   
+        vp_wait         =       157
+        vp_megadeth     =       160      ; der ScaleFX bringts
+        vp_genesis      =       157
+
+        energy          =       120000
+        mass                    =       10.0
+        force                   =       26000
+        maxrot                  =       3.0
+        airconst        =       100.0
+        start_speed     =       470
+        life_time       =       1500                            
+        shot_time               =       1000
+        shot_time_user     =    3000
+        radius          =       160		;120
+
+        	type_icon       =       I       ; debug
+
+        	pal_hit_slot            =       2
+        	pal_hit_mag0            =       0.5
+        	pal_hit_mag1            =       2
+        	pal_hit_time            =       120
+        
+        	shk_hit_slot            	=       1
+        	shk_hit_time            	=       450
+        	shk_hit_mag0            	=       2
+        	shk_hit_mag1            	=       0
+        	shk_hit_mute            	=       0.1
+        	shk_hit_z               	=       0
+        	shk_hit_x               	=       1
+       	shk_hit_y               	=       0       
+        
+        	dest_fx                 =       	megadeth_123_0_0_0
+       	dest_fx                 =       	death_123_0_0_0
+        	dest_fx                 =       	megadeth_125_0_0_0 
+        	dest_fx                 =       	death_125_0_0_0 
+
+        energy_tank		= 1
+        energy_heli		= 1
+        energy_flyer		= 0.5
+        energy_robo		= 1
+
+        radius_tank		= 320
+        radius_heli		= 80
+        radius_flyer		= 20
+        radius_robo		= 160
+
+
+end
+;-----------------------------------------------------------------------------------------------------------------
+;  
+;       35 OTSCHKO hat keine Waffe
+;
+;-----------------------------------------------------------------------------------------------------------------
+;  
+;       SERPSKOJE
+;
+;       Waffe für SERP  (Raketen Fahrzeug der Taerkasten)
+;
+new_weapon      36
+        name            =       SERPSKOJE
+        model                   =       missile
+        wireframe       =       wireless/otlw36.sklt
+
+
+        energy          =       40000		; 5000
+        mass                    =      25 		; 390.0
+        force                   =     20000		; 10000.0
+        maxrot                  =     8			; 2.0
+        airconst        =       100			; 80.0
+        start_speed     =       190
+        life_time       =      9000 			; 3000                    
+        drive_time              =      8990 		; 2990    
+        shot_time       =       500
+        shot_time_user =   500       
+        type_icon       =       I       ; debug
+	radius	=	60
+
+        vp_normal       =       202	; 114
+        vp_fire         =       202		; 114
+        vp_dead         =       67
+        vp_wait         =       66
+        vp_megadeth     =       69
+        vp_genesis      =       114
+        
+        shk_hit_slot            =       1
+        shk_hit_time            =       300
+        shk_hit_mag0            =       0.5
+        shk_hit_mag1            =       0
+        shk_hit_z               =       0.0
+        shk_hit_mute            =       0.02
+
+        pal_hit_slot            =       4
+        pal_hit_mag0            =       0.06
+        pal_hit_mag1            =       0
+        pal_hit_time            =       100
+
+        energy_tank		= 0.5
+        energy_heli		= 1.5
+        energy_flyer		= 1.5
+        energy_robo		= 1
+
+        radius_tank		= 20
+        radius_heli		= 60
+        radius_flyer		= 70
+        radius_robo		= 80		; 60
+
+end
+
+;----------------------------------------------------------------------------------------------------------------
+;
+;       FOGGWULF2
+;
+;       WAFFE FÜR TAERKASTENPANZER 2
+;       Panzer-Granate, schnell und noch wirkungsvoller
+;
+new_weapon      37
+        model           =       grenade
+        name            =       FOGGWULF2
+        wireframe       =       wireless/otlw37.sklt
+
+        energy          =       41000
+        mass            =       200.0
+        force           =       100.0
+        maxrot          =       1.5
+        airconst        =       10.0
+        start_speed     =       200
+        life_time       =       1800
+        shot_time       =       3200
+        shot_time_user  =       1700
+	radius	=	20
+
+        type_icon       =       I       ; debug
+
+        vp_normal       =       68
+        vp_fire         =       68
+        vp_dead         =       67
+        vp_wait         =       68
+        vp_megadeth     =       70
+        vp_genesis      =       68
+
+        shk_hit_slot    =       1
+        shk_hit_time    =       320
+        shk_hit_mag0    =       0.5
+        shk_hit_mag1    =       0
+        shk_hit_z       =       0.2
+        shk_hit_y       =       0.2
+        shk_hit_x       =       0.2
+        shk_hit_mute    =       0.02
+
+        pal_hit_slot    =       4
+        pal_hit_mag0    =       0.1
+        pal_hit_mag1    =       0
+        pal_hit_time    =       220
+
+        energy_tank		= 1
+        energy_heli		= 0.7
+        energy_flyer		= 0.5
+        energy_robo		= 1.5
+
+        radius_tank		= 30
+        radius_heli		= 20
+        radius_flyer		= 20
+        radius_robo		= 20
+
+end
+;--------------------------------------------------------------------------------------------
+;
+;       BOMBE für Taerkasten Doppeldecker.
+;
+new_weapon      38
+        	model           	=       	bomb
+        	name                    	=       	BUMM
+        	wireframe       	=       	wireless/otlw25.sklt
+
+        	energy          	=       	50000
+        	mass                    	=       	500
+        	force                   	=       	0
+        	maxrot                  	=       	1.5
+        	airconst        	=       	10
+        	radius                  	=       	130		; 85
+        	start_speed     	=       	0
+        	shot_time       	=       	1800		;2000
+        	shot_time_user  	=       	1800		;2000  
+        	life_time               	=       	10000
+
+        	type_icon       	=       	I       	; debug
+
+        	vp_normal       	=       	68
+        	vp_fire         	=       	68
+        	vp_dead         	=       	67
+        	vp_wait         	=       	68
+        	vp_megadeth     	=       	70
+        	vp_genesis      	=     	68
+
+        	pal_hit_slot     	=       	3
+        	pal_hit_mag0	=       	0.5
+        	pal_hit_mag1	=      	 2
+        	pal_hit_time 	=       	120
+
+        	shk_hit_slot  	=       	1       	; nicht vergessen !
+        	shk_hit_mag0 	=       	2
+        	shk_hit_mag1 	=       	0
+        	shk_hit_time	=       	400
+        	shk_hit_x	=       	0.3     	; HOCH und RUNTER
+        	shk_hit_y	=       	0.3
+        	shk_hit_z	=       	0
+
+        energy_tank		= 1.5
+        energy_heli		= 1
+        energy_flyer		= 1
+        energy_robo		= 1
+
+        radius_tank		= 260
+        radius_heli		= 40
+        radius_flyer		= 40
+        radius_robo		= 130
+end
+;----------------------------------------------------------------------------------------------------------------
+;       SPEZIALWAFFEN / EINSCHUESSE     49..55
+;----------------------------------------------------------------------------------------------------------------
+;
+;       SPEZIALOBJEKT:  EINSCHUSS (Allround-Einschuß MG) 
+;               vp_dead         -> Objekt-Einschlag
+;               vp_megadeth     -> Wand-Einschlag
+;
+new_weapon      49
+        model                   =       special
+        name            =       ZIING_1     
+        vp_normal       =       22
+        vp_fire         =       22
+        vp_dead         =       99
+        vp_megadeth     =       99
+        vp_wait         =       22
+        vp_genesis      =       22
+        shot_time_user  =       150
+        shot_time       =       300
+        type_icon       =       I       ; DEBUG
+end
+
+;---------------------------------------------------------------------------------------------------------------
+;       MYKONIERWAFFEN
+;-----------------------------------------------------------------------------------------
+;
+;       BLOCKER
+;   
+;       WAFFE FÜR MYKONIER (SCHWER)
+;
+;
+new_weapon      63
+        model                   =       rocket
+        name                    =       BLOCKER
+        wireframe       =       wireless/otlw63.sklt
+
+        energy          =  80000			; 45000 30000
+        mass                    =       50.0
+        force                   =       15000.0
+        maxrot                  =       1.2
+        airconst        =       40.0
+        start_speed     =       270
+        life_time       =    1000   			; 2000
+        shot_time       =       300
+       shot_time_user =  300			;500 700
+       salve_shots   = 4			; 4
+       salve_delay   = 3000
+	radius	=	90
+
+        type_icon       =       I       ; debug
+
+        vp_normal       =       354	; 124
+        vp_dead         =       125
+        vp_megadeth     =       125
+        vp_genesis      =       22      	; DUMMY
+        vp_fire         =     	354 	; 22
+        vp_wait         =       354		; 22    
+
+        shk_hit_slot            =       1
+        shk_hit_time            =       420
+        shk_hit_mag0            =       1
+        shk_hit_mag1            =       0.5
+        shk_hit_z               =       0
+        shk_hit_y               =       0
+        shk_hit_x               =       0.4
+        shk_hit_mute            =       0.02
+
+        pal_hit_slot            =       4
+        pal_hit_mag0            =       0.2
+        pal_hit_mag1            =       0
+        pal_hit_time            =       180
+
+        energy_tank		= 1.5
+        energy_heli		= 1
+        energy_flyer		= 0.5
+        energy_robo		= 0.5		; 1
+
+        radius_tank		= 180
+        radius_heli		= 90
+        radius_flyer		= 90
+        radius_robo		= 90
+
+end
+
+;---------------------------------------------------------------------------------------------------------------
+;
+;       TINY
+;   
+;       WAFFE FÜR MYKONIER 1. X01
+;       Laser.
+;
+new_weapon      64
+        model                   =       rocket
+        name                    =       TINY
+        wireframe       =       wireless/otlw64.sklt
+
+        energy          =       29000
+        mass                    =       50.0
+        force                   =       15000.0
+        maxrot                  =       1.2
+        airconst        =       40.0
+        start_speed     =       270
+        life_time       =       1000			; 2000
+        shot_time       =       350
+        shot_time_user =   550		;850
+	radius	=	20		;65
+
+        vp_normal       =       124
+        vp_dead         =       125
+        vp_megadeth     =       125
+        vp_genesis      =       22      ; DEBUG
+        vp_wait         =       22      ; DEBUG
+        vp_fire         =       22      ; DEBUG
+
+        type_icon       =       I       ; debug
+
+        pal_hit_slot            =       2
+        pal_hit_mag0            =       0.5
+        pal_hit_mag1            =       1
+        pal_hit_time            =       120
+        shk_hit_slot            =       1
+        shk_hit_time            =       230
+        shk_hit_mag0            =       0.5
+        shk_hit_mag1            =       0
+        shk_hit_z               =       0
+        shk_hit_y               =       0
+        shk_hit_x               =       0.2
+        shk_hit_mute            =       0.02
+
+        energy_tank		= 0.5
+        energy_heli		= 1
+        energy_flyer		= 1
+        energy_robo		= 1.5
+
+        radius_tank		= 10
+        radius_heli		= 20
+        radius_flyer		= 20
+        radius_robo		= 30
+
+end
+
+;-----------------------------------------------------------------------------------------
+;
+;       NAPOLEON
+;   
+;       WAFFE FÜR MYKONIER 2 (Cube)5PO
+;       Laser.
+;
+new_weapon      65
+        model                   =       rocket
+        name                    =       NAPOLEON
+        wireframe       =       wireless/otlw65.sklt
+
+        energy          =       28000
+        mass                    =       50.0
+        force                   =       15000.0
+        maxrot                  =       1.2
+        airconst        =       40.0
+        start_speed     =       270
+        life_time       =  677		; 1000 1500 2000
+        shot_time       =       390
+        shot_time_user =  390			;700 1000
+        salve_shots  = 3
+        salve_delay   = 3000
+	radius	= 50			; 50
+
+        vp_normal       =       355	; 124
+        vp_dead         =       125
+        vp_megadeth     =       125
+        vp_genesis      =       22              ; DUMMY
+        vp_wait         =       22              ; DUMMY
+        vp_fire         =       22              ; DUMMY
+
+        type_icon       =       I       ; debug
+
+        pal_hit_slot            =       2
+        pal_hit_mag0            =       0.5
+        pal_hit_mag1            =       1
+        pal_hit_time            =       120
+        shk_hit_slot            =       1
+        shk_hit_time            =       270
+        shk_hit_mag0            =       0.7
+        shk_hit_mag1            =       0
+        shk_hit_z               =       0
+        shk_hit_y               =       0
+        shk_hit_x               =       0.3
+        shk_hit_mute            =       0.02
+
+        energy_tank		= 1.5
+        energy_heli		= 1
+        energy_flyer		= 0.5
+        energy_robo		= 1
+
+        radius_tank		= 160
+        radius_heli		= 70
+        radius_flyer		= 50
+        radius_robo		= 50
+
+end
+
+;-----------------------------------------------------------------------------------------
+;
+;       BERGSACHSE
+;   
+;       WAFFE FÜR MYKONIER 3 (STATISCHER)
+;       3fach Laser.
+;
+new_weapon      66
+        model                   =       rocket
+        name                    =       BERGSACHSE
+        wireframe       =       wireless/otlw66.sklt
+
+        energy          =       7000
+        mass                    =       50.0
+        force                   =       10000
+        maxrot                  =       1.2
+        airconst        =       40.0
+        start_speed     =       200
+        life_time       =       2000
+        shot_time       =       500
+        shot_time_user  =      300 			;500
+	radius	=	20
+
+        vp_normal       =       190
+        vp_dead         =       189
+        vp_megadeth     =       189
+        vp_genesis      =       22              ; DUMMY
+        vp_wait         =       22              ; DUMMY
+        vp_fire         =       22              ; DUMMY
+
+        type_icon       =       I       ; debug
+
+        pal_hit_slot            =       2
+        pal_hit_mag0            =       1
+        pal_hit_mag1            =       0
+        pal_hit_time            =       100
+        shk_hit_slot            =       1
+        shk_hit_time            =       100
+        shk_hit_mag0            =       1
+        shk_hit_mag1            =       0
+        shk_hit_z               =       0
+        shk_hit_y               =       0
+        shk_hit_x               =       0.1
+        shk_hit_mute            =       0.02
+
+        energy_tank		= 1.5
+        energy_heli		= 1
+        energy_flyer		= 1
+        energy_robo		= 0.5
+
+        radius_tank		= 40
+        radius_heli		= 10
+        radius_flyer		= 10
+        radius_robo		= 10
+
+end
+
+;------------------------------------------------------------------------------------------------------------------------------------
+;
+;	ZOCKER
+;
+;       	WAFFE FÜR Leichten/LandMYKONIER
+;	FIXME! AUSSEHEN UIND PHYSIK müssen noch eingestellt werden !!!!!!!
+;
+new_weapon      68
+        model                   =       missile
+        name                    =       ZOCKER
+        wireframe       =       wireless/otlw68.sklt
+
+        energy          =   5000    				; 3500 9000
+        mass                    =       30
+        force                   =       40000			; 5000
+        maxrot                  =       	4.0			; 3.0
+        airconst        =       300				; 40.0
+        start_speed     =     300				; 100
+        life_time               =     	2300			; 1800
+        shot_time       =       	700			;1800
+        shot_time_user  =       	400			;900
+	radius	=	40
+        
+        type_icon       =       I       ; debug
+
+        vp_normal	=	190
+        vp_fire         	=	190
+        vp_dead	=	189
+        vp_wait	=	190
+        vp_megadeth=       	189
+        vp_genesis	=       	190
+
+        shk_hit_slot    = 1
+        shk_hit_time    = 300
+        shk_hit_mag0    = 0.5
+        shk_hit_mag1    = 0
+        shk_hit_z       = 0.0
+
+        pal_hit_slot            =       4
+        pal_hit_mag0            =       0.03
+        pal_hit_mag1            =       0
+        pal_hit_time            =       80
+
+        energy_tank		= 0.7		; 1
+        energy_heli		= 1		; 1.5
+        energy_flyer		= 1		; 1.5
+        energy_robo		= 0.7		; 1
+
+        radius_tank		= 40
+        radius_heli		= 90			; 60
+        radius_flyer		= 100			; 80
+        radius_robo		= 40
+
+end
+
+;---------------------------------------------------------------------------------------------------------------
+;
+;      	 SHOCKER
+;   
+;       	WAFFE FÜR JAGDMYKONIER
+;	FIXME! AUSSEHEN UIND PHYSIK müssen noch eingestellt werden !!!!!!!
+;
+new_weapon      69
+        model                   =       missile
+        name                    =       SHOCKER
+        wireframe       =       wireless/otlw69.sklt
+
+        energy          =      	6000		;20000
+        mass                    =       50
+        force                   =       15000
+        maxrot                  =       	2		;1.2
+        airconst        =       	100		;40
+        start_speed     =       270
+        life_time       =       2000
+        shot_time       =       300		;1000
+        shot_time_user =  300			;1000
+	radius	=	40
+
+        vp_normal       =       124
+        vp_dead         =       125
+        vp_megadeth     =       125
+        vp_genesis      =       22      ; DEBUG
+        vp_wait         =       22      ; DEBUG
+        vp_fire         =       22      ; DEBUG
+
+        type_icon       =       I       ; debug
+
+        pal_hit_slot            =       2
+        pal_hit_mag0            =       0.5
+        pal_hit_mag1            =       1
+        pal_hit_time            =       120
+        shk_hit_slot            =       1
+        shk_hit_time            =       230
+        shk_hit_mag0            =       0.5
+        shk_hit_mag1            =       0
+        shk_hit_z               =       0
+        shk_hit_y               =       0
+        shk_hit_x               =       0.2
+        shk_hit_mute            =       0.02
+
+        energy_tank		= 0.5
+        energy_heli		= 1.5
+        energy_flyer		= 1.5
+        energy_robo		= 0.5		; 1
+
+        radius_tank		= 40
+        radius_heli		= 60
+        radius_flyer		= 60
+        radius_robo		= 20		; 40
+
+end
+
+;-------------------------------------------------------------------------------
+;
+;	KNOCKER
+;
+;	Bombe	für Mykonier-Bomber							
+;	FIXME! AUSSEHEN UIND PHYSIK müssen noch eingestellt werden !!!!!!!
+;
+new_weapon      70
+        model                   	=       bomb
+        name                    	=       KNOCKER
+        wireframe       	=       wireless/otlw70.sklt
+
+        energy          =       60000
+        mass                    =       500
+        force                   =       0.0
+        maxrot                  =       1.5
+        airconst        =       2
+        radius                  =       130		    ; 130= exploderadius
+        start_speed     =       0
+        shot_time       =       2000
+        shot_time_user  =       1000  
+        
+        life_time               =       10000   ; 10 Sekunden
+
+        type_icon       =       I       ; debug
+
+        vp_normal	=       	157
+        vp_fire         	=	157	; BLUSH
+        vp_dead	=       	67	; BRAUCHT UNBEDINGT GEILE SCFX
+        vp_wait         	=	157
+        vp_megadeth     =       70
+        vp_genesis      =       68
+
+        pal_hit_slot            =       3
+        pal_hit_mag0            =       0.5
+        pal_hit_mag1            =       2
+        pal_hit_time            =       120
+
+        shk_hit_slot            =       1       ; nicht vergessen !
+        shk_hit_mag0            =       2
+        shk_hit_mag1            =       0
+        shk_hit_time            =       400
+        shk_hit_x               =       0.5             ; HOCH und RUNTER
+        shk_hit_y               =       0.5
+        shk_hit_z               =       0
+
+        energy_tank		= 1.5
+        energy_heli		= 1
+        energy_flyer		= 1
+        energy_robo		= 1
+
+        radius_tank		= 260
+        radius_heli		= 60
+        radius_flyer		= 60
+        radius_robo		= 130
+
+	dest_fx                 =       	megadeth_152_0_0_0
+
+end
+
+
+;---------------------------------------------------------------------------------------------------------------
+;
+;       SULGOGARENWAFFEN        72...75
+;
+;---------------------------------------------------------------------------------------------------------------
+;
+;       RAUSSCHMISS
+;  
+;       Laser for SULGOGAR
+;
+new_weapon      71
+        model                   =       missile				; rocket 
+        name                    =       RAUSSCHMISS
+
+        energy          =      30000				; 15000
+        mass                    =       50
+        force                   =       15000
+        maxrot                  =      5				; 1.2
+        airconst        =       40
+        start_speed     =      170				;  270
+        life_time       =       5000
+        shot_time       =       900				; 2000
+        shot_time_user =   900				; 1000
+	radius	=	60				; 20
+
+        vp_normal       =       144
+        vp_fire         =       144
+        vp_dead         =       145
+        vp_wait         =       144
+        vp_megadeth     =       145
+        vp_genesis      =       144
+
+        type_icon       =       I       ; debug
+
+        shk_hit_slot            =       1
+        shk_hit_time            =      250 				; 170
+        shk_hit_mag0            =       0.3
+        shk_hit_mag1            =       0
+        shk_hit_z               =       0
+        shk_hit_y               =       0.2
+        shk_hit_x               =      0.3 				; 0
+        shk_hit_mute            =       0.02
+
+        energy_tank		= 0.5
+        energy_heli		= 1.5
+        energy_flyer		= 2
+        energy_robo		= 1
+
+        radius_tank		= 30
+        radius_heli		= 80
+        radius_flyer		= 90
+        radius_robo		= 60
+
+end
+
+;---------------------------------------------------------------------------------------------------------------
+;
+;       ANSWINIST
+;  
+;       Laser only for SULGOGARS, wird vom SulgogarenROBO verwendet
+;
+new_weapon      72
+        model                   =    missile   			; rocket 
+        name                    =       ANSWINIST
+        energy          =      60000				; 30000
+        mass                    =      10 			; 50.0
+        force                   =     50000			; 15000.0
+        maxrot                  =       5			; 1.2
+        airconst        =       200				; 40.0
+        start_speed     =       270
+        life_time       =       3000				; 5000
+        shot_time       =     5000			; 1000
+	radius	=	70			; 20
+
+        vp_normal       =       144
+        vp_fire         =       144
+        vp_dead         =       145
+        vp_wait         =       144
+        vp_megadeth     =       145
+        vp_genesis      =       144
+
+        type_icon       =       I                       ;DEBUGICON        
+
+        shk_hit_slot            =       1
+        shk_hit_time            =       170
+        shk_hit_mag0            =       0.3
+        shk_hit_mag1            =       0
+        shk_hit_z               =       1			; 0
+        shk_hit_y               =       0			; 0.2
+        shk_hit_x               =       0
+        shk_hit_mute            =       0.02
+
+        energy_tank		= 1.5
+        energy_heli		= 1
+        energy_flyer		= 1
+        energy_robo		= 2
+
+        radius_tank		= 100
+        radius_heli		= 70
+        radius_flyer		= 40
+        radius_robo		= 90
+
+end
+
+;---------------------------------------------------------------------------------------------------------------
+;
+;       LOCKERBE
+;  
+;       invisible for SULGOGARS / 
+;
+new_weapon      73
+        model                   =       bomb 
+        name                    =       LOCKERBE
+  
+        energy          =       	15000		; 10000
+        mass                    =       500.0
+        force                   =       0.0
+        maxrot                  =       1.5
+        airconst        =       10.0
+        radius                  =       90      
+        start_speed     =       0
+        shot_time       =       777
+        shot_time_user = 	777  
+        life_time               =      	 10000
+	radius	=  150			; 70 40
+
+        vp_normal       =       177
+        vp_fire         =       145
+        vp_dead         =       145
+        vp_wait         =       177
+        vp_megadeth     =       145
+        vp_genesis      =       22
+
+        type_icon       =       I                       ;DEBUGICON        
+
+        energy_tank		= 2
+        energy_heli		= 1
+        energy_flyer		= 0.5
+        energy_robo		= 0.1
+
+        radius_tank		= 180
+        radius_heli		= 45
+        radius_flyer		= 45
+        radius_robo		= 90
+
+end
+
+;--------------------------------------------------------------------------------------------------------------------------------------
+;       WAFFEN FÜR FEINDROBOS   80......89
+;--------------------------------------------------------------------------------------------------------------------------------------
+;
+;       	MYKONIER-ROBO-FLAK-LASER
+; 	NUR MULTIPLAYER
+;
+new_weapon      80
+        name            	=       	MYKONETZFLAKLASER
+        model	=       	rocket
+
+        energy          		=       	13333		; vorher 10000 --> es soll ja aber fair bleiben - was ?
+        mass          		=       	1550
+        force        		=       	1
+        maxrot      		=       	1.2
+        airconst        		=       	40
+        start_speed 		=       	270
+        life_time     		=       	1000
+        shot_time   		=       	1000
+       shot_time_user	=	600		; fehlte bisher
+        radius		=	50
+
+        vp_normal       =       124
+        vp_dead         =       125
+        vp_megadeth     =       125
+        vp_genesis      =       22                      ; dummy
+        vp_wait         =       22                      ; dummy
+        vp_fire         =       22                      ; dummy
+        type_icon       =       I                       ; DEBUGICON     
+
+        pal_hit_slot            =       2               ; HIT
+        pal_hit_mag0            =       0.5
+        pal_hit_mag1            =       1
+        pal_hit_time            =       120
+        shk_hit_slot            =       1
+        shk_hit_time            =       330
+        shk_hit_mag0            =       1
+        shk_hit_mag1            =       0
+        shk_hit_z               =       0
+        shk_hit_y               =       0.2
+        shk_hit_x               =       0.2
+        shk_hit_mute            =       0.02
+end
+
+;--------------------------------------------------------------------------------------------------------------------------------------
+;
+;       TAERKASTEN-ROBO-FLAK    (GRANATEN)
+;	SINGLE UND MULIT !
+;
+new_weapon      81
+        model                   =       grenade
+        name            =       TAER_FLAK
+        
+        radius          =       60                      
+
+        energy          =       	20000		;17000 10000                   ; Da muß dann jeder selber sehn         
+        mass                    =       500.0
+        force                   =       100.0
+        maxrot                  =       1.5
+        airconst        =       10.0
+        start_speed     =       170
+        life_time               =      3200 			;1800
+        shot_time       =      1700			; 2000
+        shot_time_user = 1200 			; da seine Werte so etwas drunter liegen soll er ruhig einen GEwinn davon haben reinzugehen
+	radius	=	50
+
+        type_icon       =       I                       ;DEBUGICON      
+
+        vp_normal       =       68                      ; Granate
+        vp_fire         =       22
+        vp_dead         =       107                     ; (ReUse of HUBI-3 MegaDeath)
+        vp_wait         =       22
+        vp_megadeth     =       107
+        vp_genesis      =       22
+
+        shk_hit_slot            =       1               ; HIT
+        shk_hit_time            =       370
+        shk_hit_mag0            =       1
+        shk_hit_mag1            =       0
+        shk_hit_z               =       0
+        shk_hit_y               =       0.2
+        shk_hit_x               =       0.2
+        shk_hit_mute            =       0.02
+
+        pal_hit_slot            =       4
+        pal_hit_mag0            =       0.1
+        pal_hit_mag1            =       0
+        pal_hit_time            =       160
+end
+
+;--------------------------------------------------------------------------------------------------------------------------------------
+;
+;       MYKONIER-ROBO-FLAK              (LASER)
+;
+new_weapon      82
+        name            =       MYKO_FLAK
+        model                   =       rocket
+
+        energy          =       30000
+        mass                    =       1550
+        force                   =       15000.0
+        maxrot                  =       1.2
+        airconst        =       40.0
+        start_speed     =       270
+        life_time       =       1000
+        shot_time       =       1000
+	radius	=	50
+
+        vp_normal       =       124
+        vp_dead         =       125
+        vp_megadeth     =       125
+        vp_genesis      =       22                      ; dummy
+        vp_wait         =       22                      ; dummy
+        vp_fire         =       22                      ; dummy
+        type_icon       =       I                       ; DEBUGICON     
+
+        pal_hit_slot            =       2               ; HIT
+        pal_hit_mag0            =       0.5
+        pal_hit_mag1            =       1
+        pal_hit_time            =       120
+        shk_hit_slot            =       1
+        shk_hit_time            =       330
+        shk_hit_mag0            =       1
+        shk_hit_mag1            =       0
+        shk_hit_z               =       0
+        shk_hit_y               =       0.2
+        shk_hit_x               =       0.2
+        shk_hit_mute            =       0.02
+end
+
+;--------------------------------------------------------------------------------------------------------------------------------------
+;
+;       MINI-KYTERNESER-FLAK    
+;
+new_weapon      83
+        model                   =       grenade
+        name                    =       MINI_KYT_FLAK
+
+        energy          =       15000   ; Habbsn bissl stärker gemacht
+        mass                    =       50.0
+        force                   =       100.0
+        maxrot                  =       1.5
+        airconst        =       10
+        start_speed     =       220
+        life_time               =       1800
+        shot_time       =       1500    ; und die shottimehalbiert
+	radius	=	 50
+
+        vp_normal       =       316	; 68
+        vp_fire         =       68
+        vp_dead         =       67
+        vp_wait         =       68
+        vp_megadeth     =       70
+        vp_genesis      =       68
+
+        type_icon       =       I                       ;DEBUGICON      
+
+        shk_hit_slot            =       1
+        shk_hit_time            =       370
+        shk_hit_mag0            =       1
+        shk_hit_mag1            =       0
+        shk_hit_z               =       0
+        shk_hit_y               =       0.2
+        shk_hit_x               =       0.2
+        shk_hit_mute            =       0.02
+
+        pal_hit_slot            =       4
+        pal_hit_mag0            =       0.2
+        pal_hit_mag1            =       0
+        pal_hit_time            =       120
+end
+
+;--------------------------------------------------------------------------------------------------------------------------------------
+;
+;       BIG-KYTERNESER-FLAK             (MISSIES)
+;
+new_weapon      84
+        name            =       BIG_KYT_FLAK
+        model                   =       rocket
+
+        energy          =       17000			;20000 40000
+        mass                    =       390
+        force                   =       10000
+        maxrot                  =       2
+        airconst        =       80
+        start_speed     =       190
+        life_time       =       3000                    
+        drive_time              =       2990    
+        shot_time       =       1500			;3000
+        shot_time_user	= 1000
+	radius	=	50
+
+        type_icon       =       I                       ;DEBUGICON      
+
+        vp_normal       =       114
+        vp_fire         =       114
+        vp_dead         =       67
+        vp_wait         =       66
+        vp_megadeth     =       69
+        vp_genesis      =       114
+        
+        shk_hit_slot            =       1
+        shk_hit_time            =       300
+        shk_hit_mag0            =       0.5
+        shk_hit_mag1            =       0
+        shk_hit_z               =       0.0
+        shk_hit_mute            =       0.02
+
+        pal_hit_slot            =       4
+        pal_hit_mag0            =       0.1
+        pal_hit_mag1            =       0
+        pal_hit_time            =       140
+end
+
+
+;------------------------------------------------------------------------------------------------------------------------------------
+;
+;       BLACK SECT ROBO SUBMARINE FLAK 1 (MISSIES)
+;
+new_weapon      94
+        name            =       BSECT_MISSIES
+        model                   =       missile
+
+        energy          =       15000	; 20000
+        mass                    =       390
+        force                   =       10000
+        maxrot                  =       2
+        airconst        =       80.0
+        start_speed     =       190
+        life_time       =       3000                    
+        drive_time              =       2990    
+        shot_time       =       3000
+	radius	=	50
+
+        type_icon       =       I                       ;DEBUGICON      
+
+        vp_normal       =       114
+        vp_fire         =       114
+        vp_dead         =       67
+        vp_wait         =       66
+        vp_megadeth     =       69
+        vp_genesis      =       114
+        
+        shk_hit_slot            =       1
+        shk_hit_time            =       300
+        shk_hit_mag0            =       0.5
+        shk_hit_mag1            =       0
+        shk_hit_z               =       0.0
+        shk_hit_mute            =       0.02
+
+        pal_hit_slot            =       5
+        pal_hit_mag0            =       0.1
+        pal_hit_mag1            =       0
+        pal_hit_time            =       120
+
+end
+
+;--------------------------------------------------------------------------------------------------------------------------------------
+;
+;       BLACK SECT ROBO SUBMARINE FLAK 2 (FAT LASER)
+;
+new_weapon 95
+        model                   =       rocket
+        name                    =       BSECT_BLUE_EYE
+        vp_normal       =       157                     
+        vp_fire         =       157
+        vp_dead         =       125
+        vp_wait         =       157
+        vp_megadeth     =       125
+        vp_genesis      =       157
+
+        energy          =       30000	; 40000
+        mass                    =       10
+        force                   =       26000
+        maxrot                  =       3
+        airconst        =       100.0
+        start_speed     =       470
+        life_time       =       1500                            
+        shot_time               =       1200
+        shot_time_user     =    700
+        radius          =       50
+
+        type_icon       =       I                       ;DEBUGICON      
+
+        pal_launch_slot         =       2
+        pal_launch_mag0         =       0.5
+        pal_launch_mag1         =       1
+        pal_launch_time         =       120
+        pal_normal_slot         =       2
+        pal_normal_mag0         =       1
+        pal_normal_mag1         =       1
+        pal_hit_slot            =       2
+        pal_hit_mag0            =       0.5
+        pal_hit_mag1            =       2
+        pal_hit_time            =       120
+        
+        shk_hit_slot            =       1
+        shk_hit_time            =       450
+        shk_hit_mag0            =       2
+        shk_hit_mag1            =       0
+        shk_hit_mute            =       0.1
+        shk_hit_z               =       0
+        shk_hit_x               =       1
+        shk_hit_y               =       0
+end
+
+;-----------------------------------------------------------------------------------------------------------------
+;  
+;       Waffe für SMALL USER FLAK
+;
+new_weapon      96
+        	model                   	=       	missile
+        	name                    	=       	SMALLAA
+        	energy          	=       	4000		; 8000
+        	mass                    	=       	10
+        	force                   	=       	10000
+        	maxrot                  	=       	1.5
+        	airconst       	=       	40
+        	radius         	=       	75		;90
+        	start_speed     	=       	350
+        	life_time       	=       	1500
+        	shot_time       	=       	700
+        	shot_time_user  	=       	600
+
+        	type_icon       	=       	I                       	; DEBUGICON      
+
+        	vp_normal       	=       	114
+        	vp_fire         	=       	114
+        	vp_dead         	=       	67
+        	vp_wait         	=       	66
+        	vp_megadeth     	=       	69
+        	vp_genesis      	=       	114
+end
+
+
+;--------------------------------------------------------------------------------------------------------------------------------------
+;
+;       	STIMMGONG
+;	Mykonischer Bodenschuss
+;
+new_weapon 	97
+        	model                   	=       	rocket
+        	name                    	=       	STIMMGONG
+        	vp_normal       	=       	157                     
+        	vp_fire         	=       	157
+        	vp_dead         	=       	125
+        	vp_wait         	=       	157
+        	vp_megadeth     	=       	125
+        	vp_genesis      	=       	157
+
+        	energy          	=       	40000
+        	mass                    	=       	10
+        	force                   	=       	26000
+        	maxrot                  	=       	3
+        	airconst        	=       	100.0
+        	start_speed     	=       	470
+        	life_time       	=       	1500                            
+        	shot_time          	=       	1000
+        	shot_time_user 	=    	1000
+        	radius          	=       	50
+
+        	type_icon       	=       	I                       ;DEBUGICON      
+
+        	pal_launch_slot         	=       	2
+        	pal_launch_mag0         	=       	0.5
+        	pal_launch_mag1         	=       	1
+        	pal_launch_time         	=       	120
+        	pal_normal_slot         	=       	2
+        	pal_normal_mag0         	=       	1
+        	pal_normal_mag1         	=       	1
+        	pal_hit_slot            	=       	2
+        	pal_hit_mag0            	=       	0.5
+        	pal_hit_mag1            	=       	2
+        	pal_hit_time            	=       	120
+        
+        	shk_hit_slot            	=       	1
+        	shk_hit_time            	=       	450
+        	shk_hit_mag0            	=       	2
+        	shk_hit_mag1            	=       	0
+        	shk_hit_mute          	=       	0.1
+        	shk_hit_z               	=       	0
+        	shk_hit_x               	=       	1
+        	shk_hit_y               	=       	0
+end
+
+
+;-------------------------------------------------------------------------------------------------------------
+;
+;       USERFLAK0
+;   
+;       Flak-Granate, explodiert noch im Flug.
+;       Waffe für USER-FLAKSTELLUNG / untere Flak1
+;
+new_weapon      100
+        model                   =       grenade
+        name                    =       USR_FLAK0
+        energy          =       	7000 	; 5000
+        mass                    =       50.0
+        force                   =       4000
+        maxrot                  =       1.5
+        airconst        	=       80
+        radius          	=       	80	; 30
+        start_speed     =       	350	; 180
+        life_time       =       	2500	; 1500
+        shot_time       =       	1500	; 3000
+        shot_time_user  =       800
+
+        type_icon       =       I                       ;DEBUGICON      
+
+        vp_normal       =       114
+        vp_fire         =       114
+        vp_dead         =       67
+        vp_wait         =       66
+        vp_megadeth     =       69
+        vp_genesis      =       114
+
+        shk_hit_slot            =       1
+        shk_hit_time            =       170
+        shk_hit_mag0            =       1
+        shk_hit_mag1            =       0
+        shk_hit_z               =       0
+        shk_hit_y               =       0.2
+        shk_hit_x               =       0.2
+        shk_hit_mute            =       0.02
+
+        pal_hit_slot            =       4
+        pal_hit_mag0            =       0.05
+        pal_hit_mag1            =       0
+        pal_hit_time            =       100
+
+        energy_tank		= 1.5
+        energy_heli		= 1
+        energy_flyer		= 1
+        energy_robo		= 1
+
+        radius_tank		= 160
+        radius_heli		= 80
+        radius_flyer		= 80
+        radius_robo		= 80
+
+end
+
+;-------------------------------------------------------------------------------------------------------------
+;
+;       USERFLAK1
+;   
+;       Flak-Granate, explodiert noch im Flug.
+;       Waffe für USER-FlakStellung / untere Flak 2
+;
+new_weapon      101
+        	model                   	=       	grenade
+        	name                    	=       	USR_FLAK1
+        	energy          	=       	5000
+        	mass                    	=       	50.0
+        	force                   	=       	4000
+        	maxrot                  	=       	1.5
+        	airconst        	=       	80.0
+        	radius          	=       	30
+        	start_speed     	=       	180
+        	life_time       	=       	1500
+        	shot_time       	=       	3000
+        	shot_time_user  	=       	800
+
+        	type_icon       	=       	I                       ;DEBUGICON      
+
+        	vp_normal       	=       	114
+        	vp_fire         	=       	114
+        	vp_dead         	=       	67
+        	vp_wait         	=       	114
+        	vp_megadeth     	=       	70
+        	vp_genesis      	=       	114
+
+        shk_hit_slot            =       1
+        shk_hit_time            =       170
+        shk_hit_mag0            =       1
+        shk_hit_mag1            =       0
+        shk_hit_z               =       0
+        shk_hit_y               =       0.2
+        shk_hit_x               =       0.2
+        shk_hit_mute            =       0.02
+
+        pal_hit_slot            =       4
+        pal_hit_mag0            =       0.04
+        pal_hit_mag1            =       0
+        pal_hit_time            =       90
+end
+
+;-------------------------------------------------------------------------------------------------------------
+;
+;       USERFLAK2
+;   
+;       Flak-Granate, explodiert noch im Flug.
+;       Waffe für User-Flakstellung / obere Waffe 1
+;
+new_weapon      102
+        model                   =       grenade
+        name                    =       USR_FLAK2
+        energy          =       3000
+        mass                    =       50.0
+        force                   =       4000
+        maxrot                  =       1.5
+        airconst        =       80.0
+        radius          =       30
+        start_speed     =       250
+        life_time       =       1500
+        shot_time       =       3000
+        shot_time_user  =       600
+
+        type_icon       =       I                       ;DEBUGICON      
+
+        	vp_normal       	=       	114
+        	vp_fire         	=       	114
+        	vp_dead         	=       	67
+        	vp_wait         	=       	114
+        	vp_megadeth     	=       	70
+        	vp_genesis      	=       	114
+
+        shk_hit_slot            =       1
+        shk_hit_time            =       370
+        shk_hit_mag0            =       0.5
+        shk_hit_mag1            =       0
+        shk_hit_z               =       0
+        shk_hit_y               =       0.1
+        shk_hit_x               =       0.2
+        shk_hit_mute            =       0.02
+
+        pal_hit_slot            =       4
+        pal_hit_mag0            =       0.05
+        pal_hit_mag1            =       0
+        pal_hit_time            =       60
+end
+
+;-------------------------------------------------------------------------------------------------------------
+;
+;       USERFLAK3
+;   
+;       Flak-Granate, explodiert noch im Flug.
+;       Waffe für User-FlakStellung / obere Waffe 2     
+;
+new_weapon      103
+        model                   =       grenade
+        name                    =       USR_FLAK3
+        energy          =       3000
+        mass                    =       50.0
+        force                   =       4000
+        maxrot                  =       1.5
+        airconst        =       80.0
+        radius          =       30
+        start_speed     =       250
+        life_time       =       1500
+        shot_time       =       3000
+        shot_time_user  =       600
+
+        type_icon       =       I                       ;DEBUGICON      
+
+        	vp_normal       	=       	114
+        	vp_fire         	=       	114
+        	vp_dead         	=       	67
+        	vp_wait         	=       	114
+        	vp_megadeth     	=       	70
+        	vp_genesis      	=       	114
+
+        shk_hit_slot            =       1
+        shk_hit_time            =       370
+        shk_hit_mag0            =       1
+        shk_hit_mag1            =       0.1
+        shk_hit_z               =       0
+        shk_hit_y               =       0.1
+        shk_hit_x               =       0.1
+        shk_hit_mute            =       0.02
+
+        pal_hit_slot            =       4
+        pal_hit_mag0            =       0.05
+        pal_hit_mag1            =       0
+        pal_hit_time            =       100
+end
+
+;-------------------------------------------------------------------------------------------------------------
+;
+;       USERFLAK4
+;   
+;       Flak-Granate, explodiert noch im Flug. 
+;       Waffe für USER-KRAFTWERKS-FLAK 1
+;
+new_weapon      104
+        model                   =       grenade
+        name                    =       USR_FLAK4
+        energy          =       5000
+        mass                    =       50.0
+        force                   =       4000
+        maxrot                  =       1.5
+        airconst        =       80.0
+        radius          =       30
+        start_speed     =       180
+        life_time       =       1500
+        shot_time       =       3000
+        shot_time_user  =       1000
+
+        type_icon       =       I                       ;DEBUGICON      
+
+        	vp_normal       	=       	114
+        	vp_fire         	=       	114
+        	vp_dead         	=       	67
+        	vp_wait         	=       	114
+        	vp_megadeth     	=       	70
+        	vp_genesis      	=       	114
+
+        shk_hit_slot            =       1
+        shk_hit_time            =       470
+        shk_hit_mag0            =       1
+        shk_hit_mag1            =       0
+        shk_hit_z               =       0.1
+        shk_hit_y               =       0.1
+        shk_hit_x               =       0.1
+        shk_hit_mute            =       0.02
+
+        pal_hit_slot            =       4
+        pal_hit_mag0            =       0.05
+        pal_hit_mag1            =       0
+        pal_hit_time            =       100
+end
+
+;-------------------------------------------------------------------------------------------------------------
+;
+;       USERFLAK5
+;   
+;       Flak-Granate, explodiert noch im Flug.
+;       Waffe für USER-KRAFTWERKS-FLAK 2
+;
+new_weapon      105
+        model                   =       grenade
+        name                    =       USR_FLAK5
+        energy          =       5000
+        mass                    =       50.0
+        force                   =       4000
+        maxrot                  =       1.5
+        airconst        =       80.0
+        radius          =       30
+        start_speed     =       180
+        life_time       =       1500
+        shot_time       =       3000
+        shot_time_user  =       1000
+
+        type_icon       =       I                       ;DEBUGICON      
+
+        	vp_normal       	=       	114
+        	vp_fire         	=       	114
+        	vp_dead         	=       	67
+        	vp_wait         	=       	114
+        	vp_megadeth     	=       	70
+        	vp_genesis      	=       	114
+
+        shk_hit_slot            =       1
+        shk_hit_time            =       270
+        shk_hit_mag0            =       1
+        shk_hit_mag1            =       0
+        shk_hit_z               =       0.1
+        shk_hit_y               =       0.1
+        shk_hit_x               =       0.1
+        shk_hit_mute            =       0.02
+
+        pal_hit_slot            =       4
+        pal_hit_mag0            =       0.02
+        pal_hit_mag1            =       0
+        pal_hit_time            =       120
+end
+
+;-------------------------------------------------------------------------------------------------------------
+;
+;       USERFLAK6
+;   
+;       Flak-Granate, explodiert noch im Flug.
+;       Waffe für BODENFLAK
+;
+new_weapon      106
+        model                   =       grenade
+        name                    =       BODENFLAK
+        energy          =       55000
+        mass                    =       50.0
+        force                   =       4000
+        maxrot                  =       1.5
+        airconst        =       80.0
+        radius                  =       30
+        start_speed     =       180
+        life_time       =       2000
+
+        shot_time       =       1000
+        shot_time_user  =       1000
+
+        type_icon       =       I                       ;DEBUGICON      
+
+        vp_normal       =       68
+        vp_fire         =       68
+        vp_dead         =       67
+        vp_wait         =       68
+        vp_megadeth     =       70
+        vp_genesis      =       68
+
+        shk_hit_slot            =       1
+        shk_hit_time            =       270
+        shk_hit_mag0            =       1
+        shk_hit_mag1            =       0
+        shk_hit_z               =       0.1
+        shk_hit_y               =       0.1
+        shk_hit_x               =       0.1
+        shk_hit_mute            =       0.02
+
+        pal_hit_slot            =       4
+        pal_hit_mag0            =       0.14
+        pal_hit_mag1            =       0
+        pal_hit_time            =       160
+end
+
+;-------------------------------------------------------------------------------------------------------------
+;       jetzt noch die dazugehörige Granate.
+;       KYTERNESER Flak-Granate, explodiert noch im Flug.
+;
+new_weapon      107
+        model                   =       grenade
+        name                    =       GTFLAKW
+        energy          =       5000
+        mass                    =       10.0
+        force                   =       15000
+        maxrot                  =       1.5
+        airconst        =       50
+        radius                  =       50                
+        start_speed     =       300     
+        life_time       =       3500
+        shot_time       =       2000
+
+        type_icon       =       I                       ;DEBUGICON      
+
+        vp_normal       =       68
+        vp_fire         =       68
+        vp_dead         =       67
+        vp_wait         =       68
+        vp_megadeth     =       70
+        vp_genesis      =       68
+
+        shk_hit_slot            =       1
+        shk_hit_time            =       270
+        shk_hit_mag0            =       1
+        shk_hit_mag1            =       0
+        shk_hit_z               =       0.01
+        shk_hit_y               =       0.1
+        shk_hit_x               =       0.5
+        shk_hit_mute            =       0.02
+
+        pal_hit_slot            =       4
+        pal_hit_mag0            =       0.05
+        pal_hit_mag1            =       0
+        pal_hit_time            =       120
+end
+
+
+;-------------------------------------------------------------------------------------------------------------
+;
+;       TAERKASTEN Flak-Granate
+;
+new_weapon      108
+        	model                   	=       	grenade
+        	name                    	=       	TFLAK
+        	energy          		=       21000	;7000 	; 5000
+        	mass                    	=       	50
+        	force                   =       4000
+        maxrot                  =       1.5
+        airconst        	=       80
+        radius          	=       	80	; 30
+        start_speed     =       	350	; 180
+        life_time       =       	2500	; 1500
+        shot_time       =       	4500		; 1500	; 3000
+        shot_time_user  =      3000		;800
+
+        type_icon       =       I                       ;DEBUGICON      
+
+        vp_normal       =       114
+        vp_fire         =       114
+        vp_dead         =       67
+        vp_wait         =       66
+        vp_megadeth     =       69
+        vp_genesis      =       114
+
+        shk_hit_slot            =       1
+        shk_hit_time            =       170
+        shk_hit_mag0            =       1.2
+        shk_hit_mag1            =       0
+        shk_hit_z               =       0
+        shk_hit_y               =       0.4
+        shk_hit_x               =       0.4
+        shk_hit_mute            =       0.02
+
+        pal_hit_slot            =       4
+        pal_hit_mag0            =       0.05
+        pal_hit_mag1            =       0
+        pal_hit_time            =       100
+
+        energy_tank		= 1.5
+        energy_heli		= 1
+        energy_flyer		= 1
+        energy_robo		= 1
+
+        radius_tank		= 160
+        radius_heli		= 80
+        radius_flyer		= 80
+        radius_robo		= 80
+
+end
+
+
+;-------------------------------------------------------------------------------------------------------------
+;       WAFFEN FÜR FEIND-FLAKS  111...
+;-------------------------------------------------------------------------------------------------------------
+;
+;       FEINDFLAK1
+;       KYTERNESER Flak-Granate
+;
+new_weapon      111
+        	model                   	=       	grenade
+        	name                    	=       	KYT_FLAK0
+        	energy          	=       	5000
+        	mass                    	=       	50
+        	force                   	=       	4000
+        	maxrot                  	=       	1.5
+        	airconst        	=       	80
+        	radius          	=       	80
+        	start_speed     	=       	350
+        	life_time       	=       	2500
+        	shot_time       	=       	1000
+        	shot_time_user  	=       	600
+
+        	type_icon       	=       	I                       ;DEBUGICON      
+
+        	vp_normal       	=       	114
+        	vp_fire         	=       	114
+        	vp_dead         	=       	67
+        	vp_wait         	=       	66
+        	vp_megadeth     	=       	69
+        	vp_genesis      	=       	114
+
+        shk_hit_slot            =       1
+        shk_hit_time            =       170
+        shk_hit_mag0            =       1
+        shk_hit_mag1            =       0
+        shk_hit_z               =       0
+        shk_hit_y               =       0.2
+        shk_hit_x               =       0.2
+        shk_hit_mute            =       0.02
+
+        pal_hit_slot            =       4
+        pal_hit_mag0            =       0.05
+        pal_hit_mag1            =       0
+        pal_hit_time            =       100
+
+        energy_tank		= 1
+        energy_heli		= 1.5
+        energy_flyer		= 1.5
+        energy_robo		= 1
+
+        radius_tank		= 80
+        radius_heli		= 160
+        radius_flyer		= 160
+        radius_robo		= 80
+
+end
+
+;--------------------------------------------------------------------------------------------------------------------------------------
+;
+;       FEINDFLAK
+;
+;       Ist eine MG-Flak/ speziell für SULGOGAREN !
+;
+;       SPEZIALOBJEKT:  EINSCHUSS
+;                       vp_dead         -> Objekt-Einschlag
+;                       vp_megadeth     -> Wand-Einschlag
+;
+new_weapon      112
+        model                   =       special
+        name            =       SULG_EINSCHUSS
+        type_icon       =       I                       ;DEBUGICON      
+        vp_normal       =       22
+        vp_fire         =       22
+        vp_wait         =       22
+        vp_genesis      =       22
+        vp_dead         =       191
+        vp_megadeth     =       191
+        shot_time       =       500
+	radius	=	50
+end
+
+;--------------------------------------------------------------------------------------------------------------------------------------
+;
+;       LASER, FÜR ALTERNATIVE FLAK
+;
+new_weapon      115
+        name            =       ALTERNATE
+        model                   =       rocket
+
+        energy          =       30000                   ; BRUTAL!
+        mass                    =       1550
+        force                   =       15000.0
+        maxrot                  =       1.2
+        airconst        =       40
+        start_speed     =       280
+        life_time       =       800
+        shot_time       =       900
+	radius	=	50
+
+        vp_normal       =       124
+        vp_dead         =       125
+        vp_megadeth     =       125
+        vp_genesis      =       22                      ; dummy
+        vp_wait         =       22                      ; dummy
+        vp_fire         =       22                      ; dummy
+        type_icon       =       I                       ; DEBUGICON     
+
+        pal_hit_slot            =       2               ; HIT
+        pal_hit_mag0            =       0.5
+        pal_hit_mag1            =       1
+        pal_hit_time            =       120
+        shk_hit_slot            =       1
+        shk_hit_time            =       330
+        shk_hit_mag0            =       1
+        shk_hit_mag1            =       0
+        shk_hit_z               =       0
+        shk_hit_y               =       0.4
+        shk_hit_x               =       0.2
+        shk_hit_mute            =       0.02
+end
+
+;-------------------------------------------------------------------------------------------------------------
+;
+;       GRASGITTERFLAKTURMGRANATE
+;          
+new_weapon      116
+        model                   =       grenade
+        name                    =       GRASFLAK
+        energy          =       5000
+        mass                    =       50.0
+        force                   =       4000
+        maxrot                  =       1.5
+        airconst        =       80.0
+        radius                  =       20      ; etwas kleiner          
+        start_speed     =       180     ; etwas geringer als bei der Großen
+        life_time       =       1500
+        shot_time       =       4000
+	radius	=	50
+
+        type_icon       =       I                       ;DEBUGICON      
+
+        vp_normal       =       68
+        vp_fire         =       68
+        vp_dead         =       67
+        vp_wait         =       68
+        vp_megadeth     =       70
+        vp_genesis      =       68
+
+        shk_hit_slot            =       1
+        shk_hit_time            =       370
+        shk_hit_mag0            =       1
+        shk_hit_mag1            =       0
+        shk_hit_z               =       0
+        shk_hit_y               =       0.2
+        shk_hit_x               =       0.2
+        shk_hit_mute            =       0.02
+
+        pal_hit_slot            =       4
+        pal_hit_mag0            =       0.05
+        pal_hit_mag1            =       0
+        pal_hit_time            =       120
+end
+
+;--------------------------------------------------------------------------------------------------------------------------------------
+;
+;       	LASER, FÜR MYKONIERFLAK
+;	ups - hatte ich doch ausversehen vergessen !	
+;
+new_weapon      117
+        	name            	=       	MYKONIERFLAKBLITZ
+        	model                   	=       	rocket
+
+        	energy          	=       	30000                   	; BRUTAL!
+        	mass                    	=       	1550
+        	force                   	=       	15000
+        	maxrot                  	=       	1.2
+        	airconst        	=       	40
+        	start_speed     	=       	280
+        	life_time       	=       	1500	; 800
+        	shot_time       	=       	1500
+	shot_time_user	=	1500
+	radius		=	50
+
+        	vp_normal       	=       	124
+        	vp_dead         	=       	125
+        	vp_megadeth     	=       	125
+        	vp_genesis      	=       	22                      	; dummy
+        	vp_wait         	=       	22                      	; dummy
+        	vp_fire         	=       	22                      	; dummy
+        	type_icon       	=       	I                       	; DEBUGICON     
+
+        	pal_hit_slot       	=       	2               	; HIT
+        	pal_hit_mag0	=       	0.5
+        	pal_hit_mag1	=       	1
+        	pal_hit_time   	=       	120
+        	shk_hit_slot    	=       	1
+        	shk_hit_time    	=       	330
+        	shk_hit_mag0    	=       	1
+        	shk_hit_mag1	=       	0
+        	shk_hit_z          	=       	0.1
+        	shk_hit_y          	=       	0.6
+        	shk_hit_x            	=       	0.4
+        	shk_hit_mute     	=       	0.02
+ 
+       energy_tank		= 1
+        energy_heli		= 1.5
+        energy_flyer		= 1.5
+        energy_robo		= 1
+
+        radius_tank		= 80
+        radius_heli		= 160
+        radius_flyer		= 160
+        radius_robo		= 80
+
+end
+
+;--------------------------------------------------------------------------------------------------------------------------------------
+;
+;	User-ROBOFLAK UNTEN (INTERNET)
+;
+new_weapon      120
+        model                   =       rocket
+        name                    =       UNTENRAUS
+        energy          =      23300		; 1600 8000
+        mass                    =       50
+        force                   =       5000
+        maxrot                  =       1.2
+        airconst        =       40
+        start_speed     =       120     	; 200
+        life_time       =      1700 		; 4000  2000
+        ; drive_time                    ; DEFAULT
+        ; delay_time                    ; DEFAULT
+        shot_time       =       950
+        shot_time_user  =       350
+	radius	=	50
+
+        type_icon       =       I                       ;DEBUGICON      
+
+        vp_normal       =       284	; 114
+        vp_fire         =       114
+        vp_dead         =       112
+        vp_wait         =       114
+        vp_megadeth     =       112
+        vp_genesis      =       114
+
+        shk_hit_slot            =       1
+        shk_hit_time            =       200
+        shk_hit_mag0            =       0.2
+        shk_hit_mag1            =       0
+        shk_hit_z               =       0.0
+        shk_hit_mute            =       0.04
+
+        pal_hit_slot            =       4
+        pal_hit_mag0            =       0.05
+        pal_hit_mag1            =       0
+        pal_hit_time            =       120
+
+	dest_fx	=	megadeth_151_0_-10_0
+
+end
+;--------------------------------------------------------------------------------------------------------------------------------------
+;
+;       BIG-KYTERNESER-FLAK  (INTERNET)
+;
+new_weapon      121
+        name            =       BIG_KYT_FLAK
+        model                   =       rocket
+
+        energy          =       27000			;40000
+        mass                    =       390
+        force                   =       10000
+        maxrot                  =       2
+        airconst        =       80
+        start_speed     =       190
+        life_time       =       3000                    
+        drive_time              =       2990    
+        shot_time       =       1500			;3000
+        shot_time_user	= 1000
+	radius	=	50
+
+        type_icon       =       I                       ;DEBUGICON      
+
+        vp_normal       =       114
+        vp_fire         =       114
+        vp_dead         =       67
+        vp_wait         =       66
+        vp_megadeth     =       69
+        vp_genesis      =       114
+        
+        shk_hit_slot            =       1
+        shk_hit_time            =       300
+        shk_hit_mag0            =       0.5
+        shk_hit_mag1            =       0
+        shk_hit_z               =       0.0
+        shk_hit_mute            =       0.02
+
+        pal_hit_slot            =       4
+        pal_hit_mag0            =       0.1
+        pal_hit_mag1            =       0
+        pal_hit_time            =       140
+end
+
+;--------------------------------------------------------------------------------------------------------------------------------------
+;
+;       	MYKONIER-ROBO-FLAK-LASER (Internet) 
+;
+new_weapon      122
+        name            	=       	MYKONETZFLAKLASER
+        model	=       	rocket
+
+        energy          		=       	23300		; vorher 10000 --> es soll ja aber fair bleiben - was ?
+        mass          		=       	1550
+        force        		=       	1
+        maxrot      		=       	1.2
+        airconst        		=       	40
+        start_speed 		=       	270
+        life_time     		=       	1000
+        shot_time   		=       	1000
+       shot_time_user	=	600		; fehlte bisher
+        radius		=	50
+
+        vp_normal       =       124
+        vp_dead         =       125
+        vp_megadeth     =       125
+        vp_genesis      =       22                      ; dummy
+        vp_wait         =       22                      ; dummy
+        vp_fire         =       22                      ; dummy
+        type_icon       =       I                       ; DEBUGICON     
+
+        pal_hit_slot            =       2               ; HIT
+        pal_hit_mag0            =       0.5
+        pal_hit_mag1            =       1
+        pal_hit_time            =       120
+        shk_hit_slot            =       1
+        shk_hit_time            =       330
+        shk_hit_mag0            =       1
+        shk_hit_mag1            =       0
+        shk_hit_z               =       0
+        shk_hit_y               =       0.2
+        shk_hit_x               =       0.2
+        shk_hit_mute            =       0.02
+end
+
+;--------------------------------------------------------------------------------------------------------------------------------------
+;
+;       TAERKASTEN-ROBO-FLAK    (Internet)
+;
+;
+new_weapon      123
+        model                   =       grenade
+        name            =       TAER_FLAK
+        
+        radius          =       60                      
+
+        energy          =       	30000		;10000                   ; Da muß dann jeder selber sehn         
+        mass                    =       500.0
+        force                   =       100.0
+        maxrot                  =       1.5
+        airconst        =       10.0
+        start_speed     =       170
+        life_time               =      3200 			;1800
+        shot_time       =      1700			; 2000
+        shot_time_user = 1200 			; da seine Werte so etwas drunter liegen soll er ruhig einen GEwinn davon haben reinzugehen
+	radius	=	50
+
+        type_icon       =       I                       ;DEBUGICON      
+
+        vp_normal       =       68                      ; Granate
+        vp_fire         =       22
+        vp_dead         =       107                     ; (ReUse of HUBI-3 MegaDeath)
+        vp_wait         =       22
+        vp_megadeth     =       107
+        vp_genesis      =       22
+
+        shk_hit_slot            =       1               ; HIT
+        shk_hit_time            =       370
+        shk_hit_mag0            =       1
+        shk_hit_mag1            =       0
+        shk_hit_z               =       0
+        shk_hit_y               =       0.2
+        shk_hit_x               =       0.2
+        shk_hit_mute            =       0.02
+
+        pal_hit_slot            =       4
+        pal_hit_mag0            =       0.1
+        pal_hit_mag1            =       0
+        pal_hit_time            =       160
+end
+
+;----------------------------------------------------------------------------------------------------------------------------------
+;                       End     of      Weapons
+;----------------------------------------------------------------------------------------------------------------------------------

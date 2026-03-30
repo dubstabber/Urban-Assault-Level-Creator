@@ -8,7 +8,7 @@ func _ready() -> void:
 			"invalid_json": dialog_text += 'data.json is not a valid file'
 			"no_hoststations": dialog_text += 'there is no hoststations entry in the data.json for "%s" data set' % EditorState.game_data_type
 			_: dialog_text += 'unknown fatal error'
-		
+
 		_show_modal_with_focus.call_deferred()
 		await visibility_changed
 		get_tree().quit()

@@ -91,6 +91,7 @@ func _new_item(index:int, new_item_submenu: PopupMenu) -> void:
 			EditorState.selected_tech_upgrade = tu
 			EventSystem.item_updated.emit()
 	EventSystem.item_added.emit()
+	EventSystem.typ_map_cells_edited.emit([EditorState.selected_sector_idx])
 	EventSystem.map_updated.emit()
 
 
@@ -128,6 +129,7 @@ func _add_bomb_key_sector(index: int) -> void:
 	CurrentMapData.stoudson_bombs[index].key_sectors.append(bomb_key_sector)
 	CurrentMapData.typ_map[EditorState.selected_sector_idx] = 243
 	EditorState.selected_bomb_key_sector = bomb_key_sector
+	EventSystem.typ_map_cells_edited.emit([EditorState.selected_sector_idx])
 	EventSystem.map_updated.emit()
 
 

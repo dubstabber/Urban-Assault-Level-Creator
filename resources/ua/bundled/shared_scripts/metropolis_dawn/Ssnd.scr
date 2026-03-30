@@ -1,0 +1,3679 @@
+;-----------------------------------------------------------------------------------
+;
+;Die heldenhaften, rechtschaffenden und mordlustigen User
+;
+;-----------------------------------------------------------------------------------
+;Bodentruppen
+;-----------------------------------------------------------------------------------
+;	WIESEL (Pflaume)			(Light Tank)
+;
+modify_vehicle 1
+	snd_normal_sample	      =	sounds/Tucker.wav
+	snd_normal_pitch    	=	-3000
+	snd_normal_volume  	=             60
+
+	snd_wait_sample		=	sounds/Tucker.wav
+	snd_wait_pitch		=	-5000
+	snd_wait_volume		=	60
+
+	snd_fire_sample		=	sounds/mg1.wav
+	snd_fire_volume		=	90
+
+	snd_explode_sample	      =	sounds/grex01.wav
+	snd_explode_pitch	      =	0	
+	snd_explode_volume	      =	180
+	
+	snd_genesis_sample	       =	sounds/lowapp.wav
+	snd_genesis_volume	       =	90
+	snd_genesis_pitch	        =     0
+	    	
+     	snd_crashvhcl_sample	=	sounds/crashve.wav
+	snd_crashvhcl_volume	=	60
+
+	snd_crashland_sample	=	sounds/crashve3.wav
+	snd_crashland_volume	=	60
+
+	snd_beamin_sample 	= 	sounds/appear3.wav
+	snd_beamin_volume        =     120
+end
+;--------------------------------------------------------------------
+;
+;   	WHIZKID	WAFFE FsR WIESEL.
+;	Panzer-Lenk-Rakete
+;
+modify_weapon 	1
+	snd_normal_sample	=	sounds/Idle01.wav
+	snd_normal_volume	=	180
+	snd_normal_pitch	=	12000
+
+	snd_hit_sample		=	sounds/Blast01.wav
+	snd_hit_volume		=	180
+	snd_hit_pitch		=	0
+end
+;--------------------------------------------------------------------
+;
+;	JAGUAR			(Medium Tank)
+;
+modify_vehicle 2
+	snd_normal_sample	=            sounds/tucker.wav
+	snd_normal_pitch	=	-6000
+	snd_normal_volume	=            60
+
+	snd_wait_sample		=	sounds/Tucker.wav
+	snd_wait_pitch		=	-7000
+	snd_wait_volume		=	60
+
+	snd_fire_sample		=	sounds/mg1.wav
+	snd_fire_volume		=	90
+
+	snd_explode_sample	=	sounds/grex01.wav
+	snd_explode_pitch	=	0	
+	snd_explode_volume	=	150
+	
+	snd_genesis_sample	=	sounds/lowapp.wav
+	snd_genesis_volume	=	90
+	snd_genesis_pitch	=      0
+	    	
+       	snd_crashvhcl_sample	=	sounds/crashve.wav
+	snd_crashvhcl_volume	=	30
+
+	snd_crashland_sample	=	sounds/crashve3.wav
+	snd_crashland_volume	=	30
+
+	snd_beamin_sample	= 	sounds/appear3.wav
+	snd_beamin_volume	= 	250
+end
+;--------------------------------------------------------------------------
+;
+;	GRANATE1	WAFFE FsR JAGUAR
+;	Panzer-Granate	
+;
+modify_weapon 	2
+                snd_launch_sample	= 	sounds/tankgun1.wav
+	snd_launch_volume	=	180
+	snd_launch_pitch                =             9000
+
+	snd_normal_sample	=	sounds/idle01.wav
+	snd_normal_volume	=	120
+	snd_normal_pitch	=	0
+
+	snd_hit_sample		=	sounds/Smex003.wav
+	snd_hit_volume		=	210
+	snd_hit_pitch		=	-3000
+end
+;---------------------------------------------------------------------
+;   	TIGER				(Heavy Tank)
+;   
+modify_vehicle 3
+	snd_normal_sample	=	sounds/tiger.wav
+	snd_normal_pitch	=	-3000
+	snd_normal_volume	= 	80
+	
+	max_pitch		=	0.15
+
+	snd_wait_sample		=	sounds/tiger.wav
+	snd_wait_pitch		=	-2000
+	snd_wait_volume		=	80
+
+	snd_fire_sample		=	sounds/mg1.wav
+	snd_fire_volume		=	120
+
+	snd_explode_sample	=	sounds/grex01.wav
+	snd_explode_pitch	=	0	
+	snd_explode_volume	=	250
+	
+	snd_genesis_sample	=	sounds/lowapp.wav
+	snd_genesis_volume	=	90
+	snd_genesis_pitch 	 =       0
+	    	
+        	snd_crashvhcl_sample	=	sounds/crashve.wav
+	snd_crashvhcl_volume	=	30
+
+	snd_crashland_sample	=	sounds/crashve3.wav
+	snd_crashland_volume	=	30
+
+	snd_beamin_sample	= 	sounds/appear3.wav
+	snd_beamin_volume	= 	250
+end
+
+;--------------------------------------------------------------------------
+;
+;	GRANATE2	WAFFE FsR TIGER
+;	Panzer-Granate schwer
+;
+modify_weapon 	3
+	snd_launch_sample	= 	sounds/biggun.wav
+	snd_launch_volume	=	120
+	snd_launch_pitch	=	15000
+
+	snd_normal_sample	=	sounds/idle01.wav
+	snd_normal_volume	=	120
+	snd_normal_pitch	=	0
+
+	snd_hit_sample		=	sounds/grex03.wav
+	snd_hit_volume		=	210
+	snd_hit_pitch		=	0
+end
+;--------------------------------------------------------------------------------------------------------
+;
+;   	FOX	/ 	kleiner Panzer mit MG-Aufbaute	
+;	
+;   
+modify_vehicle 	16
+	snd_normal_sample	=	sounds/Tucker.wav
+	snd_normal_pitch	=	0
+	snd_normal_volume	=      	60
+
+	snd_wait_sample		=	sounds/Tucker.wav
+	snd_wait_pitch		=	0
+	snd_wait_volume		=	60
+
+	snd_fire_sample		=	sounds/mg1.wav
+	snd_fire_volume		=	120
+
+	snd_explode_sample	=	sounds/grex01.wav
+	snd_explode_pitch	=	0	
+	snd_explode_volume	=	180
+	
+	snd_genesis_sample	=	sounds/lowapp.wav
+	snd_genesis_volume	=	90
+	snd_genesis_pitch	=      	0
+	    	
+       	snd_crashvhcl_sample	=	sounds/crashve.wav
+	snd_crashvhcl_volume	=	30
+
+	snd_crashland_sample	=	sounds/crashve3.wav
+	snd_crashland_volume	=	30
+
+	snd_beamin_sample	= 	sounds/appear3.wav
+	snd_beamin_volume	= 	250
+end
+;--------------------------------------------------------------------------------------------------------
+;
+;   	WHIZKID2
+;	Kleine Lenkrakete f?r den FOX
+;   
+modify_weapon 	16
+	snd_normal_sample	=	sounds/Idle01.wav
+	snd_normal_volume	=	120
+	snd_normal_pitch	=	5000
+
+	snd_hit_sample		=	sounds/Smex04.wav
+	snd_hit_volume		=	180
+	snd_hit_pitch		=	0
+end
+;----------------------------------------------------------------------------------------------------------
+;
+;	Budjonow			(Jeep)
+;
+modify_vehicle 	11
+	snd_normal_sample	=	sounds/toff.wav
+	snd_normal_pitch	=	-6000
+	snd_normal_volume	=      	80
+
+	max_pitch		=	0.4
+
+	snd_wait_sample		=	sounds/toff.wav
+	snd_wait_pitch		=	-3000
+	snd_wait_volume		=	80
+
+	snd_fire_sample		=	sounds/mg1.wav
+	snd_fire_volume		=	120
+
+	snd_goingdown_sample	=	sounds/grex03.wav
+	snd_goingdown_pitch	=   	 -5000	
+	snd_goingdown_volume	=	1000
+	
+	snd_genesis_sample	=	sounds/lowapp.wav
+	snd_genesis_volume	=	90
+	snd_genesis_pitch	=      0
+	    	
+       	snd_crashvhcl_sample	=	sounds/crashve.wav
+	snd_crashvhcl_volume	=	30
+
+	snd_crashland_sample	=	sounds/crashve3.wav
+	snd_crashland_volume	=	30
+
+	snd_beamin_sample	= 	sounds/appear3.wav
+	snd_beamin_volume	= 	250
+end
+;---------------------------------------------------------------------------------------------------------
+;
+;	PICO				(Truck)
+;
+modify_vehicle	12
+	snd_normal_sample	=	sounds/Tucker.wav
+	snd_normal_pitch	=	-8000
+	snd_normal_volume	= 	60
+
+	snd_wait_sample		=	sounds/Tucker.wav
+	snd_wait_pitch		=	-5000
+	snd_wait_volume		=	60
+
+	snd_fire_sample		=	sounds/mg1.wav
+	snd_fire_volume		=	90
+
+	snd_explode_sample	=	sounds/grex01.wav
+	snd_explode_pitch	=	0	
+	snd_explode_volume	=	120
+
+	snd_genesis_sample	=	sounds/lowapp.wav
+	snd_genesis_volume	=	90
+	snd_genesis_pitch  	=       	0
+	    	
+       	snd_crashvhcl_sample	=	sounds/crashve.wav
+	snd_crashvhcl_volume	=	40
+
+	snd_crashland_sample	=	sounds/crashve3.wav
+	snd_crashland_volume	=	40
+
+	snd_beamin_sample	= 	sounds/appear3.wav
+	snd_beamin_volume	= 	250
+end
+;--------------------------------------------------------------------------------------
+;  
+;	LANZE DER WAHRHEIT / ROBOTTDER WAFFE FsR ROBOTOD	
+;	Lansgam-Fliegende wahnsinnig schwere und brutale RIESENRAKETE
+;
+modify_weapon 12
+	snd_launch_sample	= 	sounds/mykoblow.WAV
+	snd_launch_volume	=	120
+	snd_launch_pitch	=	-5000
+
+	snd_normal_sample	=	sounds/Lanze.wav
+	snd_normal_volume	=	200
+	snd_normal_pitch	=	-4000
+
+	snd_hit_sample		=	sounds/grex01.wav		; HIT
+	snd_hit_volume		=	300
+	snd_hit_pitch		=	0
+end
+;--------------------------------------------------------------------------------------------------------
+;
+;   	EVILFURZ			FOR DEBUG REASONS ONLY !
+;					NICHT VERTONEN !		
+;   
+modify_vehicle 	13
+end
+;--------------------------------------------------------------------------
+;
+;	FLACHMACHER		DEBUGWAFFE FsR EVILFURZ
+;	Muss nicht vertont werden !
+;
+modify_weapon 	13
+end
+;------------------------------------------------------------------------------------------------
+;   Flugger"te der aufrechten, weltoffenen und blutr?nstigen User
+;------------------------------------------------------------------------------------------------
+;--------------------------------------------------------------------
+;
+;  	ERAZER			(Jet)
+;
+modify_vehicle 	4
+	snd_normal_sample	=	sounds/bigjet02.wav
+	snd_normal_pitch	=	0
+	snd_normal_volume	= 	75
+
+	snd_wait_sample		=	sounds/bigjet02.wav
+	snd_wait_pitch		=	-5000
+	snd_wait_volume		=	60
+
+	snd_fire_sample		=	sounds/mg1.wav
+	snd_fire_volume		=	90
+
+	snd_goingdown_sample	=	sounds/zoom02.wav
+	snd_goingdown_pitch	=	11000	
+	snd_goingdown_volume	=	210
+
+	snd_explode_sample	=	sounds/grex03.wav
+	snd_explode_pitch	=	0	
+	snd_explode_volume	=	210
+
+	snd_crashland_sample	=	sounds/Helicrsh.wav
+	snd_crashland_volume	=	90
+
+       	snd_crashvhcl_sample	=	sounds/crashve.wav
+	snd_crashvhcl_volume	=	90
+
+	snd_genesis_sample	=	sounds/lowapp.wav
+	snd_genesis_volume	=	90
+	snd_genesis_pitch	=	-2000
+	    	
+	snd_beamin_sample	= 	sounds/appear3.wav
+	snd_beamin_volume	= 	250
+end
+;----------------------------------------------------------------------------------
+;
+;   	SNOOPY	WAFFE FsR ERAZER
+;	Extrem schnelle Luft-Luft-Rakete 
+;
+modify_weapon 	4
+	snd_normal_sample	=	sounds/Idle01.wav
+	snd_normal_volume	=	120
+	snd_normal_pitch	=	3000
+
+	snd_hit_sample		=	sounds/Smex003.wav
+	snd_hit_volume		=	250
+	snd_hit_pitch		=	0
+end
+;--------------------------------------------------------------------
+;
+;  	MARAUDER			(Bomber)
+; 
+modify_vehicle 	5
+	snd_normal_sample	=	sounds/bigjet02.wav
+	snd_normal_pitch	=	-5000
+	snd_normal_volume	= 	75
+
+	snd_wait_sample		=	sounds/bigjet02.wav
+	snd_wait_pitch		=	-8000
+	snd_wait_volume		=	60
+
+	snd_fire_sample		=	sounds/mg1.wav
+	snd_fire_volume		=	90
+
+	snd_goingdown_sample	=	sounds/zoom02.wav
+	snd_goingdown_pitch	=	9000	
+	snd_goingdown_volume	=              210
+
+	snd_explode_sample	=	sounds/grex03.wav
+	snd_explode_pitch	=	0	
+	snd_explode_volume	=	180
+
+	snd_crashland_sample	=	sounds/Helicrsh.wav
+	snd_crashland_volume	=	90
+
+                snd_crashvhcl_sample	=	sounds/crashve.wav
+	snd_crashvhcl_volume	=	90
+
+	snd_genesis_sample	=	sounds/lowapp.wav
+	snd_genesis_volume	=	90
+	snd_genesis_pitch	=	-2000
+	    	
+	snd_beamin_sample	= 	sounds/appear3.wav
+	snd_beamin_volume	= 	250
+end
+;-------------------------------------------------------------------------------
+;
+;  	HAMMER	WAFFE FsR MARAUDER
+;	1000 Pfund Bombe
+;
+modify_weapon 	5
+	snd_launch_sample	= 	sounds/mg1.wav
+	snd_launch_volume	=	60
+	snd_launch_pitch   =    	0
+
+	snd_normal_sample	=	sounds/flyby01.wav
+	snd_normal_volume	=	90
+	snd_normal_pitch	=	1500
+
+	snd_hit_sample		=	sounds/grex03.wav
+	snd_hit_volume		=	400
+	snd_hit_pitch		=	0
+end
+;--------------------------------------------------------------------
+;
+;	WASP			(Light Helicopter)
+;   
+modify_vehicle 	6   	
+	snd_normal_sample	=	sounds/heli02.wav
+	snd_normal_pitch	=	0
+	snd_normal_volume	= 	90
+
+	snd_fire_sample		=	sounds/mg1.wav
+	snd_fire_volume		=	90
+
+	snd_wait_sample		=	sounds/heli02.wav
+	snd_wait_pitch		=	-5000
+	snd_wait_volume		=	60
+
+	snd_goingdown_sample	=	sounds/heli02.wav
+	snd_goingdown_pitch	=   	 -6500	
+	snd_goingdown_volume	=	180
+
+	snd_explode_sample	=	sounds/grex03.wav
+	snd_explode_pitch	=	3000	
+	snd_explode_volume	=	210
+
+	snd_crashland_sample	=	sounds/Helicrsh.wav
+	snd_crashland_volume	=	90
+
+                snd_crashvhcl_sample	=	sounds/crashve.wav
+	snd_crashvhcl_volume	=	90
+
+	snd_genesis_sample	=	sounds/lowapp.wav
+	snd_genesis_volume	=	90
+	snd_genesis_pitch	=	1000
+	    	
+	snd_beamin_sample	= 	sounds/appear3.wav
+	snd_beamin_volume	= 	250
+end
+;--------------------------------------------------------------------------------------
+;
+;	FIRESTORM	WAFFE FsR WASP.
+;	Leichte Rakete
+;
+modify_weapon 	6
+	snd_normal_sample	=	sounds/zoom02.wav
+	snd_normal_volume	=	120
+	snd_normal_pitch	=	10000
+
+	snd_hit_sample		=	sounds/smex003.wav
+	snd_hit_volume		=	250
+	snd_hit_pitch		=	0
+end
+;--------------------------------------------------------------------
+;
+;	WARHAMMER   		(Medium Glider)
+;
+modify_vehicle 	7
+	snd_normal_sample	=	sounds/bigjet02.wav
+	snd_normal_pitch	=	-2000
+	snd_normal_volume	= 	75
+
+	snd_wait_sample		=	sounds/bigjet02.wav
+	snd_wait_pitch		=	-5000
+	snd_wait_volume		=	60
+
+	snd_fire_sample		=	sounds/mg1.wav
+	snd_fire_volume		=	90
+
+	snd_goingdown_sample	=	sounds/zoom02.wav
+	snd_goingdown_pitch	=	8000	
+	snd_goingdown_volume	=	120
+
+	snd_explode_sample	=	sounds/grex03.wav
+	snd_explode_pitch	=	0	
+	snd_explode_volume	=	180
+
+	snd_crashland_sample	=	sounds/Helicrsh.wav
+	snd_crashland_volume	=	90
+
+                 snd_crashvhcl_sample	=	sounds/crashve.wav
+	snd_crashvhcl_volume	=	90
+
+	snd_genesis_sample	=	sounds/lowapp.wav
+	snd_genesis_volume	=	90
+	snd_genesis_pitch	=	0
+	    	
+	snd_beamin_sample	= 	sounds/appear3.wav
+	snd_beamin_volume	= 	250
+end
+;---------------------------------------------------------------------------------------------------
+;
+;   	STRONG ARM	WAFFE FsR WARHAMMER.
+;	Rakete
+;
+modify_weapon 	7	
+	snd_normal_sample	=	sounds/Idle01.wav
+	snd_normal_volume	=	120
+	snd_normal_pitch	=	12000
+
+	snd_hit_sample		=	sounds/Smex002.wav
+	snd_hit_volume		=	210
+	snd_hit_pitch		=	0
+end
+;--------------------------------------------------------------------
+;
+;  	PHANTOM			(Heavy Glider)
+;   
+modify_vehicle 	8
+	snd_normal_sample	=	sounds/bigjet02.wav
+	snd_normal_pitch	=	-2000
+	snd_normal_volume	= 	75
+
+	snd_wait_sample		=	sounds/bigjet02.wav
+	snd_wait_pitch		=	-5000
+	snd_wait_volume		=	60
+
+	snd_fire_sample		=	sounds/mg1.wav
+	snd_fire_volume		=	90
+
+	snd_goingdown_sample	=	sounds/zoom02.wav
+	snd_goingdown_pitch	=	5000	
+	snd_goingdown_volume	=	150
+
+	snd_explode_sample	=	sounds/grex03.wav
+	snd_explode_pitch	=	0	
+	snd_explode_volume	=	210
+
+	snd_crashland_sample	=	sounds/Helicrsh.wav
+	snd_crashland_volume	=	90
+
+               snd_crashvhcl_sample	=	sounds/crashve.wav
+	snd_crashvhcl_volume	=	90
+
+	snd_genesis_sample	=	sounds/lowapp.wav
+	snd_genesis_volume	=	90
+	snd_genesis_pitch	=	1000
+	    	
+	snd_beamin_sample	= 	sounds/appear3.wav
+	snd_beamin_volume	= 	250
+end
+;---------------------------------------------------------------------------------------------------
+;
+;   	STRONG ARM II	WAFFE FsR PHANTOM.
+;	Rakete
+;
+modify_weapon 	8		
+	snd_normal_sample	=	sounds/Idle01.wav
+	snd_normal_volume	=	120
+	snd_normal_pitch	=	5000
+
+	snd_hit_sample		=	sounds/smex02.wav
+	snd_hit_volume		=	210
+	snd_hit_pitch		=	0
+end
+;----------------------------------------------------------------------------------
+;
+;   	SCOUT				(Sattelit)
+;   
+modify_vehicle 	9
+	snd_normal_sample	=	sounds/bigjet02.wav
+	snd_normal_pitch	=	-2000
+	snd_normal_volume	= 	90
+
+	snd_wait_sample		=	sounds/bigjet02.wav
+	snd_wait_pitch		=	-5000
+	snd_wait_volume		=	60
+
+	snd_fire_sample		=	sounds/mg1.wav
+	snd_fire_volume		=	90
+
+	snd_goingdown_sample	=	sounds/zoom02.wav
+	snd_goingdown_pitch	=	8000	
+	snd_goingdown_volume	=	120
+
+	snd_explode_sample	=	sounds/grex03.wav
+	snd_explode_pitch	=	1500	
+	snd_explode_volume	=	210
+
+	snd_crashland_sample	=	sounds/Helicrsh.wav
+	snd_crashland_volume	=	90
+
+                snd_crashvhcl_sample	=	sounds/crashve.wav
+	snd_crashvhcl_volume	=	90
+
+	snd_genesis_sample	=	sounds/lowapp.wav
+	snd_genesis_volume	=	90
+	snd_genesis_pitch	=	0
+	    	
+	snd_beamin_sample	= 	sounds/appear3.wav
+	snd_beamin_volume	= 	250
+end
+;--------------------------------------------------------------------------------------
+;
+;	PLATZHALTER
+;
+;	DER SCOUT HAT KEINE WAFFE !
+;
+;--------------------------------------------------------------------------------------
+;------------------------------------------------------------------------------------------------------
+;
+;  	KNUDDEL			(Light Glider)
+;   
+modify_vehicle 	10
+	snd_normal_sample	=	sounds/bigjet02.wav
+	snd_normal_pitch	=	4000
+	snd_normal_volume	= 	75
+
+	snd_wait_sample		=	sounds/bigjet02.wav
+	snd_wait_pitch		=	0
+	snd_wait_volume		=	60
+
+	snd_fire_sample		=	sounds/mg1.wav
+	snd_fire_volume		=	90
+
+	snd_goingdown_sample	=	sounds/zoom02.wav
+	snd_goingdown_pitch	=	9000	
+	snd_goingdown_volume	=	120
+
+	snd_explode_sample	=	sounds/grex03.wav
+	snd_explode_pitch	=	5000	
+	snd_explode_volume	=	210
+
+	snd_crashland_sample	=	sounds/Helicrsh.wav
+	snd_crashland_volume	=	90
+
+                snd_crashvhcl_sample	=	sounds/crashve.wav
+	snd_crashvhcl_volume	=	90
+
+	snd_genesis_sample	=	sounds/lowapp.wav
+	snd_genesis_volume	=	90
+	snd_genesis_pitch	=	0
+	    	
+	snd_beamin_sample	= 	sounds/appear3.wav
+	snd_beamin_volume	= 	250
+end
+;--------------------------------------------------------------------------------------
+;  
+;	KNUDDELOERPSE   WAFFE FsR KNUDDEL.
+;	Miniatur-Rakete
+;
+modify_weapon 10
+	snd_normal_sample	=	sounds/Idle01.wav
+	snd_normal_volume	=	120
+	snd_normal_pitch	=	8000
+
+	snd_hit_sample		=	sounds/Smex003.wav
+	snd_hit_volume		=	210
+	snd_hit_pitch		=	4000
+end
+;--------------------------------------------------------------------------------------------------------
+;
+;   	LAWNMOWER			(Heavy Helicopter)
+; 
+modify_vehicle 	14
+	snd_normal_sample	=	sounds/Jetheli.wav
+	snd_normal_pitch	=	-4000
+	snd_normal_volume	=	110
+
+	max_pitch		=	0.2
+
+	snd_fire_sample		=	sounds/minigun.wav
+	snd_fire_volume		=	160
+
+	snd_wait_sample		=	sounds/Jetheli.wav
+	snd_wait_pitch		=	-8000
+	snd_wait_volume		=	90
+
+	snd_goingdown_sample	=	sounds/idle01.wav
+	snd_goingdown_pitch	=	0	
+	snd_goingdown_volume	=	180
+
+	snd_explode_sample	=	sounds/grex03.wav
+	snd_explode_pitch	=	3000	
+	snd_explode_volume	=	180
+
+	snd_crashland_sample	=	sounds/Helicrsh.wav
+	snd_crashland_volume	=	90
+
+                snd_crashvhcl_sample	=	sounds/crashve.wav
+	snd_crashvhcl_volume	=	90
+
+	snd_genesis_sample	=	sounds/lowapp.wav
+	snd_genesis_volume	=	90
+	snd_genesis_pitch	=	1000
+	    	
+	snd_beamin_sample	= 	sounds/appear3.wav
+	snd_beamin_volume	= 	250
+end
+;----------------------------------------------------------------------------------------------
+;
+;	KILLERCLOUD  	WAFFE  FsR  LAWNMOWER.
+;	SchnellSchu~-Mini-Rakete (Katjuscha-m"~ig)
+;
+modify_weapon 	14
+	snd_normal_sample	=	sounds/Idle01.wav
+	snd_normal_volume	=	85
+	snd_normal_pitch	=	5000
+
+	snd_hit_sample		=	sounds/smex003.wav
+	snd_hit_volume		=	250
+	snd_hit_pitch		=	-2000
+end
+;--------------------------------------------------------------------
+;
+;	LAURIN				(Medium Helicopter)
+;  
+modify_vehicle 	15
+	snd_normal_sample	=	sounds/Jetheli2.wav
+	snd_normal_pitch	=	-2500
+	snd_normal_volume	= 	110
+
+	max_pitch		=	0.2
+
+	snd_fire_sample		=	sounds/mg1.wav
+	snd_fire_volume		=	90
+
+	snd_wait_sample		=	sounds/Jetheli2.wav
+	snd_wait_pitch		=	-5000
+	snd_wait_volume		=	60
+
+	snd_goingdown_sample	=	sounds/idle01.wav
+	snd_goingdown_pitch	=	0	
+	snd_goingdown_volume	=	180
+
+	snd_explode_sample	=	sounds/grex03.wav
+	snd_explode_pitch	=	3000	
+	snd_explode_volume	=	120
+
+	snd_crashland_sample	=	sounds/Helicrsh.wav
+	snd_crashland_volume	=	90
+
+                snd_crashvhcl_sample	=	sounds/crashve.wav
+	snd_crashvhcl_volume	=	90
+
+	snd_genesis_sample	=	sounds/lowapp.wav
+	snd_genesis_volume	=	90
+	snd_genesis_pitch	=	1000
+	    	
+	snd_beamin_sample	= 	sounds/appear3.wav
+	snd_beamin_volume	= 	250
+end
+
+;---------------------------------------------------------------------------------------------------
+;
+;   	DER_SCHLAUE_URFIN	WAFFE FsR LAURIN.
+;	Rakete
+;
+modify_weapon 	15
+	snd_normal_sample	=	sounds/Idle01.wav
+	snd_normal_volume	=	120
+	snd_normal_pitch	=	2000
+
+	snd_hit_sample		=	sounds/Smex002.wav
+	snd_hit_volume		=	250
+	snd_hit_pitch		=	0
+end
+
+;---------------------------------------------------------------------------------------------
+;End of the honest, peaceloving and madly bloodthirsty Uservehicles
+;---------------------------------------------------------------------------------------------
+;-------------------------------------------------------------------------------------------------------------
+;---------------------------------------------------------------------------------------------
+;
+;                      Les Kytherneser
+;
+;
+;                      Meet`em, love`em, kill`em
+;------------------------------------------------------------------------------------------------
+;
+;               SPEEDY  extrem wendiger und schneller Bodengleiter
+;  
+modify_vehicle 	22
+	snd_normal_sample	=	sounds/kythjet.wav
+	snd_normal_pitch	=	11000
+	snd_normal_volume	= 	90
+
+	snd_fire_sample		=	sounds/mg2.wav
+	snd_fire_volume		=	90
+                snd_fire_pitch                      =             -4000
+
+	snd_wait_sample		=	sounds/kythjet.wav
+	snd_wait_pitch		=	11000
+	snd_wait_volume		=	60
+
+	snd_goingdown_sample	=	sounds/idle01.wav
+	snd_goingdown_pitch	=	5000	
+	snd_goingdown_volume	=	180
+
+	snd_explode_sample	=	sounds/smex04.wav
+	snd_explode_pitch	=	3000	
+	snd_explode_volume	=	150
+
+	snd_crashland_sample	=	sounds/crashve3.wav
+	snd_crashland_volume	=	90
+
+                snd_crashvhcl_sample	=	sounds/crashve.wav
+	snd_crashvhcl_volume	=	90
+
+	snd_genesis_sample	=	sounds/lowapp.wav
+	snd_genesis_volume	=	90
+	snd_genesis_pitch	=	1000
+end
+;----------------------------------------------------------------------------------------------------------------
+;
+;               GONZALES  Laser fr Speedy	
+;
+;
+modify_weapon 	22
+	snd_normal_sample   	=	sounds/laser01.wav
+	snd_normal_volume  	=	60
+	snd_normal_pitch   	=	10000
+
+	snd_launch_sample	=	sounds/ufoshot.wav
+	snd_launch_volume	=	120
+	snd_launch_pitch	=	-1500
+
+	snd_hit_sample		=	sounds/Smex002.wav
+	snd_hit_volume		=	120
+	snd_hit_pitch		=	0
+end
+;------------------------------------------------------------------------------------------------
+;
+;                KYTHER-UFO
+;  
+modify_vehicle 	23
+	snd_normal_sample	=	sounds/kythdu.wav
+	snd_normal_pitch	=	-3000
+	snd_normal_volume	= 	90
+
+	snd_fire_sample		=	sounds/mg2.wav
+	snd_fire_volume		=	90
+                snd_fire_pitch                      =              -4000
+
+	snd_wait_sample		=	sounds/kythdu.wav
+	snd_wait_pitch		=	-5000
+	snd_wait_volume		=	60
+
+	snd_goingdown_sample	=	sounds/heli02.wav
+	snd_goingdown_pitch	=	-9000	
+	snd_goingdown_volume	=	180
+
+	snd_explode_sample	=	sounds/smex04.wav
+	snd_explode_pitch	=	3000	
+	snd_explode_volume	=	150
+
+	snd_crashland_sample	=	sounds/crashve3.wav
+	snd_crashland_volume	=	90
+
+                snd_crashvhcl_sample	=	sounds/crashve.wav
+	snd_crashvhcl_volume	=	90
+
+	snd_genesis_sample	=	sounds/lowapp.wav
+	snd_genesis_volume	=	90
+	snd_genesis_pitch	=	1000
+end
+;----------------------------------------------------------------------------------------------------------------
+;
+;	SPIELBERG  Laser fr Kyther-Ufo
+;	
+;
+modify_weapon 	23
+	snd_normal_sample   	=	sounds/laser01.wav
+	snd_normal_volume  	=	60
+	snd_normal_pitch   	=	10000
+
+	snd_hit_sample		=	sounds/Smex002.wav
+	snd_hit_volume		=	120
+	snd_hit_pitch		=	0
+end
+;------------------------------------------------------------------------------------------------
+;
+;   	KYTERNESER HUBSCHRAUBER 1	(Der Braune Klassiker)
+;  
+modify_vehicle 	24
+	snd_normal_sample	=	sounds/heli02.wav
+	snd_normal_pitch	=	-3000
+	snd_normal_volume	= 	90
+
+	snd_fire_sample		=	sounds/mg2.wav
+	snd_fire_volume		=	90
+                snd_fire_pitch                      =             -4000
+
+	snd_wait_sample		=	sounds/heli02.wav
+	snd_wait_pitch		=	-5000
+	snd_wait_volume		=	60
+
+	snd_goingdown_sample	=	sounds/heli02.wav
+	snd_goingdown_pitch	=	-9000	
+	snd_goingdown_volume	=	180
+
+	snd_explode_sample	=	sounds/smex05.wav
+	snd_explode_pitch	=	3000	
+	snd_explode_volume	=	150
+
+	snd_crashland_sample	=	sounds/Helicrsh.wav
+	snd_crashland_volume	=	90
+         
+                snd_crashvhcl_sample	=	sounds/crashve.wav
+	snd_crashvhcl_volume	=	90
+
+	snd_genesis_sample	=	sounds/lowapp.wav
+	snd_genesis_volume	=	90
+	snd_genesis_pitch	=	1000
+end
+;----------------------------------------------------------------------------------------------------------------
+;
+;	ACHILLES	WAFFE FÅ¡R KYTERNESER-HUBI.
+;	Rakete
+;
+modify_weapon 	24
+	snd_normal_sample	=	sounds/Idle01.wav
+	snd_normal_volume	=	120
+	snd_normal_pitch	=	5000
+
+	snd_hit_sample		=	sounds/Smex002.wav
+	snd_hit_volume		=	180
+	snd_hit_pitch		=	0
+end
+;------------------------------------------------------------------------------------------------
+;
+;   	Ghargoil 3 
+;               -AAARGGGGHHHH !!!!
+;  
+modify_vehicle 	25
+	snd_normal_sample	=	sounds/fatheli.wav
+	snd_normal_pitch	=	0
+	snd_normal_volume	= 	180
+
+	max_pitch		=	0.4
+
+	snd_fire_sample		=	sounds/mg2.wav
+	snd_fire_volume		=	90
+                snd_fire_pitch                      =             -4000
+
+	snd_wait_sample		=	sounds/fatheli.wav
+	snd_wait_pitch		=	-2000
+	snd_wait_volume		=	60
+
+	snd_goingdown_sample	=	sounds/heli02.wav
+	snd_goingdown_pitch	=	-9000	
+	snd_goingdown_volume	=	180
+
+	snd_explode_sample	=	sounds/smex05.wav
+	snd_explode_pitch	=	3000	
+	snd_explode_volume	=	150
+
+	snd_crashland_sample	=	sounds/Helicrsh.wav
+	snd_crashland_volume	=	90
+         
+                snd_crashvhcl_sample	=	sounds/crashve.wav
+	snd_crashvhcl_volume	=	90
+
+	snd_genesis_sample	=	sounds/lowapp.wav
+	snd_genesis_volume	=	90
+	snd_genesis_pitch	=	1000
+end
+;------------------------------------------------------------- ;
+;  	Rammbamm
+;	Bombe fÃ¼r Garghoil 3
+;
+modify_weapon 	25
+	snd_launch_sample   	= 	sounds/mg1.wav
+	snd_launch_volume  	=	150
+	snd_launch_pitch          =    	0
+
+	snd_normal_sample   	=	sounds/flyby01.wav
+	snd_normal_volume  	=	120
+	snd_normal_pitch	       =	-9000
+
+	snd_hit_sample		=	sounds/smex02.wav
+	snd_hit_volume		=	150
+	snd_hit_pitch		=	0
+end
+;------------------------------------------------------------- ;
+;   	KYTERNESER FLUGZEUG  FYUGI	("AgrarFlugzeug")
+;  
+modify_vehicle 	130
+	snd_normal_sample  	=	sounds/propo2.wav
+	snd_normal_pitch	 =	-2000
+	snd_normal_volume       	 = 	90
+
+	max_pitch 		=	0.4
+
+	snd_wait_sample		=	sounds/propo2.wav
+	snd_wait_pitch		=	-5000
+	snd_wait_volume		=	60
+
+	snd_fire_sample		=	sounds/mg2.wav
+	snd_fire_volume		=	90
+                snd_fire_pitch           	 =    	 -4000
+
+	snd_goingdown_sample	=	sounds/flyby01.wav
+	snd_goingdown_pitch	=	3000	
+	snd_goingdown_volume	=	120
+
+	snd_explode_sample 	 =	sounds/smex04.wav
+	snd_explode_pitch  	=	3000	
+	snd_explode_volume 	=	210
+
+	snd_crashland_sample	=	sounds/Helicrsh.wav
+	snd_crashland_volume	=	90
+
+                snd_crashvhcl_sample	=	sounds/crashve.wav
+	snd_crashvhcl_volume	=	90
+
+	snd_genesis_sample	 =	sounds/lowapp.wav
+	snd_genesis_volume  	=	90
+	snd_genesis_pitch   	=	-3000
+end
+;--------------------------------------------------------------------------------------------
+;
+;  	FYUGII BOMBE
+;	
+;
+modify_weapon 	17
+	snd_launch_sample   	= 	sounds/mg1.wav
+	snd_launch_volume  	=	150
+	snd_launch_pitch          =    	0
+
+	snd_normal_sample   	=	sounds/zoom01.WAV
+	snd_normal_volume  	=	120
+	snd_normal_pitch	       =	-7000
+
+	snd_hit_sample		=	sounds/smex02.wav
+	snd_hit_volume		=	150
+	snd_hit_pitch		=	0
+end
+;------------------------------------------------------------- 
+;   	KYTERNESER PANZER		(Schwerer Panzer)
+;  	TEKH
+;
+modify_vehicle 	26
+	snd_normal_sample	=	sounds/Tucker3.wav
+	snd_normal_pitch    	=	-6000
+	snd_normal_volume  	=         	90
+
+	max_pitch		=  	0.3
+
+	snd_wait_sample		=	sounds/Tucker3.wav
+	snd_wait_pitch		=	-6000
+	snd_wait_volume		=	60
+
+	snd_fire_sample		=	sounds/mg2.wav
+	snd_fire_volume		=	90
+      	 snd_fire_pitch            	=      	-4000
+
+	snd_explode_sample	=	sounds/smex02.wav
+	snd_explode_pitch	=	0	
+	snd_explode_volume	=	180
+
+	snd_genesis_sample	=	sounds/lowapp.wav
+	snd_genesis_volume	=	90
+	snd_genesis_pitch	=	-3000
+	
+       	snd_crashvhcl_sample	=	sounds/crashve.wav
+	snd_crashvhcl_volume	=	90
+
+	snd_crashland_sample	=	sounds/crashve3.wav
+	snd_crashland_volume	=	90
+end
+;------------------------------------------------------------- ;
+;	ION_TICHY	WAFFE FÅ¡R KYTERNESER-PANZER.
+;   	Granate
+;
+modify_weapon 	26
+	snd_launch_sample	= 	sounds/bumm01.wav
+	snd_launch_volume	=	150
+	snd_launch_pitch	=	8000
+
+	snd_normal_sample	=	sounds/zoom02.wav
+	snd_normal_volume	=	75
+	snd_normal_pitch	=	0
+
+	snd_hit_sample		=	sounds/smex002.wav
+	snd_hit_volume		=	200
+	snd_hit_pitch		=	0
+end
+;------------------------------------------------------------- ;
+;   	KYTERNESER GIGANT		(Klassischer Ufo-Look)
+;  
+modify_vehicle 	27
+	snd_normal_sample  	=	sounds/kythjet.wav
+	snd_normal_pitch               =	0
+	snd_normal_volume          = 	150
+
+	snd_wait_sample		=	sounds/kythjet.wav
+	snd_wait_pitch		=	-5000
+	snd_wait_volume		=	150
+
+	snd_fire_sample		=	sounds/mg2.wav
+	snd_fire_volume		=	120
+                snd_fire_pitch                      =            -4000
+
+	snd_goingdown_sample	=	sounds/kythjet.wav
+	snd_goingdown_pitch	=	-10000	
+	snd_goingdown_volume	=	120
+
+	snd_explode_sample          =	sounds/bumm04.wav
+	snd_explode_pitch  	=	3000	
+	snd_explode_volume 	=	210
+
+	snd_crashland_sample	=	sounds/Helicrsh.wav
+	snd_crashland_volume	=	90
+
+                snd_crashvhcl_sample	=	sounds/crashve.wav
+	snd_crashvhcl_volume	=	90
+
+	snd_genesis_sample	=	sounds/lowapp.wav
+	snd_genesis_volume  	=	90
+	snd_genesis_pitch   	=	-3000
+end
+;------------------------------------------------------------- ;
+;   	KYTERNESER GIGANT		(Klassischer Ufo-Look)
+;  	For USER only
+;
+modify_vehicle 133 	
+	snd_normal_sample  	=	sounds/kythjet.wav
+	snd_normal_pitch               =	0
+	snd_normal_volume          = 	150
+
+	snd_wait_sample		=	sounds/kythjet.wav
+	snd_wait_pitch		=	-5000
+	snd_wait_volume		=	150
+
+	snd_fire_sample		=	sounds/mg2.wav
+	snd_fire_volume		=	120
+                snd_fire_pitch                      =            -4000
+
+	snd_goingdown_sample	=	sounds/kythjet.wav
+	snd_goingdown_pitch	=	-10000	
+	snd_goingdown_volume	=	120
+
+	snd_explode_sample          =	sounds/bumm04.wav
+	snd_explode_pitch  	=	3000	
+	snd_explode_volume 	=	210
+
+	snd_crashland_sample	=	sounds/Helicrsh.wav
+	snd_crashland_volume	=	90
+
+                snd_crashvhcl_sample	=	sounds/crashve.wav
+	snd_crashvhcl_volume	=	90
+
+	snd_genesis_sample	=	sounds/lowapp.wav
+	snd_genesis_volume  	=	90
+	snd_genesis_pitch   	=	-3000
+end
+;------------------------------------------------------------- ;
+;   	COHEN		WAFFE FÅ¡R DEN KYTERNESER-GIGANTEN
+;   	LaserSchuÃ¡
+;
+modify_weapon    	27
+	snd_normal_sample   	=	sounds/aloop3.wav
+	snd_normal_volume  	=	210
+	snd_normal_pitch   	=	10000
+
+	snd_hit_sample		=	sounds/Gigshot.wav
+	snd_hit_volume		=	150
+	snd_hit_pitch		=	4000
+end
+;------------------------------------------------------------- ;
+;   	modified KYTERNESER HUBI 
+;	Kann exakt der 24 entsprechen, weil es sich nur durch bevorzugte 
+; 	Flugh"he von dieser unterscheidet.
+;  
+modify_vehicle 	28
+	snd_normal_sample	=	sounds/heli02.wav
+	snd_normal_pitch	=	-3000
+	snd_normal_volume	= 	90
+
+	snd_fire_sample		=	sounds/mg2.wav
+	snd_fire_volume		=	90
+              	snd_fire_pitch            	=      	-4000
+
+	snd_wait_sample		=	sounds/heli02.wav
+	snd_wait_pitch		=	-5000
+	snd_wait_volume		=	60
+
+	snd_goingdown_sample	=	sounds/heli02.wav
+	snd_goingdown_pitch	=	-9000	
+	snd_goingdown_volume	=	180
+
+	snd_explode_sample	=	sounds/smex05.wav
+	snd_explode_pitch	=	0	
+	snd_explode_volume	=	180
+
+	snd_crashland_sample	=	sounds/Helicrsh.wav
+	snd_crashland_volume	=	90
+
+                snd_crashvhcl_sample	=	sounds/crashve.wav
+	snd_crashvhcl_volume	=	90
+
+	snd_genesis_sample	=	sounds/lowapp.wav
+	snd_genesis_volume	=	90
+	snd_genesis_pitch	=	1000
+end
+;------------------------------------------------------------- 
+;	ACHILLES	WAFFE FÅ¡R KYTERNESER-HUBI.
+;	Rakete
+;
+modify_weapon 	28
+	snd_normal_sample	=	sounds/Idle01.wav
+	snd_normal_volume	=	120
+	snd_normal_pitch	=	5000
+
+	snd_hit_sample		=	sounds/Smex002.wav
+	snd_hit_volume		=	180
+	snd_hit_pitch		=	0
+end
+;------------------------------------------------------------- 
+;   	KYTERNESER OHRMU 		(Aufklâ€žrungs-Sattelit)
+;   
+modify_vehicle 	29
+	snd_normal_sample  	=	sounds/kythjet.wav
+	snd_normal_pitch               =	0
+	snd_normal_volume          = 	90
+
+	snd_wait_sample		=	sounds/kythjet.wav
+	snd_wait_pitch		=	-5000
+	snd_wait_volume		=	60
+
+	snd_fire_sample		=	sounds/mg2.wav
+	snd_fire_volume		=	90
+
+	snd_goingdown_sample	=	sounds/flyby01.wav
+	snd_goingdown_pitch	=	3000	
+	snd_goingdown_volume	=	120
+
+	snd_explode_sample	=	sounds/bumm04.wav
+	snd_explode_pitch  	=	3000	
+	snd_explode_volume 	=	210
+
+	snd_crashland_sample	=	sounds/Helicrsh.wav
+	snd_crashland_volume	=	90
+
+	snd_genesis_sample	=	sounds/lowapp.wav
+	snd_genesis_volume	=	90
+	snd_genesis_pitch	=	1000
+
+                snd_crashvhcl_sample	=	sounds/crashve.wav
+	snd_crashvhcl_volume	=	90
+end
+;------------------------------------------------------------- ;
+;   	KYTERNESER GIGANT		(Klassischer Ufo-Look)
+;	Unterscheidet sich nur durch die bevorzugte Flugh"he von der 27,
+;	sollte einfach von dort kopiert werden.  
+;
+modify_vehicle 	30
+	snd_normal_sample  	=	sounds/kythjet.wav
+	snd_normal_pitch 	=	0
+	snd_normal_volume            = 	150
+
+	snd_wait_sample		=	sounds/kythjet.wav
+	snd_wait_pitch		=	-5000
+	snd_wait_volume		=	150
+
+	snd_fire_sample		=	sounds/mg2.wav
+	snd_fire_volume		=	90
+                snd_fire_pitch                       =      	-4000
+
+	snd_goingdown_sample	=	sounds/kythjet.wav
+	snd_goingdown_pitch	=	-10000	
+	snd_goingdown_volume	=	120
+
+	snd_explode_sample	=	sounds/bumm04.wav
+	snd_explode_pitch  	=	3000	
+	snd_explode_volume 	=	210
+
+	snd_genesis_sample	=	sounds/lowapp.wav
+	snd_genesis_volume	=	90
+	snd_genesis_pitch	=	1000
+
+	snd_crashland_sample	=	sounds/Helicrsh.wav
+	snd_crashland_volume	=	90
+
+                snd_crashvhcl_sample	=	sounds/crashve.wav
+	snd_crashvhcl_volume	=	90
+
+end
+;------------------------------------------------------------- ;
+;   	COHEN		WAFFE FÅ¡R DEN KYTERNESER-GIGANTEN
+;   	LaserSchuÃ¡
+;
+modify_weapon    	30
+	snd_normal_sample   	=	sounds/aloop3.wav
+	snd_normal_volume  	=	150
+	snd_normal_pitch   	=	10000
+
+	snd_hit_sample		=	sounds/Gigshot.wav
+	snd_hit_volume		=	150
+	snd_hit_pitch		=	0
+end
+;------------------------------------------------------------- ;
+;	KYTERNESER TRICKINA
+;	schneller Jet
+;   
+modify_vehicle 	31
+	snd_normal_sample  	=	sounds/bigjet03.wav
+	snd_normal_pitch               =	0
+	snd_normal_volume           = 	90
+
+	snd_wait_sample		=	sounds/bigjet03.wav
+	snd_wait_pitch		=	-5000
+	snd_wait_volume		=	60
+
+	snd_fire_sample		=	sounds/mg2.wav
+	snd_fire_volume		=	90
+                snd_fire_pitch                       =      	-4000
+
+	snd_goingdown_sample	=	sounds/flyby01.wav
+	snd_goingdown_pitch	=	3000	
+	snd_goingdown_volume	=	120
+
+	snd_explode_sample	=	sounds/bumm04.wav
+	snd_explode_pitch  	=	3000	
+	snd_explode_volume 	=	210
+
+	snd_genesis_sample	=	sounds/lowapp.wav
+	snd_genesis_volume	=	90
+	snd_genesis_pitch	=	1000
+
+	snd_crashland_sample	=	sounds/Helicrsh.wav
+	snd_crashland_volume	=	90
+
+               snd_crashvhcl_sample	=	sounds/crashve.wav
+	snd_crashvhcl_volume	=	90
+
+end
+;--------------------------------------------------------------------------------------
+;   	TRICHINENBEFALL
+;	Kleine, schnelle und starke Lenkrakete fr
+;	den KYTERNESER-JET
+;   
+modify_weapon 	31
+	snd_normal_sample	=	sounds/Idle01.wav
+	snd_normal_volume	=	120
+	snd_normal_pitch	=	5000
+
+	snd_hit_sample		=	sounds/Smex002.wav
+	snd_hit_volume		=	180
+	snd_hit_pitch		=	0
+end
+;---------------------------------------------------------------------------------------------------
+;
+;
+;
+;                         Meet the TAERKASTEN:
+;                         Holy, brave and totally fanatic
+;
+;
+;---------------------------------------------------------------------------------------------------
+;--------------------------------------------------------------------------------------------------------------------
+;
+;	TAERKASTEN-PANZER		(Weltkriegs 1 - Tank)
+;
+modify_vehicle 	32
+	snd_normal_sample	=	sounds/Tucker2.wav
+	snd_normal_pitch	=	-2000
+	snd_normal_volume	=             90
+
+	snd_wait_sample		=	sounds/Tucker2.wav
+	snd_wait_pitch		=	0
+	snd_wait_volume		=	60
+
+	snd_fire_sample		=	sounds/mg3.wav
+	snd_fire_volume		=	90
+                 snd_fire_pitch                     =              0
+
+	snd_explode_sample	=	sounds/grex01.wav
+	snd_explode_pitch	=	0	
+	snd_explode_volume	=	150
+	
+	snd_genesis_sample	=	sounds/lowapp.wav
+	snd_genesis_volume	=	90
+	snd_genesis_pitch	=      	0
+	    	
+      	 snd_crashvhcl_sample	=	sounds/crashve.wav
+	snd_crashvhcl_volume	=	90
+
+	snd_crashland_sample	=	sounds/crashve3.wav
+	snd_crashland_volume	=	90
+
+end
+;----------------------------------------------------------------------------------------------------------------
+;
+;       FOGGWULF        WAFFE FÅ¡R TAERKASTENPANZER.
+;       Panzer-Granate
+;
+modify_weapon   32
+	snd_launch_sample	= 	sounds/bumm01.wav
+	snd_launch_volume	=	150
+	snd_launch_pitch	=	3000
+
+	snd_normal_sample	=	sounds/zoom02.wav
+	snd_normal_volume	=	65
+	snd_normal_pitch	=	0
+
+	snd_hit_sample		=	sounds/smex002.wav
+	snd_hit_volume		=	210
+	snd_hit_pitch		=	0
+end
+;----------------------------------------------------------------------------------------------------------------
+;---------------------------------------------------------------------------------------------------
+;
+;   	 HETZEL
+;  
+modify_vehicle 	33
+	snd_normal_sample  	=	sounds/propo2.wav
+	snd_normal_pitch	       =	-7000
+	snd_normal_volume           = 	90
+
+	snd_wait_sample		=	sounds/propo2.wav
+	snd_wait_pitch		=	0
+	snd_wait_volume		=	60
+
+	snd_fire_sample		=	sounds/mg3.wav
+	snd_fire_volume		=	90
+
+	snd_goingdown_sample	=	sounds/flyby01.wav
+	snd_goingdown_pitch	=	3000	
+	snd_goingdown_volume	=	120
+
+	snd_explode_sample	       =	sounds/bumm04.wav
+	snd_explode_pitch  	=	3000	
+	snd_explode_volume 	=	210
+
+	snd_genesis_sample	=	sounds/lowapp.wav
+	snd_genesis_volume	=	90
+	snd_genesis_pitch	=	1000
+
+	snd_crashland_sample	=	sounds/crashve3.wav
+	snd_crashland_volume	=	90
+
+                snd_crashvhcl_sample	=	sounds/crashve.wav
+	snd_crashvhcl_volume	=	90
+end
+;--------------------------------------------------------------------------------------------
+;
+;  	PIFF PAFF 
+;	MG Ratterpeng
+;
+modify_weapon 	33
+	snd_launch_sample	= 	sounds/hetzgun.wav
+	snd_launch_volume	=	150
+	snd_launch_pitch	=	5000
+
+	snd_normal_sample	=	sounds/flyby01.wav
+	snd_normal_volume	=	60
+	snd_normal_pitch	=	8000
+
+	snd_hit_sample		=	sounds/smex003.wav
+	snd_hit_volume		=	90
+	snd_hit_pitch		=	0
+end
+;----------------------------------------------------------------------------------
+;
+;   	TAERKASTEN BRONSTEIJN KAMPFSATELLIT  (MEGASTRANGE)
+;
+modify_vehicle 	34
+	snd_normal_sample  	=	sounds/bronman.wav
+	snd_normal_pitch	=	4000
+	snd_normal_volume          = 	150
+
+	snd_wait_sample		=	sounds/bronman.wav
+	snd_wait_pitch		=              0
+	snd_wait_volume		=	70
+
+	snd_fire_sample		=	sounds/mg3.wav
+	snd_fire_volume		=	90
+
+	snd_goingdown_sample	=	sounds/flyby01.wav
+	snd_goingdown_pitch	=	3000	
+	snd_goingdown_volume	=	120
+
+	snd_explode_sample	       =	sounds/bumm04.wav
+	snd_explode_pitch  	=	3000	
+	snd_explode_volume 	=	210
+
+	snd_genesis_sample	=	sounds/lowapp.wav
+	snd_genesis_volume	=	90
+	snd_genesis_pitch	=	1000
+
+	snd_crashland_sample	=	sounds/crashve3.wav
+	snd_crashland_volume	=	90
+
+       	snd_crashvhcl_sample	=	sounds/crashve.wav
+	snd_crashvhcl_volume	=	90
+end
+;-----------------------------------------------------------------------------------------------------------------
+;  
+;       BRONSTEIJNS_NEFFE       Waffe fr BRONSTEIJN (Killer-Satellitt) 
+;       LASER-FLASH / HAUT absolut bel rein.
+;
+modify_weapon 34
+	snd_normal_sample   	=	sounds/zoom01.wav
+	snd_normal_volume  	=	250
+	snd_normal_pitch   	=	4000
+
+	snd_hit_sample		=	sounds/bronbumm.wav
+	snd_hit_volume		=	350
+	snd_hit_pitch		=	0
+end
+;----------------------------------------------------------------------------------
+;
+;   	TAERKASTEN BRONSTEIJN KAMPFSATELLIT  (MEGASTRANGE)
+;	Version fuer User
+;
+modify_vehicle 	134
+	snd_normal_sample  	=	sounds/bronman.wav
+	snd_normal_pitch	=	4000
+	snd_normal_volume          = 	150
+
+	snd_wait_sample		=	sounds/bronman.wav
+	snd_wait_pitch		=              0
+	snd_wait_volume		=	70
+
+	snd_fire_sample		=	sounds/mg3.wav
+	snd_fire_volume		=	90
+
+	snd_goingdown_sample	=	sounds/flyby01.wav
+	snd_goingdown_pitch	=	3000	
+	snd_goingdown_volume	=	120
+
+	snd_explode_sample	       =	sounds/bumm04.wav
+	snd_explode_pitch  	=	3000	
+	snd_explode_volume 	=	210
+
+	snd_genesis_sample	=	sounds/lowapp.wav
+	snd_genesis_volume	=	90
+	snd_genesis_pitch	=	1000
+
+	snd_crashland_sample	=	sounds/crashve3.wav
+	snd_crashland_volume	=	90
+
+       	snd_crashvhcl_sample	=	sounds/crashve.wav
+	snd_crashvhcl_volume	=	90
+end
+;-----------------------------------------------------------------------------------------------------------------
+;  
+;       BRONSTEIJNS_NEFFE       Waffe fr BRONSTEIJN (Killer-Satellitt) 
+;       LASER-FLASH / HAUT absolut bel rein.
+;	User-Version
+;
+modify_weapon 20
+	snd_normal_sample   	=	sounds/zoom01.wav
+	snd_normal_volume  	=	250
+	snd_normal_pitch   	=	4000
+
+	snd_hit_sample		=	sounds/bronbumm.wav
+	snd_hit_volume		=	350
+	snd_hit_pitch		=	0
+end
+;----------------------------------------------------------------------------------
+;
+;   	TAERKASTEN OTSCHKO 	Satellit mit groÃ¡em Radarbereich.
+;
+modify_vehicle 	35
+	snd_normal_sample  	=	sounds/bigjet03.wav
+	snd_normal_pitch	=	-7000
+	snd_normal_volume        	= 	90
+
+	snd_wait_sample		=	sounds/bigjet03.wav
+	snd_wait_pitch		=     	-9000
+	snd_wait_volume		=	90
+
+	snd_goingdown_sample	=	sounds/flyby01.wav
+	snd_goingdown_pitch	=	3000	
+	snd_goingdown_volume	=	120
+
+	snd_explode_sample	=	sounds/bumm04.wav
+	snd_explode_pitch  	=	3000	
+	snd_explode_volume 	=	210
+
+	snd_genesis_sample	=	sounds/lowapp.wav
+	snd_genesis_volume	=	90
+	snd_genesis_pitch	=	1000
+
+	snd_crashland_sample	=	sounds/crashve3.wav
+	snd_crashland_volume	=	90
+
+       	snd_crashvhcl_sample	=	sounds/crashve.wav
+	snd_crashvhcl_volume	=	90
+
+end
+;----------------------------------------------------------------------------------
+;
+;   	TAERKASTEN SERP 	
+;	GeschoÃ¡â€žhnliches Flug-Gerâ€žt, RAKETENFAHRZEUG... ganz neu...
+;
+modify_vehicle 	36
+	snd_normal_sample	=	sounds/jaul.wav
+	snd_normal_volume	=              120
+
+	snd_explode_sample	=	sounds/bumm04.wav
+	snd_explode_volume	=	150
+
+	snd_genesis_sample	=	sounds/lowapp.wav
+	snd_genesis_volume	=	90
+	snd_genesis_pitch	=	1000
+
+	snd_crashvhcl_sample	=	sounds/crashve.wav
+	snd_crashvhcl_pitch	=	-500
+	snd_crashvhcl_volume	=	90
+
+	snd_crashland_sample	=	sounds/crashve3.wav
+	snd_crashland_pitch	=	-1000
+	snd_crashland_volume	=	90
+
+end
+;--------------------------------------------------------------------------------------------
+;
+;       WAFFE FÅ¡R RAKETENFLUGZEUG 
+;
+modify_weapon   36
+
+	snd_launch_sample	= 	sounds/bumm04.wav
+	snd_launch_volume	=	150
+	snd_launch_pitch	=	2000
+
+	snd_normal_sample	=	sounds/Idle01.wav
+	snd_normal_volume	=	120
+	snd_normal_pitch	=	4000
+
+	snd_hit_sample		=	sounds/Smex05.wav
+	snd_hit_volume		=	150
+	snd_hit_pitch		=	0
+end
+;--------------------------------------------------------------------------------------------------------
+;
+;	TAERKASTEN LEONID
+;	Weltkrieg 1 - Panzer / belst fettes Ding
+;   
+modify_vehicle 	37
+	snd_normal_sample	=	sounds/leogo8.wav
+	snd_normal_pitch	=	-4000
+	snd_normal_volume	=            90
+
+	max_pitch		=	0.4	
+
+	snd_wait_sample		=	sounds/leoidle8.wav
+	snd_wait_pitch		=	0
+	snd_wait_volume		=	90
+
+	snd_fire_sample		=	sounds/mg3.wav
+	snd_fire_volume		=	90
+                snd_fire_pitch                      =             0               
+
+                snd_explode_sample	=	sounds/grex01.wav
+	snd_explode_pitch	=	0	
+	snd_explode_volume	=	150
+	
+	snd_genesis_sample	=	sounds/lowapp.wav
+	snd_genesis_volume	=	90
+	snd_genesis_pitch	=      	-5000
+	    	
+       	snd_crashvhcl_sample	=	sounds/crashve.wav
+	snd_crashvhcl_volume	=	90
+
+	snd_crashland_sample	=	sounds/crashve3.wav
+	snd_crashland_volume	=	90
+end
+;--------------------------------------------------------------------------------------------------------
+;
+;   	FOGGWULF2
+;	Schwere Granate fr den groÃ¡en fetten 
+;	TAERKASTEN-Panzer
+;   
+modify_weapon 	37
+	snd_launch_sample	= 	sounds/bumm04.wav
+	snd_launch_volume	=	150
+	snd_launch_pitch	=	6000
+
+	snd_normal_sample	=	sounds/zoom02.wav
+	snd_normal_volume	=	60
+	snd_normal_pitch	=	0
+
+	snd_hit_sample		=	sounds/smex02.wav
+	snd_hit_volume		=	210
+	snd_hit_pitch		=	0
+end
+;----------------------------------------------------------------------------------------------------------------
+;
+;      	MNOSJETZ 
+;	Doppeldecker
+;
+;
+modify_vehicle 	38
+	snd_normal_sample  	=	sounds/propo2.wav
+	snd_normal_pitch 	=	-7000
+	snd_normal_volume           = 	90
+
+	snd_wait_sample		=	sounds/propo2.wav
+	snd_wait_pitch		=	0
+	snd_wait_volume		=	60
+
+	snd_fire_sample		=	sounds/mg3.wav
+	snd_fire_volume		=	90
+
+	snd_goingdown_sample	=	sounds/flyby01.wav
+	snd_goingdown_pitch	=	3000	
+	snd_goingdown_volume	=	120
+
+	snd_explode_sample	       =	sounds/bumm04.wav
+	snd_explode_pitch  	=	3000	
+	snd_explode_volume 	=	210
+
+	snd_genesis_sample	=	sounds/lowapp.wav
+	snd_genesis_volume	=	90
+	snd_genesis_pitch	=	1000
+
+	snd_crashland_sample	=	sounds/crashve3.wav
+	snd_crashland_volume	=	90
+
+                snd_crashvhcl_sample	=	sounds/crashve.wav
+	snd_crashvhcl_volume	=	90
+end
+;--------------------------------------------------------------------------------------------
+;
+;  	PAVIAN   AFFE FÅ¡R TAERKASTEN-FLUGZEUG. 
+;	
+;
+modify_weapon 	38
+	snd_normal_sample	=	sounds/flyby01.wav
+	snd_normal_volume	=	40
+	snd_normal_pitch	=	8000
+
+	snd_hit_sample		=	sounds/smex003.wav
+	snd_hit_volume		=	90
+	snd_hit_pitch		=	0
+end
+;---------------------------------------------------------------------------------------------------
+;
+;   	TAERKASTEN ZEPPELIN 
+;  
+modify_vehicle 	131
+	snd_normal_sample  	=	sounds/zepp.wav
+	snd_normal_pitch                =	0
+	snd_normal_volume            = 	170
+
+	max_pitch		=	0.2
+
+	snd_wait_sample		=	sounds/zepp.wav
+	snd_wait_pitch		=	0
+	snd_wait_volume		=	200
+
+	snd_fire_sample		=	sounds/mg3.wav
+	snd_fire_volume		=	90
+
+	snd_goingdown_sample	=	sounds/flyby01.wav
+	snd_goingdown_pitch	=	3000	
+	snd_goingdown_volume	=	120
+
+	snd_explode_sample	       =	sounds/bumm04.wav
+	snd_explode_pitch  	=	3000	
+	snd_explode_volume 	=	210
+
+	snd_genesis_sample	=	sounds/lowapp.wav
+	snd_genesis_volume	=	90
+	snd_genesis_pitch	=	1000
+
+	snd_crashland_sample	=	sounds/crashve3.wav
+	snd_crashland_volume	=	90
+
+                snd_crashvhcl_sample	=	sounds/crashve.wav
+	snd_crashvhcl_volume	=	90
+end
+;--------------------------------------------------------------------------------------------
+;
+;  	ALI_BABA 
+;	1000 Pfund Bombe! 
+;
+modify_weapon 	18
+	snd_launch_sample	= 	sounds/mg1.wav
+	snd_launch_volume	=	60
+	snd_launch_pitch   	=    	0
+
+	snd_normal_sample	=	sounds/flyby01.wav
+	snd_normal_volume	=	90
+	snd_normal_pitch	=	2500
+
+	snd_hit_sample		=	sounds/roboex1.wav
+	snd_hit_volume		=	500
+	snd_hit_pitch		=	0
+end
+;---------------------------------------------------------------------------------------------------------------------------------------------------
+;-----------------------------------------------------------------------------------------------
+; 
+;                            MYKONIER
+;               
+;
+;-------------------------------------------------------------------------------------------------
+;
+;                  Here they go, stricly homocidal !!!!!!         
+;
+;---------------------------------------------------------------------------------------------
+;
+;     
+;                   
+;
+;-----------------------------------------------------------------------------------------------------
+;
+;	MYKO SCHWER                Zwei-Quader
+;  
+modify_vehicle 63
+
+	snd_normal_sample   	=	sounds/mykorob1.wav
+	snd_normal_volume  	=	150
+	snd_normal_pitch   	=	-3000
+
+	snd_wait_sample		=	sounds/idle02.wav
+	snd_wait_pitch		=	-3000
+	snd_wait_volume		=	120
+
+	snd_goingdown_sample	=	sounds/idle01.wav
+	snd_goingdown_pitch	=	5000	
+	snd_goingdown_volume	=	120
+
+	snd_explode_sample  	=	sounds/grex02.wav
+	snd_explode_pitch  	=	0	
+	snd_explode_volume 	=	250
+	
+	snd_genesis_sample	=	sounds/lowapp.wav
+	snd_genesis_volume	=	90
+	snd_genesis_pitch	=	-4000	
+
+                snd_crashvhcl_sample	=	sounds/crashve.wav
+	snd_crashvhcl_volume	=	60
+
+	snd_crashland_sample	=	sounds/crashve3.wav
+	snd_crashland_volume	=	60
+end
+;---------------------------------------------------------------------------------------------------------------
+;
+;               LASERBIENE
+;   	Laser fr MYKO SCHWER
+;
+modify_weapon    	63
+	snd_normal_sample   	=	sounds/mykosh01.wav
+	snd_normal_volume  	=	150
+	snd_normal_pitch   	=	5000
+
+	snd_hit_sample		=	sounds/brutzel.wav
+	snd_hit_volume		=	250
+	snd_hit_pitch		=	-1500
+
+	snd_launch_sample	= 	sounds/mykoblow.wav
+	snd_launch_volume	=	200
+	snd_launch_pitch	=	0
+end
+;-----------------------------------------------------------------------------------------------------
+;
+;	MYKONIER	Quader
+;  
+modify_vehicle 64
+
+	snd_normal_sample   	=	sounds/Idle02.wav
+	snd_normal_volume  	=	150
+	snd_normal_pitch   	=	-3000
+
+	snd_wait_sample		=	sounds/idle02.wav
+	snd_wait_pitch		=	-3000
+	snd_wait_volume		=	120
+
+	snd_goingdown_sample	=	sounds/idle01.wav
+	snd_goingdown_pitch	=	5000	
+	snd_goingdown_volume	=	120
+
+	snd_explode_sample  	=	sounds/grex02.wav
+	snd_explode_pitch  	=	0	
+	snd_explode_volume 	=	250
+
+	snd_genesis_sample	=	sounds/lowapp.wav
+	snd_genesis_volume	=	90
+	snd_genesis_pitch	=	-3000
+	
+                snd_crashvhcl_sample	=	sounds/crashve.wav
+	snd_crashvhcl_volume	=	60
+
+	snd_crashland_sample	=	sounds/crashve3.wav
+	snd_crashland_volume	=	60
+end
+;---------------------------------------------------------------------------------------------------------------
+;
+;   	TINY		WAFFE FÅ¡R MYKONIER 1.
+;   	Laser.
+;
+modify_weapon    	64
+	snd_normal_sample   	=	sounds/aloop1.wav
+	snd_normal_volume  	=	150
+	snd_normal_pitch   	=	10000
+
+	snd_hit_sample		=	sounds/brutzel.wav
+	snd_hit_volume		=	150
+	snd_hit_pitch		=	0
+
+	snd_launch_sample	= 	sounds/mykoblow.wav
+	snd_launch_volume	=	200
+	snd_launch_pitch	=	0
+end
+;------------------------------------------------------
+; 	MYKONIER	Wrfel
+;------------------------------------------------------
+modify_vehicle 	65
+	snd_normal_sample   	=	sounds/Idle02.wav
+	snd_normal_volume  	=	150
+	snd_normal_pitch   	=	-1000
+
+	snd_wait_sample		=	sounds/idle02.wav
+	snd_wait_pitch		=	-1000
+	snd_wait_volume		=	60
+
+	snd_goingdown_sample	=	sounds/idle01.wav
+	snd_goingdown_pitch	=	5000	
+	snd_goingdown_volume	=	120
+
+	snd_explode_sample  	=	sounds/grex02.wav
+	snd_explode_pitch  	=	0	
+	snd_explode_volume 	=	250
+	
+	snd_genesis_sample	=	sounds/lowapp.wav
+	snd_genesis_volume	=	90
+	snd_genesis_pitch	=	-3000
+	
+       	snd_crashvhcl_sample	=	sounds/crashve.wav
+	snd_crashvhcl_volume	=	60
+
+	snd_crashland_sample	=	sounds/crashve3.wav
+	snd_crashland_volume	=	60
+end
+;-----------------------------------------------------------------------------------------
+;
+;   	NAPOLEON	WAFFE FÅ¡R MYKONIER 2 (Cube)
+;   	Laser.
+;
+modify_weapon    	65
+	snd_normal_sample   	=	sounds/aloop1.wav
+	snd_normal_volume  	=	150
+	snd_normal_pitch   	=	10000
+
+	snd_hit_sample		=	sounds/brutzel.wav
+	snd_hit_volume		=	150
+	snd_hit_pitch		=	5000
+
+	snd_launch_sample	= 	sounds/mykoblow.wav
+	snd_launch_volume	=	200
+	snd_launch_pitch	=	0
+end
+
+;-------------------------------------------------------------------------------------------
+;
+; 	MYKONIER	KampfBoje
+;
+modify_vehicle 	66	
+                snd_normal_sample   	=	sounds/Idle02.wav
+	snd_normal_volume  	=	50
+	snd_normal_pitch   	=	0
+
+	snd_wait_sample		=	sounds/idle02.wav
+	snd_wait_pitch		=	0
+	snd_wait_volume		=	50
+
+	snd_goingdown_sample	=	sounds/idle02.wav
+	snd_goingdown_pitch	=	5000	
+	snd_goingdown_volume	=	120
+
+	snd_explode_sample  	=	sounds/grex03.wav
+	snd_explode_pitch  	=	0	
+	snd_explode_volume 	=	250
+	
+       	snd_genesis_sample	=	sounds/lowapp.wav
+	snd_genesis_volume	=	90
+	snd_genesis_pitch	=	-3000
+	
+	snd_crashvhcl_sample	=	sounds/crashve.wav
+	snd_crashvhcl_volume	=	60
+
+	snd_crashland_sample	=	sounds/crashve3.wav
+	snd_crashland_volume	=	60
+end
+;-----------------------------------------------------------------------------------------
+;
+;   	BERGSACHSE	WAFFE FÅ¡R MYKONIER 3 (STATISCHER)
+;   	3fach Laser.
+;
+modify_weapon    	66
+	snd_normal_sample   	=	sounds/aloop1.wav
+	snd_normal_volume  	=	150
+	snd_normal_pitch   	=	10000
+
+	snd_hit_sample		=	sounds/brutzel.wav
+	snd_hit_volume		=	120
+	snd_hit_pitch		=	5000
+
+	snd_launch_sample	= 	sounds/mykoblow.wav
+	snd_launch_volume	=	200
+	snd_launch_pitch	=	0
+end
+;----------------------------------------------------------------------------------
+;
+;   	MYKO4  /  RADAR / Aufklâ€žrungs-Satellit
+;   
+modify_vehicle 	67
+	snd_normal_sample   	=	sounds/Idle02.wav
+	snd_normal_volume  	=	60
+	snd_normal_pitch   	=	2000
+
+	snd_wait_sample		=	sounds/idle02.wav
+	snd_wait_pitch		=	0
+	snd_wait_volume		=	60
+
+	snd_goingdown_sample	=	sounds/idle01.wav
+	snd_goingdown_pitch	=	5000	
+	snd_goingdown_volume	=	120
+
+	snd_explode_sample  	=	sounds/grex02.wav
+	snd_explode_pitch  	=	0	
+	snd_explode_volume 	=	250
+	
+	snd_genesis_sample	=	sounds/lowapp.wav
+	snd_genesis_volume	=	90
+	snd_genesis_pitch	=	-3000
+	
+       	snd_crashvhcl_sample	=	sounds/crashve.wav
+	snd_crashvhcl_volume	=	60
+
+	snd_crashland_sample	=	sounds/crashve3.wav
+	snd_crashland_volume	=	60
+end
+;-----------------------------------------------------------------------------------------------------
+;
+;	MYKO LEICHT      Blitzkissenfahrzeug 
+;                       
+;                               Leichter Bodengleiter
+;  
+modify_vehicle 68
+
+	snd_normal_sample   	=	sounds/Idle02.wav
+	snd_normal_volume  	=	150
+	snd_normal_pitch   	=	2500
+
+	snd_wait_sample		=	sounds/idle02.wav
+	snd_wait_pitch		=	2500
+	snd_wait_volume		=	120
+
+	snd_goingdown_sample	=	sounds/idle01.wav
+	snd_goingdown_pitch	=	5000	
+	snd_goingdown_volume	=	120
+
+	snd_explode_sample  	=	sounds/grex02.wav
+	snd_explode_pitch  	=	0	
+	snd_explode_volume 	=	250
+	
+	snd_genesis_sample	=	sounds/lowapp.wav
+	snd_genesis_volume	=	90
+	snd_genesis_pitch	=	-3000
+	
+                snd_crashvhcl_sample	=	sounds/crashve.wav
+	snd_crashvhcl_volume	=	60
+
+	snd_crashland_sample	=	sounds/crashve3.wav
+	snd_crashland_volume	=	60
+end
+;---------------------------------------------------------------------------------------------------------------
+;
+;   	GIBSMIR           WAFFE FÅ¡R MYKO LEICHT
+;   	Laser.
+;
+modify_weapon    	68
+	snd_normal_sample   	=	sounds/aloop1.wav
+	snd_normal_volume  	=	150
+	snd_normal_pitch   	=	10000
+
+	snd_hit_sample		=	sounds/brutzel.wav
+	snd_hit_volume		=	150
+	snd_hit_pitch		=	5000
+
+	snd_launch_sample	= 	sounds/mykoblow.wav
+	snd_launch_volume	=	200
+	snd_launch_pitch	=	0
+end
+;-----------------------------------------------------------------------------------------------------
+;
+;	MYKO JÅ½GER      Der mit Blitztragflâ€žchen
+;  
+modify_vehicle 69
+
+	snd_normal_sample   	=	sounds/Idle02.wav
+	snd_normal_volume  	=	150
+	snd_normal_pitch   	=	1000
+
+	snd_wait_sample		=	sounds/idle02.wav
+	snd_wait_pitch		=	1000
+	snd_wait_volume		=	120
+
+	snd_goingdown_sample	=	sounds/idle01.wav
+	snd_goingdown_pitch	=	5000	
+	snd_goingdown_volume	=	120
+
+	snd_explode_sample  	=	sounds/grex02.wav
+	snd_explode_pitch  	=	0	
+	snd_explode_volume 	=	250
+	
+	snd_genesis_sample	=	sounds/lowapp.wav
+	snd_genesis_volume	=	90
+	snd_genesis_pitch	=	-3000
+		
+                snd_crashvhcl_sample	=	sounds/crashve.wav
+	snd_crashvhcl_volume	=	60
+
+	snd_crashland_sample	=	sounds/crashve3.wav
+	snd_crashland_volume	=	60
+end
+;---------------------------------------------------------------------------------------------------------------
+;
+;   	MACHICHPLATT    Waffe fr MYKO JÅ½GER
+;   	Laser.
+;
+modify_weapon    	69
+	snd_normal_sample   	=	sounds/aloop1.wav
+	snd_normal_volume  	=	150
+	snd_normal_pitch   	=	10000
+
+	snd_hit_sample		=	sounds/brutzel.wav
+	snd_hit_volume		=	150
+	snd_hit_pitch		=	5000
+
+	snd_launch_sample	= 	sounds/mykoblow.wav
+	snd_launch_volume	=	200
+	snd_launch_pitch	=	0
+end
+;-----------------------------------------------------------------------------------------------------
+;
+;	MYKO BOMBER         Drei Wrfel im Dreieck
+;  
+modify_vehicle 70
+
+	snd_normal_sample   	=	sounds/Idle02.wav
+	snd_normal_volume  	=	150
+	snd_normal_pitch   	=	-4000
+
+	snd_wait_sample		=	sounds/idle02.wav
+	snd_wait_pitch		=	-4000
+	snd_wait_volume		=	120
+
+	snd_goingdown_sample	=	sounds/idle01.wav
+	snd_goingdown_pitch	=	5000	
+	snd_goingdown_volume	=	120
+
+	snd_explode_sample  	=	sounds/grex02.wav
+	snd_explode_pitch  	=	0	
+	snd_explode_volume 	=	250
+	
+	snd_genesis_sample	=	sounds/lowapp.wav
+	snd_genesis_volume	=	90
+	snd_genesis_pitch	=	-3000
+	
+                snd_crashvhcl_sample	=	sounds/crashve.wav
+	snd_crashvhcl_volume	=	60
+
+	snd_crashland_sample	=	sounds/crashve3.wav
+	snd_crashland_volume	=	60
+end
+;---------------------------------------------------------------------------------------------------------------
+;
+;   	AUA   Bombe fr MYKO BOMBER
+;   	Laserbombe
+;
+modify_weapon    	70
+	snd_normal_sample   	=	sounds/aloop1.wav
+	snd_normal_volume  	=	150
+	snd_normal_pitch   	=	10000
+
+	snd_hit_sample		=	sounds/brutzel.wav
+	snd_hit_volume		=	150
+	snd_hit_pitch		=	5000
+end
+;---------------------------------------------------------------------------------------------------------------------------------------------------
+;---------------------------------------------------------------------------------------------------
+;-------------------------------------------------------------------------------------------------------
+;-------------------------------------------------------------------------------------------------------------
+;
+;
+;
+;                                  Die SULGOGAREN
+;
+;                
+;
+;-----------------------------------------------------------------------------------------------------------
+;--------------------------------------------------------------------------------------------------------------
+;--------------------------------------------------------------------------------------------------------
+;
+;	SULGOGARE
+;              Kleines gruenes Ufo
+;   
+modify_vehicle 	71
+	snd_normal_sample	=	sounds/blub04.wav
+	snd_normal_pitch	=	-5000
+	snd_normal_volume	= 	90
+
+	snd_wait_sample		=	sounds/blub04.wav
+	snd_wait_pitch		=	-5000
+	snd_wait_volume		=	60
+
+	snd_goingdown_sample	=	sounds/sulgdown.wav
+	snd_goingdown_pitch	=	0	
+	snd_goingdown_volume	=	120
+
+	snd_explode_sample	=	sounds/roboex1.wav
+	snd_explode_pitch	=	3000	
+	snd_explode_volume	=	210
+
+	snd_crashland_sample	=	sounds/crashve3.wav
+	snd_crashland_volume	=	90
+
+                snd_crashvhcl_sample	=	sounds/crashve.wav
+	snd_crashvhcl_volume	=	90
+end
+;--------------------------------------------------------------------------------------------------------
+;
+;   	RAUSSCHMISS
+;	Laser fr den kleineren Grnen Sulgogaren-Batzen
+;   
+modify_weapon 	71
+	snd_normal_sample   	=	sounds/aloop3.wav
+	snd_normal_volume  	=	150
+	snd_normal_pitch   	=	13000
+
+	snd_hit_sample		=	sounds/gun1.wav
+	snd_hit_volume		=	150
+	snd_hit_pitch		=	0
+end
+;------------------------------------------------------------------------------------------------------
+;
+;  	 SULGOGAR 1	/  	GroÃ¡er SchleimBatzen 
+;
+;   
+modify_vehicle 	72
+               snd_normal_sample          	= 	sounds/sulgi.wav
+	snd_normal_volume	= 	120
+	snd_normal_pitch	=	2000
+
+	snd_wait_sample		=	sounds/sulgdown.wav
+	snd_wait_pitch		=	5000
+	snd_wait_volume		=	90
+
+	snd_goingdown_sample	=	sounds/sulgdown.wav
+	snd_goingdown_pitch	=	8000	
+	snd_goingdown_volume	=	120
+
+end
+;---------------------------------------------------------------------------------------------------------------
+;
+;   	ANSWINIST		Laser only for SULGOGARS
+;	"Weicher" Laser		Wird vom Sulgogaren-Robo verwendet. ?
+;
+modify_weapon    	72
+	snd_normal_sample   	=	sounds/aloop3.wav
+	snd_normal_volume  	=	150
+	snd_normal_pitch   	=	10000
+
+	snd_hit_sample		=	sounds/gun1.wav
+	snd_hit_volume		=	150
+	snd_hit_pitch		=	0
+end
+;------------------------------------------------------------------------------------------------------
+;
+;  	 SULGOGAR 2	/ 	Leuchtender MiniaturSchleim mit Fliegen-
+;				â€žhnlichem BewegungsMuster
+;   
+modify_vehicle	73
+               snd_normal_sample          	= 	sounds/sulgi.wav
+	snd_normal_volume	= 	120
+	snd_normal_pitch	=	5000
+
+	snd_wait_sample		=	sounds/sulgdown.wav
+	snd_wait_pitch		=	5000
+	snd_wait_volume		=	120
+
+	snd_goingdown_sample	=	sounds/sulgdown.wav
+	snd_goingdown_pitch	=	6000	
+	snd_goingdown_volume	=	120
+
+end
+;---------------------------------------------------------------------------------------------------------------
+;
+;   	LOCKERBE		Bombe fr SULGOGARS / geringe SchuÃ¡Frequenz
+;
+modify_weapon    	73
+
+	snd_normal_sample	=	sounds/_iii.wav
+	snd_normal_volume	=	120
+	snd_normal_pitch	=	-8000
+
+	snd_hit_sample		=	sounds/grex03.wav
+	snd_hit_volume		=	300
+	snd_hit_pitch		=	0
+end
+;------------------------------------------------------------------------------------------------------
+;
+;  	 SULGOGAR 3	/	Wie <73> nur unbewaffnet und als
+;				RadarFahrzeug.
+;   
+modify_vehicle	74
+               snd_normal_sample          	= 	sounds/sulgi.wav
+	snd_normal_volume	= 	120
+	snd_normal_pitch	=	5000
+
+	snd_wait_sample		=	sounds/sulgdown.wav
+	snd_wait_pitch		=	5000
+	snd_wait_volume		=	120
+
+	snd_goingdown_sample	=	sounds/sulgdown.wav
+	snd_goingdown_pitch	=	6000	
+	snd_goingdown_volume	=	120
+end
+;--------------------------------------------------------------------------------------------------------
+;
+;	SULGOGARENBRUCH
+;	grnes rauchendes Zeux, was tote Sulgogaren verlieren
+;   
+modify_vehicle 	119
+	snd_normal_sample	=	sounds/aloop3.wav
+	snd_normal_pitch	=	-5000
+	snd_normal_volume	= 	180
+end
+;--------------------------------------------------------------------------------------------------------
+;
+;	SULGOGAREN-EXPLOSION
+;	Das ist ein grnlicher Paletten-Effekt, der auftritt, wenn
+;	Sulgogaren das Zeitliche segnen !
+;   
+modify_vehicle 	120
+	snd_normal_sample	=	sounds/sulgdown.wav
+	snd_normal_pitch	=	-5000
+	snd_normal_volume	= 	180
+end
+;---------------------------------------------------------------------------------------------------------------------------------------------------
+;-------------------------------------------------------------------------------------------------------------
+;
+;
+;	ROBOS		(Fliegende Festungen)
+;
+;	Robos besitzen die selben Ger"usche, wie Fahrzeuge.
+;	Hinzu kommt beim USER-ROBO noch 		BEAMOUT.
+;	(Der Beam-Effekt wird wie folgt zusammensetzt:
+;	BEAMIN.......umsetzen.......BEAMOUT)
+;	Derzeit is da noch ein Fehler. Der BEAM-Effekt setzt ein Frame aus. 
+;
+;-------------------------------------------------------------------------------------------------------------
+;
+;   		USER-Robo
+;    
+modify_vehicle 56
+	snd_normal_sample	=	sounds/usrrob.wav
+	snd_normal_pitch	=	0
+	snd_normal_volume	=	1000
+
+; DAS COCKPIT-SAMPLE des ROBOS und dessen NORMAL-SAMPLE sind
+; sehr wichtig. Diese wird man die meiste Zeit h"ren.
+;	snd_cockpit_sample	=	sounds/usrcock.wav
+;	snd_cockpit_pitch	=	0
+;	snd_cockpit_volume	=	60
+;
+; Anmerkung: 	Beide BEAMFX sind nur beim USER-ROBO notwendig.
+;		FeindRobos k"nnen sich nicht beamen.
+;		Sinn macht noch ein BEAMIN bei FAHRZEUGE 
+;		... ich wei~ jetzt aber nicht ob das funktioniert.
+;		Weiterhin m?ssen die L"ngen ungef"hr eingehalten werden.
+;		BEAMIN:	2 sec
+;		BEAMOUT:	1 sec 
+					
+	snd_beamin_sample	= 	sounds/beamin.wav
+	snd_beamin_volume	= 	250
+
+	snd_beamout_sample	= 	sounds/beamout.wav	; reversed und k?rzer :-)
+	snd_beamout_volume	= 	210
+
+
+	snd_explode_sample  	=	sounds/roboex1.wav
+	snd_explode_pitch  	=	0	
+	snd_explode_volume 	=	1000
+				
+	snd_build_sample	= 	sounds/build.wav
+	snd_build_volume	= 	350
+end 
+;--------------------------------------------------------------------------------------------------------
+;--------------------------------------------------------------------------------------------------------------------------------------
+;	WAFFEN FsR USER-ROBO	90......93
+;--------------------------------------------------------------------------------------------------------------------------------------
+;
+;	BASIC_FLAKFEUJA	Ist eine MG-Flak !	
+;   	SPEZIALOBJEKT:	EINSCHUSS		(Vergleiche Waffe 49 !)
+;
+modify_weapon 	90
+	snd_hit_sample      	= 	sounds/bumm01.wav
+	snd_hit_volume      	= 	150
+                snd_hit_pitch                       =             0
+
+	snd_launch_sample	= 	sounds/flak02.wav
+	snd_launch_volume	=	120
+	snd_launch_pitch	=	6000
+
+	snd_normal_sample	=	sounds/idle01.wav
+	snd_normal_pitch	=	4000
+	snd_normal_volume	=	60
+end
+;-------------------------------------------------------------
+;
+;	Die Robo MGÃ¯s
+;
+;
+modify_weapon 91
+	snd_hit_sample      	= 	sounds/bumm01.wav
+	snd_hit_volume      	= 	150
+                snd_hit_pitch                       =             0
+
+	snd_launch_sample	= 	sounds/flak02.wav
+	snd_launch_volume	=	120
+	snd_launch_pitch	=	6500
+
+	snd_normal_sample	=	sounds/idle01.wav
+	snd_normal_pitch	=	4000
+	snd_normal_volume	=	60
+end
+modify_weapon 92
+	snd_hit_sample      	= 	sounds/bumm01.wav
+	snd_hit_volume      	= 	150
+                snd_hit_pitch                       =             0
+
+	snd_launch_sample	= 	sounds/flak02.wav
+	snd_launch_volume	=	120
+	snd_launch_pitch	=	5800
+
+	snd_normal_sample	=	sounds/idle01.wav
+	snd_normal_pitch	=	3000
+	snd_normal_volume	=	60
+end
+modify_weapon 93
+	snd_hit_sample      	= 	sounds/bumm01.wav
+	snd_hit_volume      	= 	150
+                snd_hit_pitch                       =             0
+
+	snd_launch_sample	= 	sounds/flak02.wav
+	snd_launch_volume	=	120
+	snd_launch_pitch	=	5000
+
+	snd_normal_sample	=	sounds/idle01.wav
+	snd_normal_pitch	=	3000
+	snd_normal_volume	=	60
+end
+;--------------------------------------------------------
+;	Die Internet Variante
+;--------------------------------------------------------
+modify_weapon 120
+	snd_hit_sample      	= 	sounds/bumm01.wav
+	snd_hit_volume      	= 	150
+                snd_hit_pitch                       =             0
+
+	snd_launch_sample	= 	sounds/flak02.wav
+	snd_launch_volume	=	120
+	snd_launch_pitch	=	5000
+
+	snd_normal_sample	=	sounds/idle01.wav
+	snd_normal_pitch	=	3000
+	snd_normal_volume	=	60
+end
+;--------------------------------------------------------------------------------------------------------------------------
+;------------------------------------------------------------------------------------------------------
+;		DER GROSSE KYTERNESER (Der unf"rmige mit dem Horn...)
+;------------------------------------------------------------------------------------------------------
+modify_vehicle 	57
+	snd_normal_sample  	=	sounds/kythrob.wav
+	snd_normal_pitch              	=	-5000
+	snd_normal_volume         	= 	1000
+
+	snd_wait_sample		=	sounds/kythrob.wav
+	snd_wait_pitch		=	-8000
+	snd_wait_volume		=	1000
+
+	snd_fire_sample		=	sounds/mg2.wav
+	snd_fire_volume		=	90
+                snd_fire_pitch                       =     	 -4000
+
+
+	snd_explode_sample  	=	sounds/roboex1.wav
+	snd_explode_pitch  	=	0	
+	snd_explode_volume 	=	1000
+
+	snd_genesis_sample	=	sounds/lowapp.wav
+	snd_genesis_volume	=	90
+	snd_genesis_pitch	=	1000
+
+	snd_crashland_sample	=	sounds/Helicrsh.wav
+	snd_crashland_volume	=	90
+
+                snd_crashvhcl_sample	=	sounds/crashve.wav
+ 	snd_crashvhcl_volume	=	90
+					
+	snd_beamin_sample	= 	sounds/beamin.wav
+	snd_beamin_volume	= 	250
+
+	snd_beamout_sample	= 	sounds/beamout.wav	
+	snd_beamout_volume	= 	210
+					
+	snd_build_sample	= 	sounds/build.wav
+	snd_build_volume	= 	350
+end
+;---------------------------------------------------------------------------------------------------------
+;   		KYTERNESER KLEIN, SIEHT GENAU WIE DER GIGANT AUS
+;                              Wird auch als Robo verwendet
+;------------------------------------------------------------------------------------------------------
+modify_vehicle 	59
+	snd_normal_sample  	=	sounds/kythrob.wav
+	snd_normal_pitch	 =	0
+	snd_normal_volume      	  = 	1000
+
+	snd_wait_sample		=	sounds/kythrob.wav
+	snd_wait_pitch		=	-5000
+	snd_wait_volume		=	1000
+
+	snd_fire_sample		=	sounds/mg2.wav
+	snd_fire_volume		=	90
+                snd_fire_pitch            	=      	-4000
+
+
+	snd_explode_sample  	=	sounds/roboex1.wav
+	snd_explode_pitch  	=	0	
+	snd_explode_volume 	=	1000
+
+	snd_genesis_sample	=	sounds/lowapp.wav
+	snd_genesis_volume	=	90
+	snd_genesis_pitch	=	1000
+
+	snd_crashland_sample	=	sounds/Helicrsh.wav
+	snd_crashland_volume	=	90
+
+                snd_crashvhcl_sample	=	sounds/crashve.wav
+	snd_crashvhcl_volume	=	90
+					
+	snd_beamin_sample	= 	sounds/beamin.wav
+	snd_beamin_volume	= 	250
+
+	snd_beamout_sample	= 	sounds/beamout.wav
+	snd_beamout_volume	= 	210
+					
+	snd_build_sample	= 	sounds/build.wav
+	snd_build_volume	= 	350
+end
+;---------------------------------------------------------------------------------------------------
+;-------------------------------------------------------------
+;
+;	MINI-KYTERNESER-FLAK
+;	Granaten
+modify_weapon 	83
+	snd_launch_sample	= 	sounds/shot1.wav
+	snd_launch_volume	=	210
+	snd_launch_pitch	=	0
+
+	snd_normal_sample	=	sounds/_iii.wav
+	snd_normal_volume	=	60
+	snd_normal_pitch	=	0
+
+	snd_hit_sample		=	sounds/explo1.wav
+	snd_hit_volume		=	300
+	snd_hit_pitch		=	1000
+end
+;-------------------------------------------------------------
+;
+;	BIG-KYTERNESER-FLAK
+;	Schwere selbstlenkende Missilles
+;
+modify_weapon 	84
+	snd_launch_sample	= 	sounds/shot1.wav
+	snd_launch_volume	=	210
+	snd_launch_pitch	=	1000
+
+	snd_normal_sample	=	sounds/_iii.wav
+	snd_normal_volume	=	35
+	snd_normal_pitch	=	0
+
+	snd_hit_sample		=	sounds/explo1.wav
+	snd_hit_volume		=	300
+	snd_hit_pitch		=	1000
+end
+;------------------------------------------------------------------
+;	Die Internet Variante
+;-----------------------------------------------------------------
+modify_weapon 	121
+	snd_launch_sample	= 	sounds/shot1.wav
+	snd_launch_volume	=	210
+	snd_launch_pitch	=	0
+
+	snd_normal_sample	=	sounds/_iii.wav
+	snd_normal_volume	=	60
+	snd_normal_pitch	=	0
+
+	snd_hit_sample		=	sounds/explo1.wav
+	snd_hit_volume		=	300
+	snd_hit_pitch		=	1000
+end
+;-------------------------------------------------------------
+;---------------------------------------------------------------------------------------------------------------------------------------------------
+;
+;   		MYKONIERROBO, DER RIESEN-WUERFEL
+;		B"se, B"se !  
+;
+modify_vehicle 	58
+	snd_normal_sample   	=	sounds/mykorob2.wav
+	snd_normal_volume  	=	1000
+      snd_normal_pitch        =             0 
+
+	snd_wait_sample		=	sounds/mykorob2.wav
+	snd_wait_pitch		=	0
+	snd_wait_volume		=	1000
+
+	snd_explode_sample  	=	sounds/roboex1.wav
+	snd_explode_pitch  	=	-2000	
+	snd_explode_volume 	=	1000
+					
+	snd_beamin_sample	= 	sounds/beamin.wav
+	snd_beamin_volume	= 	250
+
+	snd_beamout_sample	= 	sounds/beamout.wav
+	snd_beamout_volume	= 	210
+					
+	snd_build_sample	= 	sounds/build.wav
+	snd_build_volume	= 	350
+end
+;--------------------------------------------------------------------------------------------------------------------------------------
+;
+;	MYKONIER-ROBO-FLAK
+;	Schwerer Laser
+;
+modify_weapon 	82
+	snd_normal_sample   	=	sounds/aloop1.wav
+	snd_normal_volume  	=	150
+	snd_normal_pitch   	=	10000
+
+	snd_hit_sample		=	sounds/brutzel.wav
+	snd_hit_volume		=	150
+	snd_hit_pitch		=	0
+
+	snd_launch_sample	= 	sounds/mykoblow.wav
+	snd_launch_volume	=	200
+	snd_launch_pitch	=	0
+end
+;-------------------------------------------------------------------------------------------------
+;	MYKONIER-ROBO-FLAK
+;	die Netzwerkvariante
+;
+;------------------------------------------------------------------------------------------------
+modify_weapon 	80
+	snd_normal_sample   	=	sounds/aloop1.wav
+	snd_normal_volume  	=	150
+	snd_normal_pitch   	=	10000
+
+	snd_hit_sample		=	sounds/brutzel.wav
+	snd_hit_volume		=	150
+	snd_hit_pitch		=	0
+
+	snd_launch_sample	= 	sounds/mykoblow.wav
+	snd_launch_volume	=	200
+	snd_launch_pitch	=	0
+end
+;-----------------------------------------------------------------
+;	Die Internet Variante
+;----------------------------------------------------------------
+modify_weapon 	122
+	snd_normal_sample   	=	sounds/aloop1.wav
+	snd_normal_volume  	=	150
+	snd_normal_pitch   	=	10000
+
+	snd_hit_sample		=	sounds/brutzel.wav
+	snd_hit_volume		=	150
+	snd_hit_pitch		=	0
+
+	snd_launch_sample	= 	sounds/mykoblow.wav
+	snd_launch_volume	=	200
+	snd_launch_pitch	=	0
+end
+
+;---------------------------------------------------------------------------------------------------------------------------------------------------
+;---------------------------------------------------------------------------------------------------------------------------------------------------
+;
+;	TAERKASTENROBO
+;
+modify_vehicle 	60
+	snd_normal_sample  	=	sounds/taerrob.wav
+	snd_normal_pitch               =	0
+	snd_normal_volume           = 	1000
+
+	snd_wait_sample		=	sounds/taerrob.wav
+	snd_wait_pitch		=	-5000
+	snd_wait_volume		=	1000
+
+
+	snd_explode_sample	=  	sounds/roboex1.wav
+	snd_explode_pitch  	=	2000	
+	snd_explode_volume 	=	000
+
+	snd_crashland_sample	=	sounds/crashve3.wav
+	snd_crashland_volume	=	90
+
+       	snd_crashvhcl_sample	=	sounds/crashve.wav
+	snd_crashvhcl_volume	=	90
+					
+	snd_beamin_sample	= 	sounds/beamin.wav
+	snd_beamin_volume	= 	250
+
+	snd_beamout_sample	= 	sounds/beamout.wav
+	snd_beamout_volume	= 	210
+					
+	snd_build_sample	= 	sounds/build.wav
+	snd_build_volume	= 	350
+end 
+;--------------------------------------------------------------------------------------------------------------------------------------
+;
+;       TAERKASTEN-ROBO-FLAK
+;       Schwere Granate
+;
+modify_weapon   81
+	snd_launch_sample	= 	sounds/shot1.wav
+	snd_launch_volume	=	150
+	snd_launch_pitch	=	2000
+
+	snd_normal_sample	=	sounds/zoom02.wav
+	snd_normal_volume	=	90
+	snd_normal_pitch	=	0
+
+	snd_hit_sample		=	sounds/smex003.wav
+	snd_hit_volume		=	150
+	snd_hit_pitch		=	0
+end
+;----------------------------------------------------------------------------------
+;	Die Internet Variante
+;---------------------------------------------------------------------------------
+modify_weapon   123
+	snd_launch_sample	= 	sounds/shot1.wav
+	snd_launch_volume	=	150
+	snd_launch_pitch	=	2000
+
+	snd_normal_sample	=	sounds/zoom02.wav
+	snd_normal_volume	=	90
+	snd_normal_pitch	=	0
+
+	snd_hit_sample		=	sounds/smex003.wav
+	snd_hit_volume		=	150
+	snd_hit_pitch		=	0
+end
+
+;---------------------------------------------------------------------------------------------------
+;
+;   		SULGOGARE
+;
+modify_vehicle 	61
+	snd_normal_sample	=	sounds/sulgo01.wav
+	snd_normal_pitch	=	0
+	snd_normal_volume	= 	800
+
+	snd_wait_sample		=	sounds/sulgo01.wav
+	snd_wait_pitch		=	0
+	snd_wait_volume		=	800
+
+	snd_goingdown_sample	=	sounds/sulgdown.wav
+	snd_goingdown_pitch	=	-9000	
+	snd_goingdown_volume	=	210
+
+	snd_explode_sample	=	sounds/roboex1.wav
+	snd_explode_pitch	=	-3000	
+	snd_explode_volume	=	1000
+end
+;-------------------------------------------------------------------------------------------------------
+;	Die SULGOGARE verwendet Weapon 72 und ist bei den Sulgovehikeln
+;	eingetragen
+;--------------------------------------------------------------------------------------------------------
+;
+;                                BLACK SECT-ROBO
+modify_vehicle 62
+	snd_normal_sample	=	sounds/blackrob.wav
+	snd_normal_pitch	=	0
+	snd_normal_volume	= 	500
+
+	snd_wait_sample		=	sounds/blackrob.wav
+	snd_wait_pitch		=	0
+	snd_wait_volume		=	500
+
+	snd_explode_sample	=	sounds/roboex1.wav
+	snd_explode_pitch	=	-3000	
+	snd_explode_volume	=	1000
+					
+	snd_beamin_sample	= 	sounds/beamin.wav
+	snd_beamin_volume	= 	250
+
+	snd_beamout_sample	= 	sounds/beamout.wav
+	snd_beamout_volume	= 	210
+					
+	snd_build_sample	= 	sounds/build.wav
+	snd_build_volume	= 	350
+end
+;---------------------------------------------------------------------------------------------------
+;
+;   	BLACK-SECT-SUBMARINE-MISSIE
+;	Kleine, starke, schnelle Lenkrakete fr den 
+;	ROBO der Schwarzen Sekte
+;   
+modify_weapon 	94
+	snd_launch_sample	= 	sounds/shot1.wav
+	snd_launch_volume	=	210
+	snd_launch_pitch	=	1000
+
+	snd_normal_sample	=	sounds/_iii.wav
+	snd_normal_volume	=	35
+	snd_normal_pitch	=	0
+
+	snd_hit_sample		=	sounds/explo1.wav
+
+	snd_hit_volume		=	300
+	snd_hit_pitch		=	1000
+end
+;--------------------------------------------------------------------------------------------------------
+;
+;   	BLACK-SECT-SUBMARINE-LASA
+;	Starker LaserSchuÃ¡ fr den  
+;	ROBO der Schwarzen Sekte
+;   
+modify_weapon 	95
+	snd_launch_sample	= 	sounds/laser1.wav
+	snd_launch_volume	=	210
+	snd_launch_pitch	=	1000
+
+	snd_normal_sample	=	sounds/laser01.wav
+	snd_normal_volume	=	30
+	snd_normal_pitch	=	0
+
+	snd_hit_sample		=	sounds/explo1.wav
+	snd_hit_volume		=	300
+	snd_hit_pitch		=	1000
+end
+;---------------------------------------------------------------------------------------------------------
+;
+;	TUTORIAL ROBO
+;---------------------------------------------------------------------------------------------------------
+modify_vehicle 	132
+	snd_normal_sample	=	sounds/Bigjet02.wav
+	snd_normal_volume	=              120
+	snd_normal_pitch	=              -5000
+
+	snd_explode_sample	=	sounds/roboex1.wav
+	snd_explode_volume	=	350
+end
+;---------------------------------------------------------------------------------------------------------
+;
+;	TUTORIAL BOJEN- Flache Keksdosen
+;
+;---------------------------------------------------------------------------------------------------------
+;	Die bewaffnete Variante
+;---------------------------------------------------------------------------------------------------------
+modify_vehicle 	142
+	snd_normal_sample	=	sounds/Bigjet02.wav
+	snd_normal_volume	=              120
+	snd_normal_pitch	=              -4000
+
+	max_pitch			0.4
+
+	snd_goingdown_sample	=	sounds/zoom02.wav
+	snd_goingdown_pitch	=   	0	
+	snd_goingdown_volume	=	180
+
+	snd_explode_sample	=	sounds/bumm04.wav
+	snd_explode_volume	=	150
+end
+;---------------------------------------------------------------------------------------------------------
+;
+;	Die Waffe fÃ¼r die Tutorial Boje -entspricht der Userrobo Flak
+;
+;---------------------------------------------------------------------------------------------------------
+modify_weapon 	19
+	snd_hit_sample		= 	sounds/bumm01.wav
+	snd_hit_volume		= 	150
+                snd_hit_pitch      		=               0
+  
+	snd_launch_sample	= 	sounds/flak02.wav
+	snd_launch_volume	=	120
+	snd_launch_pitch	=	0
+
+	snd_normal_sample	=	sounds/idle01.wav
+	snd_normal_pitch	=	4000
+	snd_normal_volume	=	60
+end
+;---------------------------------------------------------------------------------------------------------
+;
+;	Die unbewaffnete Tutorial Boje
+;
+;---------------------------------------------------------------------------------------------------------
+modify_vehicle 	138
+	snd_normal_sample	=	sounds/Bigjet02.wav
+	snd_normal_volume	=              120
+	snd_normal_pitch	=              -4000
+
+	max_pitch			0.4
+
+	snd_goingdown_sample	=	sounds/zoom02.wav
+	snd_goingdown_pitch	=   	0	
+	snd_goingdown_volume	=	180
+
+	snd_explode_sample	=	sounds/bumm04.wav
+	snd_explode_volume	=	150
+end
+;---------------------------------------------------------------------------------------------------------
+;---------------------------------------------------------------------------------------------------------
+;---------------------------------------------------------------------------------------------------------
+;                                  FLAK Collection
+;
+;
+;
+;-------------------------------------------------------------------------------------------------------------
+;  	USER-FLAKS	96,100...105
+;
+;
+;------------------------------------------------------------------------------------------------------
+;
+;	SMALL USER AA FLAK
+;
+;--------------------------------------------------------------------------------------------------
+modify_weapon 	96
+	snd_hit_sample    	= 	sounds/Gun1.wav
+	snd_hit_volume		= 	150
+                snd_hit_pitch     		 =             0
+  
+	snd_launch_sample	= 	sounds/AAGun.wav
+	snd_launch_volume	=	120
+	snd_launch_pitch	=	-3000
+
+	snd_normal_sample	=	sounds/idle01.wav
+	snd_normal_pitch	=	4000
+	snd_normal_volume	=	60
+end
+modify_vehicle 96
+	snd_explode_sample	=	sounds/smex04.wav
+	snd_explode_pitch	=	0	
+	snd_explode_volume	=	180
+end
+;------------------------------------------------------------------------------------------------------
+;
+;	MYKONISCHE Stimmgabel
+;
+;--------------------------------------------------------------------------------------------------
+modify_weapon 	97
+	snd_normal_sample   	=	sounds/mykosh01.wav
+	snd_normal_volume  	=	150
+	snd_normal_pitch   	=	15000
+
+	snd_hit_sample		=	sounds/brutzel.wav
+	snd_hit_volume		=	150
+	snd_hit_pitch		=	0
+
+	snd_launch_sample	= 	sounds/mykoblow.wav
+	snd_launch_volume	=	200
+	snd_launch_pitch	=	0
+end
+modify_vehicle 97
+	snd_explode_sample	=	sounds/smex04.wav
+	snd_explode_pitch	=	0	
+	snd_explode_volume	=	180
+end
+;
+;	Die andere Stimmgabel
+;
+modify_weapon 	110
+	snd_normal_sample   	=	sounds/mykosh01.wav
+	snd_normal_volume  	=	150
+	snd_normal_pitch   	=	15000
+
+	snd_hit_sample		=	sounds/brutzel.wav
+	snd_hit_volume		=	150
+	snd_hit_pitch		=	0
+
+	snd_launch_sample	= 	sounds/mykoblow.wav
+	snd_launch_volume	=	200
+	snd_launch_pitch	=	4000
+end
+modify_vehicle 97
+	snd_explode_sample	=	sounds/smex04.wav
+	snd_explode_pitch	=	0	
+	snd_explode_volume	=	180
+end
+;-------------------------------------------------------------------------------------------------------------
+;
+;   	USERFLAK0	Flak-Granate, explodiert noch im Flug.
+;	Waffe f?r USER-FLAKSTELLUNG / untere Flak1
+;
+modify_weapon 	100
+	snd_hit_sample		= 	sounds/bumm01.wav
+	snd_hit_volume		= 	150
+                snd_hit_pitch      		=               0
+  
+	snd_launch_sample	= 	sounds/flak02.wav
+	snd_launch_volume	=	120
+	snd_launch_pitch	=	0
+
+	snd_normal_sample	=	sounds/idle01.wav
+	snd_normal_pitch	=	4000
+	snd_normal_volume	=	60
+end
+modify_vehicle 100
+	snd_explode_sample	=	sounds/smex04.wav
+	snd_explode_pitch	=	0	
+	snd_explode_volume	=	180
+end
+;-------------------------------------------------------------------------------------------------------------
+;
+;   	USERFLAK1   	Flak-Granate, explodiert noch im Flug.
+;	Waffe f?r USER-FlakStellung / untere Flak 2	*** kann v"llig der Waffe 100 entsprechen ***
+;
+modify_weapon 	101
+	snd_hit_sample		= 	sounds/bumm01.wav
+	snd_hit_volume		= 	150
+                snd_hit_pitch      		=	0
+
+	snd_launch_sample	= 	sounds/flak02.wav
+	snd_launch_volume	=	120
+	snd_launch_pitch	=	0
+
+	snd_normal_sample	=	sounds/idle01.wav
+	snd_normal_pitch	=	4000
+	snd_normal_volume	=	60
+end
+modify_vehicle 101
+	snd_explode_sample	=	sounds/smex04.wav
+	snd_explode_pitch	=	0	
+	snd_explode_volume	=	180
+end
+;-------------------------------------------------------------------------------------------------------------
+;
+;   	USERFLAK2	Flak-Granate, explodiert noch im Flug.
+;	Waffe f?r User-Flakstellung / obere Waffe 1	*** kann v"llig der Waffe 100 entsprechen *** 
+;
+modify_weapon 	102
+	snd_hit_sample		= 	sounds/bumm01.wav
+	snd_hit_volume		= 	150
+                snd_hit_pitch      		=               0
+
+	snd_launch_sample	= 	sounds/flak02.wav
+	snd_launch_volume	=	120
+	snd_launch_pitch	=	0
+
+	snd_normal_sample	=	sounds/idle01.wav
+	snd_normal_pitch	=	4000
+	snd_normal_volume	=	60
+end
+modify_vehicle 102
+	snd_explode_sample	=	sounds/smex04.wav
+	snd_explode_pitch	=	0	
+	snd_explode_volume	=	180
+end
+;-------------------------------------------------------------------------------------------------------------
+;
+;   	USERFLAK3	Flak-Granate, explodiert noch im Flug.
+;	Waffe f?r User-FlakStellung / obere Waffe 2	*** kann v"llig der Waffe 100 entsprechen ***
+;
+modify_weapon 	103
+	snd_hit_sample		= 	sounds/bumm01.wav
+	snd_hit_volume		= 	150
+                snd_hit_pitch      		=               0
+
+	snd_launch_sample	= 	sounds/flak02.wav
+	snd_launch_volume	=	120
+	snd_launch_pitch	=	0
+
+	snd_normal_sample	=	sounds/idle01.wav
+	snd_normal_pitch	=	4000
+	snd_normal_volume	=	60
+end
+modify_vehicle 103
+	snd_explode_sample	=	sounds/smex04.wav
+	snd_explode_pitch	=	0	
+	snd_explode_volume	=	180
+end
+;-------------------------------------------------------------------------------------------------------------
+;
+;   	USERFLAK4	Flak-Granate, explodiert noch im Flug. 
+;	Waffe f?r USER-KRAFTWERKS-FLAK 1 	*** kann v"llig der Waffe 100 entsprechen ***
+;
+modify_weapon 	104
+	snd_hit_sample		= 	sounds/bumm01.wav
+	snd_hit_volume		= 	150
+                snd_hit_pitch      		=              0
+
+	snd_launch_sample	= 	sounds/flak02.wav
+	snd_launch_volume	=	120
+	snd_launch_pitch	=	0
+
+	snd_normal_sample	=	sounds/idle01.wav
+	snd_normal_pitch	=	4000
+	snd_normal_volume	=	60
+end
+modify_vehicle 104
+	snd_explode_sample	=	sounds/smex04.wav
+	snd_explode_pitch	=	0	
+	snd_explode_volume	=	180
+end
+;-------------------------------------------------------------------------------------------------------------
+;
+;   	USERFLAK5	Flak-Granate, explodiert noch im Flug.
+;	Waffe f?r USER-KRAFTWERKS-FLAK 2 	*** kann v"llig der Waffe 100 entsprechen ***
+;
+modify_weapon 	105
+	snd_hit_sample		= 	sounds/bumm01.wav
+	snd_hit_volume		= 	150
+                 snd_hit_pitch      	=             0
+
+	snd_launch_sample	= 	sounds/flak02.wav
+	snd_launch_volume	=	120
+	snd_launch_pitch	=	0
+
+	snd_normal_sample	=	sounds/idle01.wav
+	snd_normal_pitch	=	4000
+	snd_normal_volume	=	60
+end
+modify_vehicle 105
+	snd_explode_sample	=	sounds/smex04.wav
+	snd_explode_pitch	=	0	
+	snd_explode_volume	=	180
+end
+;----------------------------------------------------------------------------------------------------------
+;
+;                          STANDARDBODENFLAK
+;
+modify_weapon 	106
+	snd_launch_sample	= 	sounds/shot1.wav
+	snd_launch_volume	=	210
+	snd_launch_pitch	=	1000
+
+	snd_normal_sample	=	sounds/_iii.wav
+	snd_normal_volume	=	35
+	snd_normal_pitch	=	0
+
+	snd_hit_sample		=	sounds/explo1.wav
+	snd_hit_volume		=	150
+	snd_hit_pitch		=	1000
+end
+modify_vehicle  106
+	snd_explode_sample	=	sounds/smex02.wav
+	snd_explode_pitch	=	0	
+	snd_explode_volume	=	180
+end
+;---------------------------------------------------------------------------------------------------------
+;
+;                        Gitterturm-Flak
+;
+modify_weapon 	107
+	snd_launch_sample	= 	sounds/shot01.wav
+	snd_launch_volume	=	210
+	snd_launch_pitch	=	1000
+
+	snd_normal_sample	=	sounds/zoom01.wav
+	snd_normal_volume	=	90
+	snd_normal_pitch	=	0
+
+	snd_hit_sample		=	sounds/Smex002.wav
+	snd_hit_volume		=	150
+	snd_hit_pitch		=	0
+end
+modify_vehicle  107
+	snd_explode_sample	=	sounds/smex02.wav
+	snd_explode_pitch	=	0	
+	snd_explode_volume	=	180
+end
+;---------------------------------------------------------------------------------------------------------
+;
+;	TAERKASTENFLAK
+;
+modify_weapon 	108
+	snd_launch_sample	= 	sounds/shot01.wav
+	snd_launch_volume	=	210
+	snd_launch_pitch	=	1000
+
+	snd_normal_sample	=	sounds/zoom01.wav
+	snd_normal_volume	=	90
+	snd_normal_pitch	=	0
+
+	snd_hit_sample		=	sounds/Smex002.wav
+	snd_hit_volume		=	150
+	snd_hit_pitch		=	0
+end
+modify_vehicle  108
+	snd_explode_sample	=	sounds/smex02.wav
+	snd_explode_pitch	=	0	
+	snd_explode_volume	=	180
+end
+;---------------------------------------------------------------------------------------------------------
+;
+;	RADARSCHUESSEL
+;
+;
+modify_vehicle  109
+	snd_explode_sample	=	sounds/smex02.wav
+	snd_explode_pitch	=	0	
+	snd_explode_volume	=	180
+end
+;---------------------------------------------------------------------------------------------------------
+;
+;	MYKONISCHE STIMMGABEL
+;
+;
+;------------------------------------------------------------------------------------------------
+modify_weapon 	110
+	snd_normal_sample   	=	sounds/mykosh01.wav
+	snd_normal_volume  	=	150
+	snd_normal_pitch   	=	10000
+
+	snd_hit_sample		=	sounds/brutzel.wav
+	snd_hit_volume		=	150
+	snd_hit_pitch		=	5000
+
+	snd_launch_sample	= 	sounds/mykoblow.wav
+	snd_launch_volume	=	200
+	snd_launch_pitch	=	0
+end
+modify_vehicle 110
+	snd_explode_sample	=	sounds/smex04.wav
+	snd_explode_pitch	=	0	
+	snd_explode_volume	=	180
+end
+;---------------------------------------------------------------------------------------------------------
+;
+;	Mykonier Rundkugelschwebeflak
+;
+;
+;------------------------------------------------------------------------------------------------
+modify_weapon 	117
+	snd_normal_sample   	=	sounds/mykosh01.wav
+	snd_normal_volume  	=	150
+	snd_normal_pitch   	=	10000
+
+	snd_hit_sample		=	sounds/brutzel.wav
+	snd_hit_volume		=	150
+	snd_hit_pitch		=	5000
+
+	snd_launch_sample	= 	sounds/mykoblow.wav
+	snd_launch_volume	=	200
+	snd_launch_pitch	=	-3000
+end
+modify_vehicle 113
+
+	snd_normal_sample   	=	sounds/Idle02.wav
+	snd_normal_volume  	=	150
+	snd_normal_pitch   	=	1000
+
+	snd_explode_sample	=	sounds/smex04.wav
+	snd_explode_pitch	=	0	
+	snd_explode_volume	=	180
+end
+;-------------------------------------------------------------------------------------------------------
+;
+; 	Feindflak 1 auf GEMSEKTOR und KRAFTWERK
+;
+;---------------------------------------------------------------------------------------------------------
+;
+modify_weapon 	111
+	snd_launch_sample	= 	sounds/shot1.wav
+	snd_launch_volume	=	210
+	snd_launch_pitch	=	1000
+
+	snd_normal_sample	=	sounds/_iii.wav
+	snd_normal_volume	=	35
+	snd_normal_pitch	=	0
+
+	snd_hit_sample		=	sounds/explo1.wav
+	snd_hit_volume		=	300
+	snd_hit_pitch		=	1000
+end
+modify_vehicle 111
+	snd_explode_sample	=	sounds/smex04.wav
+	snd_explode_pitch	=	0	
+	snd_explode_volume	=	180
+end
+;---------------------------------------------------------------------------------------------------------
+;
+;                    Alternative Feindflak
+;                    original ist 111
+;
+;
+modify_weapon 	115
+	snd_launch_sample	= 	sounds/shot1.wav
+	snd_launch_volume	=	210
+	snd_launch_pitch	=	1000
+
+	snd_normal_sample	=	sounds/_iii.wav
+	snd_normal_volume	=	35
+	snd_normal_pitch	=	0
+
+	snd_hit_sample		=	sounds/explo1.wav
+	snd_hit_volume		=	300
+	snd_hit_pitch		=	1000
+end
+modify_vehicle 115
+	snd_explode_sample	=	sounds/smex04.wav
+	snd_explode_pitch	=	0	
+	snd_explode_volume	=	180
+end
+;---------------------------------------------------------------------------------------------------------
+;
+;                    
+;           	GRASGITTERFLAK
+;
+;
+modify_weapon 	116
+	snd_launch_sample	= 	sounds/shot1.wav
+	snd_launch_volume	=	210
+	snd_launch_pitch	=	1000
+
+	snd_normal_sample	=	sounds/_iii.wav
+	snd_normal_volume	=	35
+	snd_normal_pitch	=	0
+
+	snd_hit_sample		=	sounds/explo1.wav
+	snd_hit_volume		=	300
+	snd_hit_pitch		=	1000
+end
+modify_vehicle 116
+	snd_explode_sample	=	sounds/smex04.wav
+	snd_explode_pitch	=	0	
+	snd_explode_volume	=	180
+end
+;--------------------------------------------------------------------------------------------------------------------------
+;                     DIE DICKEN BROCKEN UND SCHÃ–NEN EXPLOSIONEN
+;
+;----------------------------------------------------------
+;----------------------------------------------------------------------------------------------------------------------------------
+;----------------------------------------------------------------------------------------------------------------------------------
+;
+;	BRUCH
+;
+;	Bruch sind sowohl "Kaschier"Explosionen an einstÃ¼rzenden
+;	HÃ¤usern als auch zusÃ¤tzliche wegfliegende Brocken an 
+;	explodierenden Fahrzeugen, etc.
+;
+;	GrundsÃ¤tzlich ist zu sagen, daÃŸ BRUCH in jedem Fall eine TODGEBURT ist.
+;	Das heiÃŸt:	Alle diese Dinger sind normale Vehicle, die zum
+;			Zeitpunkt der Explosion im abstÃ¼rzenden Zustand
+;			aktiviert werden. (Und dann einfach runterfallen.)
+;	Das wiederum bedeutet: von BRUCH wird man nur
+;			+	GOINGDOWN 	und
+;			+	EXPLODE	zu hÃ¶ren bekommen.
+;
+;	Ich hatte allerinx ein Problem, dass ich manchmal nicht GOINGDOWN nehmen musste
+;	sondern NORMAL... hm... is noch nicht klar..... (siehe 84) damit die
+;	Brocken beim Wegfliegen pfeifen. (RÃ¤tselhaft.)
+;
+;	Dabei wird gelegentlich zu experimentieren sein, muÃŸ jetzt nun 
+;	ein GOINGDOWN genommen werden oder ein EXPLODE. (oder NORMAL)
+;	Weiterhin ist zu beachten, daÃŸ meist 8 StÃ¼ck davon gleichzeitig 
+;	aktiviert werden... Es muÃŸ also nicht ALLES vertont werden.
+;
+;------------------------------------------------------------------------------------------------------------------
+;
+;	NOISY GROSSKRATER
+;	
+;               Angeknackste HochhÃ¤user fallen zum Krater zusammne
+;
+;
+; 	
+modify_vehicle 	39
+	snd_explode_sample	       =	sounds/rumpel1.wav
+	snd_explode_pitch   	=	-2000	
+	snd_explode_volume  	=	450
+end
+;----------------------------------------------------------------------------------------------
+;
+;       	STECKENBRUCH, ein lÃ¤nglicher Brocken
+;
+modify_vehicle 40
+	snd_explode_sample	       =	sounds/shot7.wav
+	snd_explode_pitch   	=	0	
+	snd_explode_volume  	=	90
+end
+;----------------------------------------------------------------------------------------------
+;
+;       	KYTERNESER-BRUCHSTÃœCK	
+;
+modify_vehicle 41
+	snd_normal_sample  	=	sounds/idle01.wav
+	snd_normal_pitch   	=	5000
+	snd_normal_volume  	= 	90
+
+	snd_goingdown_sample	=	sounds/idle01.wav
+	snd_goingdown_pitch	=	5000	
+	snd_goingdown_volume	=	90
+
+	snd_explode_sample	       =	sounds/shot01.wav
+	snd_explode_pitch   	=	0	
+	snd_explode_volume  	=	120
+end
+;-----------------------------------------------------------------------------------------------
+;
+;	Additional Destruction Explosion 1
+; 	
+modify_vehicle 42
+end
+;-----------------------------------------------------------------------------------------------
+;
+;	Additional Destruction Explosion 2
+; 	
+modify_vehicle 43
+end
+;-----------------------------------------------------------------------------------------------
+;
+;	Additional Destruction Explosion 3
+; 	
+modify_vehicle 44
+end
+;------------------------------------------------------------------------------------------
+;
+;       	DUSTERWOLKENAUSSTOSS, glÃ¼hender Brocken
+;	der eine lange Rauchwolke hinter sich herzieht. 	
+;
+modify_vehicle 45
+end
+;------------------------------------------------------------------------------------------
+;
+;       	MINIBROCKEN, ganz kleiner Brocken	
+;
+modify_vehicle 46
+end
+;-----------------------------------------------------------------------------------------------
+;
+;	Additional Destruction Explosion 4, ZIEMLICH FETT UND GROSS
+; 	
+modify_vehicle 47
+end
+;-----------------------------------------------------------------------------------------------
+;
+;	BlueExplonalZeukx, CHaos mit Blitzen
+; 	
+modify_vehicle	48
+end
+;------------------------------------------------------------------------------------------------
+;
+;	Von 49 bis ...	liegen die neuen SOUND-"DummiEs"
+;	Eigentlich sind es keine. Weil: ich nehm die typischsten Sachen
+;	und fertige einfach eine Kopie davon an, die dann vertont wird, und
+;	NUR EINMAL  an die HÃ¤user rangebunden wird, gar nicht an die Fahrzeuge.
+;	Also: man sieht schon was.
+;
+;	TYPISCH	IST 	FÃœR 	DIE 	MEISTEN	HÃ„USER:
+;		INTAKT		----------->	1.ZerstÃ¶rungsStufe	:	49 NOISY DUSTERWOLKE
+;		1.ZerstÃ¶rungsStufe	----------->	2.ZerstÃ¶rungsStufe	:	51 NOISY MEDIUM EXPLO (SHK+PAL)
+;		2.ZerstÃ¶rungsStufe	----------->	KRATER		:	52 NOISY SMALL    EXPLO (SHK+PAL)	
+;
+;------------------------------------------------------------------------------------------------
+;
+;	NOISY DUSTERWOLKE
+;
+;	Die bekannte Dusterwolke.  
+;	HÃ„USER:	INTAKT ------------------->	ANGEKNACKST / ANGERÃ„UCHERT
+; 	
+modify_vehicle 	49
+	snd_explode_sample	       =	sounds/explo1.wav
+	snd_explode_pitch   	=	1000	
+	snd_explode_volume  	=	150
+end
+;------------------------------------------------------------------------------------------------
+;
+;	NOISY BIG EXPLO SHAKE PALETTE	
+;	
+;	GROSSE FETTE EXPLOSION / NUR WIRKLICH GROSSE, SEKTORFÃœLLENDE GEBÃ„UDE
+;	HÃ„USER:	ANGEKNACKST -------------------> RICHTIG EINGESTÃœRZT / SCHWER ANGESCHLAGEN
+; 	
+modify_vehicle 	50
+	snd_explode_sample 	=               sounds/rumpel1.wav
+                snd_explode_pitch   	=	0	
+	snd_explode_volume  	=	450
+end
+;------------------------------------------------------------------------------------------------
+;
+;	NOISY MEDIUM EXPLO SHAKE PALETTE
+;	
+;	NORMALE EXPLOSION / GROSSE UND NORMALE GEBÃ„UDE
+;	HÃ„USER:	ANGEKNACKST -------------------> RICHTIG EINGESTÃœRZT / SCHWER ANGESCHLAGEN
+; 	
+modify_vehicle 	51
+	snd_explode_sample 	=               sounds/rumpel1.wav
+                snd_explode_pitch   	=	8000	
+	snd_explode_volume  	=	450
+end
+;------------------------------------------------------------------------------------------------
+;
+;	NOISY  SMALL  EXPLO SHAKE PALETTE
+;	
+;	EXPLOSION /  KLEINE GEBÃ„UDE / GEBÃ„UDERESTE
+;	HÃ„USER:	ANGEKNACKST -------------------> RICHTIG EINGESTÃœRZT / SCHWER ANGESCHLAGEN
+; 	
+modify_vehicle 	52
+	snd_explode_sample 	=               sounds/smex06.wav
+                snd_explode_pitch   	=	0	
+	snd_explode_volume  	=	450
+end
+;------------------------------------------------------------------------------------------------
+;
+;	NOISY GESPLITTER
+;	
+;	Kleinere GartenZÃ¤une, Masten, etc. splittern auseinander.
+;	Optisch:	 Brocken, Steine (Splitter?) werden weggeschleudert...
+; 	
+modify_vehicle 	53
+	snd_explode_sample	       =	sounds/explo1.wav
+	snd_explode_pitch   	=	1000	
+	snd_explode_volume  	=	150
+end
+;------------------------------------------------------------------------------------------------
+;
+;	NOISY ZERBRÃ–SEL
+;	
+;	Felsen, SteinSÃ¤ulen, SteinTore werden zerlegt.
+;	Optisch: SteinBrocken werden weggeschleudert...
+; 	
+modify_vehicle 	54
+	snd_explode_sample	       =	sounds/explo1.wav
+	snd_explode_pitch   	=	-4000	
+	snd_explode_volume  	=	150
+end
+;------------------------------------------------------------------------------------------------
+;
+;	NOISY BLECHBRUCH
+;	
+;	STAHLPlatten werden zerhaun und verbeult.
+;	Kraftwerke, Bunker etc.
+;	Optisch: Eine Explosion.
+; 	
+modify_vehicle 	55
+	snd_explode_sample	       =	sounds/Stahlbr.WAV
+	snd_explode_pitch   	=	2000	
+	snd_explode_volume  	=	150
+end
+;----------------------------------------------------------------------------------------------
+;
+;       	EIN KLEINER BROCKEN MIT RAUCH 	
+;
+modify_vehicle 82
+	snd_normal_sample  	=	sounds/idle01.wav
+	snd_normal_pitch   	=	2000
+	snd_normal_volume  	= 	90
+
+	snd_goingdown_sample	=	sounds/idle01.wav
+	snd_goingdown_pitch	=	2000	
+	snd_goingdown_volume	=	90
+
+	snd_explode_sample	       =	sounds/shot7.wav
+	snd_explode_pitch   	=	1000	
+	snd_explode_volume  	=	120
+end
+;----------------------------------------------------------------------------
+;
+;       	EIN MITTLERER BROCKEN MIT RAUCH 	
+;
+modify_vehicle 83
+	snd_normal_sample  	=	sounds/idle01.wav
+	snd_normal_pitch   	=	2000
+	snd_normal_volume  	= 	90
+
+	snd_goingdown_sample	=	sounds/idle01.wav
+	snd_goingdown_pitch	=	2000	
+	snd_goingdown_volume	=	90
+
+	snd_explode_sample	       =	sounds/shot7.wav
+	snd_explode_pitch   	=	1000	
+	snd_explode_volume  	=	120
+end
+;------------------------------------------------------------------------------------------
+;
+;       	EIN SEHR KLEINER GlÃ¼hender BROCKEN MIT RAUCH 	
+;
+modify_vehicle 84
+	snd_normal_sample  	=	sounds/idle01.wav
+	snd_normal_pitch   	=	7000
+	snd_normal_volume  	= 	40
+
+	snd_goingdown_sample	=	sounds/idle01.wav
+	snd_goingdown_pitch	=	7000	
+	snd_goingdown_volume	=	40
+
+	snd_explode_sample	       =	sounds/shot7.wav
+	snd_explode_pitch   	=	1000	
+	snd_explode_volume  	=	90
+end
+;-----------------------------------------------------------------------------------------------
+;
+;       	Die neue Explosion (mit TRACY-Particles) 
+; 	
+modify_vehicle 85 
+end
+;------------------------------------------------------------------------------------------------------------------
+;
+;
+;             SCALE FX
+;
+;
+;            SCHÃ–N UND HARDGECODET
+;--------------------------------------------------------------------------------------------------------------
+;
+;	ScaleFX am Hausbruch
+;
+;modify_vehicle 	118
+;	snd_explode_sample 	=	sounds/Smex05.wav
+;	snd_explode_pitch            	=	000	
+;	snd_explode_volume  	=	350
+;end
+modify_vehicle 	118
+	snd_goingdown_sample 	=	sounds/Smex05.wav
+	snd_goingdown_pitch      	=	000	
+	snd_goingdown_volume  	=	350
+end
+;----------------------------------------------------------------------------------------------------
+;	Roter ScaleRing groÃŸ
+;
+;--------------------------------------------------------------------------------------------------
+modify_vehicle 	121
+	snd_explode_sample	       =	sounds/KytroEx1.WAV
+	snd_explode_pitch   	=	4000	
+	snd_explode_volume  	=	650
+end
+;--------------------------------------------------------------------------------------------------------------
+;
+;	Blau1 ScaleRing groÃŸ
+;
+;--------------------------------------------------------------------------------------------------
+modify_vehicle 	122
+	snd_explode_sample	=	sounds/KytroEx1.WAV
+	snd_explode_pitch   	=	4000	
+	snd_explode_volume  	=	650
+end
+;--------------------------------------------------------------------------------------------------------------
+;
+;	Taer Zeppelinbombe ScaleRing
+;
+;--------------------------------------------------------------------------------------------------
+modify_vehicle 	129
+	snd_goingdown_sample	=	sounds/blitz6.wav
+	snd_goingdown_pitch   	=	0	
+	snd_goingdown_volume  	=	450
+end
+;--------------------------------------------------------------------------------------------------------------
+;
+;
+;        	Weitere Scaleringe
+;
+;---------------------------------------------------------------------------------------------
+;-----------------------------------------------------------------------------------------------
+;
+;	SPECIAL SCFX WUSCHELRING (Plastischer Scale-Ring)
+;
+modify_vehicle 	21
+	snd_goingdown_sample	=	sounds/blitz3.wav
+	snd_goingdown_pitch   	=	-2000	
+	snd_goingdown_volume  	=	210
+end
+;-----------------------------------------------------------------------------------------------
+;
+;	DÃœNNER RING
+;
+modify_vehicle 	17
+	snd_explode_sample	=	sounds/blitz6.wav
+	snd_explode_pitch   	=	0	
+	snd_explode_volume  	=	210
+end
+
+

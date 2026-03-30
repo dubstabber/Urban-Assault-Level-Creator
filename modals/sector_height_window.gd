@@ -11,12 +11,17 @@ func _on_ok_button_pressed() -> void:
 	hide()
 	
 	if height_value_spin_box.value >= 0 and height_value_spin_box.value < 256:
+		var edited_border_indices: Array = []
 		if EditorState.selected_sectors.size() > 1 and CurrentMapData.hgt_map.size() > 0:
 			for sector_dict in EditorState.selected_sectors:
 				CurrentMapData.hgt_map[sector_dict.border_idx] = int(height_value_spin_box.value)
+				edited_border_indices.append(sector_dict.border_idx)
+			EventSystem.hgt_map_cells_edited.emit(edited_border_indices)
 			EventSystem.map_updated.emit()
 		elif EditorState.border_selected_sector_idx >= 0 and CurrentMapData.hgt_map.size() > 0:
 			CurrentMapData.hgt_map[EditorState.border_selected_sector_idx] = int(height_value_spin_box.value)
+			edited_border_indices.append(EditorState.border_selected_sector_idx)
+			EventSystem.hgt_map_cells_edited.emit(edited_border_indices)
 			EventSystem.map_updated.emit()
 	else:
 		printerr("Wrong height value: ", height_value_spin_box.value)
