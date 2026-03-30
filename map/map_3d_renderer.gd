@@ -13,6 +13,7 @@ const ViewController := preload("res://map/map_3d_view_controller.gd")
 const UALegacyText := preload("res://map/ua_legacy_text.gd")
 const RefreshCoordinator := preload("res://map/map_3d_refresh_coordinator.gd")
 const ChunkRuntime := preload("res://map/map_3d_chunk_runtime.gd")
+const EffectiveTypService := preload("res://map/map_3d_effective_typ_service.gd")
 const OverlayProducers := preload("res://map/map_3d_overlay_descriptor_producers.gd")
 
 const SECTOR_SIZE := 1200.0
@@ -84,10 +85,6 @@ const TECH_UPGRADE_EDITOR_TYP_OVERRIDES := {
 }
 const SQUAD_FORMATION_SPACING := 100.0
 const SQUAD_EXTRA_Y_OFFSET := 8.0
-const UA_DATA_JSON = preload("res://resources/UAdata.json")
-
-static var _blg_typ_override_cache: Dictionary = {}
-
 
 # Preview top surfaces use world-space tiling with one repeat per sector.
 func _compute_tile_scale() -> float:
@@ -182,24 +179,33 @@ var _last_build_metrics: Dictionary = {}
 var _terrain_chunk_nodes: Dictionary = {}
 var _edge_chunk_nodes: Dictionary = {}
 
-# Cache to avoid recomputing `effective_typ` when only `hgt_map` changes.
-var _effective_typ_cache_valid := false
-var _effective_typ_cache_game_data_type := ""
-var _effective_typ_cache_dims: Vector2i = Vector2i(-1, -1)
-var _effective_typ_cache: PackedByteArray = PackedByteArray()
-var _effective_typ_dirty := true
-var _effective_typ_cache_typ_checksum: int = 0
-var _effective_typ_cache_blg_checksum: int = 0
 var _geometry_distance_culling_enabled := false
 var _geometry_cull_distance := UA_NORMAL_GEOMETRY_CULL_DISTANCE
 
 # Scheduling and async build coordination is delegated to the coordinator.
-# Thread-safe state, chunk payload queues, generation IDs, and map signature
+# Thread-safe state, chunk payload queues, generation IDs, and map-signature
 # tracking live there; the renderer accesses them via `_coordinator`.
 var _coordinator := RefreshCoordinator.new()
 
 # Chunk-level state: dirty tracking, rebuild decisions, authored cache.
 var _chunk_rt := ChunkRuntime.new()
+var _effective_typ_service := EffectiveTypService.new()
+
+var active_build_generation_id: int:
+	get:
+		return _coordinator.active_build_generation_id
+	set(value):
+		_coordinator.active_build_generation_id = value
+var build_generation_id: int:
+	get:
+		return _coordinator.build_generation_id
+	set(value):
+		_coordinator.build_generation_id = value
+var cancel_requested_generation_id: int:
+	get:
+		return _coordinator.cancel_requested_generation_id
+	set(value):
+		_coordinator.cancel_requested_generation_id = value
 
 # Async initial-build state (exposed for UI loading indicator and cancellation).
 var is_building_3d := false
@@ -219,32 +225,27 @@ var _async_requested_reframe := false
 var _async_overlay_apply_active := false
 var _async_overlay_apply_state: Dictionary = {}
 var _async_overlay_descriptors: Array = []
+var _async_dynamic_overlay_descriptors: Array = []
 var _async_overlay_metrics: Dictionary = {}
 var _async_overlay_apply_started_usec := 0
-var _overlay_apply_manager := Map3DAuthoredOverlayManager.new()
 var _overlay_only_refresh_requested := false
 var _dynamic_overlay_refresh_requested := false
-var _async_dynamic_overlay_descriptors: Array = []
 var _async_overlay_descriptor_dynamic_only := false
 var _skip_next_map_changed_refresh := false
-
+var _overlay_apply_manager := Map3DAuthoredOverlayManager.new()
 
 func set_event_system_override(event_system: Node) -> void:
 	_event_system_override = event_system
 
-
 func set_current_map_data_override(current_map_data: Node) -> void:
 	_current_map_data_override = current_map_data
-
 
 func set_editor_state_override(editor_state: Node) -> void:
 	_editor_state_override = editor_state
 
-
 func set_preloads_override(preloads: Node) -> void:
 	_preloads_override = preloads
 	_preloads_override_set = true
-
 
 func get_build_state_snapshot() -> Dictionary:
 	return {
@@ -254,16 +255,13 @@ func get_build_state_snapshot() -> Dictionary:
 		"status_text": status_text,
 	}
 
-
 func has_pending_refresh() -> bool:
 	return _refresh_pending
-
 
 func get_last_build_metrics() -> Dictionary:
 	if _last_build_metrics.is_empty():
 		return _make_empty_build_metrics()
 	return _last_build_metrics.duplicate(true)
-
 
 func _make_empty_build_metrics() -> Dictionary:
 	return {
@@ -284,7 +282,6 @@ func _make_empty_build_metrics() -> Dictionary:
 		"refresh_end_to_end_ms": 0.0,
 	}
 
-
 func _emit_build_state(building: bool, completed: int, total: int, status: String) -> void:
 	is_building_3d = building
 	completed_chunks = maxi(completed, 0)
@@ -292,76 +289,58 @@ func _emit_build_state(building: bool, completed: int, total: int, status: Strin
 	status_text = status
 	build_state_changed.emit(is_building_3d, completed_chunks, total_chunks, status_text)
 
-
 func _begin_build_state(total_chunk_count: int, status: String) -> void:
 	_emit_build_state(true, 0, total_chunk_count, status)
-
 
 func _update_build_progress(completed: int, total: int, status: String = "") -> void:
 	var text := status_text if status.is_empty() else status
 	_emit_build_state(true, completed, total, text)
 
-
 func _end_build_state(success: bool, status: String = "") -> void:
 	_emit_build_state(false, completed_chunks, total_chunks, status)
 	build_finished.emit(success)
 
-
 func _is_async_build_active() -> bool:
 	return _coordinator.is_async_build_active()
-
 
 func _is_async_pipeline_active() -> bool:
 	return _coordinator.is_async_pipeline_active(_async_overlay_apply_active)
 
-
 func _is_async_overlay_descriptor_active() -> bool:
 	return _coordinator.is_async_overlay_descriptor_active()
-
 
 func _set_async_overlay_descriptor_state(done: bool, failed: bool, result, metrics: Dictionary) -> void:
 	_coordinator.set_async_overlay_descriptor_state(done, failed, result, metrics)
 
-
 func _set_async_overlay_descriptor_stage(stage: String) -> void:
 	_coordinator.set_async_overlay_descriptor_stage(stage)
-
 
 func _get_async_overlay_descriptor_stage() -> String:
 	return _coordinator.get_async_overlay_descriptor_stage()
 
-
 func _get_async_overlay_descriptor_state() -> Dictionary:
 	return _coordinator.get_async_overlay_descriptor_state()
-
 
 func _set_async_worker_state(done: bool, failed: bool, message: String) -> void:
 	_coordinator.set_async_worker_state(done, failed, message)
 
-
 func _get_async_worker_state() -> Dictionary:
 	return _coordinator.get_async_worker_state()
-
 
 func _is_async_cancel_requested(generation_id: int) -> bool:
 	return _coordinator.is_async_cancel_requested(generation_id)
 
-
 func _push_async_chunk_payload(payload: Dictionary) -> void:
 	_coordinator.push_async_chunk_payload(payload)
-
 
 func _pop_async_chunk_payload() -> Dictionary:
 	return _coordinator.pop_async_chunk_payload()
 
-
 func _clear_async_chunk_payloads() -> void:
 	_coordinator.clear_async_chunk_payloads()
 
-
 func _async_chunk_payload_count() -> int:
 	return _coordinator.async_chunk_payload_count()
-
 
 func _compute_effective_typ_for_map(
 	cmd: Node,
@@ -371,58 +350,25 @@ func _compute_effective_typ_for_map(
 	blg: PackedByteArray,
 	game_data_type: String
 ) -> PackedByteArray:
-	var typ_checksum := _checksum_packed_byte_array(typ)
-	var blg_checksum := _checksum_packed_byte_array(blg)
-	var can_reuse_effective_typ := _effective_typ_cache_valid and (not _effective_typ_dirty) and _effective_typ_cache_dims == Vector2i(w, h) and _effective_typ_cache_game_data_type == game_data_type and _effective_typ_cache_typ_checksum == typ_checksum and _effective_typ_cache_blg_checksum == blg_checksum
-	if can_reuse_effective_typ:
-		return _effective_typ_cache
-	var effective_typ := _effective_typ_map_for_3d(
-		typ,
-		blg,
-		game_data_type,
-		w,
-		h,
-		cmd.beam_gates,
-		cmd.tech_upgrades,
-		cmd.stoudson_bombs
-	)
-	_effective_typ_cache = effective_typ
-	_effective_typ_cache_valid = true
-	_effective_typ_cache_game_data_type = game_data_type
-	_effective_typ_cache_dims = Vector2i(w, h)
-	_effective_typ_cache_typ_checksum = typ_checksum
-	_effective_typ_cache_blg_checksum = blg_checksum
-	_effective_typ_dirty = false
-	return effective_typ
-
+	return _effective_typ_service.compute_effective_typ_for_map(cmd, w, h, typ, blg, game_data_type)
 
 static func _elapsed_ms_since(started_usec: int) -> float:
 	if started_usec <= 0:
 		return 0.0
 	return maxf(float(Time.get_ticks_usec() - started_usec) / 1000.0, 0.0)
 
-
 static func _checksum_packed_byte_array(data: PackedByteArray) -> int:
-	# Small, deterministic checksum to invalidate caches when packed maps change.
-	# Maps are small enough that the O(n) scan is acceptable on editor edits.
-	var h: int = 2166136261
-	for b in data:
-		h = int((h ^ int(b)) * 16777619)
-		h = h & 0xFFFFFFFF
-	return h
-
+	return EffectiveTypService.checksum_packed_byte_array(data)
 
 static func _profile_add_duration(profile, key: String, duration_ms: float) -> void:
 	if typeof(profile) != TYPE_DICTIONARY:
 		return
 	profile[key] = float(profile.get(key, 0.0)) + maxf(duration_ms, 0.0)
 
-
 static func _profile_increment(profile, key: String, amount: int = 1) -> void:
 	if typeof(profile) != TYPE_DICTIONARY:
 		return
 	profile[key] = int(profile.get(key, 0)) + amount
-
 
 func _finalize_build_metrics(metrics: Dictionary, build_started_usec: int) -> void:
 	metrics["build_total_ms"] = _elapsed_ms_since(build_started_usec)
@@ -431,24 +377,20 @@ func _finalize_build_metrics(metrics: Dictionary, build_started_usec: int) -> vo
 		_refresh_requested_at_usec = 0
 	_last_build_metrics = metrics.duplicate(true)
 
-
 func _event_system() -> Node:
 	if _event_system_override != null and is_instance_valid(_event_system_override):
 		return _event_system_override
 	return get_node_or_null("/root/EventSystem")
-
 
 func _current_map_data() -> Node:
 	if _current_map_data_override != null and is_instance_valid(_current_map_data_override):
 		return _current_map_data_override
 	return get_node_or_null("/root/CurrentMapData")
 
-
 func _editor_state() -> Node:
 	if _editor_state_override != null and is_instance_valid(_editor_state_override):
 		return _editor_state_override
 	return get_node_or_null("/root/EditorState")
-
 
 func _preloads() -> Node:
 	if _preloads_override_set:
@@ -464,19 +406,16 @@ func _preloads() -> Node:
 		return main_loop.root.get_node_or_null("Preloads")
 	return null
 
-
 func _preview_refresh_active() -> bool:
 	var editor_state := _editor_state()
 	if editor_state != null:
 		return bool(editor_state.get("view_mode_3d"))
 	return true
 
-
 func _apply_preview_activity_state() -> void:
 	var active := _preview_refresh_active()
 	set_physics_process(active)
 	set_process_unhandled_input(active)
-
 
 func _request_refresh(reframe_camera: bool) -> void:
 	if not _refresh_pending and _refresh_requested_at_usec <= 0:
@@ -489,7 +428,6 @@ func _request_refresh(reframe_camera: bool) -> void:
 		return
 	_refresh_deferred = true
 	call_deferred("_apply_pending_refresh")
-
 
 func _apply_pending_refresh() -> void:
 	_refresh_deferred = false
@@ -573,23 +511,18 @@ func _on_map_view_updated() -> void:
 	if _refresh_pending:
 		_request_refresh(_refresh_reframe_pending)
 
-
 func _on_map_3d_overlay_animations_changed() -> void:
 	if _preview_refresh_active():
 		_request_overlay_only_refresh()
 
-
 func _on_host_station_added(_owner_id: int, _vehicle_id: int) -> void:
 	_request_dynamic_overlay_refresh()
-
 
 func _on_squad_added(_owner_id: int, _vehicle_id: int) -> void:
 	_request_dynamic_overlay_refresh()
 
-
 func _on_unit_position_committed() -> void:
 	_request_dynamic_overlay_refresh()
-
 
 func _on_unit_overlay_refresh_requested(unit_kind: String, unit_id: int) -> void:
 	if not _preview_refresh_active():
@@ -603,16 +536,13 @@ func _on_unit_overlay_refresh_requested(unit_kind: String, unit_id: int) -> void
 		return
 	_request_dynamic_overlay_refresh()
 
-
 func _request_overlay_only_refresh() -> void:
 	_overlay_only_refresh_requested = true
 	_request_refresh(false)
 
-
 func _request_dynamic_overlay_refresh() -> void:
 	_dynamic_overlay_refresh_requested = true
 	_request_refresh(false)
-
 
 func _can_use_overlay_only_refresh() -> bool:
 	if _chunk_rt.initial_build_in_progress:
@@ -634,7 +564,6 @@ func _can_use_overlay_only_refresh() -> bool:
 		return false
 	return true
 
-
 func _start_async_overlay_only_refresh(reframe_camera: bool) -> bool:
 	if not _can_use_overlay_only_refresh():
 		_overlay_only_refresh_requested = false
@@ -654,7 +583,6 @@ func _start_async_overlay_only_refresh(reframe_camera: bool) -> bool:
 	_begin_build_state(1, "Preparing overlays...")
 	_start_async_overlay_descriptor_build()
 	return true
-
 
 func _start_async_dynamic_overlay_refresh(reframe_camera: bool) -> bool:
 	if not _can_use_overlay_only_refresh():
@@ -677,7 +605,6 @@ func _start_async_dynamic_overlay_refresh(reframe_camera: bool) -> bool:
 	_start_async_overlay_descriptor_build(true)
 	return true
 
-
 func _sync_async_overlay_state_from_current_map() -> bool:
 	var cmd := _current_map_data()
 	if cmd == null:
@@ -699,7 +626,6 @@ func _sync_async_overlay_state_from_current_map() -> bool:
 	_async_level_set = int(cmd.level_set)
 	_async_game_data_type = game_data_type
 	return true
-
 
 func _try_start_async_initial_build(reframe_camera: bool) -> bool:
 	if not _chunk_rt.initial_build_in_progress:
@@ -768,7 +694,6 @@ func _try_start_async_initial_build(reframe_camera: bool) -> bool:
 	_coordinator.set_async_initial_thread(thread)
 	return true
 
-
 func _async_initial_build_worker(snapshot: Dictionary, generation_id: int) -> void:
 	var w := int(snapshot.get("w", 0))
 	var h := int(snapshot.get("h", 0))
@@ -822,7 +747,6 @@ func _async_initial_build_worker(snapshot: Dictionary, generation_id: int) -> vo
 		})
 	_set_async_worker_state(true, false, "")
 
-
 func _pump_async_initial_build() -> void:
 	if not _is_async_build_active():
 		return
@@ -839,7 +763,6 @@ func _pump_async_initial_build() -> void:
 	if bool(state.get("done", false)):
 		if _async_chunk_payload_count() == 0:
 			_finish_async_initial_build()
-
 
 func _apply_async_chunk_payload(payload: Dictionary) -> void:
 	var chunk_coord := Vector2i(payload.get("chunk_coord", Vector2i.ZERO))
@@ -868,7 +791,6 @@ func _apply_async_chunk_payload(payload: Dictionary) -> void:
 	_update_build_progress(done, total_chunks, "Rendering map... %d / %d" % [done, total_chunks])
 	_bump_3d_viewport_rendering()
 
-
 func _finish_async_initial_build() -> void:
 	_join_async_thread()
 	var cancelled := _coordinator._async_cancel_requested
@@ -887,7 +809,6 @@ func _finish_async_initial_build() -> void:
 		_request_refresh(restart_reframe)
 		return
 	_start_async_overlay_descriptor_build()
-
 
 func _start_async_overlay_descriptor_build(dynamic_only: bool = false) -> void:
 	_update_build_progress(total_chunks, total_chunks, "Preparing overlays...")
@@ -926,7 +847,6 @@ func _start_async_overlay_descriptor_build(dynamic_only: bool = false) -> void:
 		_start_async_overlay_apply(support_descriptors, [], _make_empty_build_metrics())
 		return
 	_coordinator.set_async_overlay_descriptor_thread(thread)
-
 
 func _async_overlay_descriptor_worker(payload: Dictionary) -> void:
 	var generation_id := int(payload.get("generation_id", -1))
@@ -969,7 +889,6 @@ func _async_overlay_descriptor_worker(payload: Dictionary) -> void:
 		"static_descriptors": static_descriptors,
 		"dynamic_descriptors": dynamic_descriptors,
 	}, metrics)
-
 
 func _pump_async_overlay_descriptor_build() -> void:
 	if not _is_async_overlay_descriptor_active():
@@ -1018,10 +937,8 @@ func _pump_async_overlay_descriptor_build() -> void:
 		return
 	_start_async_overlay_apply(static_descriptors, dynamic_descriptors, metrics)
 
-
 func _join_async_overlay_descriptor_thread() -> void:
 	_coordinator.join_async_overlay_descriptor_thread()
-
 
 func _ensure_overlay_nodes() -> void:
 	if _authored_overlay == null or not is_instance_valid(_authored_overlay):
@@ -1033,12 +950,10 @@ func _ensure_overlay_nodes() -> void:
 		_dynamic_overlay.name = "DynamicOverlay"
 		add_child(_dynamic_overlay)
 
-
 func _apply_dynamic_overlay(dynamic_descriptors: Array) -> void:
 	_ensure_overlay_nodes()
 	AuthoredOverlayManager.apply_overlay_node(_dynamic_overlay, dynamic_descriptors)
 	_apply_geometry_distance_culling_to_overlay()
-
 
 func _find_unit_by_instance_id(container: Node, unit_id: int) -> Node2D:
 	if container == null or not is_instance_valid(container):
@@ -1047,7 +962,6 @@ func _find_unit_by_instance_id(container: Node, unit_id: int) -> Node2D:
 		if child is Node2D and int(child.get_instance_id()) == unit_id:
 			return child as Node2D
 	return null
-
 
 func _apply_single_unit_dynamic_refresh(unit_kind: String, unit_id: int) -> bool:
 	if unit_id <= 0:
@@ -1094,7 +1008,6 @@ func _apply_single_unit_dynamic_refresh(unit_kind: String, unit_id: int) -> bool
 
 	return false
 
-
 func _start_async_overlay_apply(static_descriptors: Array, dynamic_descriptors: Array, metrics: Dictionary) -> void:
 	_ensure_overlay_nodes()
 	_async_overlay_descriptors = static_descriptors
@@ -1105,7 +1018,6 @@ func _start_async_overlay_apply(static_descriptors: Array, dynamic_descriptors: 
 	_async_overlay_apply_active = true
 	UATerrainPieceLibraryScript.reset_piece_overlay_build_counters()
 	_update_build_progress(total_chunks, total_chunks, "Applying 3D overlays... 0%")
-
 
 func _pump_async_overlay_apply() -> void:
 	if not _async_overlay_apply_active:
@@ -1128,7 +1040,6 @@ func _pump_async_overlay_apply() -> void:
 	_bump_3d_viewport_rendering()
 	if done:
 		_finalize_async_overlay_apply()
-
 
 func _finalize_async_overlay_apply() -> void:
 	if _authored_overlay != null and is_instance_valid(_authored_overlay):
@@ -1157,14 +1068,11 @@ func _finalize_async_overlay_apply() -> void:
 	elif _refresh_pending and _preview_refresh_active():
 		_request_refresh(_refresh_reframe_pending)
 
-
 func _cancel_async_initial_build() -> void:
 	_coordinator.cancel_async_build(_async_overlay_apply_active)
 
-
 func _join_async_thread() -> void:
 	_coordinator.join_async_thread()
-
 
 func _reset_async_build_state() -> void:
 	_coordinator.reset_async_state()
@@ -1188,7 +1096,6 @@ func _reset_async_build_state() -> void:
 	_dynamic_overlay_refresh_requested = false
 	_skip_next_map_changed_refresh = false
 
-
 func _sync_terrain_overlay_animation_mode_from_editor() -> void:
 	var es := _editor_state()
 	var anims_on := true
@@ -1197,7 +1104,6 @@ func _sync_terrain_overlay_animation_mode_from_editor() -> void:
 		if typeof(raw) == TYPE_BOOL:
 			anims_on = raw
 	UATerrainPieceLibraryScript.set_force_static_terrain_overlays(not anims_on)
-
 
 func _apply_debug_mode_to_existing_materials() -> void:
 	if _terrain_mesh == null or _terrain_mesh.mesh == null:
@@ -1217,11 +1123,9 @@ func _process(_delta: float) -> void:
 	_pump_async_overlay_descriptor_build()
 	_pump_async_overlay_apply()
 
-
 func _notification(what: int) -> void:
 	if what == NOTIFICATION_VISIBILITY_CHANGED and is_visible_in_tree() and _preview_refresh_active():
 		_bump_3d_viewport_rendering()
-
 
 func _exit_tree() -> void:
 	if _is_async_pipeline_active():
@@ -1229,13 +1133,11 @@ func _exit_tree() -> void:
 		_join_async_thread()
 		_join_async_overlay_descriptor_thread()
 
-
 func _get_map_subviewport() -> SubViewport:
 	var vp := get_viewport()
 	if vp is SubViewport:
 		return vp as SubViewport
 	return null
-
 
 func _bump_3d_viewport_rendering() -> void:
 	if not _preview_refresh_active():
@@ -1244,7 +1146,6 @@ func _bump_3d_viewport_rendering() -> void:
 	if vp == null:
 		return
 	vp.render_target_update_mode = SubViewport.UPDATE_WHEN_VISIBLE
-
 
 func _physics_process(delta: float) -> void:
 	# Simple spectator-style movement (WASD + QE), raw keys to avoid changing project InputMap
@@ -1317,7 +1218,7 @@ func _on_map_changed() -> void:
 	_overlay_only_refresh_requested = false
 	_dynamic_overlay_refresh_requested = false
 	var _cmd = _current_map_data()
-	_chunk_rt.explicit_chunk_invalidation_pending = false
+
 	if _cmd:
 		var w := int(_cmd.horizontal_sectors)
 		var h := int(_cmd.vertical_sectors)
@@ -1332,15 +1233,15 @@ func _on_map_changed() -> void:
 				# Any map-array checksum change means terrain content potentially changed.
 				# Force dirty chunks so stale incremental chunk sets cannot miss distant sectors.
 				_invalidate_all_chunks(w, h)
-				_effective_typ_dirty = true
+				_effective_typ_service.set_dirty(true)
 		_request_refresh(false)
 
 func _on_map_created() -> void:
 	_cancel_async_initial_build()
 	var _cmd = _current_map_data()
 	if _cmd:
-		_effective_typ_cache_valid = false
-		_effective_typ_dirty = true
+		_effective_typ_service.invalidate_cache()
+		_effective_typ_service.set_dirty(true)
 		# Seed dirty chunks for non-blocking initial terrain creation.
 		# This enables the incremental chunk path immediately after map load.
 		var w := int(_cmd.horizontal_sectors)
@@ -1360,7 +1261,6 @@ func _on_map_created() -> void:
 func _on_map_updated() -> void:
 	_on_map_changed()
 
-
 func _on_hgt_map_cells_edited(border_indices: Array) -> void:
 	_cancel_async_initial_build()
 	var _cmd = _current_map_data()
@@ -1371,7 +1271,7 @@ func _on_hgt_map_cells_edited(border_indices: Array) -> void:
 	if w <= 0 or h <= 0:
 		return
 	# hgt-only edit: `effective_typ` depends on typ/blg/entities; keep cached value if possible.
-	_effective_typ_dirty = false
+	_effective_typ_service.set_dirty(false)
 
 	var bw := w + 2
 	# Convert `hgt_map` border indices to a conservative set of affected playable sectors.
@@ -1399,7 +1299,6 @@ func _on_hgt_map_cells_edited(border_indices: Array) -> void:
 				seen_playable[key] = true
 				mark_sector_dirty(px, py, "hgt")
 
-
 func _on_typ_map_cells_edited(typ_indices: Array) -> void:
 	_cancel_async_initial_build()
 	var _cmd = _current_map_data()
@@ -1410,7 +1309,7 @@ func _on_typ_map_cells_edited(typ_indices: Array) -> void:
 	if w <= 0 or h <= 0:
 		return
 	# typ-only edit: recompute effective typ for correct surface + piece selection.
-	_effective_typ_dirty = true
+	_effective_typ_service.set_dirty(true)
 
 	var seen_playable := {}
 	for idx_value in typ_indices:
@@ -1458,28 +1357,11 @@ func build_from_current_map() -> void:
 	var effective_typ: PackedByteArray
 	var typ_checksum := _checksum_packed_byte_array(typ)
 	var blg_checksum := _checksum_packed_byte_array(blg)
-	var can_reuse_effective_typ := _effective_typ_cache_valid and (not _effective_typ_dirty) and _effective_typ_cache_dims == Vector2i(w, h) and _effective_typ_cache_game_data_type == game_data_type and _effective_typ_cache_typ_checksum == typ_checksum and _effective_typ_cache_blg_checksum == blg_checksum
-
+	var can_reuse_effective_typ := _effective_typ_service.is_valid_cache(w, h, game_data_type, typ_checksum, blg_checksum)
 	if can_reuse_effective_typ:
-		effective_typ = _effective_typ_cache
+		effective_typ = _effective_typ_service.get_effective_typ()
 	else:
-		effective_typ = _effective_typ_map_for_3d(
-			typ,
-			blg,
-			game_data_type,
-			w,
-			h,
-			_cmd.beam_gates,
-			_cmd.tech_upgrades,
-			_cmd.stoudson_bombs
-		)
-		_effective_typ_cache = effective_typ
-		_effective_typ_cache_valid = true
-		_effective_typ_cache_game_data_type = game_data_type
-		_effective_typ_cache_dims = Vector2i(w, h)
-		_effective_typ_cache_typ_checksum = typ_checksum
-		_effective_typ_cache_blg_checksum = blg_checksum
-		_effective_typ_dirty = false
+		effective_typ = _compute_effective_typ_for_map(_cmd, w, h, typ, blg, game_data_type)
 	_async_effective_typ = effective_typ
 
 	var pre = _preloads()
@@ -2196,105 +2078,23 @@ static func _build_host_station_descriptors_from_snapshot(host_stations: Array, 
 static func _build_host_station_descriptors(host_stations: Array, set_id: int, hgt: PackedByteArray, w: int, h: int, support_descriptors: Array = [], profile = null) -> Array:
 	return OverlayProducers.build_host_station_descriptors(host_stations, set_id, hgt, w, h, support_descriptors, profile)
 
-static func _normalized_game_data_type(game_data_type: String) -> String:
-	return "metropolisDawn" if game_data_type.to_lower() == "metropolisdawn" else "original"
-
 static func _clear_runtime_lookup_caches_for_tests() -> void:
-	_blg_typ_override_cache.clear()
-	VisualLookupService._clear_runtime_lookup_caches_for_tests()
-
-static func _append_blg_typ_entries_from_building_list(target: Dictionary, buildings_value: Variant) -> void:
-	if not (buildings_value is Array):
-		return
-	for entry in buildings_value:
-		if typeof(entry) != TYPE_DICTIONARY:
-			continue
-		var building := entry as Dictionary
-		var building_id := int(building.get("id", -1))
-		var typ_map := int(building.get("typ_map", -1))
-		if building_id >= 0 and typ_map >= 0:
-			target[building_id] = typ_map
+	EffectiveTypService.clear_runtime_lookup_caches_for_tests()
 
 static func _blg_typ_overrides_for_game_data_type(game_data_type: String) -> Dictionary:
-	var normalized_game_data_type := _normalized_game_data_type(game_data_type)
-	if _blg_typ_override_cache.has(normalized_game_data_type):
-		return _blg_typ_override_cache[normalized_game_data_type]
-	var result := {}
-	if UA_DATA_JSON == null or typeof(UA_DATA_JSON.data) != TYPE_DICTIONARY:
-		_blg_typ_override_cache[normalized_game_data_type] = result
-		return result
-	var root_data: Dictionary = UA_DATA_JSON.data
-	if not root_data.has(normalized_game_data_type):
-		_blg_typ_override_cache[normalized_game_data_type] = result
-		return result
-	var game_data: Dictionary = root_data[normalized_game_data_type]
-	var hoststations_value = game_data.get("hoststations", {})
-	if typeof(hoststations_value) == TYPE_DICTIONARY:
-		for station_name in hoststations_value.keys():
-			var station_value = hoststations_value[station_name]
-			if typeof(station_value) != TYPE_DICTIONARY:
-				continue
-			_append_blg_typ_entries_from_building_list(result, Dictionary(station_value).get("buildings", []))
-	var other_value = game_data.get("other", {})
-	if typeof(other_value) == TYPE_DICTIONARY:
-		_append_blg_typ_entries_from_building_list(result, Dictionary(other_value).get("buildings", []))
-	_blg_typ_override_cache[normalized_game_data_type] = result
-	return result
-
-static func _building_sec_type_overrides_from_definitions(definitions: Array) -> Dictionary:
-	var result := {}
-	var ambiguous_building_ids := {}
-	for definition_value in definitions:
-		if typeof(definition_value) != TYPE_DICTIONARY:
-			continue
-		var definition := definition_value as Dictionary
-		var building_id := int(definition.get("building_id", -1))
-		var sec_type := int(definition.get("sec_type", -1))
-		if building_id < 0 or sec_type < 0:
-			continue
-		if ambiguous_building_ids.has(building_id):
-			continue
-		if result.has(building_id) and int(result[building_id]) != sec_type:
-			result.erase(building_id)
-			ambiguous_building_ids[building_id] = true
-			continue
-		result[building_id] = sec_type
-	return result
+	return EffectiveTypService.blg_typ_overrides_for_game_data_type(game_data_type)
 
 static func _building_sec_type_overrides_for_script_names(set_id: int, game_data_type: String, script_names: Array[String]) -> Dictionary:
-	return VisualLookupService._building_sec_type_overrides_for_script_names(set_id, game_data_type, script_names)
+	return EffectiveTypService.building_sec_type_overrides_for_script_names(set_id, game_data_type, script_names)
 
 static func _tech_upgrade_typ_overrides_for_3d(set_id: int, game_data_type: String) -> Dictionary:
-	return VisualLookupService._tech_upgrade_typ_overrides_for_3d(set_id, game_data_type)
+	return EffectiveTypService.tech_upgrade_typ_overrides_for_3d(set_id, game_data_type)
 
 static func _entity_property(entity: Variant, property_names: Array[String], default_value: Variant = null) -> Variant:
-	if typeof(entity) == TYPE_DICTIONARY:
-		var dict := entity as Dictionary
-		for property_name in property_names:
-			if dict.has(property_name):
-				return dict[property_name]
-		return default_value
-	if typeof(entity) != TYPE_OBJECT or entity == null:
-		return default_value
-	var object := entity as Object
-	var available_properties := {}
-	for property_value in object.get_property_list():
-		if typeof(property_value) != TYPE_DICTIONARY:
-			continue
-		var property_name := String(Dictionary(property_value).get("name", ""))
-		if property_name.is_empty():
-			continue
-		available_properties[property_name] = true
-	for property_name in property_names:
-		if available_properties.has(property_name):
-			return object.get(property_name)
-	return default_value
+	return EffectiveTypService.entity_property(entity, property_names, default_value)
 
 static func _entity_int_property(entity: Variant, property_names: Array[String], default_value := -1) -> int:
-	var value = _entity_property(entity, property_names, null)
-	if value == null:
-		return default_value
-	return int(value)
+	return EffectiveTypService.entity_int_property(entity, property_names, default_value)
 
 static func _apply_sector_building_overrides_from_entities(
 		effective: PackedByteArray,
@@ -2304,23 +2104,7 @@ static func _apply_sector_building_overrides_from_entities(
 		building_property_names: Array[String],
 		building_sec_type_overrides: Dictionary
 	) -> void:
-	if w <= 0 or h <= 0 or effective.size() != w * h:
-		return
-	for entity in entities:
-		var sector_x := _entity_int_property(entity, ["sec_x"], -1)
-		var sector_y := _entity_int_property(entity, ["sec_y"], -1)
-		# Beam gates, tech upgrades, and Stoudson bombs store playable-sector
-		# coordinates the same way the 2D editor does: 1-based within the
-		# non-border typ_map footprint. Normalize those to the renderer's
-		# 0-based flat typ_map indexing before applying preview-only overrides.
-		if sector_x <= 0 or sector_y <= 0 or sector_x > w or sector_y > h:
-			continue
-		var sec_x := sector_x - 1
-		var sec_y := sector_y - 1
-		var building_id := _entity_int_property(entity, building_property_names, -1)
-		if building_id < 0 or not building_sec_type_overrides.has(building_id):
-			continue
-		effective[sec_y * w + sec_x] = clampi(int(building_sec_type_overrides[building_id]), 0, 255)
+	EffectiveTypService.apply_sector_building_overrides_from_entities(effective, w, h, entities, building_property_names, building_sec_type_overrides)
 
 static func _effective_typ_map_for_3d(
 		typ: PackedByteArray,
@@ -2333,22 +2117,7 @@ static func _effective_typ_map_for_3d(
 		stoudson_bombs: Array = [],
 		set_id: int = 1
 	) -> PackedByteArray:
-	var effective: PackedByteArray = typ.duplicate()
-	var blg_overrides := _blg_typ_overrides_for_game_data_type(game_data_type)
-	if blg.size() == typ.size():
-		for i in min(typ.size(), blg.size()):
-			var building_id := int(blg[i])
-			if not blg_overrides.has(building_id):
-				continue
-			effective[i] = clampi(int(blg_overrides[building_id]), 0, 255)
-	if w <= 0 or h <= 0 or typ.size() != w * h:
-		return effective
-	var build_script_overrides := _building_sec_type_overrides_for_script_names(set_id, game_data_type, ["BUILD.SCR"])
-	var tech_upgrade_overrides := _tech_upgrade_typ_overrides_for_3d(set_id, game_data_type)
-	_apply_sector_building_overrides_from_entities(effective, w, h, beam_gates, ["closed_bp"], build_script_overrides)
-	_apply_sector_building_overrides_from_entities(effective, w, h, tech_upgrades, ["building_id", "building"], tech_upgrade_overrides)
-	_apply_sector_building_overrides_from_entities(effective, w, h, stoudson_bombs, ["inactive_bp"], build_script_overrides)
-	return effective
+	return EffectiveTypService.effective_typ_map_for_3d(typ, blg, game_data_type, w, h, beam_gates, tech_upgrades, stoudson_bombs, set_id)
 
 static func _empty_building_attachment() -> Dictionary:
 	return {

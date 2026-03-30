@@ -2,7 +2,7 @@ extends SceneTree
 
 
 func _init() -> void:
-	var test_script := load("res://tests/test_map_3d_texturing.gd")
+	var test_script := load("res://tests/test_ua_sky_runtime.gd")
 	if test_script == null:
 		push_error("Failed to load selected test file")
 		quit(1)
