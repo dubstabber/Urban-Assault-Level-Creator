@@ -4,6 +4,8 @@ class_name Map3DViewController
 const UA_NORMAL_VIZ_LIMIT := 1400.0
 const UA_NORMAL_FADE_LENGTH := 600.0
 const UA_VISIBILITY_FOG_COLOR := Color.BLACK
+## Camera height above terrain reference when framing the map (new map / open / reframe).
+const UA_FRAMED_CAMERA_HEIGHT_ABOVE_TERRAIN := 600.0
 
 
 static func visibility_range_fade_start(viz_limit: float = UA_NORMAL_VIZ_LIMIT, fade_length: float = UA_NORMAL_FADE_LENGTH) -> float:
@@ -77,18 +79,19 @@ static func frame_camera_to_map(camera: Camera3D, current_map_data: Node, sector
 	var pitch := deg_to_rad(-35.0)
 	var yaw := deg_to_rad(45.0)
 	apply_camera_rotation(camera, yaw, pitch)
-	var y_offset: float = max(dist * 0.35, 300.0)
-	var desired_pos := Vector3(center.x, terrain_base_y + y_offset, center.z)
-	# When eye shares X/Z with target, view axis is parallel to Vector3.UP and look_at's up is degenerate.
-	var eye := desired_pos
-	var fwd := center - eye
-	if Vector2(fwd.x, fwd.z).length_squared() < 1e-8:
-		eye.x += 1.0
-	camera.global_transform.origin = eye
+	var y_offset: float = UA_FRAMED_CAMERA_HEIGHT_ABOVE_TERRAIN
+	# Orbit from map center using the framed yaw/pitch so we look toward the center (not straight down):
+	# place eye at vertical offset y_offset while keeping camera forward = -basis.z.
+	var forward := (-camera.global_transform.basis.z).normalized()
+	var fy := forward.y
+	if absf(fy) < 1e-3:
+		fy = -1e-3
+	var orbit_r: float = -y_offset / fy
+	var eye := center - forward * orbit_r
+	camera.global_position = eye
 	var far_dist: float = max(dist * 4.0, 50000.0)
 	camera.near = 0.1
 	camera.far = min(far_dist, 1.0e7)
-	camera.look_at(center, Vector3.UP)
 	return {
 		"framed": true,
 		"pitch": pitch,
