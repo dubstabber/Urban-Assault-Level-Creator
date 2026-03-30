@@ -1,0 +1,127 @@
+{
+ "MC2 ": [ 
+  {
+   "OBJT": [ 
+    {
+     "CLID": {
+      "class_id": "base.class"
+     }
+    }, 
+    {
+     "BASE": [ 
+      {
+       "ROOT": [ 
+        {
+         "NAME": {
+          "name": "BEEBOX",
+          "zero_terminated": false
+         }
+        } ]
+      }, 
+      {
+       "OBJT": [ 
+        {
+         "CLID": {
+          "class_id": "embed.class"
+         }
+        }, 
+        {
+         "EMBD": [ 
+          {
+           "ROOT": []
+          }, 
+          {
+           "EMRS": {
+            "class_id": "sklt.class",
+            "emrs_name": "Skeleton/beebox.sklt"
+           }
+          }, 
+          {
+           "SKLT": [ 
+            {
+             "POO2": {
+              "points": [ 
+               {
+                "x": -600.0,
+                "y": 100.0,
+                "z": 600.0
+               }, 
+               {
+                "x": 600.0,
+                "y": 100.0,
+                "z": 600.0
+               }, 
+               {
+                "x": 600.0,
+                "y": 100.0,
+                "z": -600.0
+               }, 
+               {
+                "x": -600.0,
+                "y": 100.0,
+                "z": -600.0
+               }, 
+               {
+                "x": -600.0,
+                "y": -1100.0,
+                "z": 600.0
+               }, 
+               {
+                "x": 600.0,
+                "y": -1100.0,
+                "z": 600.0
+               }, 
+               {
+                "x": 600.0,
+                "y": -1100.0,
+                "z": -600.0
+               }, 
+               {
+                "x": -600.0,
+                "y": -1100.0,
+                "z": -600.0
+               } ]
+             }
+            } ]
+          } ]
+        } ]
+      }, 
+      {
+       "STRC": {
+        "_un1": 0,
+        "ambient_light": 255,
+        "att_flags": 72,
+        "ax": 0,
+        "ay": 0,
+        "az": 0,
+        "pos": [ 0.0, 0.0, 0.0 ],
+        "rx": 0,
+        "ry": 0,
+        "rz": 0,
+        "scale": [ 1.0, 1.0, 1.0 ],
+        "strc_type": "STRC_BASE",
+        "vec": [ 0.0, 0.0, 0.0 ],
+        "version": 1,
+        "vis_limit": 4096
+       }
+      }, 
+      {
+       "OBJT": [ 
+        {
+         "CLID": {
+          "class_id": "sklt.class"
+         }
+        }, 
+        {
+         "SKLC": [ 
+          {
+           "NAME": {
+            "name": "Skeleton/beebox.sklt",
+            "zero_terminated": true
+           }
+          } ]
+        } ]
+      } ]
+    } ]
+  } ]
+}

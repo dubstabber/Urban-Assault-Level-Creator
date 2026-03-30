@@ -1,0 +1,595 @@
+{
+ "MC2 ": [ 
+  {
+   "OBJT": [ 
+    {
+     "CLID": {
+      "class_id": "base.class"
+     }
+    }, 
+    {
+     "BASE": [ 
+      {
+       "ROOT": [ 
+        {
+         "NAME": {
+          "name": "WGxpyram",
+          "zero_terminated": false
+         }
+        } ]
+      }, 
+      {
+       "STRC": {
+        "_un1": 0,
+        "ambient_light": 255,
+        "att_flags": 72,
+        "ax": 0,
+        "ay": 0,
+        "az": 0,
+        "pos": [ 0.0, 0.0, 0.0 ],
+        "rx": 0,
+        "ry": 0,
+        "rz": 0,
+        "scale": [ 1.0, 1.0, 1.0 ],
+        "strc_type": "STRC_BASE",
+        "vec": [ 0.0, 0.0, 0.0 ],
+        "version": 1,
+        "vis_limit": 4096
+       }
+      }, 
+      {
+       "OBJT": [ 
+        {
+         "CLID": {
+          "class_id": "sklt.class"
+         }
+        }, 
+        {
+         "SKLC": [ 
+          {
+           "NAME": {
+            "name": "Skeleton/WGXPYRAM.sklt",
+            "zero_terminated": true
+           }
+          } ]
+        } ]
+      }, 
+      {
+       "ADES": [ 
+        {
+         "OBJT": [ 
+          {
+           "CLID": {
+            "class_id": "amesh.class"
+           }
+          }, 
+          {
+           "AMSH": [ 
+            {
+             "AREA": [ 
+              {
+               "ADE ": [ 
+                {
+                 "ROOT": []
+                }, 
+                {
+                 "STRC": {
+                  "_nu2": 0,
+                  "_nul": 0,
+                  "flags": 2,
+                  "point": 0,
+                  "poly": 0,
+                  "strc_type": "STRC_ADE ",
+                  "version": 1
+                 }
+                } ]
+              }, 
+              {
+               "STRC": {
+                "_un1": 0,
+                "clrVal": 1,
+                "flags": 1,
+                "polFlags": 62,
+                "shdVal": 0,
+                "strc_type": "STRC_AREA",
+                "trcVal": 0,
+                "version": 256
+               }
+              }, 
+              {
+               "OBJT": [ 
+                {
+                 "CLID": {
+                  "class_id": "ilbm.class"
+                 }
+                }, 
+                {
+                 "CIBO": [ 
+                  {
+                   "NAM2": {
+                    "name": "HYPE.ILBM",
+                    "zero_terminated": true
+                   }
+                  } ]
+                } ]
+              } ]
+            }, 
+            {
+             "ATTS": {
+              "atts_entries": [ 
+               {
+                "color_val": 0,
+                "pad": 0,
+                "poly_id": 0,
+                "shade_val": 11,
+                "tracy_val": 128
+               }, 
+               {
+                "color_val": 0,
+                "pad": 0,
+                "poly_id": 1,
+                "shade_val": 13,
+                "tracy_val": 128
+               }, 
+               {
+                "color_val": 0,
+                "pad": 0,
+                "poly_id": 2,
+                "shade_val": 14,
+                "tracy_val": 128
+               }, 
+               {
+                "color_val": 0,
+                "pad": 0,
+                "poly_id": 3,
+                "shade_val": 100,
+                "tracy_val": 128
+               }, 
+               {
+                "color_val": 0,
+                "pad": 0,
+                "poly_id": 4,
+                "shade_val": 15,
+                "tracy_val": 128
+               }, 
+               {
+                "color_val": 0,
+                "pad": 0,
+                "poly_id": 5,
+                "shade_val": 25,
+                "tracy_val": 128
+               }, 
+               {
+                "color_val": 0,
+                "pad": 0,
+                "poly_id": 6,
+                "shade_val": 90,
+                "tracy_val": 128
+               }, 
+               {
+                "color_val": 0,
+                "pad": 0,
+                "poly_id": 7,
+                "shade_val": 25,
+                "tracy_val": 128
+               }, 
+               {
+                "color_val": 0,
+                "pad": 0,
+                "poly_id": 8,
+                "shade_val": 25,
+                "tracy_val": 128
+               }, 
+               {
+                "color_val": 0,
+                "pad": 0,
+                "poly_id": 9,
+                "shade_val": 25,
+                "tracy_val": 128
+               }, 
+               {
+                "color_val": 0,
+                "pad": 0,
+                "poly_id": 10,
+                "shade_val": 25,
+                "tracy_val": 128
+               }, 
+               {
+                "color_val": 0,
+                "pad": 0,
+                "poly_id": 11,
+                "shade_val": 25,
+                "tracy_val": 128
+               }, 
+               {
+                "color_val": 0,
+                "pad": 0,
+                "poly_id": 12,
+                "shade_val": 80,
+                "tracy_val": 128
+               }, 
+               {
+                "color_val": 0,
+                "pad": 0,
+                "poly_id": 13,
+                "shade_val": 85,
+                "tracy_val": 128
+               }, 
+               {
+                "color_val": 0,
+                "pad": 0,
+                "poly_id": 14,
+                "shade_val": 86,
+                "tracy_val": 128
+               }, 
+               {
+                "color_val": 0,
+                "pad": 0,
+                "poly_id": 15,
+                "shade_val": 87,
+                "tracy_val": 128
+               }, 
+               {
+                "color_val": 0,
+                "pad": 0,
+                "poly_id": 16,
+                "shade_val": 70,
+                "tracy_val": 128
+               }, 
+               {
+                "color_val": 0,
+                "pad": 0,
+                "poly_id": 17,
+                "shade_val": 88,
+                "tracy_val": 128
+               }, 
+               {
+                "color_val": 0,
+                "pad": 0,
+                "poly_id": 18,
+                "shade_val": 89,
+                "tracy_val": 128
+               }, 
+               {
+                "color_val": 0,
+                "pad": 0,
+                "poly_id": 19,
+                "shade_val": 56,
+                "tracy_val": 128
+               }, 
+               {
+                "color_val": 0,
+                "pad": 0,
+                "poly_id": 20,
+                "shade_val": 58,
+                "tracy_val": 128
+               }, 
+               {
+                "color_val": 0,
+                "pad": 0,
+                "poly_id": 21,
+                "shade_val": 70,
+                "tracy_val": 128
+               }, 
+               {
+                "color_val": 0,
+                "pad": 0,
+                "poly_id": 22,
+                "shade_val": 55,
+                "tracy_val": 128
+               }, 
+               {
+                "color_val": 0,
+                "pad": 0,
+                "poly_id": 23,
+                "shade_val": 80,
+                "tracy_val": 128
+               }, 
+               {
+                "color_val": 0,
+                "pad": 0,
+                "poly_id": 24,
+                "shade_val": 100,
+                "tracy_val": 128
+               }, 
+               {
+                "color_val": 0,
+                "pad": 0,
+                "poly_id": 25,
+                "shade_val": 110,
+                "tracy_val": 128
+               }, 
+               {
+                "color_val": 0,
+                "pad": 0,
+                "poly_id": 26,
+                "shade_val": 55,
+                "tracy_val": 128
+               }, 
+               {
+                "color_val": 0,
+                "pad": 0,
+                "poly_id": 27,
+                "shade_val": 55,
+                "tracy_val": 128
+               }, 
+               {
+                "color_val": 0,
+                "pad": 0,
+                "poly_id": 28,
+                "shade_val": 55,
+                "tracy_val": 128
+               }, 
+               {
+                "color_val": 0,
+                "pad": 0,
+                "poly_id": 29,
+                "shade_val": 55,
+                "tracy_val": 128
+               }, 
+               {
+                "color_val": 0,
+                "pad": 0,
+                "poly_id": 30,
+                "shade_val": 16,
+                "tracy_val": 128
+               }, 
+               {
+                "color_val": 0,
+                "pad": 0,
+                "poly_id": 31,
+                "shade_val": 16,
+                "tracy_val": 128
+               }, 
+               {
+                "color_val": 0,
+                "pad": 0,
+                "poly_id": 32,
+                "shade_val": 55,
+                "tracy_val": 128
+               }, 
+               {
+                "color_val": 0,
+                "pad": 0,
+                "poly_id": 33,
+                "shade_val": 55,
+                "tracy_val": 128
+               }, 
+               {
+                "color_val": 0,
+                "pad": 0,
+                "poly_id": 34,
+                "shade_val": 90,
+                "tracy_val": 128
+               }, 
+               {
+                "color_val": 0,
+                "pad": 0,
+                "poly_id": 35,
+                "shade_val": 90,
+                "tracy_val": 128
+               }, 
+               {
+                "color_val": 0,
+                "pad": 0,
+                "poly_id": 36,
+                "shade_val": 12,
+                "tracy_val": 128
+               }, 
+               {
+                "color_val": 0,
+                "pad": 0,
+                "poly_id": 37,
+                "shade_val": 12,
+                "tracy_val": 128
+               }, 
+               {
+                "color_val": 0,
+                "pad": 0,
+                "poly_id": 38,
+                "shade_val": 57,
+                "tracy_val": 128
+               }, 
+               {
+                "color_val": 0,
+                "pad": 0,
+                "poly_id": 39,
+                "shade_val": 57,
+                "tracy_val": 128
+               }, 
+               {
+                "color_val": 0,
+                "pad": 0,
+                "poly_id": 40,
+                "shade_val": 60,
+                "tracy_val": 128
+               }, 
+               {
+                "color_val": 0,
+                "pad": 0,
+                "poly_id": 41,
+                "shade_val": 60,
+                "tracy_val": 128
+               } ],
+              "is_particle_atts": false
+             }
+            }, 
+            {
+             "OLPL": {
+              "points": [ 
+               [ 
+                [ 1, 113 ], 
+                [ 126, 57 ], 
+                [ 1, 57 ] ], 
+               [ 
+                [ 1, 1 ], 
+                [ 1, 57 ], 
+                [ 126, 1 ] ], 
+               [ 
+                [ 254, 118 ], 
+                [ 129, 118 ], 
+                [ 254, 60 ] ], 
+               [ 
+                [ 211, 67 ], 
+                [ 250, 116 ], 
+                [ 212, 114 ] ], 
+               [ 
+                [ 129, 118 ], 
+                [ 129, 60 ], 
+                [ 254, 60 ] ], 
+               [ 
+                [ 1, 113 ], 
+                [ 126, 57 ], 
+                [ 1, 57 ] ], 
+               [ 
+                [ 211, 67 ], 
+                [ 174, 76 ], 
+                [ 174, 42 ] ], 
+               [ 
+                [ 1, 1 ], 
+                [ 1, 57 ], 
+                [ 126, 1 ] ], 
+               [ 
+                [ 126, 57 ], 
+                [ 126, 1 ], 
+                [ 1, 57 ] ], 
+               [ 
+                [ 254, 118 ], 
+                [ 129, 118 ], 
+                [ 254, 60 ] ], 
+               [ 
+                [ 254, 2 ], 
+                [ 254, 60 ], 
+                [ 129, 60 ] ], 
+               [ 
+                [ 129, 118 ], 
+                [ 129, 60 ], 
+                [ 254, 60 ] ], 
+               [ 
+                [ 211, 67 ], 
+                [ 211, 27 ], 
+                [ 250, 12 ] ], 
+               [ 
+                [ 1, 1 ], 
+                [ 1, 57 ], 
+                [ 126, 1 ] ], 
+               [ 
+                [ 126, 57 ], 
+                [ 126, 1 ], 
+                [ 1, 57 ] ], 
+               [ 
+                [ 254, 118 ], 
+                [ 129, 118 ], 
+                [ 254, 60 ] ], 
+               [ 
+                [ 211, 67 ], 
+                [ 174, 42 ], 
+                [ 211, 27 ] ], 
+               [ 
+                [ 254, 2 ], 
+                [ 254, 60 ], 
+                [ 129, 60 ] ], 
+               [ 
+                [ 129, 118 ], 
+                [ 129, 60 ], 
+                [ 254, 60 ] ], 
+               [ 
+                [ 1, 1 ], 
+                [ 1, 57 ], 
+                [ 126, 1 ] ], 
+               [ 
+                [ 254, 118 ], 
+                [ 129, 118 ], 
+                [ 254, 60 ] ], 
+               [ 
+                [ 211, 67 ], 
+                [ 250, 12 ], 
+                [ 250, 60 ] ], 
+               [ 
+                [ 129, 118 ], 
+                [ 129, 60 ], 
+                [ 254, 60 ] ], 
+               [ 
+                [ 211, 67 ], 
+                [ 212, 114 ], 
+                [ 192, 93 ] ], 
+               [ 
+                [ 174, 76 ], 
+                [ 211, 67 ], 
+                [ 192, 93 ] ], 
+               [ 
+                [ 192, 93 ], 
+                [ 174, 115 ], 
+                [ 174, 76 ] ], 
+               [ 
+                [ 1, 57 ], 
+                [ 1, 113 ], 
+                [ 63, 85 ] ], 
+               [ 
+                [ 63, 85 ], 
+                [ 126, 57 ], 
+                [ 1, 57 ] ], 
+               [ 
+                [ 254, 2 ], 
+                [ 254, 60 ], 
+                [ 191, 31 ] ], 
+               [ 
+                [ 191, 31 ], 
+                [ 254, 60 ], 
+                [ 129, 60 ] ], 
+               [ 
+                [ 254, 2 ], 
+                [ 254, 60 ], 
+                [ 191, 31 ] ], 
+               [ 
+                [ 191, 31 ], 
+                [ 254, 60 ], 
+                [ 129, 60 ] ], 
+               [ 
+                [ 1, 57 ], 
+                [ 1, 113 ], 
+                [ 63, 85 ] ], 
+               [ 
+                [ 63, 85 ], 
+                [ 126, 57 ], 
+                [ 1, 57 ] ], 
+               [ 
+                [ 192, 93 ], 
+                [ 212, 114 ], 
+                [ 193, 114 ] ], 
+               [ 
+                [ 193, 114 ], 
+                [ 174, 115 ], 
+                [ 192, 93 ] ], 
+               [ 
+                [ 1, 57 ], 
+                [ 126, 57 ], 
+                [ 126, 29 ] ], 
+               [ 
+                [ 126, 29 ], 
+                [ 126, 1 ], 
+                [ 1, 57 ] ], 
+               [ 
+                [ 1, 57 ], 
+                [ 126, 57 ], 
+                [ 126, 29 ] ], 
+               [ 
+                [ 126, 29 ], 
+                [ 126, 1 ], 
+                [ 1, 57 ] ], 
+               [ 
+                [ 211, 67 ], 
+                [ 250, 60 ], 
+                [ 250, 88 ] ], 
+               [ 
+                [ 250, 88 ], 
+                [ 250, 116 ], 
+                [ 211, 67 ] ] ]
+             }
+            } ]
+          } ]
+        } ]
+      } ]
+    } ]
+  } ]
+}
