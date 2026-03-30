@@ -80,6 +80,7 @@ size_flags_vertical = 3
 theme_override_fonts/font = ExtResource("1_183rx")
 current_tab = 1
 clip_tabs = false
+tab_focus_mode = 0
 script = SubResource("GDScript_hihdk")
 
 [node name="Unit" type="TabBar" parent="TabContainer"]
@@ -90,7 +91,7 @@ script = ExtResource("1_cdtuf")
 metadata/_tab_index = 0
 
 [node name="ScrollContainer" type="ScrollContainer" parent="TabContainer/Unit"]
-layout_mode = 2
+layout_mode = 0
 anchor_right = 1.0
 anchor_bottom = 1.0
 grow_horizontal = 2
