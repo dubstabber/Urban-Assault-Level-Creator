@@ -74,8 +74,12 @@ func decrement_typ_map(index: int) -> void:
 func randomize_whole_typ_map() -> void:
 	if CurrentMapData.typ_map.is_empty():
 		return
-	
+
+	var undo_redo_manager = get_node("/root/UndoRedoManager")
+	undo_redo_manager.begin_group("Randomize typ_map")
+	var edited_typ_indices: Array = []
 	for i in CurrentMapData.typ_map.size():
+		var before := int(CurrentMapData.typ_map[i])
 		var rand: int
 		var is_valid := false
 		
@@ -84,7 +88,17 @@ func randomize_whole_typ_map() -> void:
 			is_valid = _is_valid_typ(rand, CurrentMapData.level_set)
 		
 		CurrentMapData.typ_map[i] = rand
-	
+		undo_redo_manager.record_change({
+			"map": "typ_map",
+			"index": i,
+			"before": before,
+			"after": int(CurrentMapData.typ_map[i])
+		})
+		edited_typ_indices.append(i)
+
+	undo_redo_manager.commit_group()
+	if not edited_typ_indices.is_empty():
+		EventSystem.typ_map_cells_edited.emit(edited_typ_indices)
 	EventSystem.map_updated.emit()
 
 
