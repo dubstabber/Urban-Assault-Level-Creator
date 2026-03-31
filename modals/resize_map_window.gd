@@ -76,12 +76,14 @@ func _on_ok_button_pressed() -> void:
 		if hs.position.x > right_sector_limit or hs.position.y > bottom_sector_limit:
 			if hs == EditorState.selected_unit: EditorState.selected_unit = null
 			hs.queue_free()
-		hs.recalculate_limits()
+		else:
+			hs.recalculate_limits()
 	for squad: Squad in CurrentMapData.squads.get_children():
 		if squad.position.x > right_sector_limit or squad.position.y > bottom_sector_limit:
 			if squad == EditorState.selected_unit: EditorState.selected_unit = null
 			squad.queue_free()
-		squad.recalculate_limits()
+		else:
+			squad.recalculate_limits()
 
 	var resize_after: Dictionary = undo_redo_manager.create_resize_snapshot()
 	undo_redo_manager.record_resize_snapshot(resize_before, resize_after)

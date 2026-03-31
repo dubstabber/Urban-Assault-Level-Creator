@@ -7,9 +7,14 @@ var mykonian_swap: PopupMenu = PopupMenu.new()
 var sulgogar_swap: PopupMenu = PopupMenu.new()
 var blacksect_swap: PopupMenu = PopupMenu.new()
 var training_swap: PopupMenu = PopupMenu.new()
+@onready var undo_redo_manager = get_node("/root/UndoRedoManager")
 
 
 func _ready() -> void:
+	add_item("Undo")
+	add_item("Redo")
+	add_separator()
+
 	add_item("Select all sectors")
 	add_item("Select all sectors except the borders")
 	
@@ -73,6 +78,10 @@ func _ready() -> void:
 
 func _on_index_pressed(index: int) -> void:
 	match get_item_text(index):
+		"Undo":
+			undo_redo_manager.undo()
+		"Redo":
+			undo_redo_manager.redo()
 		"Select all sectors":
 			Utils.select_all_sectors()
 		"Select all sectors except the borders":
