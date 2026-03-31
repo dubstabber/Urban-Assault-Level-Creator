@@ -13,7 +13,9 @@ func _on_ok_button_pressed() -> void:
 	if CurrentMapData.horizontal_sectors <= 0 or CurrentMapData.vertical_sectors <= 0:
 		hide()
 		return
-	
+
+	undo_redo_manager.begin_group("Resize map")
+	var resize_before: Dictionary = undo_redo_manager.create_resize_snapshot()
 	EditorState.unselect_all()
 	
 	var resized_typ_map: Array[int] = []
@@ -80,9 +82,12 @@ func _on_ok_button_pressed() -> void:
 			if squad == EditorState.selected_unit: EditorState.selected_unit = null
 			squad.queue_free()
 		squad.recalculate_limits()
-	
+
+	var resize_after: Dictionary = undo_redo_manager.create_resize_snapshot()
+	undo_redo_manager.record_resize_snapshot(resize_before, resize_after)
+	undo_redo_manager.commit_group()
 	EventSystem.map_updated.emit()
-	undo_redo_manager.clear_history()
+	EventSystem.item_updated.emit()
 	get_tree().root.size_changed.emit()
 	
 	hide()

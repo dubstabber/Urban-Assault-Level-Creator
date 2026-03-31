@@ -62,11 +62,38 @@ func record_item_snapshot(before_snapshot: Dictionary, after_snapshot: Dictionar
 	})
 
 
+func record_resize_snapshot(before_snapshot: Dictionary, after_snapshot: Dictionary) -> void:
+	if _is_replaying:
+		return
+	if not _has_active_group():
+		return
+	if before_snapshot == after_snapshot:
+		return
+	_active_group.changes.append({
+		"kind": "resize_snapshot",
+		"before": before_snapshot.duplicate(true),
+		"after": after_snapshot.duplicate(true)
+	})
+
+
 func create_item_snapshot() -> Dictionary:
 	return {
 		"beam_gates": _serialize_beam_gates(CurrentMapData.beam_gates),
 		"stoudson_bombs": _serialize_stoudson_bombs(CurrentMapData.stoudson_bombs),
 		"tech_upgrades": _serialize_tech_upgrades(CurrentMapData.tech_upgrades)
+	}
+
+
+func create_resize_snapshot() -> Dictionary:
+	return {
+		"horizontal_sectors": CurrentMapData.horizontal_sectors,
+		"vertical_sectors": CurrentMapData.vertical_sectors,
+		"typ_map": CurrentMapData.typ_map.duplicate(),
+		"own_map": CurrentMapData.own_map.duplicate(),
+		"hgt_map": CurrentMapData.hgt_map.duplicate(),
+		"blg_map": CurrentMapData.blg_map.duplicate(),
+		"host_stations": _serialize_host_stations(),
+		"squads": _serialize_squads()
 	}
 
 
@@ -126,6 +153,11 @@ func _apply_group(group: Dictionary, use_before: bool) -> void:
 		if change.has("kind") and change.kind == "item_snapshot":
 			var snapshot_key := "before" if use_before else "after"
 			_apply_item_snapshot(change[snapshot_key])
+			edited_item_data = true
+			continue
+		if change.has("kind") and change.kind == "resize_snapshot":
+			var resize_snapshot_key := "before" if use_before else "after"
+			_apply_resize_snapshot(change[resize_snapshot_key])
 			edited_item_data = true
 			continue
 		if not _is_valid_change(change):
@@ -314,3 +346,127 @@ func _deserialize_building_modifiers(source: Array) -> Array[TechUpgrade.ModifyB
 			modifier[key] = entry[key]
 		result.append(modifier)
 	return result
+
+
+func _serialize_host_stations() -> Array[Dictionary]:
+	var serialized: Array[Dictionary] = []
+	if not CurrentMapData.host_stations:
+		return serialized
+	for hs: HostStation in CurrentMapData.host_stations.get_children():
+		serialized.append({
+			"owner_id": hs.owner_id,
+			"vehicle": hs.vehicle,
+			"position": hs.position,
+			"pos_y": hs.pos_y,
+			"energy": hs.energy,
+			"view_angle": hs.view_angle,
+			"view_angle_enabled": hs.view_angle_enabled,
+			"reload_const": hs.reload_const,
+			"reload_const_enabled": hs.reload_const_enabled,
+			"con_budget": hs.con_budget,
+			"con_delay": hs.con_delay,
+			"def_budget": hs.def_budget,
+			"def_delay": hs.def_delay,
+			"rec_budget": hs.rec_budget,
+			"rec_delay": hs.rec_delay,
+			"rob_budget": hs.rob_budget,
+			"rob_delay": hs.rob_delay,
+			"pow_budget": hs.pow_budget,
+			"pow_delay": hs.pow_delay,
+			"rad_budget": hs.rad_budget,
+			"rad_delay": hs.rad_delay,
+			"saf_budget": hs.saf_budget,
+			"saf_delay": hs.saf_delay,
+			"cpl_budget": hs.cpl_budget,
+			"cpl_delay": hs.cpl_delay,
+			"mb_status": hs.mb_status
+		})
+	return serialized
+
+
+func _serialize_squads() -> Array[Dictionary]:
+	var serialized: Array[Dictionary] = []
+	if not CurrentMapData.squads:
+		return serialized
+	for squad: Squad in CurrentMapData.squads.get_children():
+		serialized.append({
+			"owner_id": squad.owner_id,
+			"vehicle": squad.vehicle,
+			"position": squad.position,
+			"quantity": squad.quantity,
+			"useable": squad.useable,
+			"mb_status": squad.mb_status
+		})
+	return serialized
+
+
+func _apply_resize_snapshot(snapshot: Dictionary) -> void:
+	CurrentMapData.horizontal_sectors = int(snapshot.get("horizontal_sectors", 0))
+	CurrentMapData.vertical_sectors = int(snapshot.get("vertical_sectors", 0))
+	CurrentMapData.typ_map = snapshot.get("typ_map", PackedByteArray()).duplicate()
+	CurrentMapData.own_map = snapshot.get("own_map", PackedByteArray()).duplicate()
+	CurrentMapData.hgt_map = snapshot.get("hgt_map", PackedByteArray()).duplicate()
+	CurrentMapData.blg_map = snapshot.get("blg_map", PackedByteArray()).duplicate()
+	_restore_host_stations(snapshot.get("host_stations", []))
+	_restore_squads(snapshot.get("squads", []))
+	EditorState.selected_unit = null
+	EditorState.unselect_all()
+	get_tree().root.size_changed.emit()
+
+
+func _restore_host_stations(host_stations_snapshot: Array) -> void:
+	if not CurrentMapData.host_stations:
+		return
+	for hs in CurrentMapData.host_stations.get_children():
+		hs.queue_free()
+	for entry_any in host_stations_snapshot:
+		var entry: Dictionary = entry_any
+		var hoststation = Preloads.HOSTSTATION.instantiate()
+		CurrentMapData.host_stations.add_child(hoststation)
+		hoststation.create(int(entry.get("owner_id", 1)), int(entry.get("vehicle", 0)))
+		hoststation.position = entry.get("position", Vector2.ZERO)
+		hoststation.pos_y = int(entry.get("pos_y", -500))
+		hoststation.energy = int(entry.get("energy", 300000))
+		hoststation.view_angle = int(entry.get("view_angle", 0))
+		hoststation.view_angle_enabled = bool(entry.get("view_angle_enabled", false))
+		hoststation.reload_const = int(entry.get("reload_const", 0))
+		hoststation.reload_const_enabled = bool(entry.get("reload_const_enabled", false))
+		hoststation.con_budget = int(entry.get("con_budget", 100))
+		hoststation.con_delay = int(entry.get("con_delay", 0))
+		hoststation.def_budget = int(entry.get("def_budget", 99))
+		hoststation.def_delay = int(entry.get("def_delay", 0))
+		hoststation.rec_budget = int(entry.get("rec_budget", 99))
+		hoststation.rec_delay = int(entry.get("rec_delay", 0))
+		hoststation.rob_budget = int(entry.get("rob_budget", 80))
+		hoststation.rob_delay = int(entry.get("rob_delay", 0))
+		hoststation.pow_budget = int(entry.get("pow_budget", 80))
+		hoststation.pow_delay = int(entry.get("pow_delay", 0))
+		hoststation.rad_budget = int(entry.get("rad_budget", 0))
+		hoststation.rad_delay = int(entry.get("rad_delay", 0))
+		hoststation.saf_budget = int(entry.get("saf_budget", 50))
+		hoststation.saf_delay = int(entry.get("saf_delay", 0))
+		hoststation.cpl_budget = int(entry.get("cpl_budget", 99))
+		hoststation.cpl_delay = int(entry.get("cpl_delay", 0))
+		hoststation.mb_status = bool(entry.get("mb_status", false))
+		hoststation.recalculate_limits()
+	if CurrentMapData.host_stations.get_child_count() > 0:
+		CurrentMapData.player_host_station = CurrentMapData.host_stations.get_child(0)
+	else:
+		CurrentMapData.player_host_station = null
+
+
+func _restore_squads(squads_snapshot: Array) -> void:
+	if not CurrentMapData.squads:
+		return
+	for squad in CurrentMapData.squads.get_children():
+		squad.queue_free()
+	for entry_any in squads_snapshot:
+		var entry: Dictionary = entry_any
+		var squad = Preloads.SQUAD.instantiate()
+		CurrentMapData.squads.add_child(squad)
+		squad.create(int(entry.get("owner_id", 1)), int(entry.get("vehicle", 0)))
+		squad.position = entry.get("position", Vector2.ZERO)
+		squad.quantity = int(entry.get("quantity", 1))
+		squad.useable = bool(entry.get("useable", false))
+		squad.mb_status = bool(entry.get("mb_status", false))
+		squad.recalculate_limits()
