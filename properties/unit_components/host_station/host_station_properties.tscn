@@ -58,6 +58,7 @@ AI bot host stations have only one energy reservoir, whereas user host stations 
 To ensure balanced gameplay, the AI bot’s energy value is set four times higher to compensate for this difference.
 
 More information in Help > Additional information > Energy system differences"
+focus_mode = 1
 theme_override_font_sizes/font_size = 12
 text = "0000"
 shortcut_keys_enabled = false

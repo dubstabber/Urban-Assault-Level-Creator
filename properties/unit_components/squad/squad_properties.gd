@@ -20,8 +20,13 @@ func _ready() -> void:
 	
 	quantity_spin_box.value_changed.connect(func(value: float):
 		if EditorState.selected_unit is Squad:
-			if EditorState.selected_unit.quantity != value: CurrentMapData.is_saved = false
-			EditorState.selected_unit.quantity = value
+			var new_quantity := int(value)
+			var changed := int(EditorState.selected_unit.quantity) != new_quantity
+			if changed:
+				CurrentMapData.is_saved = false
+			EditorState.selected_unit.quantity = new_quantity
+			if changed:
+				EventSystem.unit_overlay_refresh_requested.emit("squad", int(EditorState.selected_unit.get_instance_id()))
 	)
 	for hs in Preloads.ua_data.data[EditorState.game_data_type].hoststations.keys():
 		faction_option_button.add_item(hs, Preloads.ua_data.data[EditorState.game_data_type].hoststations[hs].owner)
