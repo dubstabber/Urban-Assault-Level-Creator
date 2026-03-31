@@ -50,7 +50,10 @@ extends VBoxContainer
 @onready var undo_redo_manager = get_node("/root/UndoRedoManager")
 
 func _record_unit_snapshot(label: String, before_snapshot: Dictionary) -> void:
-	undo_redo_manager.begin_group(label)
+	var coalesce_key := ""
+	if label == "Edit host station properties" and EditorState.selected_unit:
+		coalesce_key = "unit_edit_host_%s" % int(EditorState.selected_unit.get_instance_id())
+	undo_redo_manager.begin_group(label, coalesce_key)
 	undo_redo_manager.record_unit_snapshot(before_snapshot, undo_redo_manager.create_unit_snapshot())
 	undo_redo_manager.commit_group()
 
@@ -63,18 +66,14 @@ func _ready() -> void:
 		if validated_value == 0: validated_value = 1
 		if EditorState.selected_unit.energy != abs(validated_value * 400): CurrentMapData.is_saved = false
 		EditorState.selected_unit.energy = abs(validated_value * 400)
-		undo_redo_manager.begin_group("Edit host station properties")
-		undo_redo_manager.record_unit_snapshot(unit_before, undo_redo_manager.create_unit_snapshot())
-		undo_redo_manager.commit_group()
+		_record_unit_snapshot("Edit host station properties", unit_before)
 	)
 	view_angle_line_edit.text_changed.connect(func(new_value: String):
 		var unit_before: Dictionary = undo_redo_manager.create_unit_snapshot()
 		if EditorState.selected_unit.view_angle != abs(int(new_value)):
 			CurrentMapData.is_saved = false
 			EditorState.selected_unit.view_angle = abs(int(new_value))
-		undo_redo_manager.begin_group("Edit host station properties")
-		undo_redo_manager.record_unit_snapshot(unit_before, undo_redo_manager.create_unit_snapshot())
-		undo_redo_manager.commit_group()
+			_record_unit_snapshot("Edit host station properties", unit_before)
 	)
 	view_angle_check_button.toggled.connect(func(toggled: bool):
 		var unit_before: Dictionary = undo_redo_manager.create_unit_snapshot()
@@ -82,9 +81,7 @@ func _ready() -> void:
 			CurrentMapData.is_saved = false
 			EditorState.selected_unit.view_angle_enabled = toggled
 		view_angle_line_edit.editable = toggled
-		undo_redo_manager.begin_group("Edit host station properties")
-		undo_redo_manager.record_unit_snapshot(unit_before, undo_redo_manager.create_unit_snapshot())
-		undo_redo_manager.commit_group()
+		_record_unit_snapshot("Edit host station properties", unit_before)
 	)
 	reload_const_line_edit.text_changed.connect(func(new_value: String):
 		var unit_before: Dictionary = undo_redo_manager.create_unit_snapshot()
@@ -96,9 +93,7 @@ func _ready() -> void:
 		if EditorState.selected_unit.reload_const != converted_value:
 			CurrentMapData.is_saved = false
 			EditorState.selected_unit.reload_const = converted_value
-		undo_redo_manager.begin_group("Edit host station properties")
-		undo_redo_manager.record_unit_snapshot(unit_before, undo_redo_manager.create_unit_snapshot())
-		undo_redo_manager.commit_group()
+			_record_unit_snapshot("Edit host station properties", unit_before)
 	)
 	reload_const_check_button.toggled.connect(func(toggled: bool):
 		var unit_before: Dictionary = undo_redo_manager.create_unit_snapshot()
@@ -106,9 +101,7 @@ func _ready() -> void:
 			CurrentMapData.is_saved = false
 			EditorState.selected_unit.reload_const_enabled = toggled
 		reload_const_line_edit.editable = toggled
-		undo_redo_manager.begin_group("Edit host station properties")
-		undo_redo_manager.record_unit_snapshot(unit_before, undo_redo_manager.create_unit_snapshot())
-		undo_redo_manager.commit_group()
+		_record_unit_snapshot("Edit host station properties", unit_before)
 	)
 	xpos_host_station_line_edit.text_submitted.connect(func(text_value: String):
 		var unit_before: Dictionary = undo_redo_manager.create_unit_snapshot()
@@ -121,9 +114,7 @@ func _ready() -> void:
 		if moved:
 			EventSystem.unit_position_committed.emit()
 			EventSystem.unit_overlay_refresh_requested.emit("host", int(EditorState.selected_unit.get_instance_id()))
-		undo_redo_manager.begin_group("Move unit")
-		undo_redo_manager.record_unit_snapshot(unit_before, undo_redo_manager.create_unit_snapshot())
-		undo_redo_manager.commit_group()
+		_record_unit_snapshot("Move unit", unit_before)
 		)
 	ypos_host_station_line_edit.text_submitted.connect(func(text_value: String):
 		var unit_before: Dictionary = undo_redo_manager.create_unit_snapshot()
@@ -136,9 +127,7 @@ func _ready() -> void:
 		if moved:
 			EventSystem.unit_position_committed.emit()
 			EventSystem.unit_overlay_refresh_requested.emit("host", int(EditorState.selected_unit.get_instance_id()))
-		undo_redo_manager.begin_group("Move unit")
-		undo_redo_manager.record_unit_snapshot(unit_before, undo_redo_manager.create_unit_snapshot())
-		undo_redo_manager.commit_group()
+		_record_unit_snapshot("Move unit", unit_before)
 		)
 	zpos_host_station_line_edit.text_submitted.connect(func(text_value: String):
 		var unit_before: Dictionary = undo_redo_manager.create_unit_snapshot()
@@ -151,9 +140,7 @@ func _ready() -> void:
 		if moved:
 			EventSystem.unit_position_committed.emit()
 			EventSystem.unit_overlay_refresh_requested.emit("host", int(EditorState.selected_unit.get_instance_id()))
-		undo_redo_manager.begin_group("Move unit")
-		undo_redo_manager.record_unit_snapshot(unit_before, undo_redo_manager.create_unit_snapshot())
-		undo_redo_manager.commit_group()
+		_record_unit_snapshot("Move unit", unit_before)
 		)
 	conquering_h_slider.value_changed.connect(func(value_changed: int):
 		var unit_before: Dictionary = undo_redo_manager.create_unit_snapshot()

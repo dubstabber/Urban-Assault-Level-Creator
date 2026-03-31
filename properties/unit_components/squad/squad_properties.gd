@@ -15,6 +15,15 @@ extends VBoxContainer
 @onready var undo_redo_manager = get_node("/root/UndoRedoManager")
 
 
+func _record_unit_snapshot(label: String, before_snapshot: Dictionary) -> void:
+	var coalesce_key := ""
+	if label == "Edit squad properties" and EditorState.selected_unit:
+		coalesce_key = "unit_edit_squad_%s" % int(EditorState.selected_unit.get_instance_id())
+	undo_redo_manager.begin_group(label, coalesce_key)
+	undo_redo_manager.record_unit_snapshot(before_snapshot, undo_redo_manager.create_unit_snapshot())
+	undo_redo_manager.commit_group()
+
+
 func _ready() -> void:
 	if not Preloads.ua_data.data.has("original") or not Preloads.ua_data.data["original"].has("hoststations"): return
 	EventSystem.unit_selected.connect(_update_properties)
@@ -29,9 +38,7 @@ func _ready() -> void:
 			EditorState.selected_unit.quantity = new_quantity
 			if changed:
 				EventSystem.unit_overlay_refresh_requested.emit("squad", int(EditorState.selected_unit.get_instance_id()))
-		undo_redo_manager.begin_group("Edit squad properties")
-		undo_redo_manager.record_unit_snapshot(unit_before, undo_redo_manager.create_unit_snapshot())
-		undo_redo_manager.commit_group()
+		_record_unit_snapshot("Edit squad properties", unit_before)
 	)
 	for hs in Preloads.ua_data.data[EditorState.game_data_type].hoststations.keys():
 		faction_option_button.add_item(hs, Preloads.ua_data.data[EditorState.game_data_type].hoststations[hs].owner)
@@ -39,9 +46,7 @@ func _ready() -> void:
 		var unit_before: Dictionary = undo_redo_manager.create_unit_snapshot()
 		EditorState.selected_unit.change_faction(faction_option_button.get_item_id(index))
 		CurrentMapData.is_saved = false
-		undo_redo_manager.begin_group("Edit squad properties")
-		undo_redo_manager.record_unit_snapshot(unit_before, undo_redo_manager.create_unit_snapshot())
-		undo_redo_manager.commit_group()
+		_record_unit_snapshot("Edit squad properties", unit_before)
 	)
 	xpos_squad_line_edit.text_submitted.connect(func(text_value: String):
 		var unit_before: Dictionary = undo_redo_manager.create_unit_snapshot()
@@ -54,9 +59,7 @@ func _ready() -> void:
 		if moved:
 			EventSystem.unit_position_committed.emit()
 			EventSystem.unit_overlay_refresh_requested.emit("squad", int(EditorState.selected_unit.get_instance_id()))
-		undo_redo_manager.begin_group("Move unit")
-		undo_redo_manager.record_unit_snapshot(unit_before, undo_redo_manager.create_unit_snapshot())
-		undo_redo_manager.commit_group()
+		_record_unit_snapshot("Move unit", unit_before)
 	)
 	zpos_squad_line_edit.text_submitted.connect(func(text_value: String):
 		var unit_before: Dictionary = undo_redo_manager.create_unit_snapshot()
@@ -69,25 +72,19 @@ func _ready() -> void:
 		if moved:
 			EventSystem.unit_position_committed.emit()
 			EventSystem.unit_overlay_refresh_requested.emit("squad", int(EditorState.selected_unit.get_instance_id()))
-		undo_redo_manager.begin_group("Move unit")
-		undo_redo_manager.record_unit_snapshot(unit_before, undo_redo_manager.create_unit_snapshot())
-		undo_redo_manager.commit_group()
+		_record_unit_snapshot("Move unit", unit_before)
 	)
 	useable_check_box.toggled.connect(func(toggled: bool):
 		var unit_before: Dictionary = undo_redo_manager.create_unit_snapshot()
 		if EditorState.selected_unit.useable != toggled: CurrentMapData.is_saved = false
 		EditorState.selected_unit.useable = toggled
-		undo_redo_manager.begin_group("Edit squad properties")
-		undo_redo_manager.record_unit_snapshot(unit_before, undo_redo_manager.create_unit_snapshot())
-		undo_redo_manager.commit_group()
+		_record_unit_snapshot("Edit squad properties", unit_before)
 	)
 	mb_status_squad_check_box.toggled.connect(func(toggled: bool):
 		var unit_before: Dictionary = undo_redo_manager.create_unit_snapshot()
 		if EditorState.selected_unit.mb_status != toggled: CurrentMapData.is_saved = false
 		EditorState.selected_unit.mb_status = toggled
-		undo_redo_manager.begin_group("Edit squad properties")
-		undo_redo_manager.record_unit_snapshot(unit_before, undo_redo_manager.create_unit_snapshot())
-		undo_redo_manager.commit_group()
+		_record_unit_snapshot("Edit squad properties", unit_before)
 	)
 
 

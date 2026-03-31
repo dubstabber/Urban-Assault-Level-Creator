@@ -19,14 +19,15 @@ func _ready() -> void:
 	EventSystem.close_map_requested.connect(clear_history)
 
 
-func begin_group(label: String) -> void:
+func begin_group(label: String, coalesce_key := "") -> void:
 	if _is_replaying:
 		return
 	if _has_active_group():
 		commit_group()
 	_active_group = {
 		"label": label,
-		"changes": []
+		"changes": [],
+		"coalesce_key": coalesce_key
 	}
 
 
@@ -128,6 +129,11 @@ func commit_group() -> void:
 		_active_group.clear()
 		return
 
+	if _try_coalesce_with_previous_group():
+		_active_group.clear()
+		redo_stack.clear()
+		return
+
 	undo_stack.append(_active_group.duplicate(true))
 	_active_group.clear()
 	redo_stack.clear()
@@ -222,6 +228,25 @@ func _apply_group(group: Dictionary, use_before: bool) -> void:
 
 func _has_active_group() -> bool:
 	return _active_group.has("changes")
+
+
+func _try_coalesce_with_previous_group() -> bool:
+	var coalesce_key: String = str(_active_group.get("coalesce_key", ""))
+	if coalesce_key.is_empty() or undo_stack.is_empty():
+		return false
+	var previous_group: Dictionary = undo_stack[-1]
+	if str(previous_group.get("coalesce_key", "")) != coalesce_key:
+		return false
+	if previous_group.get("changes", []).size() != 1 or _active_group.changes.size() != 1:
+		return false
+	var previous_change: Dictionary = previous_group.changes[0]
+	var active_change: Dictionary = _active_group.changes[0]
+	if previous_change.get("kind", "") != "unit_snapshot" or active_change.get("kind", "") != "unit_snapshot":
+		return false
+	previous_change.after = active_change.after.duplicate(true)
+	previous_group.label = _active_group.label
+	undo_stack[-1] = previous_group
+	return true
 
 
 func _is_valid_change(change: Dictionary) -> bool:
