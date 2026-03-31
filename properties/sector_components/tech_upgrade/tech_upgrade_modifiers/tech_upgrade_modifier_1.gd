@@ -25,6 +25,7 @@ var item_name: String:
 @onready var add_shot_time_user_line_edit: LineEdit = %AddShotTimeUserLineEdit
 
 @onready var remove_button: Button = %RemoveButton
+@onready var undo_redo_manager = get_node("/root/UndoRedoManager")
 
 
 func _ready() -> void:
@@ -46,44 +47,71 @@ func _ready() -> void:
 	add_shot_time_user_line_edit.text_changed.connect(modify_weapon.bind("shot_time_user"))
 	
 	remove_button.pressed.connect(func():
+		undo_redo_manager.begin_group("Tech modifier remove")
+		var item_before: Dictionary = undo_redo_manager.create_item_snapshot()
 		if vehicle_modifier:
 			EditorState.selected_tech_upgrade.vehicles.erase(vehicle_modifier)
 		if weapon_modifier:
 			EditorState.selected_tech_upgrade.weapons.erase(weapon_modifier)
 		CurrentMapData.is_saved = false
+		undo_redo_manager.record_item_snapshot(item_before, undo_redo_manager.create_item_snapshot())
+		undo_redo_manager.commit_group()
 		queue_free()
 		)
 
 
 func enable_vehicle(toggled: bool, property: String) -> void:
+	undo_redo_manager.begin_group("Tech vehicle modifier")
+	var item_before: Dictionary = undo_redo_manager.create_item_snapshot()
 	if not vehicle_modifier:
 		vehicle_modifier = EditorState.selected_tech_upgrade.new_vehicle_modifier(find_id_by_name(item_name))
-	if vehicle_modifier[property] == toggled: return
+		if not vehicle_modifier:
+			undo_redo_manager.commit_group()
+			return
+	if vehicle_modifier[property] == toggled:
+		undo_redo_manager.commit_group()
+		return
 	vehicle_modifier[property] = toggled
 	EditorState.selected_tech_upgrade.synchronize(vehicle_modifier, "enable")
 	CurrentMapData.is_saved = false
+	undo_redo_manager.record_item_snapshot(item_before, undo_redo_manager.create_item_snapshot())
+	undo_redo_manager.commit_group()
 
 
 func modify_vehicle(new_text: String, property: String) -> void:
+	undo_redo_manager.begin_group("Tech vehicle modifier")
+	var item_before: Dictionary = undo_redo_manager.create_item_snapshot()
 	if not vehicle_modifier:
 		vehicle_modifier = EditorState.selected_tech_upgrade.new_vehicle_modifier(find_id_by_name(item_name))
+		if not vehicle_modifier:
+			undo_redo_manager.commit_group()
+			return
 	if property == "energy":
 		vehicle_modifier[property] = int(new_text) * 100
 	else:
 		vehicle_modifier[property] = int(new_text)
 	EditorState.selected_tech_upgrade.synchronize(vehicle_modifier, property)
 	CurrentMapData.is_saved = false
+	undo_redo_manager.record_item_snapshot(item_before, undo_redo_manager.create_item_snapshot())
+	undo_redo_manager.commit_group()
 
 
 func modify_weapon(new_text: String, property: String) -> void:
+	undo_redo_manager.begin_group("Tech weapon modifier")
+	var item_before: Dictionary = undo_redo_manager.create_item_snapshot()
 	if not weapon_modifier:
 		weapon_modifier = EditorState.selected_tech_upgrade.new_weapon_modifier(find_id_by_name(item_name))
+		if not weapon_modifier:
+			undo_redo_manager.commit_group()
+			return
 	if property == "energy":
 		weapon_modifier[property] = int(new_text) * 100
 	else:
 		weapon_modifier[property] = int(new_text)
 	EditorState.selected_tech_upgrade.synchronize(weapon_modifier, property)
 	CurrentMapData.is_saved = false
+	undo_redo_manager.record_item_snapshot(item_before, undo_redo_manager.create_item_snapshot())
+	undo_redo_manager.commit_group()
 
 
 func update_ui() -> void:

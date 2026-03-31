@@ -15,6 +15,7 @@ extends VBoxContainer
 @onready var sector_info_container_separator: HSeparator = %HSeparator
 @onready var sector_info_container_separator2: HSeparator = %HSeparator2
 @onready var beam_gate_info_label: Label = %BeamGateInfoLabel
+@onready var undo_redo_manager = get_node("/root/UndoRedoManager")
 
 
 func _ready() -> void:
@@ -23,6 +24,10 @@ func _ready() -> void:
 	
 	bg_building_option_button.item_selected.connect(func(index: int):
 		if not EditorState.selected_beam_gate: return
+		undo_redo_manager.begin_group("Beam gate building")
+		var item_before: Dictionary = undo_redo_manager.create_item_snapshot()
+		var typ_before := int(CurrentMapData.typ_map[EditorState.selected_sector_idx])
+		var blg_before := int(CurrentMapData.blg_map[EditorState.selected_sector_idx])
 		if index == 0:
 			EditorState.selected_beam_gate.closed_bp = 5
 			EditorState.selected_beam_gate.opened_bp = 6
@@ -33,25 +38,37 @@ func _ready() -> void:
 			EditorState.selected_beam_gate.opened_bp = 26
 			CurrentMapData.typ_map[EditorState.selected_sector_idx] = 3
 			CurrentMapData.blg_map[EditorState.selected_sector_idx] = 25
+		undo_redo_manager.record_change({"map":"typ_map","index":EditorState.selected_sector_idx,"before":typ_before,"after":int(CurrentMapData.typ_map[EditorState.selected_sector_idx])})
+		undo_redo_manager.record_change({"map":"blg_map","index":EditorState.selected_sector_idx,"before":blg_before,"after":int(CurrentMapData.blg_map[EditorState.selected_sector_idx])})
+		undo_redo_manager.record_item_snapshot(item_before, undo_redo_manager.create_item_snapshot())
+		undo_redo_manager.commit_group()
 		EventSystem.typ_map_cells_edited.emit([EditorState.selected_sector_idx])
 		EventSystem.map_updated.emit()
 		)
 	beam_gate_mb_status.toggled.connect(func(toggled: bool):
 		if not EditorState.selected_beam_gate: return
+		undo_redo_manager.begin_group("Beam gate mb_status")
+		var item_before: Dictionary = undo_redo_manager.create_item_snapshot()
 		if EditorState.selected_beam_gate.mb_status != toggled:
 			CurrentMapData.is_saved = false
 		EditorState.selected_beam_gate.mb_status = toggled
+		undo_redo_manager.record_item_snapshot(item_before, undo_redo_manager.create_item_snapshot())
+		undo_redo_manager.commit_group()
 		)
 	add_level_button.pressed.connect(func():
 		if not EditorState.selected_beam_gate: return
 		var level_index = levels_option_button.get_item_id(levels_option_button.selected)
 		if not EditorState.selected_beam_gate.target_levels.has(level_index):
+			undo_redo_manager.begin_group("Beam gate add level")
+			var item_before: Dictionary = undo_redo_manager.create_item_snapshot()
 			if UNLOCKED_LEVEL_CONTAINER:
 				EditorState.selected_beam_gate.target_levels.append(level_index)
 				var level_container = UNLOCKED_LEVEL_CONTAINER.instantiate()
 				level_container.create(level_index)
 				unlock_levels_container.add_child(level_container)
 				EventSystem.map_updated.emit()
+				undo_redo_manager.record_item_snapshot(item_before, undo_redo_manager.create_item_snapshot())
+				undo_redo_manager.commit_group()
 			else:
 				printerr("UNLOCKED_LEVEL_CONTAINER does not exist")
 		if not EditorState.selected_beam_gate.target_levels.is_empty():

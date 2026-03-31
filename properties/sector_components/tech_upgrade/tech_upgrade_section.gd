@@ -11,6 +11,7 @@ extends VBoxContainer
 @onready var tech_upgrade_modifiers_container: Container = %TechUpgradeModifiersContainer
 @onready var tu_add_item_button: Button = %TUAddItemButton
 @onready var invalid_building_label: Label = %InvalidBuildingLabel
+@onready var undo_redo_manager = get_node("/root/UndoRedoManager")
 
 
 func _ready() -> void:
@@ -19,6 +20,10 @@ func _ready() -> void:
 	
 	tu_option_button.item_selected.connect(func(index: int):
 		if EditorState.selected_tech_upgrade:
+			undo_redo_manager.begin_group("Tech upgrade building")
+			var item_before: Dictionary = undo_redo_manager.create_item_snapshot()
+			var typ_before := int(CurrentMapData.typ_map[EditorState.selected_sector_idx])
+			var blg_before := int(CurrentMapData.blg_map[EditorState.selected_sector_idx])
 			var building_id = tu_option_button.get_item_id(index)
 			EditorState.selected_tech_upgrade.building_id = building_id
 			match building_id:
@@ -32,25 +37,41 @@ func _ready() -> void:
 				16: CurrentMapData.typ_map[EditorState.selected_sector_idx] = 103
 				65: CurrentMapData.typ_map[EditorState.selected_sector_idx] = 110
 			CurrentMapData.blg_map[EditorState.selected_sector_idx] = building_id
+			undo_redo_manager.record_change({"map":"typ_map","index":EditorState.selected_sector_idx,"before":typ_before,"after":int(CurrentMapData.typ_map[EditorState.selected_sector_idx])})
+			undo_redo_manager.record_change({"map":"blg_map","index":EditorState.selected_sector_idx,"before":blg_before,"after":int(CurrentMapData.blg_map[EditorState.selected_sector_idx])})
+			undo_redo_manager.record_item_snapshot(item_before, undo_redo_manager.create_item_snapshot())
+			undo_redo_manager.commit_group()
 			EventSystem.typ_map_cells_edited.emit([EditorState.selected_sector_idx])
 			EventSystem.map_updated.emit()
 		)
 	sound_type_option_button.item_selected.connect(func(index: int):
 		if EditorState.selected_tech_upgrade:
+			undo_redo_manager.begin_group("Tech upgrade type")
+			var item_before: Dictionary = undo_redo_manager.create_item_snapshot()
 			EditorState.selected_tech_upgrade.type = sound_type_option_button.get_item_id(index)
 			CurrentMapData.is_saved = false
+			undo_redo_manager.record_item_snapshot(item_before, undo_redo_manager.create_item_snapshot())
+			undo_redo_manager.commit_group()
 		)
 	tech_upgrade_mbstatus_checkbox.toggled.connect(func(toggled_on: bool):
 		if EditorState.selected_tech_upgrade:
+			undo_redo_manager.begin_group("Tech upgrade mb_status")
+			var item_before: Dictionary = undo_redo_manager.create_item_snapshot()
 			if EditorState.selected_tech_upgrade.mb_status != toggled_on:
 				CurrentMapData.is_saved = false
 			EditorState.selected_tech_upgrade.mb_status = toggled_on
+			undo_redo_manager.record_item_snapshot(item_before, undo_redo_manager.create_item_snapshot())
+			undo_redo_manager.commit_group()
 		)
 	tu_add_item_button.pressed.connect(func():
 		if not EditorState.selected_tech_upgrade: return
+		undo_redo_manager.begin_group("Tech upgrade add modifier")
+		var item_before: Dictionary = undo_redo_manager.create_item_snapshot()
 		var item_name = tu_modify_option_button.get_item_text(tu_modify_option_button.selected)
 		for modifier in tech_upgrade_modifiers_container.get_children():
-			if modifier.item_name == item_name: return
+			if modifier.item_name == item_name:
+				undo_redo_manager.commit_group()
+				return
 		
 		# Check if the item is a weapon
 		var weapon_id = find_weapon_id_by_name(item_name)
@@ -59,6 +80,8 @@ func _ready() -> void:
 				var tu_modifier3 = TECH_UPGRADE_MODIFIER_3.instantiate()
 				tu_modifier3.item_name = item_name
 				tech_upgrade_modifiers_container.add_child(tu_modifier3)
+				undo_redo_manager.record_item_snapshot(item_before, undo_redo_manager.create_item_snapshot())
+				undo_redo_manager.commit_group()
 			else:
 				printerr("TECH_UPGRADE_MODIFIER_3 scene could not be found")
 			return
@@ -70,6 +93,8 @@ func _ready() -> void:
 				var tu_modifier1 = TECH_UPGRADE_MODIFIER_1.instantiate()
 				tu_modifier1.item_name = item_name
 				tech_upgrade_modifiers_container.add_child(tu_modifier1)
+				undo_redo_manager.record_item_snapshot(item_before, undo_redo_manager.create_item_snapshot())
+				undo_redo_manager.commit_group()
 			else:
 				printerr("TECH_UPGRADE_MODIFIER_1 scene could not be found")
 			return
@@ -82,9 +107,12 @@ func _ready() -> void:
 				var tu_modifier2 = TECH_UPGRADE_MODIFIER_2.instantiate()
 				tu_modifier2.item_name = item_name
 				tech_upgrade_modifiers_container.add_child(tu_modifier2)
+				undo_redo_manager.record_item_snapshot(item_before, undo_redo_manager.create_item_snapshot())
+				undo_redo_manager.commit_group()
 			else:
 				printerr("TECH_UPGRADE_MODIFIER_2 scene could not be found")
 			return
+		undo_redo_manager.commit_group()
 		)
 
 

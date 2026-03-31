@@ -13,6 +13,7 @@ extends VBoxContainer
 
 @onready var bomb_key_sectors_label: Label = %BombKeySectorsLabel
 @onready var bomb_key_sectors_list_container: Container = %BombKeySectorsListContainer
+@onready var undo_redo_manager = get_node("/root/UndoRedoManager")
 
 
 func _ready() -> void:
@@ -21,6 +22,10 @@ func _ready() -> void:
 	
 	bomb_building_option_button.item_selected.connect(func(index: int):
 		if not EditorState.selected_bomb: return
+		undo_redo_manager.begin_group("Bomb building")
+		var item_before: Dictionary = undo_redo_manager.create_item_snapshot()
+		var typ_before := int(CurrentMapData.typ_map[EditorState.selected_sector_idx])
+		var blg_before := int(CurrentMapData.blg_map[EditorState.selected_sector_idx])
 		match index:
 			0:
 				EditorState.selected_bomb.inactive_bp = 35
@@ -34,6 +39,10 @@ func _ready() -> void:
 				EditorState.selected_bomb.trigger_bp = 70
 				CurrentMapData.typ_map[EditorState.selected_sector_idx] = 235
 				CurrentMapData.blg_map[EditorState.selected_sector_idx] = 68
+		undo_redo_manager.record_change({"map":"typ_map","index":EditorState.selected_sector_idx,"before":typ_before,"after":int(CurrentMapData.typ_map[EditorState.selected_sector_idx])})
+		undo_redo_manager.record_change({"map":"blg_map","index":EditorState.selected_sector_idx,"before":blg_before,"after":int(CurrentMapData.blg_map[EditorState.selected_sector_idx])})
+		undo_redo_manager.record_item_snapshot(item_before, undo_redo_manager.create_item_snapshot())
+		undo_redo_manager.commit_group()
 		EventSystem.typ_map_cells_edited.emit([EditorState.selected_sector_idx])
 		EventSystem.map_updated.emit()
 		)
@@ -118,8 +127,12 @@ func _update_properties() -> void:
 
 func _update_countdown() -> void:
 	if EditorState.selected_bomb:
+		undo_redo_manager.begin_group("Bomb countdown")
+		var item_before: Dictionary = undo_redo_manager.create_item_snapshot()
 		var countdown_units = ((int(hours_spin_box.value) * 60) * 60) * 1024
 		countdown_units += (int(minutes_spin_box.value) * 60) * 1024
 		countdown_units += int(seconds_spin_box.value) * 1024
 		if EditorState.selected_bomb.countdown != countdown_units: CurrentMapData.is_saved = false
 		EditorState.selected_bomb.countdown = countdown_units
+		undo_redo_manager.record_item_snapshot(item_before, undo_redo_manager.create_item_snapshot())
+		undo_redo_manager.commit_group()

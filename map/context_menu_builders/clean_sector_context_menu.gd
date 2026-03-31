@@ -14,6 +14,7 @@ func _on_index_pressed(index: int) -> void:
 	if item_text == "Clean this sector":
 		if CurrentMapData.horizontal_sectors > 0:
 			undo_redo_manager.begin_group("Clear sector")
+			var item_before: Dictionary = undo_redo_manager.create_item_snapshot()
 			if EditorState.selected_sectors.size() > 1:
 				for sector_dict in EditorState.selected_sectors:
 					if sector_dict.has("idx"):
@@ -67,6 +68,7 @@ func _on_index_pressed(index: int) -> void:
 					"before": blg_before,
 					"after": int(CurrentMapData.blg_map[idx])
 				})
+			undo_redo_manager.record_item_snapshot(item_before, undo_redo_manager.create_item_snapshot())
 			undo_redo_manager.commit_group()
 			EventSystem.map_updated.emit()
 			EventSystem.item_updated.emit()

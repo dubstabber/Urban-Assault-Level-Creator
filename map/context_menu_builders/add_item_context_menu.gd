@@ -2,6 +2,7 @@ extends Node
 
 var add_bg_key_sector_submenu: PopupMenu
 var add_bomb_key_sector_submenu: PopupMenu
+@onready var undo_redo_manager = get_node("/root/UndoRedoManager")
 
 
 func _ready() -> void:
@@ -61,36 +62,56 @@ func _new_item(index:int, new_item_submenu: PopupMenu) -> void:
 			for bg in CurrentMapData.beam_gates:
 				if bg.sec_x == EditorState.selected_sector.x and bg.sec_y == EditorState.selected_sector.y:
 					return
-			
-			var bg = BeamGate.new(EditorState.selected_sector.x,EditorState.selected_sector.y)
+		'Stoudson Bomb':
+			for bomb in CurrentMapData.stoudson_bombs:
+				if bomb.sec_x == EditorState.selected_sector.x and bomb.sec_y == EditorState.selected_sector.y:
+					return
+		'Tech Upgrade':
+			for tu in CurrentMapData.tech_upgrades:
+				if tu.sec_x == EditorState.selected_sector.x and tu.sec_y == EditorState.selected_sector.y:
+					return
+
+	undo_redo_manager.begin_group("Add sector item")
+	var item_before: Dictionary = undo_redo_manager.create_item_snapshot()
+	var typ_before := int(CurrentMapData.typ_map[EditorState.selected_sector_idx])
+	var blg_before := int(CurrentMapData.blg_map[EditorState.selected_sector_idx])
+	match item_text:
+		'Beam Gate':
+			var bg = BeamGate.new(EditorState.selected_sector.x, EditorState.selected_sector.y)
 			CurrentMapData.beam_gates.append(bg)
 			CurrentMapData.typ_map[EditorState.selected_sector_idx] = 3
 			CurrentMapData.blg_map[EditorState.selected_sector_idx] = bg.closed_bp
 			EditorState.selected_beam_gate = bg
 			EventSystem.item_updated.emit()
 		'Stoudson Bomb':
-			for bomb in CurrentMapData.stoudson_bombs:
-				if bomb.sec_x == EditorState.selected_sector.x and bomb.sec_y == EditorState.selected_sector.y:
-					return
-			
-			var bomb = StoudsonBomb.new(EditorState.selected_sector.x,EditorState.selected_sector.y)
+			var bomb = StoudsonBomb.new(EditorState.selected_sector.x, EditorState.selected_sector.y)
 			CurrentMapData.stoudson_bombs.append(bomb)
 			CurrentMapData.typ_map[EditorState.selected_sector_idx] = 245
 			CurrentMapData.blg_map[EditorState.selected_sector_idx] = bomb.inactive_bp
 			EditorState.selected_bomb = bomb
 			EventSystem.item_updated.emit()
 		'Tech Upgrade':
-			for tu in CurrentMapData.tech_upgrades:
-				if tu.sec_x == EditorState.selected_sector.x and tu.sec_y == EditorState.selected_sector.y:
-					return
-			
-			var tu = TechUpgrade.new(EditorState.selected_sector.x,EditorState.selected_sector.y)
+			var tu = TechUpgrade.new(EditorState.selected_sector.x, EditorState.selected_sector.y)
 			CurrentMapData.tech_upgrades.append(tu)
 			CurrentMapData.typ_map[EditorState.selected_sector_idx] = 100
 			CurrentMapData.blg_map[EditorState.selected_sector_idx] = tu.building_id
 			EditorState.selected_tech_upgrade = tu
 			EventSystem.item_updated.emit()
 	EventSystem.item_added.emit()
+	undo_redo_manager.record_change({
+		"map": "typ_map",
+		"index": EditorState.selected_sector_idx,
+		"before": typ_before,
+		"after": int(CurrentMapData.typ_map[EditorState.selected_sector_idx])
+	})
+	undo_redo_manager.record_change({
+		"map": "blg_map",
+		"index": EditorState.selected_sector_idx,
+		"before": blg_before,
+		"after": int(CurrentMapData.blg_map[EditorState.selected_sector_idx])
+	})
+	undo_redo_manager.record_item_snapshot(item_before, undo_redo_manager.create_item_snapshot())
+	undo_redo_manager.commit_group()
 	EventSystem.typ_map_cells_edited.emit([EditorState.selected_sector_idx])
 	EventSystem.map_updated.emit()
 
@@ -107,9 +128,13 @@ func _add_beam_gate_key_sector(index: int) -> void:
 		if ks.x == EditorState.selected_sector.x and ks.y == EditorState.selected_sector.y:
 			return
 	
+	undo_redo_manager.begin_group("Add beam gate key sector")
+	var item_before: Dictionary = undo_redo_manager.create_item_snapshot()
 	var key_sector = Vector2i(EditorState.selected_sector.x, EditorState.selected_sector.y)
 	CurrentMapData.beam_gates[index].key_sectors.append(key_sector)
 	EditorState.selected_bg_key_sector = key_sector
+	undo_redo_manager.record_item_snapshot(item_before, undo_redo_manager.create_item_snapshot())
+	undo_redo_manager.commit_group()
 	EventSystem.map_updated.emit()
 
 
@@ -125,10 +150,21 @@ func _add_bomb_key_sector(index: int) -> void:
 		if ks.x == EditorState.selected_sector.x and ks.y == EditorState.selected_sector.y:
 			return
 	
+	undo_redo_manager.begin_group("Add bomb key sector")
+	var item_before: Dictionary = undo_redo_manager.create_item_snapshot()
+	var typ_before := int(CurrentMapData.typ_map[EditorState.selected_sector_idx])
 	var bomb_key_sector = Vector2i(EditorState.selected_sector.x, EditorState.selected_sector.y)
 	CurrentMapData.stoudson_bombs[index].key_sectors.append(bomb_key_sector)
 	CurrentMapData.typ_map[EditorState.selected_sector_idx] = 243
 	EditorState.selected_bomb_key_sector = bomb_key_sector
+	undo_redo_manager.record_change({
+		"map": "typ_map",
+		"index": EditorState.selected_sector_idx,
+		"before": typ_before,
+		"after": int(CurrentMapData.typ_map[EditorState.selected_sector_idx])
+	})
+	undo_redo_manager.record_item_snapshot(item_before, undo_redo_manager.create_item_snapshot())
+	undo_redo_manager.commit_group()
 	EventSystem.typ_map_cells_edited.emit([EditorState.selected_sector_idx])
 	EventSystem.map_updated.emit()
 

@@ -249,6 +249,7 @@ func _handle_building_change(direction: int):
 
 func _handle_clear_sector():
 	undo_redo_manager.begin_group("Clear sector")
+	var item_before: Dictionary = undo_redo_manager.create_item_snapshot()
 	if EditorState.selected_sectors.size() > 1:
 		for sector_dict in EditorState.selected_sectors:
 			if sector_dict.has("idx"):
@@ -302,6 +303,7 @@ func _handle_clear_sector():
 			"before": blg_before,
 			"after": int(CurrentMapData.blg_map[idx])
 		})
+	undo_redo_manager.record_item_snapshot(item_before, undo_redo_manager.create_item_snapshot())
 	undo_redo_manager.commit_group()
 	EventSystem.map_updated.emit()
 	EventSystem.item_updated.emit()
