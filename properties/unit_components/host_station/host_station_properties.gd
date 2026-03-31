@@ -245,9 +245,13 @@ func _ready() -> void:
 	for hs_robo in Preloads.hs_robo_images:
 		host_station_robo_option_button.add_item(Preloads.hs_robo_images[hs_robo].name, hs_robo)
 	host_station_robo_option_button.item_selected.connect(func(index: int):
-		EditorState.selected_unit.vehicle = host_station_robo_option_button.get_item_id(index)
-		host_station_robo_texture_rect.texture = Preloads.hs_robo_images[host_station_robo_option_button.get_item_id(index)].image
-		CurrentMapData.is_saved = false
+		var new_vehicle_id := host_station_robo_option_button.get_item_id(index)
+		var vehicle_changed := int(EditorState.selected_unit.vehicle) != new_vehicle_id
+		EditorState.selected_unit.vehicle = new_vehicle_id
+		host_station_robo_texture_rect.texture = Preloads.hs_robo_images[new_vehicle_id].image
+		if vehicle_changed:
+			CurrentMapData.is_saved = false
+			EventSystem.unit_overlay_refresh_requested.emit("host", int(EditorState.selected_unit.get_instance_id()))
 	)
 	load_behavior_file_button.pressed.connect(func():
 		EventSystem.load_hs_behavior_dialog_requested.emit()

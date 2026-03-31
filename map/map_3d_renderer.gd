@@ -986,12 +986,15 @@ func _apply_single_unit_dynamic_refresh(unit_kind: String, unit_id: int) -> bool
 	if unit_kind == "host":
 		var hs := _find_unit_by_instance_id(cmd.host_stations, unit_id)
 		var host_descriptors: Array = []
+		var current_set_id := int(cmd.level_set)
 		if hs != null:
-			host_descriptors = _build_host_station_descriptors([hs], _async_level_set, hgt, w, h, support_descriptors, _make_empty_build_metrics())
-		var host_prefixes: Array = [
-			"host:%d:%d:" % [_async_level_set, unit_id],
-			"host_gun:%d:%d:" % [_async_level_set, unit_id]
-		]
+			host_descriptors = _build_host_station_descriptors([hs], current_set_id, hgt, w, h, support_descriptors, _make_empty_build_metrics())
+		# Remove stale host entries for this unit across all set IDs, then apply the
+		# current descriptor set. This avoids overlap when async state lags behind UI edits.
+		var host_prefixes: Array = []
+		for set_id in range(1, 7):
+			host_prefixes.append("host:%d:%d:" % [set_id, unit_id])
+			host_prefixes.append("host_gun:%d:%d:" % [set_id, unit_id])
 		AuthoredOverlayManager.apply_overlay_for_prefixes(_dynamic_overlay, host_prefixes, host_descriptors)
 		_apply_geometry_distance_culling_to_overlay()
 		_bump_3d_viewport_rendering()
@@ -1000,9 +1003,12 @@ func _apply_single_unit_dynamic_refresh(unit_kind: String, unit_id: int) -> bool
 	if unit_kind == "squad":
 		var sq := _find_unit_by_instance_id(cmd.squads, unit_id)
 		var squad_descriptors: Array = []
+		var current_set_id := int(cmd.level_set)
 		if sq != null:
-			squad_descriptors = _build_squad_descriptors([sq], _async_level_set, hgt, w, h, support_descriptors, _async_game_data_type, _make_empty_build_metrics())
-		var squad_prefixes: Array = ["squad:%d:%d:" % [_async_level_set, unit_id]]
+			squad_descriptors = _build_squad_descriptors([sq], current_set_id, hgt, w, h, support_descriptors, _async_game_data_type, _make_empty_build_metrics())
+		var squad_prefixes: Array = []
+		for set_id in range(1, 7):
+			squad_prefixes.append("squad:%d:%d:" % [set_id, unit_id])
 		AuthoredOverlayManager.apply_overlay_for_prefixes(_dynamic_overlay, squad_prefixes, squad_descriptors)
 		_apply_geometry_distance_culling_to_overlay()
 		_bump_3d_viewport_rendering()
