@@ -2787,6 +2787,25 @@ func _apply_sector_top_materials(mesh: ArrayMesh, preloads, surface_to_surface_t
 
 # ---- UA edge-based strip rendering ----
 func _on_level_set_changed() -> void:
+	# A set switch can change sector pattern topology and authored overlay descriptors.
+	# Reset chunk/runtime caches so we never keep mixed old/new set chunk outputs.
+	_cancel_async_initial_build()
+	_effective_typ_service.invalidate_cache()
+	_effective_typ_service.set_dirty(true)
+	var cmd := _current_map_data()
+	if cmd != null:
+		var w := int(cmd.horizontal_sectors)
+		var h := int(cmd.vertical_sectors)
+		if w > 0 and h > 0:
+			_clear_chunk_nodes()
+			_set_authored_overlay([])
+			_chunk_rt.clear_dirty_chunks()
+			_chunk_rt.clear_authored_caches()
+			_chunk_rt.last_map_dimensions = Vector2i(w, h)
+			_chunk_rt.last_level_set = int(cmd.level_set)
+			_chunk_rt.invalidate_all_chunks(w, h)
+			_chunk_rt.initial_build_in_progress = true
+			_chunk_rt.initial_build_accumulated_authored_descriptors.clear()
 	# Rebuild the current preview for the newly selected set.
 	_request_refresh(false)
 
