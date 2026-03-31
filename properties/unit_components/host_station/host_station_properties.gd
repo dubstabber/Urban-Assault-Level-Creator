@@ -47,28 +47,47 @@ extends VBoxContainer
 
 @onready var load_behavior_file_button: Button = %LoadBehaviorFileButton
 @onready var save_behavior_file_button: Button = %SaveBehaviorFileButton
+@onready var undo_redo_manager = get_node("/root/UndoRedoManager")
+
+func _record_unit_snapshot(label: String, before_snapshot: Dictionary) -> void:
+	undo_redo_manager.begin_group(label)
+	undo_redo_manager.record_unit_snapshot(before_snapshot, undo_redo_manager.create_unit_snapshot())
+	undo_redo_manager.commit_group()
 
 
 func _ready() -> void:
 	EventSystem.unit_selected.connect(_update_properties)
 	energy_line_edit.text_changed.connect(func(new_value: String):
+		var unit_before: Dictionary = undo_redo_manager.create_unit_snapshot()
 		var validated_value = int(new_value)
 		if validated_value == 0: validated_value = 1
 		if EditorState.selected_unit.energy != abs(validated_value * 400): CurrentMapData.is_saved = false
 		EditorState.selected_unit.energy = abs(validated_value * 400)
+		undo_redo_manager.begin_group("Edit host station properties")
+		undo_redo_manager.record_unit_snapshot(unit_before, undo_redo_manager.create_unit_snapshot())
+		undo_redo_manager.commit_group()
 	)
 	view_angle_line_edit.text_changed.connect(func(new_value: String):
+		var unit_before: Dictionary = undo_redo_manager.create_unit_snapshot()
 		if EditorState.selected_unit.view_angle != abs(int(new_value)):
 			CurrentMapData.is_saved = false
 			EditorState.selected_unit.view_angle = abs(int(new_value))
+		undo_redo_manager.begin_group("Edit host station properties")
+		undo_redo_manager.record_unit_snapshot(unit_before, undo_redo_manager.create_unit_snapshot())
+		undo_redo_manager.commit_group()
 	)
 	view_angle_check_button.toggled.connect(func(toggled: bool):
+		var unit_before: Dictionary = undo_redo_manager.create_unit_snapshot()
 		if EditorState.selected_unit.view_angle_enabled != toggled:
 			CurrentMapData.is_saved = false
 			EditorState.selected_unit.view_angle_enabled = toggled
 		view_angle_line_edit.editable = toggled
+		undo_redo_manager.begin_group("Edit host station properties")
+		undo_redo_manager.record_unit_snapshot(unit_before, undo_redo_manager.create_unit_snapshot())
+		undo_redo_manager.commit_group()
 	)
 	reload_const_line_edit.text_changed.connect(func(new_value: String):
+		var unit_before: Dictionary = undo_redo_manager.create_unit_snapshot()
 		var converted_value: int
 		if CurrentMapData.player_host_station == EditorState.selected_unit:
 			converted_value = abs(int(ceil(float(new_value) * (60000.0 / 255.0))))
@@ -77,14 +96,22 @@ func _ready() -> void:
 		if EditorState.selected_unit.reload_const != converted_value:
 			CurrentMapData.is_saved = false
 			EditorState.selected_unit.reload_const = converted_value
+		undo_redo_manager.begin_group("Edit host station properties")
+		undo_redo_manager.record_unit_snapshot(unit_before, undo_redo_manager.create_unit_snapshot())
+		undo_redo_manager.commit_group()
 	)
 	reload_const_check_button.toggled.connect(func(toggled: bool):
+		var unit_before: Dictionary = undo_redo_manager.create_unit_snapshot()
 		if EditorState.selected_unit.reload_const_enabled != toggled:
 			CurrentMapData.is_saved = false
 			EditorState.selected_unit.reload_const_enabled = toggled
 		reload_const_line_edit.editable = toggled
+		undo_redo_manager.begin_group("Edit host station properties")
+		undo_redo_manager.record_unit_snapshot(unit_before, undo_redo_manager.create_unit_snapshot())
+		undo_redo_manager.commit_group()
 	)
 	xpos_host_station_line_edit.text_submitted.connect(func(text_value: String):
+		var unit_before: Dictionary = undo_redo_manager.create_unit_snapshot()
 		var pos_x := clampi(int(text_value), 1205, ((CurrentMapData.horizontal_sectors + 1) * 1200) - 5)
 		var moved: bool = EditorState.selected_unit.position.x != pos_x
 		if moved:
@@ -94,8 +121,12 @@ func _ready() -> void:
 		if moved:
 			EventSystem.unit_position_committed.emit()
 			EventSystem.unit_overlay_refresh_requested.emit("host", int(EditorState.selected_unit.get_instance_id()))
+		undo_redo_manager.begin_group("Move unit")
+		undo_redo_manager.record_unit_snapshot(unit_before, undo_redo_manager.create_unit_snapshot())
+		undo_redo_manager.commit_group()
 		)
 	ypos_host_station_line_edit.text_submitted.connect(func(text_value: String):
+		var unit_before: Dictionary = undo_redo_manager.create_unit_snapshot()
 		var pos_y := int(text_value) if int(text_value) <= 0 else -int(text_value)
 		var moved: bool = EditorState.selected_unit.pos_y != pos_y
 		if moved:
@@ -105,8 +136,12 @@ func _ready() -> void:
 		if moved:
 			EventSystem.unit_position_committed.emit()
 			EventSystem.unit_overlay_refresh_requested.emit("host", int(EditorState.selected_unit.get_instance_id()))
+		undo_redo_manager.begin_group("Move unit")
+		undo_redo_manager.record_unit_snapshot(unit_before, undo_redo_manager.create_unit_snapshot())
+		undo_redo_manager.commit_group()
 		)
 	zpos_host_station_line_edit.text_submitted.connect(func(text_value: String):
+		var unit_before: Dictionary = undo_redo_manager.create_unit_snapshot()
 		var pos_z := clampi(abs(int(text_value)), 1205, ((CurrentMapData.vertical_sectors + 1) * 1200) - 5)
 		var moved: bool = EditorState.selected_unit.position.y != pos_z
 		if moved:
@@ -116,135 +151,181 @@ func _ready() -> void:
 		if moved:
 			EventSystem.unit_position_committed.emit()
 			EventSystem.unit_overlay_refresh_requested.emit("host", int(EditorState.selected_unit.get_instance_id()))
+		undo_redo_manager.begin_group("Move unit")
+		undo_redo_manager.record_unit_snapshot(unit_before, undo_redo_manager.create_unit_snapshot())
+		undo_redo_manager.commit_group()
 		)
 	conquering_h_slider.value_changed.connect(func(value_changed: int):
+		var unit_before: Dictionary = undo_redo_manager.create_unit_snapshot()
 		if EditorState.selected_unit.con_budget != value_changed:
 			CurrentMapData.is_saved = false
 			EditorState.selected_unit.con_budget = value_changed
 		conquering_value_label.text = str(value_changed)
+		_record_unit_snapshot("Edit host station properties", unit_before)
 	)
 	conquering_delay_line_edit.text_changed.connect(func(value_changed: String):
+		var unit_before: Dictionary = undo_redo_manager.create_unit_snapshot()
 		var converted_value = abs(int(value_changed)) * 1024
 		if EditorState.selected_unit.con_delay != converted_value:
 			CurrentMapData.is_saved = false
 			EditorState.selected_unit.con_delay = converted_value
+		_record_unit_snapshot("Edit host station properties", unit_before)
 	)
 	defense_h_slider.value_changed.connect(func(value_changed: int):
+		var unit_before: Dictionary = undo_redo_manager.create_unit_snapshot()
 		if EditorState.selected_unit.def_budget != value_changed:
 			CurrentMapData.is_saved = false
 			EditorState.selected_unit.def_budget = value_changed
 		defense_value_label.text = str(value_changed)
+		_record_unit_snapshot("Edit host station properties", unit_before)
 	)
 	defense_delay_line_edit.text_changed.connect(func(value_changed: String):
+		var unit_before: Dictionary = undo_redo_manager.create_unit_snapshot()
 		var converted_value = abs(int(value_changed)) * 1024
 		if EditorState.selected_unit.def_delay != converted_value:
 			CurrentMapData.is_saved = false
 			EditorState.selected_unit.def_delay = converted_value
+		_record_unit_snapshot("Edit host station properties", unit_before)
 	)
 	reconnaissance_h_slider.value_changed.connect(func(value_changed: int):
+		var unit_before: Dictionary = undo_redo_manager.create_unit_snapshot()
 		if EditorState.selected_unit.rec_budget != value_changed:
 			CurrentMapData.is_saved = false
 			EditorState.selected_unit.rec_budget = value_changed
 		reconnaissance_value_label.text = str(value_changed)
+		_record_unit_snapshot("Edit host station properties", unit_before)
 	)
 	reconnaissance_delay_line_edit.text_changed.connect(func(value_changed: String):
+		var unit_before: Dictionary = undo_redo_manager.create_unit_snapshot()
 		var converted_value = abs(int(value_changed)) * 1024
 		if EditorState.selected_unit.rec_delay != converted_value:
 			CurrentMapData.is_saved = false
 			EditorState.selected_unit.rec_delay = converted_value
+		_record_unit_snapshot("Edit host station properties", unit_before)
 	)
 	attacking_h_slider.value_changed.connect(func(value_changed: int):
+		var unit_before: Dictionary = undo_redo_manager.create_unit_snapshot()
 		if EditorState.selected_unit.rob_budget != value_changed:
 			CurrentMapData.is_saved = false
 			EditorState.selected_unit.rob_budget = value_changed
 		attacking_value_label.text = str(value_changed)
+		_record_unit_snapshot("Edit host station properties", unit_before)
 	)
 	attacking_delay_line_edit.text_changed.connect(func(value_changed: String):
+		var unit_before: Dictionary = undo_redo_manager.create_unit_snapshot()
 		var converted_value = abs(int(value_changed)) * 1024
 		if EditorState.selected_unit.rob_delay != converted_value:
 			CurrentMapData.is_saved = false
 			EditorState.selected_unit.rob_delay = converted_value
+		_record_unit_snapshot("Edit host station properties", unit_before)
 	)
 	power_building_h_slider.value_changed.connect(func(value_changed: int):
+		var unit_before: Dictionary = undo_redo_manager.create_unit_snapshot()
 		if EditorState.selected_unit.pow_budget != value_changed:
 			CurrentMapData.is_saved = false
 			EditorState.selected_unit.pow_budget = value_changed
 		power_building_value_label.text = str(value_changed)
+		_record_unit_snapshot("Edit host station properties", unit_before)
 	)
 	power_building_delay_line_edit.text_changed.connect(func(value_changed: String):
+		var unit_before: Dictionary = undo_redo_manager.create_unit_snapshot()
 		var converted_value = abs(int(value_changed)) * 1024
 		if EditorState.selected_unit.pow_delay != converted_value:
 			CurrentMapData.is_saved = false
 			EditorState.selected_unit.pow_delay = converted_value
+		_record_unit_snapshot("Edit host station properties", unit_before)
 	)
 	radar_building_h_slider.value_changed.connect(func(value_changed: int):
+		var unit_before: Dictionary = undo_redo_manager.create_unit_snapshot()
 		if EditorState.selected_unit.rad_budget != value_changed:
 			CurrentMapData.is_saved = false
 			EditorState.selected_unit.rad_budget = value_changed
 		radar_building_value_label.text = str(value_changed)
+		_record_unit_snapshot("Edit host station properties", unit_before)
 	)
 	radar_building_delay_line_edit.text_changed.connect(func(value_changed: String):
+		var unit_before: Dictionary = undo_redo_manager.create_unit_snapshot()
 		var converted_value = abs(int(value_changed)) * 1024
 		if EditorState.selected_unit.rad_delay != converted_value:
 			CurrentMapData.is_saved = false
 			EditorState.selected_unit.rob_delay = converted_value
+		_record_unit_snapshot("Edit host station properties", unit_before)
 	)
 	power_building_h_slider.value_changed.connect(func(value_changed: int):
+		var unit_before: Dictionary = undo_redo_manager.create_unit_snapshot()
 		if EditorState.selected_unit.pow_budget != value_changed:
 			CurrentMapData.is_saved = false
 			EditorState.selected_unit.pow_budget = value_changed
 		power_building_value_label.text = str(value_changed)
+		_record_unit_snapshot("Edit host station properties", unit_before)
 	)
 	power_building_delay_line_edit.text_changed.connect(func(value_changed: String):
+		var unit_before: Dictionary = undo_redo_manager.create_unit_snapshot()
 		var converted_value = abs(int(value_changed)) * 1024
 		if EditorState.selected_unit.pow_delay != converted_value:
 			CurrentMapData.is_saved = false
 			EditorState.selected_unit.pow_delay = converted_value
+		_record_unit_snapshot("Edit host station properties", unit_before)
 	)
 	radar_building_h_slider.value_changed.connect(func(value_changed: int):
+		var unit_before: Dictionary = undo_redo_manager.create_unit_snapshot()
 		if EditorState.selected_unit.rad_budget != value_changed:
 			CurrentMapData.is_saved = false
 			EditorState.selected_unit.rad_budget = value_changed
 		radar_building_value_label.text = str(value_changed)
+		_record_unit_snapshot("Edit host station properties", unit_before)
 	)
 	radar_building_delay_line_edit.text_changed.connect(func(value_changed: String):
+		var unit_before: Dictionary = undo_redo_manager.create_unit_snapshot()
 		var converted_value = abs(int(value_changed)) * 1024
 		if EditorState.selected_unit.rad_delay != converted_value:
 			CurrentMapData.is_saved = false
 			EditorState.selected_unit.rad_delay = converted_value
+		_record_unit_snapshot("Edit host station properties", unit_before)
 	)
 	flak_building_h_slider.value_changed.connect(func(value_changed: int):
+		var unit_before: Dictionary = undo_redo_manager.create_unit_snapshot()
 		if EditorState.selected_unit.saf_budget != value_changed:
 			CurrentMapData.is_saved = false
 			EditorState.selected_unit.saf_budget = value_changed
 		flak_building_value_label.text = str(value_changed)
+		_record_unit_snapshot("Edit host station properties", unit_before)
 	)
 	flak_building_delay_line_edit.text_changed.connect(func(value_changed: String):
+		var unit_before: Dictionary = undo_redo_manager.create_unit_snapshot()
 		var converted_value = abs(int(value_changed)) * 1024
 		if EditorState.selected_unit.saf_delay != converted_value:
 			CurrentMapData.is_saved = false
 			EditorState.selected_unit.saf_delay = converted_value
+		_record_unit_snapshot("Edit host station properties", unit_before)
 	)
 	moving_station_h_slider.value_changed.connect(func(value_changed: int):
+		var unit_before: Dictionary = undo_redo_manager.create_unit_snapshot()
 		if EditorState.selected_unit.cpl_budget != value_changed:
 			CurrentMapData.is_saved = false
 			EditorState.selected_unit.cpl_budget = value_changed
 		moving_station_value_label.text = str(value_changed)
+		_record_unit_snapshot("Edit host station properties", unit_before)
 	)
 	moving_station_delay_line_edit.text_changed.connect(func(value_changed: String):
+		var unit_before: Dictionary = undo_redo_manager.create_unit_snapshot()
 		var converted_value = abs(int(value_changed)) * 1024
 		if EditorState.selected_unit.cpl_delay != converted_value:
 			CurrentMapData.is_saved = false
 			EditorState.selected_unit.cpl_delay = converted_value
+		_record_unit_snapshot("Edit host station properties", unit_before)
 	)
 	mb_status_host_station_check_box.toggled.connect(func(toggled: bool):
+		var unit_before: Dictionary = undo_redo_manager.create_unit_snapshot()
 		if EditorState.selected_unit.mb_status != toggled:
 			CurrentMapData.is_saved = false
 			EditorState.selected_unit.mb_status = toggled
+		_record_unit_snapshot("Edit host station properties", unit_before)
 	)
 	for hs_robo in Preloads.hs_robo_images:
 		host_station_robo_option_button.add_item(Preloads.hs_robo_images[hs_robo].name, hs_robo)
 	host_station_robo_option_button.item_selected.connect(func(index: int):
+		var unit_before: Dictionary = undo_redo_manager.create_unit_snapshot()
 		var new_vehicle_id := host_station_robo_option_button.get_item_id(index)
 		var vehicle_changed := int(EditorState.selected_unit.vehicle) != new_vehicle_id
 		EditorState.selected_unit.vehicle = new_vehicle_id
@@ -252,6 +333,7 @@ func _ready() -> void:
 		if vehicle_changed:
 			CurrentMapData.is_saved = false
 			EventSystem.unit_overlay_refresh_requested.emit("host", int(EditorState.selected_unit.get_instance_id()))
+		_record_unit_snapshot("Edit host station properties", unit_before)
 	)
 	load_behavior_file_button.pressed.connect(func():
 		EventSystem.load_hs_behavior_dialog_requested.emit()
@@ -335,6 +417,7 @@ func _update_coordinates():
 
 
 func _on_behavior_loaded(behavior_data: Dictionary) -> void:
+	var unit_before: Dictionary = undo_redo_manager.create_unit_snapshot()
 	var behavior_mappings = [
 		{"key": "con_budget", "unit_attr": "con_budget", "slider": conquering_h_slider, "line_edit": null},
 		{"key": "con_delay", "unit_attr": "con_delay", "slider": null, "line_edit": conquering_delay_line_edit, "divide": 1024.0},
@@ -366,3 +449,4 @@ func _on_behavior_loaded(behavior_data: Dictionary) -> void:
 				mapping.line_edit.text = str(display_value)
 	
 	CurrentMapData.is_saved = false
+	_record_unit_snapshot("Edit host station properties", unit_before)

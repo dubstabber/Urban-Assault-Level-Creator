@@ -12,6 +12,7 @@ extends VBoxContainer
 
 @onready var useable_check_box: CheckBox = %UseableCheckBox
 @onready var mb_status_squad_check_box: CheckBox = %MBstatusSquadCheckBox
+@onready var undo_redo_manager = get_node("/root/UndoRedoManager")
 
 
 func _ready() -> void:
@@ -19,6 +20,7 @@ func _ready() -> void:
 	EventSystem.unit_selected.connect(_update_properties)
 	
 	quantity_spin_box.value_changed.connect(func(value: float):
+		var unit_before: Dictionary = undo_redo_manager.create_unit_snapshot()
 		if EditorState.selected_unit is Squad:
 			var new_quantity := int(value)
 			var changed := int(EditorState.selected_unit.quantity) != new_quantity
@@ -27,14 +29,22 @@ func _ready() -> void:
 			EditorState.selected_unit.quantity = new_quantity
 			if changed:
 				EventSystem.unit_overlay_refresh_requested.emit("squad", int(EditorState.selected_unit.get_instance_id()))
+		undo_redo_manager.begin_group("Edit squad properties")
+		undo_redo_manager.record_unit_snapshot(unit_before, undo_redo_manager.create_unit_snapshot())
+		undo_redo_manager.commit_group()
 	)
 	for hs in Preloads.ua_data.data[EditorState.game_data_type].hoststations.keys():
 		faction_option_button.add_item(hs, Preloads.ua_data.data[EditorState.game_data_type].hoststations[hs].owner)
 	faction_option_button.item_selected.connect(func(index: int):
+		var unit_before: Dictionary = undo_redo_manager.create_unit_snapshot()
 		EditorState.selected_unit.change_faction(faction_option_button.get_item_id(index))
 		CurrentMapData.is_saved = false
+		undo_redo_manager.begin_group("Edit squad properties")
+		undo_redo_manager.record_unit_snapshot(unit_before, undo_redo_manager.create_unit_snapshot())
+		undo_redo_manager.commit_group()
 	)
 	xpos_squad_line_edit.text_submitted.connect(func(text_value: String):
+		var unit_before: Dictionary = undo_redo_manager.create_unit_snapshot()
 		var pos_x := clampi(int(text_value), 1205, ((CurrentMapData.horizontal_sectors + 1) * 1200) - 5)
 		var moved: bool = EditorState.selected_unit.position.x != pos_x
 		if moved:
@@ -44,8 +54,12 @@ func _ready() -> void:
 		if moved:
 			EventSystem.unit_position_committed.emit()
 			EventSystem.unit_overlay_refresh_requested.emit("squad", int(EditorState.selected_unit.get_instance_id()))
+		undo_redo_manager.begin_group("Move unit")
+		undo_redo_manager.record_unit_snapshot(unit_before, undo_redo_manager.create_unit_snapshot())
+		undo_redo_manager.commit_group()
 	)
 	zpos_squad_line_edit.text_submitted.connect(func(text_value: String):
+		var unit_before: Dictionary = undo_redo_manager.create_unit_snapshot()
 		var pos_z := clampi(abs(int(text_value)), 1205, ((CurrentMapData.vertical_sectors + 1) * 1200) - 5)
 		var moved: bool = EditorState.selected_unit.position.y != pos_z
 		if moved:
@@ -55,14 +69,25 @@ func _ready() -> void:
 		if moved:
 			EventSystem.unit_position_committed.emit()
 			EventSystem.unit_overlay_refresh_requested.emit("squad", int(EditorState.selected_unit.get_instance_id()))
+		undo_redo_manager.begin_group("Move unit")
+		undo_redo_manager.record_unit_snapshot(unit_before, undo_redo_manager.create_unit_snapshot())
+		undo_redo_manager.commit_group()
 	)
 	useable_check_box.toggled.connect(func(toggled: bool):
+		var unit_before: Dictionary = undo_redo_manager.create_unit_snapshot()
 		if EditorState.selected_unit.useable != toggled: CurrentMapData.is_saved = false
 		EditorState.selected_unit.useable = toggled
+		undo_redo_manager.begin_group("Edit squad properties")
+		undo_redo_manager.record_unit_snapshot(unit_before, undo_redo_manager.create_unit_snapshot())
+		undo_redo_manager.commit_group()
 	)
 	mb_status_squad_check_box.toggled.connect(func(toggled: bool):
+		var unit_before: Dictionary = undo_redo_manager.create_unit_snapshot()
 		if EditorState.selected_unit.mb_status != toggled: CurrentMapData.is_saved = false
 		EditorState.selected_unit.mb_status = toggled
+		undo_redo_manager.begin_group("Edit squad properties")
+		undo_redo_manager.record_unit_snapshot(unit_before, undo_redo_manager.create_unit_snapshot())
+		undo_redo_manager.commit_group()
 	)
 
 

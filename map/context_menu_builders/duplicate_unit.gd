@@ -18,6 +18,9 @@ func update_menu() -> void:
 func _on_index_pressed(index: int) -> void:
 	var text = get_parent().get_item_text(index)
 	if not EditorState.selected_unit: return
+	var undo_redo_manager = get_node("/root/UndoRedoManager")
+	undo_redo_manager.begin_group("Duplicate unit")
+	var unit_before: Dictionary = undo_redo_manager.create_unit_snapshot()
 	if text == "Duplicate this host station":
 		var hoststation = Preloads.HOSTSTATION.instantiate()
 		CurrentMapData.host_stations.add_child(hoststation)
@@ -61,3 +64,5 @@ func _on_index_pressed(index: int) -> void:
 		squad.mb_status = EditorState.selected_unit.mb_status
 		CurrentMapData.is_saved = false
 		EditorState.selected_unit = squad
+	undo_redo_manager.record_unit_snapshot(unit_before, undo_redo_manager.create_unit_snapshot())
+	undo_redo_manager.commit_group()

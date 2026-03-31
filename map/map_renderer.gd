@@ -225,6 +225,9 @@ func recalculate_size() -> void:
 
 
 func add_hoststation(owner_id: int, vehicle_id: int) -> void:
+	var undo_redo_manager = get_node("/root/UndoRedoManager")
+	undo_redo_manager.begin_group("Add host station")
+	var unit_before: Dictionary = undo_redo_manager.create_unit_snapshot()
 	var hoststation = Preloads.HOSTSTATION.instantiate()
 	CurrentMapData.host_stations.add_child(hoststation)
 	hoststation.create(owner_id, vehicle_id)
@@ -238,10 +241,15 @@ func add_hoststation(owner_id: int, vehicle_id: int) -> void:
 	CurrentMapData.is_saved = false
 	if CurrentMapData.host_stations.get_child_count() > Constants.HOST_STATION_LIMIT:
 		EventSystem.safe_host_station_limit_exceeded.emit()
+	undo_redo_manager.record_unit_snapshot(unit_before, undo_redo_manager.create_unit_snapshot())
+	undo_redo_manager.commit_group()
 	EventSystem.map_updated.emit()
 
 
 func add_squad(owner_id: int, vehicle_id: int) -> void:
+	var undo_redo_manager = get_node("/root/UndoRedoManager")
+	undo_redo_manager.begin_group("Add squad")
+	var unit_before: Dictionary = undo_redo_manager.create_unit_snapshot()
 	var squad = Preloads.SQUAD.instantiate()
 	CurrentMapData.squads.add_child(squad)
 	squad.create(owner_id, vehicle_id)
@@ -251,6 +259,8 @@ func add_squad(owner_id: int, vehicle_id: int) -> void:
 	CurrentMapData.is_saved = false
 	EditorState.selected_unit = squad
 	EventSystem.unit_overlay_refresh_requested.emit("squad", int(squad.get_instance_id()))
+	undo_redo_manager.record_unit_snapshot(unit_before, undo_redo_manager.create_unit_snapshot())
+	undo_redo_manager.commit_group()
 	EventSystem.map_updated.emit()
 
 func _draw_key_sector(pos_x: int, pos_y: int, texture) -> void:

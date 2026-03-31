@@ -76,11 +76,33 @@ func record_resize_snapshot(before_snapshot: Dictionary, after_snapshot: Diction
 	})
 
 
+func record_unit_snapshot(before_snapshot: Dictionary, after_snapshot: Dictionary) -> void:
+	if _is_replaying:
+		return
+	if not _has_active_group():
+		return
+	if before_snapshot == after_snapshot:
+		return
+	_active_group.changes.append({
+		"kind": "unit_snapshot",
+		"before": before_snapshot.duplicate(true),
+		"after": after_snapshot.duplicate(true)
+	})
+
+
 func create_item_snapshot() -> Dictionary:
 	return {
 		"beam_gates": _serialize_beam_gates(CurrentMapData.beam_gates),
 		"stoudson_bombs": _serialize_stoudson_bombs(CurrentMapData.stoudson_bombs),
 		"tech_upgrades": _serialize_tech_upgrades(CurrentMapData.tech_upgrades)
+	}
+
+
+func create_unit_snapshot() -> Dictionary:
+	return {
+		"host_stations": _serialize_host_stations(),
+		"squads": _serialize_squads(),
+		"player_host_station_index": _get_player_host_station_index()
 	}
 
 
@@ -158,6 +180,11 @@ func _apply_group(group: Dictionary, use_before: bool) -> void:
 		if change.has("kind") and change.kind == "resize_snapshot":
 			var resize_snapshot_key := "before" if use_before else "after"
 			_apply_resize_snapshot(change[resize_snapshot_key])
+			edited_item_data = true
+			continue
+		if change.has("kind") and change.kind == "unit_snapshot":
+			var unit_snapshot_key := "before" if use_before else "after"
+			_apply_unit_snapshot(change[unit_snapshot_key])
 			edited_item_data = true
 			continue
 		if not _is_valid_change(change):
@@ -414,6 +441,18 @@ func _apply_resize_snapshot(snapshot: Dictionary) -> void:
 	get_tree().root.size_changed.emit()
 
 
+func _apply_unit_snapshot(snapshot: Dictionary) -> void:
+	_restore_host_stations(snapshot.get("host_stations", []))
+	_restore_squads(snapshot.get("squads", []))
+	var hs_index := int(snapshot.get("player_host_station_index", -1))
+	if hs_index >= 0 and hs_index < CurrentMapData.host_stations.get_child_count():
+		CurrentMapData.player_host_station = CurrentMapData.host_stations.get_child(hs_index)
+	else:
+		CurrentMapData.player_host_station = null
+	EditorState.selected_unit = null
+	EventSystem.unit_selected.emit()
+
+
 func _restore_host_stations(host_stations_snapshot: Array) -> void:
 	if not CurrentMapData.host_stations:
 		return
@@ -470,3 +509,12 @@ func _restore_squads(squads_snapshot: Array) -> void:
 		squad.useable = bool(entry.get("useable", false))
 		squad.mb_status = bool(entry.get("mb_status", false))
 		squad.recalculate_limits()
+
+
+func _get_player_host_station_index() -> int:
+	if not CurrentMapData.host_stations or not is_instance_valid(CurrentMapData.player_host_station):
+		return -1
+	for i in CurrentMapData.host_stations.get_child_count():
+		if CurrentMapData.host_stations.get_child(i) == CurrentMapData.player_host_station:
+			return i
+	return -1

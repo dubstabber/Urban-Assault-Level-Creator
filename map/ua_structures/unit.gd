@@ -17,6 +17,7 @@ var player_vehicle: int
 var mb_status := false
 
 var pos_to_move: Vector2
+var drag_before_snapshot: Dictionary = {}
 var top_limit := 1200
 var bottom_limit := CurrentMapData.vertical_sectors * 1200 + 1200
 var left_limit := 1200
@@ -40,6 +41,8 @@ func _process(_delta):
 
 
 func _on_button_button_down():
+	var undo_redo_manager = get_node("/root/UndoRedoManager")
+	drag_before_snapshot = undo_redo_manager.create_unit_snapshot()
 	dragging = true
 	of = get_global_mouse_position() - position
 	init_pos = position
@@ -49,6 +52,11 @@ func _on_button_button_up():
 	var moved := init_pos != position
 	dragging = false
 	if moved:
+		var undo_redo_manager = get_node("/root/UndoRedoManager")
+		undo_redo_manager.begin_group("Move unit")
+		var unit_before: Dictionary = drag_before_snapshot
+		undo_redo_manager.record_unit_snapshot(unit_before, undo_redo_manager.create_unit_snapshot())
+		undo_redo_manager.commit_group()
 		EventSystem.unit_position_committed.emit()
 		var unit_kind := "host" if self is HostStation else ("squad" if self is Squad else "")
 		if not unit_kind.is_empty():
