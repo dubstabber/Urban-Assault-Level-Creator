@@ -1,5 +1,7 @@
 extends Node
 
+@onready var undo_redo_manager = get_node("/root/UndoRedoManager")
+
 
 func _ready() -> void:
 	await get_parent().ready
@@ -11,11 +13,60 @@ func _on_index_pressed(index: int) -> void:
 	var item_text = get_parent().get_item_text(index)
 	if item_text == "Clean this sector":
 		if CurrentMapData.horizontal_sectors > 0:
+			undo_redo_manager.begin_group("Clear sector")
 			if EditorState.selected_sectors.size() > 1:
 				for sector_dict in EditorState.selected_sectors:
 					if sector_dict.has("idx"):
-						CurrentMapData.clear_sector(sector_dict.idx, false)
+						var idx := int(sector_dict.idx)
+						var typ_before := int(CurrentMapData.typ_map[idx])
+						var own_before := int(CurrentMapData.own_map[idx])
+						var blg_before := int(CurrentMapData.blg_map[idx])
+						CurrentMapData.clear_sector(idx, false)
+						undo_redo_manager.record_change({
+							"map": "typ_map",
+							"index": idx,
+							"before": typ_before,
+							"after": int(CurrentMapData.typ_map[idx])
+						})
+						undo_redo_manager.record_change({
+							"map": "own_map",
+							"index": idx,
+							"before": own_before,
+							"after": int(CurrentMapData.own_map[idx])
+						})
+						undo_redo_manager.record_change({
+							"map": "blg_map",
+							"index": idx,
+							"before": blg_before,
+							"after": int(CurrentMapData.blg_map[idx])
+						})
 			else:
-				CurrentMapData.clear_sector(EditorState.selected_sector_idx)
+				if EditorState.selected_sector_idx < 0:
+					undo_redo_manager.commit_group()
+					return
+				var idx := EditorState.selected_sector_idx
+				var typ_before := int(CurrentMapData.typ_map[idx])
+				var own_before := int(CurrentMapData.own_map[idx])
+				var blg_before := int(CurrentMapData.blg_map[idx])
+				CurrentMapData.clear_sector(idx)
+				undo_redo_manager.record_change({
+					"map": "typ_map",
+					"index": idx,
+					"before": typ_before,
+					"after": int(CurrentMapData.typ_map[idx])
+				})
+				undo_redo_manager.record_change({
+					"map": "own_map",
+					"index": idx,
+					"before": own_before,
+					"after": int(CurrentMapData.own_map[idx])
+				})
+				undo_redo_manager.record_change({
+					"map": "blg_map",
+					"index": idx,
+					"before": blg_before,
+					"after": int(CurrentMapData.blg_map[idx])
+				})
+			undo_redo_manager.commit_group()
 			EventSystem.map_updated.emit()
 			EventSystem.item_updated.emit()

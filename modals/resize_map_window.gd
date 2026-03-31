@@ -1,5 +1,7 @@
 extends Window
 
+@onready var undo_redo_manager = get_node("/root/UndoRedoManager")
+
 
 func _on_about_to_popup() -> void:
 	if CurrentMapData.horizontal_sectors > 0 and CurrentMapData.vertical_sectors > 0:
@@ -80,6 +82,7 @@ func _on_ok_button_pressed() -> void:
 		squad.recalculate_limits()
 	
 	EventSystem.map_updated.emit()
+	undo_redo_manager.clear_history()
 	get_tree().root.size_changed.emit()
 	
 	hide()

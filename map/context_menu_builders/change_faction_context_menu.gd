@@ -1,5 +1,7 @@
 extends Node
 
+@onready var undo_redo_manager = get_node("/root/UndoRedoManager")
+
 
 func _ready() -> void:
 	await get_parent().ready
@@ -17,17 +19,35 @@ func _ready() -> void:
 	sector_faction_submenu.id_pressed.connect(
 		func(id): 
 			if CurrentMapData.own_map.size() > 0:
+				undo_redo_manager.begin_group("Ownership change")
 				if EditorState.selected_sectors.size() > 1:
 					for sector_dict in EditorState.selected_sectors:
-						if id == 0 and sector_dict.has("idx") and CurrentMapData.blg_map[sector_dict.idx] not in [0, 35, 68]:
-							CurrentMapData.own_map[sector_dict.idx] = 7
-						else:
-							if sector_dict.has("idx"):
-								CurrentMapData.own_map[sector_dict.idx] = id
+						if sector_dict.has("idx"):
+							var idx := int(sector_dict.idx)
+							var before := int(CurrentMapData.own_map[idx])
+							if id == 0 and CurrentMapData.blg_map[idx] not in [0, 35, 68]:
+								CurrentMapData.own_map[idx] = 7
+							else:
+								CurrentMapData.own_map[idx] = id
+							undo_redo_manager.record_change({
+								"map": "own_map",
+								"index": idx,
+								"before": before,
+								"after": int(CurrentMapData.own_map[idx])
+							})
 				elif EditorState.selected_sector_idx >= 0:
+					var idx := EditorState.selected_sector_idx
+					var before := int(CurrentMapData.own_map[idx])
 					if id == 0 and CurrentMapData.blg_map[EditorState.selected_sector_idx] not in [0, 35, 68]:
 						CurrentMapData.own_map[EditorState.selected_sector_idx] = 7
 					else:
 						CurrentMapData.own_map[EditorState.selected_sector_idx] = id
+					undo_redo_manager.record_change({
+						"map": "own_map",
+						"index": idx,
+						"before": before,
+						"after": int(CurrentMapData.own_map[idx])
+					})
+				undo_redo_manager.commit_group()
 				EventSystem.map_updated.emit())
 	get_parent().add_submenu_item("Change sector faction", "sector_faction")

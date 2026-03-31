@@ -1,6 +1,7 @@
 extends Node
 
 var special_buildings_submenu: PopupMenu = PopupMenu.new()
+@onready var undo_redo_manager = get_node("/root/UndoRedoManager")
 
 
 func _ready() -> void:
@@ -42,19 +43,65 @@ func _id_pressed(id: int) -> void:
 
 func add_special_building(building_id: int, typ_map: int, own_map: int) -> void:
 	if CurrentMapData.blg_map.size() > 0:
+		undo_redo_manager.begin_group("Add special building")
 		var edited_typ_indices: Array = []
 		if EditorState.selected_sectors.size() > 1:
 			for sector_dict in EditorState.selected_sectors:
 				if sector_dict.has("idx"):
-					CurrentMapData.blg_map[sector_dict.idx] = building_id
-					CurrentMapData.typ_map[sector_dict.idx] = typ_map
-					CurrentMapData.own_map[sector_dict.idx] = own_map
-					edited_typ_indices.append(sector_dict.idx)
+					var idx := int(sector_dict.idx)
+					var blg_before := int(CurrentMapData.blg_map[idx])
+					var typ_before := int(CurrentMapData.typ_map[idx])
+					var own_before := int(CurrentMapData.own_map[idx])
+					CurrentMapData.blg_map[idx] = building_id
+					CurrentMapData.typ_map[idx] = typ_map
+					CurrentMapData.own_map[idx] = own_map
+					edited_typ_indices.append(idx)
+					undo_redo_manager.record_change({
+						"map": "blg_map",
+						"index": idx,
+						"before": blg_before,
+						"after": int(CurrentMapData.blg_map[idx])
+					})
+					undo_redo_manager.record_change({
+						"map": "typ_map",
+						"index": idx,
+						"before": typ_before,
+						"after": int(CurrentMapData.typ_map[idx])
+					})
+					undo_redo_manager.record_change({
+						"map": "own_map",
+						"index": idx,
+						"before": own_before,
+						"after": int(CurrentMapData.own_map[idx])
+					})
 		elif EditorState.selected_sector_idx >= 0:
-			CurrentMapData.blg_map[EditorState.selected_sector_idx] = building_id
-			CurrentMapData.typ_map[EditorState.selected_sector_idx] = typ_map
-			CurrentMapData.own_map[EditorState.selected_sector_idx] = own_map
-			edited_typ_indices.append(EditorState.selected_sector_idx)
+			var idx := EditorState.selected_sector_idx
+			var blg_before := int(CurrentMapData.blg_map[idx])
+			var typ_before := int(CurrentMapData.typ_map[idx])
+			var own_before := int(CurrentMapData.own_map[idx])
+			CurrentMapData.blg_map[idx] = building_id
+			CurrentMapData.typ_map[idx] = typ_map
+			CurrentMapData.own_map[idx] = own_map
+			edited_typ_indices.append(idx)
+			undo_redo_manager.record_change({
+				"map": "blg_map",
+				"index": idx,
+				"before": blg_before,
+				"after": int(CurrentMapData.blg_map[idx])
+			})
+			undo_redo_manager.record_change({
+				"map": "typ_map",
+				"index": idx,
+				"before": typ_before,
+				"after": int(CurrentMapData.typ_map[idx])
+			})
+			undo_redo_manager.record_change({
+				"map": "own_map",
+				"index": idx,
+				"before": own_before,
+				"after": int(CurrentMapData.own_map[idx])
+			})
+		undo_redo_manager.commit_group()
 		if not edited_typ_indices.is_empty():
 			EventSystem.typ_map_cells_edited.emit(edited_typ_indices)
 		EventSystem.map_updated.emit()

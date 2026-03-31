@@ -1,5 +1,7 @@
 extends Node
 
+@onready var undo_redo_manager = get_node("/root/UndoRedoManager")
+
 var level_set := 1:
 	set(value):
 		if value > 6 or value < 1:
@@ -79,6 +81,7 @@ func _ready() -> void:
 
 
 func close_map() -> void:
+	undo_redo_manager.clear_history()
 	EditorState.unselect_all()
 	map_path = ""
 	EditorState.game_data_type = Preloads.ua_data.data.keys()[0]
