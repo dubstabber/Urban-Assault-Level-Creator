@@ -3,6 +3,7 @@ class_name UAAuthoredPieceSourceResolver
 
 const _UAProjectDataRoots = preload("res://map/ua_project_data_roots.gd")
 const _UALegacyText = preload("res://map/ua_legacy_text.gd")
+const _ResDir = preload("res://scripts/res_dir.gd")
 
 static var _json_cache := {}
 static var _dir_cache := {}
@@ -15,40 +16,50 @@ static func clear_runtime_caches_for_tests() -> void:
 	clear_runtime_caches()
 
 static func load_json(path: String) -> Dictionary:
-	if path.is_empty() or not FileAccess.file_exists(path):
+	if path.is_empty() or not _ResDir.file_exists(path):
 		return {}
 	if _json_cache.has(path):
 		var cached = _json_cache[path]
 		return cached if typeof(cached) == TYPE_DICTIONARY else {}
-	var txt := _UALegacyText.read_file(path)
-	if txt.is_empty():
-		return {}
-	var parsed = JSON.parse_string(txt)
-	var out: Dictionary = parsed if typeof(parsed) == TYPE_DICTIONARY else {}
+	var out: Dictionary = _ResDir.load_json_dict(path)
 	_json_cache[path] = out
 	return out
 
 static func find_file(dir_path: String, filename: String) -> String:
 	if dir_path.is_empty() or filename.is_empty():
 		return ""
-	if not DirAccess.dir_exists_absolute(dir_path):
+	if not _ResDir.dir_exists(dir_path):
 		return ""
 	if not _dir_cache.has(dir_path):
 		var index := {}
-		for entry in DirAccess.get_files_at(dir_path):
+		for entry in _ResDir.get_files_at(dir_path):
 			index[String(entry).to_lower()] = "%s/%s" % [dir_path, entry]
 		_dir_cache[dir_path] = index
-	return _dir_cache[dir_path].get(filename.to_lower(), "")
+	var result: String = _dir_cache[dir_path].get(filename.to_lower(), "")
+	if not result.is_empty():
+		return result
+	# Fallback: directory listing may miss raw (non-imported) files in exported
+	# PCK builds. Try direct path construction with common case variants.
+	var direct := "%s/%s" % [dir_path, filename]
+	if _ResDir.file_exists(direct):
+		return direct
+	var upper := "%s/%s" % [dir_path, filename.to_upper()]
+	if _ResDir.file_exists(upper):
+		return upper
+	var lower := "%s/%s" % [dir_path, filename.to_lower()]
+	if _ResDir.file_exists(lower):
+		return lower
+	return ""
 
 static func first_existing_set_under_base(base: String, resolved_set_id: int, game_data_type: String) -> String:
 	var norm := _UAProjectDataRoots.normalized_game_data_type(game_data_type)
 	var suffix := "_xp" if norm == "metropolisDawn" else ""
 	var candidate := "%s/set%d%s" % [base, resolved_set_id, suffix]
-	if DirAccess.dir_exists_absolute(candidate):
+	if _ResDir.dir_exists(candidate):
 		return candidate
 	if suffix == "_xp":
 		var retail := "%s/set%d" % [base, resolved_set_id]
-		if DirAccess.dir_exists_absolute(retail):
+		if _ResDir.dir_exists(retail):
 			return retail
 	return candidate
 
@@ -62,12 +73,12 @@ static func dir_with_retail_fallback(root: String, relative_dir: String, game_da
 	if root.is_empty():
 		return ""
 	var primary := "%s/%s" % [root, relative_dir]
-	if DirAccess.dir_exists_absolute(primary):
+	if _ResDir.dir_exists(primary):
 		return primary
 	if _UAProjectDataRoots.normalized_game_data_type(game_data_type) == "metropolisDawn" and root.ends_with("_xp"):
 		var retail_root := root.trim_suffix("_xp")
 		var retail := "%s/%s" % [retail_root, relative_dir]
-		if DirAccess.dir_exists_absolute(retail):
+		if _ResDir.dir_exists(retail):
 			return retail
 	return primary
 

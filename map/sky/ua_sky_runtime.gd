@@ -13,6 +13,7 @@ const MAP_SECTOR_WORLD_SIZE := 1200.0
 const DEFAULT_SKY_VIZ_LIMIT := 4200.0
 const DEFAULT_SKY_FADE_LENGTH := 1100.0
 const _UALegacyText = preload("res://map/ua_legacy_text.gd")
+const _ResDir = preload("res://scripts/res_dir.gd")
 
 @export var registry_path := DEFAULT_REGISTRY_PATH
 @export var sky_vertical_offset := DEFAULT_SKY_VERTICAL_OFFSET
@@ -706,13 +707,9 @@ func update_active_sky_transform() -> void:
 
 
 static func load_json_file(json_path: String) -> Dictionary:
-	if json_path.is_empty() or not FileAccess.file_exists(json_path):
+	if json_path.is_empty() or not _ResDir.file_exists(json_path):
 		return {}
-	var txt := _UALegacyText.read_file(json_path)
-	if txt.is_empty():
-		return {}
-	var parsed = JSON.parse_string(txt)
-	return parsed if typeof(parsed) == TYPE_DICTIONARY else {}
+	return _ResDir.load_json_dict(json_path)
 
 
 func _ensure_registry_loaded() -> bool:

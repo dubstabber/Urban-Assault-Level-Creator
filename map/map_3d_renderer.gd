@@ -6,6 +6,7 @@ signal build_finished(success: bool)
 
 const UATerrainPieceLibraryScript := preload("res://map/terrain/ua_authored_piece_library.gd")
 const VisualLookupService := preload("res://map/map_3d_visual_lookup_service.gd")
+const _ResDir := preload("res://scripts/res_dir.gd")
 const TerrainBuilder := preload("res://map/map_3d_terrain_builder.gd")
 const SlurpBuilder := preload("res://map/map_3d_slurp_builder.gd")
 const AuthoredOverlayManager := preload("res://map/map_3d_authored_overlay_manager.gd")
@@ -2178,7 +2179,7 @@ static func _script_assignment_text(raw_line: String, prefix: String) -> String:
 
 static func _parse_building_definitions(script_path: String) -> Array:
 	var result: Array = []
-	if script_path.is_empty() or not FileAccess.file_exists(script_path):
+	if script_path.is_empty() or not _ResDir.file_exists(script_path):
 		return result
 	var full := UALegacyText.read_file(script_path)
 	if full.is_empty():
@@ -2283,7 +2284,7 @@ static func _append_vehicle_visual_entry(result: Dictionary, vehicle_id: int, en
 
 static func _parse_vehicle_visual_entries(script_path: String) -> Dictionary:
 	var result := {}
-	if script_path.is_empty() or not FileAccess.file_exists(script_path):
+	if script_path.is_empty() or not _ResDir.file_exists(script_path):
 		return result
 	var full := UALegacyText.read_file(script_path)
 	if full.is_empty():
@@ -2324,7 +2325,7 @@ static func _vehicle_visual_entries_for_game_data_type(set_id: int, game_data_ty
 
 static func _parse_vehicle_visual_pairs(script_path: String) -> Dictionary:
 	var result := {}
-	if script_path.is_empty() or not FileAccess.file_exists(script_path):
+	if script_path.is_empty() or not _ResDir.file_exists(script_path):
 		return result
 	var full := UALegacyText.read_file(script_path)
 	if full.is_empty():

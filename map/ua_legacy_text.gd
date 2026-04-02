@@ -7,7 +7,24 @@ class_name UALegacyText
 static func read_file(path: String) -> String:
 	if path.is_empty() or not FileAccess.file_exists(path):
 		return ""
-	var bytes := FileAccess.get_file_as_bytes(path)
+	# Use open() + get_buffer() instead of get_file_as_bytes() because the
+	# static helper drops the first byte of raw (non-imported) files inside
+	# exported PCK builds (confirmed Godot 4.5 regression).
+	var f := FileAccess.open(path, FileAccess.READ)
+	if f == null:
+		return ""
+	var flen := f.get_length()
+	var bytes := f.get_buffer(flen)
+	# DIAG: trace byte-to-string conversion
+	if path.ends_with(".sdf"):
+		var hex := ""
+		for bi in range(mini(10, bytes.size())):
+			hex += "%02X " % bytes[bi]
+		var s_utf8 := bytes.get_string_from_utf8()
+		var s_ascii := bytes.get_string_from_ascii()
+		print("[DIAG-RF] path=%s flen=%d buf_size=%d hex=%s" % [path, flen, bytes.size(), hex.strip_edges()])
+		print("[DIAG-RF] utf8 len=%d first10='%s'" % [s_utf8.length(), s_utf8.substr(0, 10)])
+		print("[DIAG-RF] ascii len=%d first10='%s'" % [s_ascii.length(), s_ascii.substr(0, 10)])
 	return decode_text_bytes(bytes)
 
 
@@ -112,8 +129,9 @@ static func decode_utf8_text_only(data: PackedByteArray) -> String:
 		return ""
 	if not _is_valid_utf8(data):
 		return ""
+	var has_bom := data.size() >= 3 and data[0] == 0xEF and data[1] == 0xBB and data[2] == 0xBF
 	var s := data.get_string_from_utf8()
-	if s.begins_with("\ufeff"):
+	if has_bom and s.begins_with("\ufeff"):
 		s = s.substr(1)
 	return s
 
@@ -123,9 +141,14 @@ static func decode_text_bytes(data: PackedByteArray) -> String:
 		return ""
 	if _has_known_binary_signature(data) or _is_probably_binary(data):
 		return ""
+	# Check for UTF-8 BOM in the raw bytes (EF BB BF) rather than in the
+	# decoded string — get_string_from_utf8() can insert a phantom BOM that
+	# was never in the source data, causing the first real character to be
+	# stripped.
+	var has_bom := data.size() >= 3 and data[0] == 0xEF and data[1] == 0xBB and data[2] == 0xBF
 	if _is_valid_utf8(data):
 		var s := data.get_string_from_utf8()
-		if s.begins_with("\ufeff"):
+		if has_bom and s.begins_with("\ufeff"):
 			s = s.substr(1)
 		return s
 	return _bytes_to_iso8859_1_string(data)
@@ -137,9 +160,10 @@ static func _decode_line_bytes_for_scan(data: PackedByteArray) -> String:
 		return ""
 	if _has_known_binary_signature(data) or _is_probably_binary(data):
 		return ""
+	var has_bom := data.size() >= 3 and data[0] == 0xEF and data[1] == 0xBB and data[2] == 0xBF
 	if _is_valid_utf8(data):
 		var s := data.get_string_from_utf8()
-		if s.begins_with("\ufeff"):
+		if has_bom and s.begins_with("\ufeff"):
 			s = s.substr(1)
 		return s
 	const max_latin1_without_alloc_churn := 4096

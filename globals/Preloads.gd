@@ -2,6 +2,9 @@ extends Node
 
 const _UAProjectDataRoots = preload("res://map/ua_project_data_roots.gd")
 const _UALegacyText = preload("res://map/ua_legacy_text.gd")
+const _ResDir = preload("res://scripts/res_dir.gd")
+
+
 
 var ua_data: JSON = preload("res://resources/UAdata.json")
 
@@ -249,16 +252,13 @@ func get_music(track_id: int) -> AudioStream:
 
 
 func reload_mb_db_maps() -> void:
-	var map_name := ""
 	mbmaps.clear()
-	for file_name in DirAccess.get_files_at("res://resources/img/mbgfx/%s/" % EditorState.game_data_type):
-		if (file_name.get_extension() == "import"):
-			file_name = file_name.replace(".import", "")
-			map_name = file_name.replace(".png", "")
-			if map_name.begins_with("mb"):
-				mbmaps[map_name] = load("res://resources/img/mbgfx/%s/%s" % [EditorState.game_data_type, file_name])
-			elif map_name.begins_with("db"):
-				mbmaps[map_name] = load("res://resources/img/mbgfx/%s/%s" % [EditorState.game_data_type, file_name])
+	for file_name in _ResDir.get_files_at("res://resources/img/mbgfx/%s/" % EditorState.game_data_type):
+		if not file_name.get_extension().to_lower() == "png":
+			continue
+		var map_name := file_name.replace(".png", "")
+		if map_name.begins_with("mb") or map_name.begins_with("db"):
+			mbmaps[map_name] = load("res://resources/img/mbgfx/%s/%s" % [EditorState.game_data_type, file_name])
 
 
 # ---- UA 3D terrain helpers ----
@@ -275,14 +275,14 @@ func load_ground_textures() -> void:
 		var common_path := "res://resources/terrain/textures/common/ground_%d.png" % i
 		var tex: Texture2D = null
 		# Only try loading set-specific if the file exists to avoid benign loader errors
-		if FileAccess.file_exists(set_path):
+		if _ResDir.file_exists(set_path):
 			tex = load(set_path)
 			if tex is Texture2D:
 				ground_textures[i] = tex
 				print("[Preloads] ground_%d <- %s" % [i, set_path])
 				continue
 		# Try common fallback if present
-		if FileAccess.file_exists(common_path):
+		if _ResDir.file_exists(common_path):
 			tex = load(common_path)
 			if tex is Texture2D:
 				ground_textures[i] = tex
@@ -290,7 +290,7 @@ func load_ground_textures() -> void:
 				continue
 		else:
 			_ensure_common_placeholder_png(i)
-			if FileAccess.file_exists(common_path):
+			if _ResDir.file_exists(common_path):
 				tex = load(common_path)
 				if tex is Texture2D:
 					ground_textures[i] = tex
@@ -331,33 +331,21 @@ func reload_surface_type_map() -> void:
 	# Format: { "0": {"file": 2, "variant": 0}, "1": {"file": 0, "variant": 1}, ... }
 	tile_remap = {}
 	var remap_path := "%s/set%d/tile_remap.json" % [_UAProjectDataRoots.EDITOR_OVERRIDES_ROOT, set_id]
-	if not FileAccess.file_exists(remap_path):
+	if not _ResDir.file_exists(remap_path):
 		remap_path = UAProjectDataRoots.first_existing_path_under_set_roots(
 			set_id, game_data_type, "scripts/tile_remap.json"
 		)
-	if FileAccess.file_exists(remap_path):
-		var txt := _UALegacyText.read_file(remap_path)
-		if not txt.is_empty():
-			var tmp = JSON.parse_string(txt)
-			var parsed_map: Dictionary = {}
-			if typeof(tmp) == TYPE_DICTIONARY:
-				parsed_map = tmp
-			tile_remap = parsed_map
+	if _ResDir.file_exists(remap_path):
+		tile_remap = _ResDir.load_json_dict(remap_path)
 
 	subsector_idx_remap = {}
 	var subremap_path := "%s/set%d/subsector_idx_remap.json" % [_UAProjectDataRoots.EDITOR_OVERRIDES_ROOT, set_id]
-	if not FileAccess.file_exists(subremap_path):
+	if not _ResDir.file_exists(subremap_path):
 		subremap_path = UAProjectDataRoots.first_existing_path_under_set_roots(
 			set_id, game_data_type, "scripts/subsector_idx_remap.json"
 		)
-	if FileAccess.file_exists(subremap_path):
-		var txt2 := _UALegacyText.read_file(subremap_path)
-		if not txt2.is_empty():
-			var tmp2 = JSON.parse_string(txt2)
-			var parsed_map2: Dictionary = {}
-			if typeof(tmp2) == TYPE_DICTIONARY:
-				parsed_map2 = tmp2
-			subsector_idx_remap = parsed_map2
+	if _ResDir.file_exists(subremap_path):
+		subsector_idx_remap = _ResDir.load_json_dict(subremap_path)
 
 	if surface_type_map.is_empty():
 		# Leave empty; renderer will default to 0
@@ -367,6 +355,24 @@ func reload_surface_type_map() -> void:
 		print("[Preloads] subsector_patterns loaded for set ", set_id, ", entries=", subsector_patterns.size())
 		print("[Preloads] tile_mapping loaded for set ", set_id, ", entries=", tile_mapping.size())
 		print("[Preloads] lego_defs loaded for set ", set_id, ", entries=", lego_defs.size())
+		# DIAG: verify lego_defs content in export
+		for di in range(mini(5, lego_defs.size())):
+			if lego_defs.has(di):
+				print("[DIAG] lego_defs[%d]: base_name=%s base_file=%s" % [di, lego_defs[di].get("base_name","?"), lego_defs[di].get("base_file","?")])
+		# DIAG: read raw SDF bytes both ways
+		var sdf_path := _UAProjectDataRoots.set_sdf_path_for_set(set_id, game_data_type)
+		if not sdf_path.is_empty() and FileAccess.file_exists(sdf_path):
+			var static_bytes := FileAccess.get_file_as_bytes(sdf_path)
+			var ff := FileAccess.open(sdf_path, FileAccess.READ)
+			var open_bytes := ff.get_buffer(mini(20, ff.get_length())) if ff else PackedByteArray()
+			var hex_static := ""
+			for bi in range(mini(20, static_bytes.size())):
+				hex_static += "%02X " % static_bytes[bi]
+			var hex_open := ""
+			for bi in range(open_bytes.size()):
+				hex_open += "%02X " % open_bytes[bi]
+			print("[DIAG] SDF get_file_as_bytes first 20: %s" % hex_static.strip_edges())
+			print("[DIAG] SDF open+get_buffer first 20:   %s" % hex_open.strip_edges())
 		if not tile_remap.is_empty():
 			print("[Preloads] tile_remap loaded for set ", set_id, ", entries=", tile_remap.size())
 		if not subsector_idx_remap.is_empty():
