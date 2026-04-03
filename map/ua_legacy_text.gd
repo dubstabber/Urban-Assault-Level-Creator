@@ -7,24 +7,10 @@ class_name UALegacyText
 static func read_file(path: String) -> String:
 	if path.is_empty() or not FileAccess.file_exists(path):
 		return ""
-	# Use open() + get_buffer() instead of get_file_as_bytes() because the
-	# static helper drops the first byte of raw (non-imported) files inside
-	# exported PCK builds (confirmed Godot 4.5 regression).
 	var f := FileAccess.open(path, FileAccess.READ)
 	if f == null:
 		return ""
-	var flen := f.get_length()
-	var bytes := f.get_buffer(flen)
-	# DIAG: trace byte-to-string conversion
-	if path.ends_with(".sdf"):
-		var hex := ""
-		for bi in range(mini(10, bytes.size())):
-			hex += "%02X " % bytes[bi]
-		var s_utf8 := bytes.get_string_from_utf8()
-		var s_ascii := bytes.get_string_from_ascii()
-		print("[DIAG-RF] path=%s flen=%d buf_size=%d hex=%s" % [path, flen, bytes.size(), hex.strip_edges()])
-		print("[DIAG-RF] utf8 len=%d first10='%s'" % [s_utf8.length(), s_utf8.substr(0, 10)])
-		print("[DIAG-RF] ascii len=%d first10='%s'" % [s_ascii.length(), s_ascii.substr(0, 10)])
+	var bytes := f.get_buffer(f.get_length())
 	return decode_text_bytes(bytes)
 
 

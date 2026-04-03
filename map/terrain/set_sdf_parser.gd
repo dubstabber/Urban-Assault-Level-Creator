@@ -65,8 +65,6 @@ static func parse_lego_defs(path: String) -> Dictionary:
 	var full := _UALegacyText.read_file(path)
 	if full.is_empty():
 		return lego_defs
-	# DIAG: print first 80 chars of decoded text
-	print("[DIAG-SDF] read_file len=%d first80='%s'" % [full.length(), full.substr(0, 80)])
 	var raw_id := 0
 	for line_raw in full.split("\n"):
 		var line := _strip_comments(line_raw).strip_edges()
@@ -79,9 +77,6 @@ static func parse_lego_defs(path: String) -> Dictionary:
 			continue
 		var base_file := String(tokens[0]).strip_edges()
 		var base_name := base_file.get_basename()
-		# DIAG: print first 3 parsed entries
-		if raw_id < 3:
-			print("[DIAG-SDF] raw_id=%d line='%s' tokens[0]='%s' base_file='%s' base_name='%s'" % [raw_id, line.substr(0, 60), tokens[0], base_file, base_name])
 		var skeleton_ref := ""
 		if tokens.size() > 1:
 			var skel_token := String(tokens[1]).strip_edges()

@@ -355,24 +355,6 @@ func reload_surface_type_map() -> void:
 		print("[Preloads] subsector_patterns loaded for set ", set_id, ", entries=", subsector_patterns.size())
 		print("[Preloads] tile_mapping loaded for set ", set_id, ", entries=", tile_mapping.size())
 		print("[Preloads] lego_defs loaded for set ", set_id, ", entries=", lego_defs.size())
-		# DIAG: verify lego_defs content in export
-		for di in range(mini(5, lego_defs.size())):
-			if lego_defs.has(di):
-				print("[DIAG] lego_defs[%d]: base_name=%s base_file=%s" % [di, lego_defs[di].get("base_name","?"), lego_defs[di].get("base_file","?")])
-		# DIAG: read raw SDF bytes both ways
-		var sdf_path := _UAProjectDataRoots.set_sdf_path_for_set(set_id, game_data_type)
-		if not sdf_path.is_empty() and FileAccess.file_exists(sdf_path):
-			var static_bytes := FileAccess.get_file_as_bytes(sdf_path)
-			var ff := FileAccess.open(sdf_path, FileAccess.READ)
-			var open_bytes := ff.get_buffer(mini(20, ff.get_length())) if ff else PackedByteArray()
-			var hex_static := ""
-			for bi in range(mini(20, static_bytes.size())):
-				hex_static += "%02X " % static_bytes[bi]
-			var hex_open := ""
-			for bi in range(open_bytes.size()):
-				hex_open += "%02X " % open_bytes[bi]
-			print("[DIAG] SDF get_file_as_bytes first 20: %s" % hex_static.strip_edges())
-			print("[DIAG] SDF open+get_buffer first 20:   %s" % hex_open.strip_edges())
 		if not tile_remap.is_empty():
 			print("[Preloads] tile_remap loaded for set ", set_id, ", entries=", tile_remap.size())
 		if not subsector_idx_remap.is_empty():
