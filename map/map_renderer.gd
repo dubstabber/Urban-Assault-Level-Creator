@@ -154,9 +154,10 @@ func _draw_sector_content(current_sector: int, h_grid: int, v_grid: int, rect_ba
 	rect.position = Vector2(h_grid + sector_indent, v_grid + sector_indent)
 	
 	# Draw typ map image
-	if Preloads.building_top_images[level_set].has(typ):
+	var top_img: Texture2D = Preloads.get_building_top_image(level_set, typ)
+	if top_img != null:
 		if EditorState.typ_map_images_visible:
-			draw_texture_rect(Preloads.building_top_images[level_set][typ],
+			draw_texture_rect(top_img,
 					 Rect2(h_grid, v_grid, Constants.SECTOR_SIZE, Constants.SECTOR_SIZE), false)
 	else:
 		draw_texture_rect(Preloads.error_sign, rect, false)

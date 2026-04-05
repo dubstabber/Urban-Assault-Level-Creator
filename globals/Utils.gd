@@ -103,11 +103,12 @@ func randomize_whole_typ_map() -> void:
 
 
 func convert_sky_name_case(sky_name: String) -> String:
-	for sky in Preloads.skies.keys():
+	for sky in Preloads.get_sky_names():
 		if sky.to_lower() == sky_name.to_lower():
 			return sky
-	
-	return Preloads.skies.keys()[0]
+
+	var names: Array = Preloads.get_sky_names()
+	return names[0] if not names.is_empty() else sky_name
 
 
 func copy_sector() -> void:

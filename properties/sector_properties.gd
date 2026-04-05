@@ -83,9 +83,10 @@ func _update_properties() -> void:
 			warning_blg_map_label.hide.call_deferred()
 		
 		building_text_label.text = "Building %s" % CurrentMapData.typ_map[EditorState.selected_sector_idx]
-		if Preloads.building_side_images[CurrentMapData.level_set].has(CurrentMapData.typ_map[EditorState.selected_sector_idx]):
+		var side_img: Texture2D = Preloads.get_building_side_image(CurrentMapData.level_set, CurrentMapData.typ_map[EditorState.selected_sector_idx])
+		if side_img != null:
 			building_texture.show.call_deferred()
-			building_texture.texture = Preloads.building_side_images[CurrentMapData.level_set][CurrentMapData.typ_map[EditorState.selected_sector_idx]]
+			building_texture.texture = side_img
 			invalid_typ_map_label.hide.call_deferred()
 		else:
 			building_texture.hide.call_deferred()

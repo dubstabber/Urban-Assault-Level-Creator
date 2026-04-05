@@ -48,6 +48,30 @@ var _ground_fb_colors := [
 	Color(0.70, 0.60, 0.45) # sand
 ]
 
+# Missing sector image files — half-open ranges [start, end) to skip when loading.
+var _skip_ranges := {
+	1: [[54,59], [60,66], [83,95], [105,110], [114,120], [122,130], [142,150], [190,198], [206,207], [209,228], [237,239]],
+	2: [[25,27], [105,110], [114,118], [132,133], [134,150], [196,198], [206,207], [209,210], [226,228], [231,239]],
+	3: [[50,59], [60,66], [83,100], [105,110], [114,121], [122,130], [142,150], [190,198], [206,207], [209,228], [231,239]],
+	4: [[50,59], [61,66], [83,100], [105,110], [114,121], [122,130], [142,150], [190,198], [206,207], [209,228], [231,239]],
+	5: [[96,97], [117,118], [132,133], [138,150], [192,198], [206,207], [209,210], [226,228], [231,239]],
+	6: [[50,59], [60,66], [83,95], [105,110], [114,121], [122,130], [142,150], [190,198], [206,207], [209,228], [236,239]]
+}
+
+# Cached valid building index lists per set (computed once on first access).
+var _valid_building_indices_cache := {}
+
+# Sky texture names for lazy loading.
+var _sky_names := ["1998_01", "1998_02", "1998_03", "1998_05", "1998_06",
+	"Am_1", "Am_2", "Am_3", "ARZ1", "ASKY2", "BRAUN1", "CT6", "H7", "H",
+	"HAAMITT1", "HAAMITT4", "MOD2", "MOD4", "MOD5", "MOD7", "MOD8", "MOD9",
+	"MODA", "MODB", "Nacht1", "NACHT2", "NEWTRY5", "NOSKY", "NT1", "NT2",
+	"NT3", "NT5", "NT6", "NT7", "NT8", "NT9", "NTA", "S3_1", "S3_4",
+	"SMOD1", "SMOD2", "SMOD3", "SMOD4", "SMOD5", "SMOD6", "SMOD7", "SMOD8",
+	"STERNE", "wow1", "wow5", "wow7", "wow8", "wow9", "wowa", "wowb",
+	"wowc", "wowd", "wowe", "wowf", "wowh", "wowi", "wowj", "x1", "x2",
+	"x4", "x5", "x7", "x8", "x9", "xa", "xb", "xc"]
+
 
 # Each pair is [inclusive_start, exclusive_end): same semantics as legacy skip_starts/skip_ends
 # (when idx hit skip_starts[i], it jumped to skip_ends[i], which is the first loaded index).
@@ -120,35 +144,10 @@ func _ready():
 	sector_item_images.beam_gate_key_sector = load("res://resources/img/sectorItems/keysector.png")
 	sector_item_images.bomb_key_sector = load("res://resources/img/sectorItems/sectorbomb.png")
 
-	# Initialize building image dictionaries
+	# Initialize building image dictionaries (images are lazy-loaded on first access).
 	for set_id in range(1, 7):
 		building_side_images[set_id] = {}
 		building_top_images[set_id] = {}
-
-	# Missing sector image files — half-open ranges [start, end) to skip when loading.
-	var skip_ranges := {
-		1: [[54,59], [60,66], [83,95], [105,110], [114,120], [122,130], [142,150], [190,198], [206,207], [209,228], [237,239]],
-		2: [[25,27], [105,110], [114,118], [132,133], [134,150], [196,198], [206,207], [209,210], [226,228], [231,239]],
-		3: [[50,59], [60,66], [83,100], [105,110], [114,121], [122,130], [142,150], [190,198], [206,207], [209,228], [231,239]],
-		4: [[50,59], [61,66], [83,100], [105,110], [114,121], [122,130], [142,150], [190,198], [206,207], [209,228], [231,239]],
-		5: [[96,97], [117,118], [132,133], [138,150], [192,198], [206,207], [209,210], [226,228], [231,239]],
-		6: [[50,59], [60,66], [83,95], [105,110], [114,121], [122,130], [142,150], [190,198], [206,207], [209,228], [236,239]]
-	}
-
-	# Load building images for all sets
-	for set_id in range(1, 7):
-		var ranges = skip_ranges[set_id]
-		var idx = 0
-		while idx < 256:
-			if _is_in_skip_ranges(idx, ranges):
-				for r in ranges:
-					if idx >= r[0] and idx < r[1]:
-						idx = r[1]
-						break
-				continue
-			building_side_images[set_id][idx] = load("res://resources/img/Sector_images/set%d-side/Set%d_sector%s.jpg" % [set_id, set_id, idx])
-			building_top_images[set_id][idx] = load("res://resources/img/Sector_images/set%d-above/Set%d_sector_%s.jpg" % [set_id, set_id, idx])
-			idx += 1
 
 	error_sign = load("res://resources/img/blgMapImages/error.png")
 	error_icon = load("res://resources/img/ui_icons/error-icon.png")
@@ -166,18 +165,7 @@ func _ready():
 	movies_db["Lose"] = "lose.mpg"
 	movies_db["Win"] = "win.mpg"
 
-	var sky_names := ["1998_01", "1998_02", "1998_03", "1998_05", "1998_06",
-		"Am_1", "Am_2", "Am_3", "ARZ1", "ASKY2", "BRAUN1", "CT6", "H7", "H",
-		"HAAMITT1", "HAAMITT4", "MOD2", "MOD4", "MOD5", "MOD7", "MOD8", "MOD9",
-		"MODA", "MODB", "Nacht1", "NACHT2", "NEWTRY5", "NOSKY", "NT1", "NT2",
-		"NT3", "NT5", "NT6", "NT7", "NT8", "NT9", "NTA", "S3_1", "S3_4",
-		"SMOD1", "SMOD2", "SMOD3", "SMOD4", "SMOD5", "SMOD6", "SMOD7", "SMOD8",
-		"STERNE", "wow1", "wow5", "wow7", "wow8", "wow9", "wowa", "wowb",
-		"wowc", "wowd", "wowe", "wowf", "wowh", "wowi", "wowj", "x1", "x2",
-		"x4", "x5", "x7", "x8", "x9", "xa", "xb", "xc"]
-
-	for sky_name in sky_names:
-		skies[sky_name] = load("res://resources/img/sky-images/%s.jpg" % sky_name)
+	# Skies are lazy-loaded on first access via get_sky().
 
 	# 3D terrain edge-based resources
 	load_ground_textures()
@@ -186,30 +174,11 @@ func _ready():
 		EventSystem.level_set_changed.connect(reload_surface_type_map)
 		EventSystem.level_set_changed.connect(load_ground_textures)
 
-	for track_id in [2, 3, 4, 5, 6]:
-		musics[track_id] = load("res://resources/audio/track-%s.mp3" % track_id)
+	# Music tracks are lazy-loaded on first access via get_music().
 
 	reload_mb_db_maps()
 	EventSystem.game_type_changed.connect(reload_units_and_buildings)
 	EventSystem.game_type_changed.connect(reload_mb_db_maps)
-
-
-func _load_building_images_for_set(set_id: int, skip_starts: Array, skip_ends: Array) -> void:
-	"""Load building images for a specific level set, skipping invalid indices."""
-	var idx := 0
-	var skip_idx := 0
-	
-	while idx < 256:
-		# Check if we need to skip to next valid range
-		if skip_idx < skip_starts.size() and idx == skip_starts[skip_idx]:
-			idx = skip_ends[skip_idx]
-			skip_idx += 1
-			continue
-		
-		# Load the images for this index
-		building_side_images[set_id][idx] = load("res://resources/img/Sector_images/set%s-side/Set%s_sector%s.jpg" % [set_id, set_id, idx])
-		building_top_images[set_id][idx] = load("res://resources/img/Sector_images/set%s-above/Set%s_sector_%s.jpg" % [set_id, set_id, idx])
-		idx += 1
 
 
 func reload_units_and_buildings() -> void:
@@ -240,15 +209,69 @@ func reload_units_and_buildings() -> void:
 
 
 func get_sky(sky_name: String) -> Texture2D:
-	if not skies.has(sky_name):
-		return null
-	return skies[sky_name]
+	if skies.has(sky_name):
+		return skies[sky_name]
+	if sky_name in _sky_names:
+		skies[sky_name] = load("res://resources/img/sky-images/%s.jpg" % sky_name)
+		return skies[sky_name]
+	return null
+
+
+func get_sky_names() -> Array:
+	return _sky_names.duplicate()
 
 
 func get_music(track_id: int) -> AudioStream:
-	if not musics.has(track_id):
+	if musics.has(track_id):
+		return musics[track_id]
+	if track_id in [2, 3, 4, 5, 6]:
+		musics[track_id] = load("res://resources/audio/track-%s.mp3" % track_id)
+		return musics[track_id]
+	return null
+
+
+func get_building_side_image(set_id: int, idx: int) -> Texture2D:
+	if set_id < 1 or set_id > 6:
 		return null
-	return musics[track_id]
+	if not building_side_images.has(set_id):
+		building_side_images[set_id] = {}
+	if building_side_images[set_id].has(idx):
+		return building_side_images[set_id][idx]
+	if _is_in_skip_ranges(idx, _skip_ranges[set_id]):
+		return null
+	if idx < 0 or idx >= 256:
+		return null
+	building_side_images[set_id][idx] = load("res://resources/img/Sector_images/set%d-side/Set%d_sector%s.jpg" % [set_id, set_id, idx])
+	return building_side_images[set_id][idx]
+
+
+func get_building_top_image(set_id: int, idx: int) -> Texture2D:
+	if set_id < 1 or set_id > 6:
+		return null
+	if not building_top_images.has(set_id):
+		building_top_images[set_id] = {}
+	if building_top_images[set_id].has(idx):
+		return building_top_images[set_id][idx]
+	if _is_in_skip_ranges(idx, _skip_ranges[set_id]):
+		return null
+	if idx < 0 or idx >= 256:
+		return null
+	building_top_images[set_id][idx] = load("res://resources/img/Sector_images/set%d-above/Set%d_sector_%s.jpg" % [set_id, set_id, idx])
+	return building_top_images[set_id][idx]
+
+
+func get_valid_building_indices(set_id: int) -> Array:
+	if _valid_building_indices_cache.has(set_id):
+		return _valid_building_indices_cache[set_id]
+	if set_id < 1 or set_id > 6:
+		return []
+	var result := []
+	var ranges: Array = _skip_ranges[set_id]
+	for idx in 256:
+		if not _is_in_skip_ranges(idx, ranges):
+			result.append(idx)
+	_valid_building_indices_cache[set_id] = result
+	return result
 
 
 func reload_mb_db_maps() -> void:

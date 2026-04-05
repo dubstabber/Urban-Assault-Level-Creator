@@ -10,7 +10,7 @@ func _on_about_to_popup() -> void:
 		child.queue_free()
 		sky_grid.remove_child(child)
 	
-	for sky in Preloads.skies:
+	for sky in Preloads.get_sky_names():
 		var sky_button = Button.new()
 		sky_button.icon = Preloads.get_sky(sky)
 		sky_button.custom_minimum_size = Vector2(400, 200)

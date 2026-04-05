@@ -58,10 +58,10 @@ func _refresh_images() -> void:
 		child.queue_free()
 	
 	if CurrentMapData.level_set > 6 or CurrentMapData.level_set < 1: return
-	for idx in Preloads.building_side_images[CurrentMapData.level_set]:
+	for idx in Preloads.get_valid_building_indices(CurrentMapData.level_set):
 		var typ_map_button = BUILDING_BUTTON.instantiate()
-		typ_map_button.side_building_texture = Preloads.building_side_images[CurrentMapData.level_set][idx]
-		typ_map_button.top_building_texture = Preloads.building_top_images[CurrentMapData.level_set][idx]
+		typ_map_button.side_building_texture = Preloads.get_building_side_image(CurrentMapData.level_set, idx)
+		typ_map_button.top_building_texture = Preloads.get_building_top_image(CurrentMapData.level_set, idx)
 		typ_map_button.building_id = idx
 		typ_map_button.custom_minimum_size = Vector2(button_size, button_size)
 		%TypMapImagesContainer.add_child(typ_map_button)

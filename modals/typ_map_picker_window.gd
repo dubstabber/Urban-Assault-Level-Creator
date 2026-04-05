@@ -10,9 +10,9 @@ func _on_about_to_popup() -> void:
 		child.queue_free()
 		building_grid.remove_child(child)
 	
-	for building_idx in Preloads.building_top_images[CurrentMapData.level_set]:
+	for building_idx in Preloads.get_valid_building_indices(CurrentMapData.level_set):
 		var building_button = Button.new()
-		building_button.icon = Preloads.building_top_images[CurrentMapData.level_set][building_idx]
+		building_button.icon = Preloads.get_building_top_image(CurrentMapData.level_set, building_idx)
 		building_button.custom_minimum_size = Vector2(200, 200)
 		building_button.icon_alignment = HORIZONTAL_ALIGNMENT_CENTER
 		building_button.expand_icon = true

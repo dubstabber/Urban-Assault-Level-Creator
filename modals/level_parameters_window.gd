@@ -76,7 +76,7 @@ func _on_music_button_toggled(toggled_on: bool) -> void:
 		var music_id = music_option_button.get_item_id(music_option_button.selected)
 		if music_id > 1:
 			music_button.text = "Stop"
-			music_player.stream = Preloads.musics[music_id]
+			music_player.stream = Preloads.get_music(music_id)
 			music_player.play()
 		else:
 			music_button.button_pressed = false

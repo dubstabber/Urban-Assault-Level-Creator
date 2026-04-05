@@ -38,8 +38,8 @@ const EDGE_BLEND_SHADER_PATH := "res://resources/terrain/shaders/edge_blend.gdsh
 const SUBQUAD_UV_INSET := 0.002 # Prevent internal 1/3 and 2/3 seam sampling bleed
 const UA_NORMAL_RENDER_SECTORS := 5
 const UA_NORMAL_GEOMETRY_CULL_DISTANCE := float(UA_NORMAL_RENDER_SECTORS) * SECTOR_SIZE + SECTOR_SIZE * 0.5
-const _ASYNC_APPLY_RESULTS_PER_FRAME := 1
-const _ASYNC_OVERLAY_APPLY_OPS_PER_FRAME := 20
+const _ASYNC_APPLY_RESULTS_PER_FRAME := 4
+const _ASYNC_OVERLAY_APPLY_OPS_PER_FRAME := 48
 const HOST_STATION_BASE_NAMES := {
 	56: "VP_ROBO",
 	57: "VP_KROBO",
@@ -182,6 +182,12 @@ var _edge_chunk_nodes: Dictionary = {}
 
 var _geometry_distance_culling_enabled := false
 var _geometry_cull_distance := UA_NORMAL_GEOMETRY_CULL_DISTANCE
+
+# Material pooling: reuse identical ShaderMaterials across chunks.
+var _sector_top_shader: Shader = null
+var _edge_blend_shader: Shader = null
+var _terrain_material_cache: Dictionary = {} # surface_type (int) -> ShaderMaterial
+var _edge_material_cache: Dictionary = {} # "bucket_key:vertical_bool" -> ShaderMaterial
 
 # Scheduling and async build coordination is delegated to the coordinator.
 # Thread-safe state, chunk payload queues, generation IDs, and map-signature
@@ -408,15 +414,27 @@ func _preloads() -> Node:
 	return null
 
 func _preview_refresh_active() -> bool:
+	# Allow in-progress async builds to continue even when the user switches
+	# to 2D mode, so completed chunks are ready when they switch back.
+	# New refreshes defer until 3D is visible to avoid wasting CPU on edits
+	# the user hasn't asked to preview yet.
+	if _is_async_pipeline_active():
+		return true
+	var editor_state := _editor_state()
+	if editor_state != null:
+		return bool(editor_state.get("view_mode_3d"))
+	return true
+
+func _is_3d_view_visible() -> bool:
 	var editor_state := _editor_state()
 	if editor_state != null:
 		return bool(editor_state.get("view_mode_3d"))
 	return true
 
 func _apply_preview_activity_state() -> void:
-	var active := _preview_refresh_active()
-	set_physics_process(active)
-	set_process_unhandled_input(active)
+	var in_3d := _is_3d_view_visible()
+	set_physics_process(in_3d)
+	set_process_unhandled_input(in_3d)
 
 func _request_refresh(reframe_camera: bool) -> void:
 	if not _refresh_pending and _refresh_requested_at_usec <= 0:
@@ -457,6 +475,10 @@ func _apply_pending_refresh() -> void:
 		_frame_if_needed()
 
 func _ready() -> void:
+	# Pre-load shaders once to avoid repeated load() calls during chunk apply.
+	_sector_top_shader = load("res://resources/terrain/shaders/sector_top.gdshader")
+	_edge_blend_shader = load(EDGE_BLEND_SHADER_PATH)
+
 	var test_mesh := get_node_or_null("TestMesh")
 	if test_mesh:
 		_ensure_edge_node()
@@ -1115,14 +1137,20 @@ func _sync_terrain_overlay_animation_mode_from_editor() -> void:
 	UATerrainPieceLibraryScript.set_force_static_terrain_overlays(not anims_on)
 
 func _apply_debug_mode_to_existing_materials() -> void:
-	if _terrain_mesh == null or _terrain_mesh.mesh == null:
-		return
-	var mesh := _terrain_mesh.mesh
-	for si in mesh.get_surface_count():
-		var mat := mesh.surface_get_material(si)
-		if mat is ShaderMaterial:
-			(mat as ShaderMaterial).set_shader_parameter("debug_mode", _debug_shader_mode)
-			_frame_if_needed()
+	# Update cached terrain materials (shared across all chunks).
+	for surface_type in _terrain_material_cache:
+		var mat: ShaderMaterial = _terrain_material_cache[surface_type]
+		mat.set_shader_parameter("debug_mode", _debug_shader_mode)
+	# Also update any chunk-local materials not yet in cache (e.g. legacy path).
+	for chunk_coord in _terrain_chunk_nodes:
+		var node: MeshInstance3D = _terrain_chunk_nodes[chunk_coord]
+		if node == null or node.mesh == null:
+			continue
+		for si in node.mesh.get_surface_count():
+			var mat := node.mesh.surface_get_material(si)
+			if mat is ShaderMaterial:
+				(mat as ShaderMaterial).set_shader_parameter("debug_mode", _debug_shader_mode)
+	_frame_if_needed()
 
 func _process(_delta: float) -> void:
 	# Keep mouse mode sane if window focus changes
@@ -1560,6 +1588,8 @@ func _current_game_data_type() -> String:
 	return game_data_type
 
 func clear() -> void:
+	_terrain_material_cache.clear()
+	_edge_material_cache.clear()
 	if _terrain_mesh:
 		_terrain_mesh.mesh = null
 	if _edge_mesh:
@@ -2763,8 +2793,9 @@ func _apply_sector_top_materials(mesh: ArrayMesh, preloads, surface_to_surface_t
 		_apply_untextured_materials(mesh)
 		return
 
-	var shader: Shader = load("res://resources/terrain/shaders/sector_top.gdshader")
-	if shader == null:
+	if _sector_top_shader == null:
+		_sector_top_shader = load("res://resources/terrain/shaders/sector_top.gdshader")
+	if _sector_top_shader == null:
 		push_warning("[Map3D] Could not load sector_top.gdshader")
 		_apply_untextured_materials(mesh)
 		return
@@ -2778,8 +2809,12 @@ func _apply_sector_top_materials(mesh: ArrayMesh, preloads, surface_to_surface_t
 			mesh.surface_set_material(surface_idx, dbg)
 			continue
 
+		if _terrain_material_cache.has(surface_type):
+			mesh.surface_set_material(surface_idx, _terrain_material_cache[surface_type])
+			continue
+
 		var mat := ShaderMaterial.new()
-		mat.shader = shader
+		mat.shader = _sector_top_shader
 		mat.set_shader_parameter("ground_texture", preloads.get_ground_texture(clampi(surface_type, 0, 5)))
 		for ground_idx in 6:
 			mat.set_shader_parameter("ground%d" % ground_idx, preloads.get_ground_texture(ground_idx))
@@ -2790,12 +2825,15 @@ func _apply_sector_top_materials(mesh: ArrayMesh, preloads, surface_to_surface_t
 		mat.set_shader_parameter("use_vertex_variant", true)
 		mat.set_shader_parameter("variant", 0)
 		mat.set_shader_parameter("debug_mode", _debug_shader_mode)
+		_terrain_material_cache[surface_type] = mat
 		mesh.surface_set_material(surface_idx, mat)
 
 # ---- UA edge-based strip rendering ----
 func _on_level_set_changed() -> void:
 	# A set switch can change sector pattern topology and authored overlay descriptors.
 	# Reset chunk/runtime caches so we never keep mixed old/new set chunk outputs.
+	_terrain_material_cache.clear()
+	_edge_material_cache.clear()
 	_cancel_async_initial_build()
 	_effective_typ_service.invalidate_cache()
 	_effective_typ_service.set_dirty(true)
@@ -2968,12 +3006,18 @@ func _make_edge_blend_material(bucket_key: String, preloads, use_uv_y_for_blend:
 	var pair := _surface_pair_from_slurp_bucket_key(bucket_key)
 	if pair.is_empty() or preloads == null:
 		return _make_preview_material(EDGE_PREVIEW_COLOR)
-	var shader: Shader = load(EDGE_BLEND_SHADER_PATH)
-	if shader == null:
+	if _edge_blend_shader == null:
+		_edge_blend_shader = load(EDGE_BLEND_SHADER_PATH)
+	if _edge_blend_shader == null:
 		push_warning("[Map3D] Could not load edge_blend.gdshader")
 		return _make_preview_material(EDGE_PREVIEW_COLOR)
+
+	var cache_key := "%s:%s" % [bucket_key, use_uv_y_for_blend]
+	if _edge_material_cache.has(cache_key):
+		return _edge_material_cache[cache_key]
+
 	var mat := ShaderMaterial.new()
-	mat.shader = shader
+	mat.shader = _edge_blend_shader
 	mat.set_shader_parameter("texture_a", preloads.get_ground_texture(int(pair["surface_a"])))
 	mat.set_shader_parameter("texture_b", preloads.get_ground_texture(int(pair["surface_b"])))
 	mat.set_shader_parameter("vertical_seam", use_uv_y_for_blend)
@@ -2981,6 +3025,7 @@ func _make_edge_blend_material(bucket_key: String, preloads, use_uv_y_for_blend:
 	mat.set_shader_parameter("atlas_grid", Vector2(1.0, 1.0))
 	mat.set_shader_parameter("variant_a", 0)
 	mat.set_shader_parameter("variant_b", 0)
+	_edge_material_cache[cache_key] = mat
 	return mat
 
 func _build_edges_mesh(hgt: PackedByteArray, w: int, h: int, typ: PackedByteArray, mapping: Dictionary, preloads = null) -> ArrayMesh:

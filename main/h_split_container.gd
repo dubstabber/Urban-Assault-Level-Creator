@@ -6,6 +6,7 @@ extends HSplitContainer
 @onready var map_3d_renderer: Map3DRenderer = $Map3DContainer/SubViewport/Map3D
 @onready var map_3d_loading_overlay: Control = $Map3DContainer/LoadingOverlay
 @onready var map_3d_loading_label: Label = $Map3DContainer/LoadingOverlay/PanelContainer/MarginContainer/VBoxContainer/StatusLabel
+@onready var _build_3d_status_label: Label = %Build3DStatusLabel
 
 func _ready() -> void:
 	EventSystem.map_view_updated.connect(_apply_view_mode)
@@ -35,10 +36,24 @@ func _on_3d_build_state_changed(is_building: bool, completed: int, total: int, s
 		progress_text = "%s\nChunks ready: %d / %d" % [status, completed, total]
 	map_3d_loading_label.text = progress_text
 	map_3d_loading_overlay.visible = EditorState.view_mode_3d and is_building
+	_update_status_bar_3d_indicator(is_building, completed, total)
 
 
 func _on_3d_build_finished(_success: bool) -> void:
 	_refresh_loading_overlay()
+	_update_status_bar_3d_indicator(false, 0, 0)
+
+
+func _update_status_bar_3d_indicator(is_building: bool, completed: int, total: int) -> void:
+	if _build_3d_status_label == null:
+		return
+	if not is_building or EditorState.view_mode_3d:
+		_build_3d_status_label.text = ""
+		return
+	if total > 0:
+		_build_3d_status_label.text = "| 3D: %d/%d chunks" % [completed, total]
+	else:
+		_build_3d_status_label.text = "| 3D: Building..."
 
 
 func _refresh_loading_overlay() -> void:
@@ -49,9 +64,11 @@ func _refresh_loading_overlay() -> void:
 	var text: String = String(build_state.get("status_text", ""))
 	var completed := int(build_state.get("completed_chunks", 0))
 	var total := int(build_state.get("total_chunks", 0))
+	var is_building := bool(build_state.get("is_building_3d", false))
 	if text.begins_with("Rendering map") and total > 0:
 		text = "%s\n%d / %d chunks" % [text, completed, total]
 	elif total > 0:
 		text = "%s\nChunks ready: %d / %d" % [text, completed, total]
 	map_3d_loading_label.text = text if not text.is_empty() else "Rendering map..."
-	map_3d_loading_overlay.visible = EditorState.view_mode_3d and bool(build_state.get("is_building_3d", false))
+	map_3d_loading_overlay.visible = EditorState.view_mode_3d and is_building
+	_update_status_bar_3d_indicator(is_building, completed, total)
