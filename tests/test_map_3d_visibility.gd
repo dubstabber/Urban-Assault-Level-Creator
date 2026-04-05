@@ -10,6 +10,7 @@ class EventSystemStub extends Node:
 	signal map_updated
 	signal level_set_changed
 	signal map_view_updated
+	signal map_3d_overlay_animations_changed
 
 
 class CurrentMapDataStub extends Node:

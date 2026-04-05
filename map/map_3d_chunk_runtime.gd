@@ -20,6 +20,7 @@ var chunked_terrain_enabled := true
 
 var _dirty_chunks: Dictionary = {}
 var explicit_chunk_invalidation_pending := false
+var localized_chunk_invalidation_pending := false
 
 
 func has_dirty_chunks() -> bool:
@@ -40,6 +41,14 @@ func erase_dirty_chunk(chunk_coord: Vector2i) -> void:
 
 func clear_dirty_chunks() -> void:
 	_dirty_chunks.clear()
+	explicit_chunk_invalidation_pending = false
+	localized_chunk_invalidation_pending = false
+
+
+func take_localized_chunk_invalidation_pending() -> bool:
+	var pending := localized_chunk_invalidation_pending
+	localized_chunk_invalidation_pending = false
+	return pending
 
 
 func invalidate_all_chunks(w: int, h: int) -> void:
@@ -48,6 +57,7 @@ func invalidate_all_chunks(w: int, h: int) -> void:
 	for chunk_coord in all_chunks:
 		_dirty_chunks[chunk_coord] = true
 	explicit_chunk_invalidation_pending = true
+	localized_chunk_invalidation_pending = false
 
 
 func invalidate_chunks_for_sector_edit(sx: int, sy: int, w: int, h: int, edit_type: String) -> void:
@@ -58,6 +68,8 @@ func invalidate_chunks_for_sector_edit(sx: int, sy: int, w: int, h: int, edit_ty
 		affected = TerrainBuilder.chunks_for_blg_edit(sx, sy, w, h)
 	for chunk_coord in affected:
 		_dirty_chunks[chunk_coord] = true
+	explicit_chunk_invalidation_pending = true
+	localized_chunk_invalidation_pending = true
 
 
 func dirty_chunks_sorted_by_priority(focus_chunk: Vector2i) -> Array[Vector2i]:

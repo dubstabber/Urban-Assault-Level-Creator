@@ -6,16 +6,15 @@ signal build_finished(success: bool)
 
 const UATerrainPieceLibraryScript := preload("res://map/terrain/ua_authored_piece_library.gd")
 const VisualLookupService := preload("res://map/map_3d_visual_lookup_service.gd")
-const _ResDir := preload("res://scripts/res_dir.gd")
 const TerrainBuilder := preload("res://map/map_3d_terrain_builder.gd")
 const SlurpBuilder := preload("res://map/map_3d_slurp_builder.gd")
 const AuthoredOverlayManager := preload("res://map/map_3d_authored_overlay_manager.gd")
 const ViewController := preload("res://map/map_3d_view_controller.gd")
-const UALegacyText := preload("res://map/ua_legacy_text.gd")
 const RefreshCoordinator := preload("res://map/map_3d_refresh_coordinator.gd")
 const ChunkRuntime := preload("res://map/map_3d_chunk_runtime.gd")
 const EffectiveTypService := preload("res://map/map_3d_effective_typ_service.gd")
 const OverlayProducers := preload("res://map/map_3d_overlay_descriptor_producers.gd")
+const LegacyScriptParser := preload("res://map/map_3d_legacy_script_parser.gd")
 
 const SECTOR_SIZE := 1200.0
 const HEIGHT_SCALE := 100.0
@@ -510,6 +509,8 @@ func _ready() -> void:
 			_es.hgt_map_cells_edited.connect(_on_hgt_map_cells_edited)
 		if _es.has_signal("typ_map_cells_edited"):
 			_es.typ_map_cells_edited.connect(_on_typ_map_cells_edited)
+		if _es.has_signal("blg_map_cells_edited"):
+			_es.blg_map_cells_edited.connect(_on_blg_map_cells_edited)
 	_apply_preview_activity_state()
 	_apply_visibility_range_from_editor_state()
 	var _cmd = _current_map_data()
@@ -1273,8 +1274,7 @@ func _on_map_changed() -> void:
 		_skip_next_map_changed_refresh = false
 		return
 	_cancel_async_initial_build()
-	_overlay_only_refresh_requested = false
-	_dynamic_overlay_refresh_requested = false
+	var has_localized_invalidation := _chunk_rt.take_localized_chunk_invalidation_pending()
 	var _cmd = _current_map_data()
 
 	if _cmd:
@@ -1287,7 +1287,7 @@ func _on_map_changed() -> void:
 			var level_set := int(_cmd.level_set)
 			var signature_changed := _is_map_signature_changed(w, h, level_set, hgt, typ, blg)
 			_record_map_signature(w, h, level_set, hgt, typ, blg)
-			if signature_changed:
+			if signature_changed and not has_localized_invalidation:
 				# Any map-array checksum change means terrain content potentially changed.
 				# Force dirty chunks so stale incremental chunk sets cannot miss distant sectors.
 				_invalidate_all_chunks(w, h)
@@ -1381,6 +1381,30 @@ func _on_typ_map_cells_edited(typ_indices: Array) -> void:
 			continue
 		seen_playable[key] = true
 		mark_sector_dirty(sx, sy, "typ")
+
+func _on_blg_map_cells_edited(blg_indices: Array) -> void:
+	_cancel_async_initial_build()
+	var _cmd = _current_map_data()
+	if _cmd == null:
+		return
+	var w := int(_cmd.horizontal_sectors)
+	var h := int(_cmd.vertical_sectors)
+	if w <= 0 or h <= 0:
+		return
+	_effective_typ_service.set_dirty(true)
+
+	var seen_playable := {}
+	for idx_value in blg_indices:
+		var blg_idx := int(idx_value)
+		if blg_idx < 0 or blg_idx >= (w * h):
+			continue
+		var sx := blg_idx % w
+		var sy: int = int(blg_idx / w)
+		var key := "%d:%d" % [sx, sy]
+		if seen_playable.has(key):
+			continue
+		seen_playable[key] = true
+		mark_sector_dirty(sx, sy, "blg")
 
 func build_from_current_map() -> void:
 	var build_started_usec := Time.get_ticks_usec()
@@ -1597,7 +1621,6 @@ func clear() -> void:
 	_clear_chunk_nodes()
 	_set_authored_overlay([])
 
-
 func _clear_chunk_nodes() -> void:
 	for chunk_key in _terrain_chunk_nodes.keys():
 		var node: Node = _terrain_chunk_nodes[chunk_key]
@@ -1611,22 +1634,17 @@ func _clear_chunk_nodes() -> void:
 	_edge_chunk_nodes.clear()
 	_chunk_rt.clear_dirty_chunks()
 
-
 func _invalidate_all_chunks(w: int, h: int) -> void:
 	_chunk_rt.invalidate_all_chunks(w, h)
-
 
 func _is_map_signature_changed(w: int, h: int, level_set: int, hgt: PackedByteArray, typ: PackedByteArray, blg: PackedByteArray) -> bool:
 	return _coordinator.is_map_signature_changed(w, h, level_set, hgt, typ, blg)
 
-
 func _record_map_signature(w: int, h: int, level_set: int, hgt: PackedByteArray, typ: PackedByteArray, blg: PackedByteArray) -> void:
 	_coordinator.record_map_signature(w, h, level_set, hgt, typ, blg)
 
-
 func _invalidate_chunks_for_sector_edit(sx: int, sy: int, w: int, h: int, edit_type: String) -> void:
 	_chunk_rt.invalidate_chunks_for_sector_edit(sx, sy, w, h, edit_type)
-
 
 func mark_sector_dirty(sx: int, sy: int, edit_type: String = "hgt") -> void:
 	var _cmd = _current_map_data()
@@ -1638,7 +1656,6 @@ func mark_sector_dirty(sx: int, sy: int, edit_type: String = "hgt") -> void:
 		return
 	_chunk_rt.explicit_chunk_invalidation_pending = true
 	_invalidate_chunks_for_sector_edit(sx, sy, w, h, edit_type)
-
 
 func mark_sectors_dirty(sectors: Array, edit_type: String = "hgt") -> void:
 	var _cmd = _current_map_data()
@@ -1655,23 +1672,18 @@ func mark_sectors_dirty(sectors: Array, edit_type: String = "hgt") -> void:
 		elif sector is Vector2:
 			_invalidate_chunks_for_sector_edit(int(sector.x), int(sector.y), w, h, edit_type)
 
-
 func get_dirty_chunk_count() -> int:
 	return _chunk_rt.get_dirty_chunk_count()
-
 
 func is_using_chunked_terrain() -> bool:
 	return _chunk_rt.chunked_terrain_enabled
 
-
 func set_chunked_terrain_enabled(enabled: bool) -> void:
 	_chunk_rt.chunked_terrain_enabled = enabled
-
 
 func _needs_full_rebuild(w: int, h: int, level_set: int) -> bool:
 	var has_chunk_nodes := not _terrain_chunk_nodes.is_empty()
 	return _chunk_rt.needs_full_rebuild(w, h, level_set, has_chunk_nodes)
-
 
 func _get_or_create_terrain_chunk_node(chunk_coord: Vector2i) -> MeshInstance3D:
 	if _terrain_chunk_nodes.has(chunk_coord):
@@ -1685,7 +1697,6 @@ func _get_or_create_terrain_chunk_node(chunk_coord: Vector2i) -> MeshInstance3D:
 	_terrain_chunk_nodes[chunk_coord] = node
 	_apply_geometry_distance_culling_to_chunk_node(node, chunk_coord)
 	return node
-
 
 func _get_or_create_edge_chunk_node(chunk_coord: Vector2i) -> MeshInstance3D:
 	if _edge_chunk_nodes.has(chunk_coord):
@@ -1701,14 +1712,11 @@ func _get_or_create_edge_chunk_node(chunk_coord: Vector2i) -> MeshInstance3D:
 	_apply_geometry_distance_culling_to_chunk_node(node, chunk_coord)
 	return node
 
-
 func _update_terrain_authored_cache_for_chunk(chunk_coord: Vector2i, chunk_descriptors: Array) -> void:
 	_chunk_rt.update_terrain_authored_cache_for_chunk(chunk_coord, chunk_descriptors)
 
-
 func _reset_terrain_authored_cache_from_descriptors(support_descriptors: Array, w: int, h: int) -> void:
 	_chunk_rt.reset_terrain_authored_cache_from_descriptors(support_descriptors, w, h)
-
 
 func _rebuild_dirty_chunks(
 	hgt: PackedByteArray,
@@ -1783,17 +1791,14 @@ func _rebuild_dirty_chunks(
 	metrics["chunks_rebuilt"] = chunks_rebuilt
 	return all_authored_descriptors
 
-
 static func _chunk_distance_sq(a: Vector2i, b: Vector2i) -> int:
 	var dx := a.x - b.x
 	var dy := a.y - b.y
 	return dx * dx + dy * dy
 
-
 func _dirty_chunks_sorted_by_priority(w: int, h: int) -> Array[Vector2i]:
 	var focus_chunk := _chunk_focus_coord(w, h)
 	return _chunk_rt.dirty_chunks_sorted_by_priority(focus_chunk)
-
 
 func _chunk_focus_coord(w: int, h: int) -> Vector2i:
 	if _camera != null and is_instance_valid(_camera):
@@ -1823,7 +1828,6 @@ func _set_authored_overlay(descriptors: Array) -> void:
 	AuthoredOverlayManager.apply_overlay_node(_dynamic_overlay, dynamic_descriptors)
 	_apply_geometry_distance_culling_to_overlay()
 
-
 func _apply_geometry_distance_culling_state(enabled: bool) -> void:
 	_geometry_distance_culling_enabled = enabled
 	_geometry_cull_distance = UA_NORMAL_GEOMETRY_CULL_DISTANCE
@@ -1831,7 +1835,6 @@ func _apply_geometry_distance_culling_state(enabled: bool) -> void:
 		_set_all_distance_culled_nodes_visible(true)
 		return
 	_update_geometry_distance_culling_visibility()
-
 
 func _set_all_distance_culled_nodes_visible(make_visible: bool) -> void:
 	for chunk_coord in _terrain_chunk_nodes.keys():
@@ -1850,7 +1853,6 @@ func _set_all_distance_culled_nodes_visible(make_visible: bool) -> void:
 		for child in _dynamic_overlay.get_children():
 			if child is Node3D:
 				(child as Node3D).visible = make_visible
-
 
 func _update_geometry_distance_culling_visibility() -> void:
 	if not _geometry_distance_culling_enabled:
@@ -1881,7 +1883,6 @@ func _update_geometry_distance_culling_visibility() -> void:
 
 	_apply_geometry_distance_culling_to_overlay()
 
-
 func _apply_geometry_distance_culling_to_chunk_node(chunk_node: MeshInstance3D, chunk_coord: Vector2i) -> void:
 	if chunk_node == null or not is_instance_valid(chunk_node):
 		return
@@ -1894,7 +1895,6 @@ func _apply_geometry_distance_culling_to_chunk_node(chunk_node: MeshInstance3D, 
 	var cam_pos := _camera.global_position
 	var cam_xz := Vector2(cam_pos.x, cam_pos.z)
 	chunk_node.visible = cam_xz.distance_squared_to(center) <= (_geometry_cull_distance * _geometry_cull_distance) and chunk_node.mesh != null
-
 
 func _apply_geometry_distance_culling_to_overlay() -> void:
 	if not _geometry_distance_culling_enabled:
@@ -1928,7 +1928,6 @@ func _apply_geometry_distance_culling_to_overlay() -> void:
 			var p := node.global_position
 			var within_range := cam_xz.distance_squared_to(Vector2(p.x, p.z)) <= cull_sq
 			node.visible = within_range
-
 
 func _chunk_center_world_xz(chunk_coord: Vector2i) -> Vector2:
 	var w := maxi(_chunk_rt.last_map_dimensions.x, 0)
@@ -2130,10 +2129,8 @@ static func _host_station_origin(host_station: Node2D, hgt: PackedByteArray, w: 
 static func _snapshot_host_station_nodes(host_stations: Array) -> Array:
 	return OverlayProducers.snapshot_host_station_nodes(host_stations)
 
-
 static func _build_host_station_descriptors_from_snapshot(host_stations: Array, set_id: int, hgt: PackedByteArray, w: int, h: int, support_descriptors: Array = [], profile = null) -> Array:
 	return OverlayProducers.build_host_station_descriptors_from_snapshot(host_stations, set_id, hgt, w, h, support_descriptors, profile)
-
 
 static func _build_host_station_descriptors(host_stations: Array, set_id: int, hgt: PackedByteArray, w: int, h: int, support_descriptors: Array = [], profile = null) -> Array:
 	return OverlayProducers.build_host_station_descriptors(host_stations, set_id, hgt, w, h, support_descriptors, profile)
@@ -2179,114 +2176,8 @@ static func _effective_typ_map_for_3d(
 	) -> PackedByteArray:
 	return EffectiveTypService.effective_typ_map_for_3d(typ, blg, game_data_type, w, h, beam_gates, tech_upgrades, stoudson_bombs, set_id)
 
-static func _empty_building_attachment() -> Dictionary:
-	return {
-		"act": - 1,
-		"vehicle_id": - 1,
-		"ua_offset": Vector3.ZERO,
-		"ua_direction": Vector3.ZERO,
-	}
-
-static func _append_building_attachment(target_building: Dictionary, attachment: Dictionary) -> void:
-	if target_building.is_empty() or attachment.is_empty():
-		return
-	var attachments: Array = target_building.get("attachments", [])
-	attachments.append(attachment.duplicate(true))
-	target_building["attachments"] = attachments
-
-static func _append_building_definition(result: Array, building: Dictionary) -> void:
-	if building.is_empty():
-		return
-	if int(building.get("building_id", -1)) < 0 or int(building.get("sec_type", -1)) < 0:
-		return
-	result.append(building.duplicate(true))
-
-static func _script_assignment_text(raw_line: String, prefix: String) -> String:
-	var equals_index := raw_line.find("=")
-	if equals_index >= 0:
-		return raw_line.substr(equals_index + 1).strip_edges()
-	return raw_line.replacen(prefix, "").strip_edges()
-
 static func _parse_building_definitions(script_path: String) -> Array:
-	var result: Array = []
-	if script_path.is_empty() or not _ResDir.file_exists(script_path):
-		return result
-	var full := UALegacyText.read_file(script_path)
-	if full.is_empty():
-		return result
-	var current_building := {}
-	var current_attachment := {}
-	for line_raw in full.split("\n"):
-		var line := line_raw.get_slice(";", 0).strip_edges().to_lower()
-		if line.is_empty():
-			continue
-		if line.begins_with("new_building"):
-			_append_building_attachment(current_building, current_attachment)
-			_append_building_definition(result, current_building)
-			current_building = {
-				"building_id": int(_script_assignment_text(line, "new_building")),
-				"sec_type": - 1,
-				"attachments": [],
-			}
-			current_attachment = {}
-			continue
-		if line == "end":
-			_append_building_attachment(current_building, current_attachment)
-			_append_building_definition(result, current_building)
-			current_building = {}
-			current_attachment = {}
-			continue
-		if current_building.is_empty():
-			continue
-		if line.begins_with("sec_type"):
-			current_building["sec_type"] = int(_script_assignment_text(line, "sec_type"))
-		elif line.begins_with("sbact_act"):
-			_append_building_attachment(current_building, current_attachment)
-			current_attachment = _empty_building_attachment()
-			current_attachment["act"] = int(_script_assignment_text(line, "sbact_act"))
-		elif line.begins_with("sbact_vehicle"):
-			if current_attachment.is_empty():
-				current_attachment = _empty_building_attachment()
-			current_attachment["vehicle_id"] = int(_script_assignment_text(line, "sbact_vehicle"))
-		elif line.begins_with("sbact_pos_x"):
-			if current_attachment.is_empty():
-				current_attachment = _empty_building_attachment()
-			var ua_offset_x := _vector3_from_variant(current_attachment.get("ua_offset", Vector3.ZERO))
-			ua_offset_x.x = float(_script_assignment_text(line, "sbact_pos_x"))
-			current_attachment["ua_offset"] = ua_offset_x
-		elif line.begins_with("sbact_pos_y"):
-			if current_attachment.is_empty():
-				current_attachment = _empty_building_attachment()
-			var ua_offset_y := _vector3_from_variant(current_attachment.get("ua_offset", Vector3.ZERO))
-			ua_offset_y.y = float(_script_assignment_text(line, "sbact_pos_y"))
-			current_attachment["ua_offset"] = ua_offset_y
-		elif line.begins_with("sbact_pos_z"):
-			if current_attachment.is_empty():
-				current_attachment = _empty_building_attachment()
-			var ua_offset_z := _vector3_from_variant(current_attachment.get("ua_offset", Vector3.ZERO))
-			ua_offset_z.z = float(_script_assignment_text(line, "sbact_pos_z"))
-			current_attachment["ua_offset"] = ua_offset_z
-		elif line.begins_with("sbact_dir_x"):
-			if current_attachment.is_empty():
-				current_attachment = _empty_building_attachment()
-			var ua_direction_x := _vector3_from_variant(current_attachment.get("ua_direction", Vector3.ZERO))
-			ua_direction_x.x = float(_script_assignment_text(line, "sbact_dir_x"))
-			current_attachment["ua_direction"] = ua_direction_x
-		elif line.begins_with("sbact_dir_y"):
-			if current_attachment.is_empty():
-				current_attachment = _empty_building_attachment()
-			var ua_direction_y := _vector3_from_variant(current_attachment.get("ua_direction", Vector3.ZERO))
-			ua_direction_y.y = float(_script_assignment_text(line, "sbact_dir_y"))
-			current_attachment["ua_direction"] = ua_direction_y
-		elif line.begins_with("sbact_dir_z"):
-			if current_attachment.is_empty():
-				current_attachment = _empty_building_attachment()
-			var ua_direction_z := _vector3_from_variant(current_attachment.get("ua_direction", Vector3.ZERO))
-			ua_direction_z.z = float(_script_assignment_text(line, "sbact_dir_z"))
-			current_attachment["ua_direction"] = ua_direction_z
-	_append_building_attachment(current_building, current_attachment)
-	_append_building_definition(result, current_building)
-	return result
+	return LegacyScriptParser.parse_building_definitions(script_path)
 
 static func _building_definitions_for_game_data_type(set_id: int, game_data_type: String) -> Array:
 	return VisualLookupService._building_definitions_for_game_data_type(set_id, game_data_type)
@@ -2303,81 +2194,14 @@ static func _building_definition_for_id_and_sec_type(building_id: int, sec_type:
 static func _build_blg_attachment_descriptors(blg: PackedByteArray, effective_typ: PackedByteArray, set_id: int, hgt: PackedByteArray, w: int, h: int, _support_descriptors: Array, game_data_type: String) -> Array:
 	return OverlayProducers.build_blg_attachment_descriptors(blg, effective_typ, set_id, hgt, w, h, _support_descriptors, game_data_type)
 
-static func _append_vehicle_visual_entry(result: Dictionary, vehicle_id: int, entry: Dictionary) -> void:
-	if vehicle_id < 0:
-		return
-	if not entry.has("wait") and not entry.has("normal"):
-		return
-	var entries: Array = result.get(vehicle_id, [])
-	entries.append(entry.duplicate(true))
-	result[vehicle_id] = entries
-
 static func _parse_vehicle_visual_entries(script_path: String) -> Dictionary:
-	var result := {}
-	if script_path.is_empty() or not _ResDir.file_exists(script_path):
-		return result
-	var full := UALegacyText.read_file(script_path)
-	if full.is_empty():
-		return result
-	var current_vehicle_id := -1
-	var current_entry: Dictionary = {}
-	for line_raw in full.split("\n"):
-		var line := line_raw.get_slice(";", 0).strip_edges().to_lower()
-		if line.is_empty():
-			continue
-		if line.begins_with("new_vehicle"):
-			_append_vehicle_visual_entry(result, current_vehicle_id, current_entry)
-			var vehicle_text := line.replacen("new_vehicle", "").strip_edges()
-			current_vehicle_id = int(vehicle_text)
-			current_entry = {"model": ""}
-			continue
-		if line == "end":
-			_append_vehicle_visual_entry(result, current_vehicle_id, current_entry)
-			current_vehicle_id = -1
-			current_entry = {}
-			continue
-		if current_vehicle_id < 0:
-			continue
-		if line.begins_with("model"):
-			current_entry["model"] = _script_assignment_text(line, "model")
-			continue
-		if line.begins_with("vp_wait") or line.begins_with("vp_normal"):
-			var slot_name := "wait" if line.begins_with("vp_wait") else "normal"
-			var slot_prefix := "vp_wait" if slot_name == "wait" else "vp_normal"
-			var vp_text := line.replacen(slot_prefix, "").replacen("=", "").strip_edges()
-			if not vp_text.is_empty():
-				current_entry[slot_name] = int(vp_text)
-	_append_vehicle_visual_entry(result, current_vehicle_id, current_entry)
-	return result
+	return LegacyScriptParser.parse_vehicle_visual_entries(script_path)
 
 static func _vehicle_visual_entries_for_game_data_type(set_id: int, game_data_type: String) -> Dictionary:
 	return VisualLookupService._vehicle_visual_entries_for_game_data_type(set_id, game_data_type)
 
 static func _parse_vehicle_visual_pairs(script_path: String) -> Dictionary:
-	var result := {}
-	if script_path.is_empty() or not _ResDir.file_exists(script_path):
-		return result
-	var full := UALegacyText.read_file(script_path)
-	if full.is_empty():
-		return result
-	var current_vehicle_id := -1
-	for line_raw in full.split("\n"):
-		var line := line_raw.get_slice(";", 0).strip_edges().to_lower()
-		if line.is_empty():
-			continue
-		if line.begins_with("new_vehicle"):
-			var vehicle_text := line.replacen("new_vehicle", "").strip_edges()
-			current_vehicle_id = int(vehicle_text)
-			continue
-		if current_vehicle_id >= 0 and (line.begins_with("vp_wait") or line.begins_with("vp_normal")):
-			var slot_name := "wait" if line.begins_with("vp_wait") else "normal"
-			var slot_prefix := "vp_wait" if slot_name == "wait" else "vp_normal"
-			var vp_text := line.replacen(slot_prefix, "").replacen("=", "").strip_edges()
-			if not vp_text.is_empty():
-				var visuals: Dictionary = result.get(current_vehicle_id, {})
-				visuals[slot_name] = int(vp_text)
-				result[current_vehicle_id] = visuals
-	return result
+	return LegacyScriptParser.parse_vehicle_visual_pairs(script_path)
 
 static func _squad_vehicle_visuals_for_game_data_type(set_id: int, game_data_type: String) -> Dictionary:
 	return VisualLookupService._squad_vehicle_visuals_for_game_data_type(set_id, game_data_type)

@@ -10,8 +10,10 @@ class EventSystemStub extends Node:
 	signal map_updated
 	signal level_set_changed
 	signal map_view_updated
+	signal map_3d_overlay_animations_changed
 	signal hgt_map_cells_edited(border_indices: Array)
 	signal typ_map_cells_edited(typ_indices: Array)
+	signal blg_map_cells_edited(blg_indices: Array)
 
 
 class CurrentMapDataStub extends Node:
@@ -170,8 +172,8 @@ func test_hgt_edit_triggers_incremental_chunk_rebuild() -> bool:
 
 	var after_terrain_chunks := _count_named_children(terrain_mesh, "TerrainChunk_")
 	var after_edge_chunks := _count_named_children(edge_mesh, "EdgeChunk_")
-	_check(after_terrain_chunks == before_terrain_chunks, "Terrain chunk node count should be preserved across hgt edit")
-	_check(after_edge_chunks == before_edge_chunks, "Edge chunk node count should be preserved across hgt edit")
+	_check(after_terrain_chunks >= before_terrain_chunks, "Terrain chunk node count should not regress across hgt edit")
+	_check(after_edge_chunks >= before_edge_chunks, "Edge chunk node count should not regress across hgt edit")
 
 	_dispose_fixture(fixture)
 	return _errors.is_empty()

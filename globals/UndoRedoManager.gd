@@ -130,15 +130,46 @@ func commit_group() -> void:
 		return
 
 	if _try_coalesce_with_previous_group():
+		_emit_fine_grained_map_edit_signals(_active_group)
 		_active_group.clear()
 		redo_stack.clear()
 		return
 
+	_emit_fine_grained_map_edit_signals(_active_group)
 	undo_stack.append(_active_group.duplicate(true))
 	_active_group.clear()
 	redo_stack.clear()
 	while undo_stack.size() > max_history:
 		undo_stack.remove_at(0)
+
+
+func _emit_fine_grained_map_edit_signals(group: Dictionary) -> void:
+	var edited_typ_indices: Array = []
+	var edited_hgt_indices: Array = []
+	var edited_blg_indices: Array = []
+	for change_value in group.get("changes", []):
+		if typeof(change_value) != TYPE_DICTIONARY:
+			continue
+		var change := change_value as Dictionary
+		if not _is_valid_change(change):
+			continue
+		var idx := int(change.get("index", -1))
+		match String(change.get("map", "")):
+			"typ_map":
+				if not edited_typ_indices.has(idx):
+					edited_typ_indices.append(idx)
+			"hgt_map":
+				if not edited_hgt_indices.has(idx):
+					edited_hgt_indices.append(idx)
+			"blg_map":
+				if not edited_blg_indices.has(idx):
+					edited_blg_indices.append(idx)
+	if not edited_typ_indices.is_empty():
+		EventSystem.typ_map_cells_edited.emit(edited_typ_indices)
+	if not edited_hgt_indices.is_empty():
+		EventSystem.hgt_map_cells_edited.emit(edited_hgt_indices)
+	if not edited_blg_indices.is_empty():
+		EventSystem.blg_map_cells_edited.emit(edited_blg_indices)
 
 
 func clear_history() -> void:
@@ -175,6 +206,7 @@ func _apply_group(group: Dictionary, use_before: bool) -> void:
 	_is_replaying = true
 	var edited_typ_indices: Array = []
 	var edited_hgt_indices: Array = []
+	var edited_blg_indices: Array = []
 	var edited_item_data := false
 
 	for change: Dictionary in group.changes:
@@ -214,6 +246,8 @@ func _apply_group(group: Dictionary, use_before: bool) -> void:
 			"blg_map":
 				if change.index >= 0 and change.index < CurrentMapData.blg_map.size():
 					CurrentMapData.blg_map[change.index] = edited_value
+					if not edited_blg_indices.has(change.index):
+						edited_blg_indices.append(change.index)
 
 	_is_replaying = false
 
@@ -221,6 +255,8 @@ func _apply_group(group: Dictionary, use_before: bool) -> void:
 		EventSystem.typ_map_cells_edited.emit(edited_typ_indices)
 	if not edited_hgt_indices.is_empty():
 		EventSystem.hgt_map_cells_edited.emit(edited_hgt_indices)
+	if not edited_blg_indices.is_empty():
+		EventSystem.blg_map_cells_edited.emit(edited_blg_indices)
 	if edited_item_data:
 		EventSystem.item_updated.emit()
 	EventSystem.map_updated.emit()

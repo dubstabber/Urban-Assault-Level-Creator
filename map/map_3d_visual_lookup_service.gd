@@ -2,6 +2,7 @@ extends RefCounted
 class_name Map3DVisualLookupService
 
 const _UAProjectDataRoots = preload("res://map/ua_project_data_roots.gd")
+const LegacyScriptParser = preload("res://map/map_3d_legacy_script_parser.gd")
 const _UALegacyText = preload("res://map/ua_legacy_text.gd")
 const _ResDir = preload("res://scripts/res_dir.gd")
 const HOST_STATION_BASE_NAMES := {
@@ -369,94 +370,48 @@ static func _preferred_squad_visual_base_name(vehicle_visuals: Dictionary, vispr
 	return ""
 
 
+static func _building_attachment_base_name_for_vehicle(vehicle_id: int, set_id: int, game_data_type: String) -> String:
+	var normalized_game_data_type := _normalized_game_data_type(game_data_type)
+	var vehicle_entries := _vehicle_visual_entries_for_game_data_type(set_id, normalized_game_data_type)
+	if not vehicle_entries.has(vehicle_id):
+		return ""
+	var visproto_base_names := _visproto_base_names_for_set(set_id, normalized_game_data_type)
+	var fallback := ""
+	for entry_value in Array(vehicle_entries[vehicle_id]):
+		if typeof(entry_value) != TYPE_DICTIONARY:
+			continue
+		var vehicle_visuals := entry_value as Dictionary
+		var base_name := _preferred_squad_visual_base_name(vehicle_visuals, visproto_base_names)
+		if base_name.is_empty():
+			continue
+		var model_name := String(vehicle_visuals.get("model", "")).to_lower()
+		if model_name != "plane" and model_name != "heli":
+			return base_name
+		if fallback.is_empty():
+			fallback = base_name
+	return fallback
+
+
+static func _squad_base_name_for_vehicle(vehicle_id: int, set_id: int, game_data_type: String) -> String:
+	var normalized_game_data_type := _normalized_game_data_type(game_data_type)
+	if normalized_game_data_type == "metropolisDawn" and MD_SQUAD_DIRECT_BASE_NAMES.has(vehicle_id):
+		return String(MD_SQUAD_DIRECT_BASE_NAMES[vehicle_id])
+	var visuals := _squad_vehicle_visuals_for_game_data_type(set_id, normalized_game_data_type)
+	var resolved_vehicle_id := vehicle_id
+	if not visuals.has(resolved_vehicle_id) and normalized_game_data_type == "metropolisDawn" and MD_SQUAD_VEHICLE_ALIASES.has(vehicle_id):
+		resolved_vehicle_id = int(MD_SQUAD_VEHICLE_ALIASES[vehicle_id])
+	if not visuals.has(resolved_vehicle_id):
+		return ""
+	var visproto_base_names := _visproto_base_names_for_set(set_id, normalized_game_data_type)
+	return _preferred_squad_visual_base_name(Dictionary(visuals[resolved_vehicle_id]), visproto_base_names)
+
+
 static func _parse_vehicle_visual_pairs(script_path: String) -> Dictionary:
-	var result := {}
-	if script_path.is_empty() or not _ResDir.file_exists(script_path):
-		return result
-	var full := _UALegacyText.read_file(script_path)
-	if full.is_empty():
-		return result
-	var current_vehicle_id := -1
-	var current_visuals := {}
-	for line_raw in full.split("\n"):
-		var line := line_raw.get_slice(";", 0).strip_edges().to_lower()
-		if line.is_empty():
-			continue
-		if line.begins_with("new_vehicle"):
-			if current_vehicle_id >= 0 and not current_visuals.is_empty():
-				result[current_vehicle_id] = current_visuals.duplicate(true)
-			current_vehicle_id = int(_script_assignment_text(line, "new_vehicle"))
-			current_visuals = {}
-			continue
-		if line == "end":
-			if current_vehicle_id >= 0 and not current_visuals.is_empty():
-				result[current_vehicle_id] = current_visuals.duplicate(true)
-			current_vehicle_id = -1
-			current_visuals = {}
-			continue
-		if current_vehicle_id < 0:
-			continue
-		if line.begins_with("vp_wait"):
-			current_visuals["wait"] = int(_script_assignment_text(line, "vp_wait"))
-		elif line.begins_with("vp_normal"):
-			current_visuals["normal"] = int(_script_assignment_text(line, "vp_normal"))
-	if current_vehicle_id >= 0 and not current_visuals.is_empty():
-		result[current_vehicle_id] = current_visuals.duplicate(true)
-	return result
+	return LegacyScriptParser.parse_vehicle_visual_pairs(script_path)
 
 
 static func _parse_vehicle_visual_entries(script_path: String) -> Dictionary:
-	var result := {}
-	if script_path.is_empty() or not _ResDir.file_exists(script_path):
-		return result
-	var full := _UALegacyText.read_file(script_path)
-	if full.is_empty():
-		return result
-	var current_vehicle_id := -1
-	var current_entries: Array = []
-	var current_entry := {}
-	for line_raw in full.split("\n"):
-		var line := line_raw.get_slice(";", 0).strip_edges().to_lower()
-		if line.is_empty():
-			continue
-		if line.begins_with("new_vehicle"):
-			if current_vehicle_id >= 0 and not current_entries.is_empty():
-				result[current_vehicle_id] = current_entries.duplicate(true)
-			current_vehicle_id = int(_script_assignment_text(line, "new_vehicle"))
-			current_entries = []
-			current_entry = {}
-			continue
-		if line == "end":
-			if not current_entry.is_empty():
-				current_entries.append(current_entry.duplicate(true))
-			if current_vehicle_id >= 0 and not current_entries.is_empty():
-				result[current_vehicle_id] = current_entries.duplicate(true)
-			current_vehicle_id = -1
-			current_entries = []
-			current_entry = {}
-			continue
-		if current_vehicle_id < 0:
-			continue
-		if line.begins_with("vp_wait"):
-			current_entry["wait"] = int(_script_assignment_text(line, "vp_wait"))
-		elif line.begins_with("vp_normal"):
-			current_entry["normal"] = int(_script_assignment_text(line, "vp_normal"))
-		elif line.begins_with("model"):
-			if not current_entry.is_empty():
-				current_entries.append(current_entry.duplicate(true))
-			current_entry = {"model": _script_assignment_text(line, "model")}
-	if not current_entry.is_empty():
-		current_entries.append(current_entry.duplicate(true))
-	if current_vehicle_id >= 0 and not current_entries.is_empty():
-		result[current_vehicle_id] = current_entries.duplicate(true)
-	return result
-
-
-static func _script_assignment_text(raw_line: String, prefix: String) -> String:
-	var equals_index := raw_line.find("=")
-	if equals_index >= 0:
-		return raw_line.substr(equals_index + 1).strip_edges()
-	return raw_line.replacen(prefix, "").strip_edges()
+	return LegacyScriptParser.parse_vehicle_visual_entries(script_path)
 
 
 static func _squad_vehicle_visuals_for_game_data_type(set_id: int, game_data_type: String) -> Dictionary:
@@ -494,156 +449,28 @@ static func _vehicle_visual_entries_for_game_data_type(set_id: int, game_data_ty
 				var existing: Array = merged[vid]
 				if typeof(existing) != TYPE_ARRAY:
 					existing = []
-				# Preserve deterministic ordering across multiple SCR sources.
 				existing.append_array(incoming)
 				merged[vid] = existing
 			else:
 				merged[vid] = incoming
 	var metadata_entries := _metadata_vehicle_visual_entries_for_set(set_id, normalized_game_data_type)
 	for vehicle_id in metadata_entries.keys():
-		if merged.has(vehicle_id):
-			continue
-		merged[int(vehicle_id)] = Array(metadata_entries[vehicle_id]).duplicate(true)
+		var vid := int(vehicle_id)
+		var incoming: Array = Array(metadata_entries[vehicle_id]).duplicate(true)
+		if merged.has(vid):
+			var existing: Array = merged[vid]
+			if typeof(existing) != TYPE_ARRAY:
+				existing = []
+			existing.append_array(incoming)
+			merged[vid] = existing
+		else:
+			merged[vid] = incoming
 	_vehicle_visual_entries_cache[cache_key] = merged
 	return merged
 
 
-static func _squad_base_name_for_vehicle(vehicle_id: int, set_id: int, game_data_type: String) -> String:
-	var normalized_game_data_type := _normalized_game_data_type(game_data_type)
-	if normalized_game_data_type == "metropolisDawn" and MD_SQUAD_DIRECT_BASE_NAMES.has(vehicle_id):
-		var direct_base_name := String(MD_SQUAD_DIRECT_BASE_NAMES[vehicle_id])
-		var direct_has_source := (not direct_base_name.is_empty()) and UATerrainPieceLibrary.has_piece_source(set_id, direct_base_name)
-		if direct_has_source:
-			return direct_base_name
-	var vehicle_visuals: Dictionary = _squad_vehicle_visuals_for_game_data_type(set_id, game_data_type)
-	if not vehicle_visuals.has(vehicle_id):
-		if normalized_game_data_type == "metropolisDawn" and MD_SQUAD_VEHICLE_ALIASES.has(vehicle_id):
-			var alias_id := int(MD_SQUAD_VEHICLE_ALIASES[vehicle_id])
-			if vehicle_visuals.has(alias_id):
-				vehicle_id = alias_id
-			else:
-				return ""
-		else:
-			return ""
-	var visproto_base_names := _visproto_base_names_for_set(set_id, game_data_type)
-	var selected_base_name := _preferred_squad_visual_base_name(Dictionary(vehicle_visuals[vehicle_id]), visproto_base_names)
-	return selected_base_name
-
-
-static func _building_attachment_base_name_for_vehicle(vehicle_id: int, set_id: int, game_data_type: String) -> String:
-	var vehicle_entries: Dictionary = _vehicle_visual_entries_for_game_data_type(set_id, game_data_type)
-	if not vehicle_entries.has(vehicle_id):
-		return _squad_base_name_for_vehicle(vehicle_id, set_id, game_data_type)
-	var visproto_base_names := _visproto_base_names_for_set(set_id, game_data_type)
-	var fallback := ""
-	for entry_value in Array(vehicle_entries[vehicle_id]):
-		if typeof(entry_value) != TYPE_DICTIONARY:
-			continue
-		var vehicle_visuals := entry_value as Dictionary
-		var base_name := _preferred_squad_visual_base_name(vehicle_visuals, visproto_base_names)
-		if base_name.is_empty():
-			continue
-		var model_name := String(vehicle_visuals.get("model", "")).to_lower()
-		if model_name != "plane" and model_name != "heli":
-			return base_name
-		if fallback.is_empty():
-			fallback = base_name
-	return fallback
-
-
-static func _empty_building_attachment() -> Dictionary:
-	return {
-		"act": - 1,
-		"vehicle_id": - 1,
-		"ua_offset": Vector3.ZERO,
-		"ua_direction": Vector3.ZERO,
-	}
-
-
-static func _append_building_attachment(target_building: Dictionary, attachment: Dictionary) -> void:
-	if target_building.is_empty() or attachment.is_empty():
-		return
-	var attachments: Array = target_building.get("attachments", [])
-	attachments.append(attachment.duplicate(true))
-	target_building["attachments"] = attachments
-
-
-static func _append_building_definition(result: Array, building: Dictionary) -> void:
-	if building.is_empty():
-		return
-	if int(building.get("building_id", -1)) < 0 or int(building.get("sec_type", -1)) < 0:
-		return
-	result.append(building.duplicate(true))
-
-
 static func _parse_building_definitions(script_path: String) -> Array:
-	var result: Array = []
-	if script_path.is_empty() or not _ResDir.file_exists(script_path):
-		return result
-	var full := _UALegacyText.read_file(script_path)
-	if full.is_empty():
-		return result
-	var current_building := {}
-	var current_attachment := {}
-	for line_raw in full.split("\n"):
-		var line := line_raw.get_slice(";", 0).strip_edges().to_lower()
-		if line.is_empty():
-			continue
-		if line.begins_with("new_building"):
-			_append_building_attachment(current_building, current_attachment)
-			_append_building_definition(result, current_building)
-			current_building = {
-				"building_id": int(_script_assignment_text(line, "new_building")),
-				"sec_type": - 1,
-				"attachments": [],
-			}
-			current_attachment = {}
-			continue
-		if line == "end":
-			_append_building_attachment(current_building, current_attachment)
-			_append_building_definition(result, current_building)
-			current_building = {}
-			current_attachment = {}
-			continue
-		if current_building.is_empty():
-			continue
-		if line.begins_with("sec_type"):
-			current_building["sec_type"] = int(_script_assignment_text(line, "sec_type"))
-		elif line.begins_with("sbact_act"):
-			_append_building_attachment(current_building, current_attachment)
-			current_attachment = _empty_building_attachment()
-			current_attachment["act"] = int(_script_assignment_text(line, "sbact_act"))
-		elif line.begins_with("sbact_vehicle"):
-			if current_attachment.is_empty():
-				current_attachment = _empty_building_attachment()
-			current_attachment["vehicle_id"] = int(_script_assignment_text(line, "sbact_vehicle"))
-		elif line.begins_with("sbact_pos_x"):
-			if current_attachment.is_empty():
-				current_attachment = _empty_building_attachment()
-			current_attachment["ua_offset"].x = float(_script_assignment_text(line, "sbact_pos_x"))
-		elif line.begins_with("sbact_pos_y"):
-			if current_attachment.is_empty():
-				current_attachment = _empty_building_attachment()
-			current_attachment["ua_offset"].y = float(_script_assignment_text(line, "sbact_pos_y"))
-		elif line.begins_with("sbact_pos_z"):
-			if current_attachment.is_empty():
-				current_attachment = _empty_building_attachment()
-			current_attachment["ua_offset"].z = float(_script_assignment_text(line, "sbact_pos_z"))
-		elif line.begins_with("sbact_dir_x"):
-			if current_attachment.is_empty():
-				current_attachment = _empty_building_attachment()
-			current_attachment["ua_direction"].x = float(_script_assignment_text(line, "sbact_dir_x"))
-		elif line.begins_with("sbact_dir_y"):
-			if current_attachment.is_empty():
-				current_attachment = _empty_building_attachment()
-			current_attachment["ua_direction"].y = float(_script_assignment_text(line, "sbact_dir_y"))
-		elif line.begins_with("sbact_dir_z"):
-			if current_attachment.is_empty():
-				current_attachment = _empty_building_attachment()
-			current_attachment["ua_direction"].z = float(_script_assignment_text(line, "sbact_dir_z"))
-	_append_building_attachment(current_building, current_attachment)
-	_append_building_definition(result, current_building)
-	return result
+	return LegacyScriptParser.parse_building_definitions(script_path)
 
 
 static func _building_definitions_for_game_data_type(set_id: int, game_data_type: String) -> Array:

@@ -45,6 +45,7 @@ signal sector_height_changed(height_value: int)
 # - `typ_map` is indexed by playable sectors: size = w*h
 signal hgt_map_cells_edited(border_indices: Array)
 signal typ_map_cells_edited(typ_indices: Array)
+signal blg_map_cells_edited(blg_indices: Array)
 signal special_building_added(blg_map: int, typ_map: int, own_map: int)
 signal building_added(typ_map: int)
 
