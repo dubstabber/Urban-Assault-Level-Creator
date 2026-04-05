@@ -547,8 +547,11 @@ func _on_host_station_added(_owner_id: int, _vehicle_id: int) -> void:
 func _on_squad_added(_owner_id: int, _vehicle_id: int) -> void:
 	_request_dynamic_overlay_refresh()
 
-func _on_unit_position_committed() -> void:
-	_request_dynamic_overlay_refresh()
+func _on_unit_position_committed(unit_kind: String, unit_id: int) -> void:
+	if unit_kind.is_empty() or unit_id <= 0:
+		_request_dynamic_overlay_refresh()
+		return
+	_on_unit_overlay_refresh_requested(unit_kind, unit_id)
 
 func _on_unit_overlay_refresh_requested(unit_kind: String, unit_id: int) -> void:
 	if not _preview_refresh_active():

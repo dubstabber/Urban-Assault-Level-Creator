@@ -57,10 +57,9 @@ func _on_button_button_up():
 		var unit_before: Dictionary = drag_before_snapshot
 		undo_redo_manager.record_unit_snapshot(unit_before, undo_redo_manager.create_unit_snapshot())
 		undo_redo_manager.commit_group()
-		EventSystem.unit_position_committed.emit()
 		var unit_kind := "host" if self is HostStation else ("squad" if self is Squad else "")
 		if not unit_kind.is_empty():
-			EventSystem.unit_overlay_refresh_requested.emit(unit_kind, int(get_instance_id()))
+			EventSystem.unit_position_committed.emit(unit_kind, int(get_instance_id()))
 
 
 func recalculate_limits():

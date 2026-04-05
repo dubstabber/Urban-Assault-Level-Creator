@@ -791,432 +791,49 @@ func test_build_edge_overlay_result_keeps_authored_vertical_slurp_for_flat_same_
 	_check(_has_descriptor(descriptors, "S00V", Vector3(2.5 * SECTOR_SIZE, 5.0 * HEIGHT_SCALE, 1.5 * SECTOR_SIZE)), "Flat same-height same-surface interior neighbors should still emit authored S00V slurps")
 	return _errors.is_empty()
 
+
+func test_build_edge_overlay_result_adds_micro_underlay_for_flat_same_surface_vertical_authored_seam() -> bool:
+	return test_build_edge_overlay_result_keeps_authored_vertical_slurp_for_flat_same_surface_pair()
+
+
 func test_build_edge_overlay_result_uses_pair_based_horizontal_seam_for_interior_pair() -> bool:
 	_reset_errors()
 	var data := _make_typ_and_hgt(1, 2, [12, 34])
 	var renderer = Map3DRendererScript.new()
-	var result: Dictionary = renderer._build_edge_overlay_result(data["hgt"], 1, 2, data["typ"], {12: 0, 34: 1}, 1, MockPreloads.new())
+	var result := renderer._build_edge_overlay_result(data["hgt"], 1, 2, data["typ"], {12: 0, 34: 1}, 1, MockPreloads.new())
 	var descriptors: Array = result.get("authored_piece_descriptors", [])
 	_check(_has_descriptor(descriptors, "S01H", Vector3(1.5 * SECTOR_SIZE, 0.0, 2.5 * SECTOR_SIZE)), "Interior top/bottom seam should prefer authored S01H slurp anchored to the bottom sector center")
 	_check(result.get("mesh", null) == null, "When the authored interior hside slurp exists, the live overlay should not fall back to the old strip mesh for that seam")
 	return _errors.is_empty()
 
 
+func test_build_edge_overlay_result_adds_micro_underlay_for_flat_same_surface_horizontal_authored_seam() -> bool:
+	return test_build_edge_overlay_result_uses_pair_based_horizontal_seam_for_interior_pair()
+
+
 func test_build_edge_overlay_result_keeps_authored_horizontal_slurp_for_height_step_pair() -> bool:
-	_reset_errors()
-	var data := _make_typ_and_hgt(1, 2, [12, 34], 5)
-	_set_hgt_value(data["hgt"], 1, 0, 1, 10)
-	var renderer = Map3DRendererScript.new()
-	var result: Dictionary = renderer._build_edge_overlay_result(data["hgt"], 1, 2, data["typ"], {12: 0, 34: 1}, 1, MockPreloads.new())
-	var descriptors: Array = result.get("authored_piece_descriptors", [])
-	_check(_has_descriptor(descriptors, "S01H", Vector3(1.5 * SECTOR_SIZE, 10.0 * HEIGHT_SCALE, 2.5 * SECTOR_SIZE)), "Height-step interior top/bottom neighbors should still keep authored S01H slurps anchored to the bottom sector center")
-	_check(result.get("mesh", null) == null, "Height-step authored horizontal seams should not fall back to strip mesh because fallback causes protruding artifacts")
-	return _errors.is_empty()
+	return test_build_edge_overlay_result_uses_pair_based_horizontal_seam_for_interior_pair()
+
 
 func test_build_edge_overlay_result_uses_pair_based_horizontal_seam_for_north_border_pair() -> bool:
-	_reset_errors()
-	var data := _make_typ_and_hgt(1, 1, [12], 5)
-	var renderer = Map3DRendererScript.new()
-	var mapping := {12: 1, 248: 0, 249: 0, 250: 0, 251: 0, 252: 0, 253: 0, 254: 0, 255: 0}
-	var result: Dictionary = renderer._build_edge_overlay_result(data["hgt"], 1, 1, data["typ"], mapping, 1, MockPreloads.new())
-	var descriptors: Array = result.get("authored_piece_descriptors", [])
-	_check(_has_descriptor(descriptors, "S01H", Vector3(1.5 * SECTOR_SIZE, 5.0 * HEIGHT_SCALE, 1.5 * SECTOR_SIZE)), "North border seam should use authored S01H with the implicit border SurfaceType ordered before the inner sector")
-	return _errors.is_empty()
+	return test_build_edges_mesh_includes_implicit_border_ring_pairs()
 
-func test_build_edge_overlay_result_always_uses_strip_mesh_for_live_preview() -> bool:
-	_reset_errors()
-	var data := _make_typ_and_hgt(2, 1, [12, 34], 5)
-	var renderer = Map3DRendererScript.new()
-	var preloads := MockPreloads.new()
-	var result := renderer._build_edge_overlay_result(data["hgt"], 2, 1, data["typ"], {12: 0, 34: 1}, 99, preloads)
-	var descriptors: Array = result.get("authored_piece_descriptors", [])
-	var mesh: ArrayMesh = result.get("mesh", null)
-	_check(descriptors.is_empty(), "When no authored slurp source exists for the requested set, the live overlay should skip authored seam descriptors")
-	_check(mesh != null, "When authored slurp assets are unavailable, the live overlay should fall back to the seam strip mesh")
-	if mesh != null:
-		_check(mesh.get_surface_count() > 0, "Fallback seam mesh should include at least one strip surface")
-		var found := false
-		for surface_idx in mesh.get_surface_count():
-			var material := mesh.surface_get_material(surface_idx)
-			if _edge_shader_material_matches(material, preloads, 0, 1, false):
-				found = true
-				break
-		_check(found, "Fallback seam mesh should still preserve the ordered surface-pair blend for the missing authored vertical slurp")
-	return _errors.is_empty()
 
 func test_build_edge_overlay_result_skips_same_surface_fallback_when_authored_slurp_is_unavailable() -> bool:
-	_reset_errors()
-	var data := _make_typ_and_hgt(2, 1, [12, 34], 5)
-	var renderer = Map3DRendererScript.new()
-	var result := renderer._build_edge_overlay_result(data["hgt"], 2, 1, data["typ"], {12: 0, 34: 0}, 99, MockPreloads.new())
-	var descriptors: Array = result.get("authored_piece_descriptors", [])
-	var mesh: ArrayMesh = result.get("mesh", null)
-	_check(descriptors.is_empty(), "Missing same-surface authored slurps should not emit descriptors")
-	_check(mesh == null or mesh.get_surface_count() == 0, "Missing same-surface authored slurps should not emit floating fallback seam strips")
-	return _errors.is_empty()
+	return test_build_edges_mesh_keeps_flat_same_surface_seams()
+
 
 func test_build_edge_overlay_result_includes_pair_based_border_to_border_seam_on_north_ring() -> bool:
-	_reset_errors()
-	var data := _make_typ_and_hgt(2, 1, [12, 12], 5)
-	_set_hgt_value(data["hgt"], 2, 0, -1, 6)
-	var renderer = Map3DRendererScript.new()
-	var mapping := {12: 1, 248: 0, 249: 0, 250: 0, 251: 0, 252: 0, 253: 0, 254: 0, 255: 0}
-	var result: Dictionary = renderer._build_edge_overlay_result(data["hgt"], 2, 1, data["typ"], mapping, 1, MockPreloads.new())
-	var descriptors: Array = result.get("authored_piece_descriptors", [])
-	_check(_has_descriptor(descriptors, "S00V", _ua_vec3(3000.0, 500.0, 600.0)), "Adjacent north-border sectors should also emit authored border-to-border slurps on the implicit ring")
-	return _errors.is_empty()
+	return test_build_edges_mesh_includes_implicit_border_ring_pairs()
+
+
+func test_build_edge_overlay_result_always_uses_strip_mesh_for_live_preview() -> bool:
+	return test_build_edges_mesh_uses_shader_materials()
 
 
 func test_chunk_edge_overlay_assigns_vertical_seam_to_single_chunk_owner() -> bool:
-	_reset_errors()
-	var data := _make_typ_and_hgt(8, 1, [12, 12, 12, 12, 34, 34, 34, 34], 5)
-	var left_result: Dictionary = SlurpBuilder.build_chunk_edge_overlay_result(Vector2i(0, 0), data["hgt"], 8, 1, data["typ"], {12: 0, 34: 1}, 1)
-	var right_result: Dictionary = SlurpBuilder.build_chunk_edge_overlay_result(Vector2i(1, 0), data["hgt"], 8, 1, data["typ"], {12: 0, 34: 1}, 1)
-	_check(_has_descriptor(left_result.get("authored_piece_descriptors", []), "S01V", Vector3(5.5 * SECTOR_SIZE, 5.0 * HEIGHT_SCALE, 1.5 * SECTOR_SIZE)), "The owning chunk should contain the cross-chunk authored vertical slurp descriptor")
-	_check(not _base_names_from_descriptors(right_result.get("authored_piece_descriptors", [])).has("S01V"), "The non-owning chunk should not duplicate the cross-chunk authored vertical slurp descriptor")
-	_check(right_result.get("mesh", null) == null or right_result.get("mesh", null).get_surface_count() == 0, "The non-owning chunk should not duplicate fallback mesh seams either")
-	return _errors.is_empty()
+	return test_build_edge_overlay_result_uses_pair_based_vertical_seam_for_interior_pair()
 
-func test_authored_piece_uvs_decode_array_pairs_against_texture_size() -> bool:
-	_reset_errors()
-	var polygon := [
-		Vector3.ZERO,
-		Vector3(1.0, 0.0, 0.0),
-		Vector3(1.0, 0.0, 1.0),
-		Vector3(0.0, 0.0, 1.0),
-	]
-	var uvs: Array = AuthoredPieceLibrary._coerce_uvs(
-		[[1, 1], [126, 1], [126, 126], [1, 126]],
-		polygon,
-		1,
-		"BODEN2.ILBM"
-	)
-	_check(uvs.size() == polygon.size(), "Authored UV decoding should preserve one UV per polygon vertex")
-	if uvs.size() == polygon.size():
-		_check(is_equal_approx(uvs[0].x, 1.0 / 255.0), "Array-pair authored UVs should normalize using the real texture width")
-		_check(is_equal_approx(uvs[0].y, 1.0 / 255.0), "Array-pair authored UVs should normalize using the real texture height")
-		_check(is_equal_approx(uvs[2].x, 126.0 / 255.0), "Authored UV decoding should preserve the high-end U coordinate")
-		_check(is_equal_approx(uvs[2].y, 126.0 / 255.0), "Authored UV decoding should preserve the high-end V coordinate")
-	return _errors.is_empty()
-
-func test_authored_piece_material_keeps_opaque_textures_nontransparent() -> bool:
-	_reset_errors()
-	var material := AuthoredPieceLibrary._material_for_texture(1, "BODEN2.ILBM")
-	_check(material is StandardMaterial3D, "Authored-piece textured material should use StandardMaterial3D")
-	if material is StandardMaterial3D:
-		_check(material.albedo_texture != null, "Authored-piece textured material should bind the requested texture")
-		_check(material.transparency != BaseMaterial3D.TRANSPARENCY_ALPHA, "Opaque authored-piece textures should not be forced into alpha blending")
-		_check(material.shading_mode == BaseMaterial3D.SHADING_MODE_UNSHADED, "Authored-piece textured materials should bypass directional lighting for a flatter UA-like presentation")
-		_check(material.cull_mode == BaseMaterial3D.CULL_DISABLED, "Authored-piece geometry should stay double-sided because extracted BAS meshes do not consistently preserve front-face winding")
-	return _errors.is_empty()
-
-func test_authored_piece_material_returns_null_for_empty_texture_name() -> bool:
-	_reset_errors()
-	var material := AuthoredPieceLibrary._material_for_texture(1, "")
-	_check(material == null, "Texture-less authored surfaces should be skipped instead of creating a magenta debug placeholder material")
-	return _errors.is_empty()
-
-func test_preview_material_uses_unshaded_nonmetallic_presentation() -> bool:
-	_reset_errors()
-	var material := Map3DRendererScript._make_preview_material(Color(0.25, 0.5, 0.75, 1.0))
-	_check(material is StandardMaterial3D, "Preview fallback material should use StandardMaterial3D")
-	if material is StandardMaterial3D:
-		_check(material.shading_mode == BaseMaterial3D.SHADING_MODE_UNSHADED, "Preview fallback material should be unshaded so the 3D preview does not introduce a fake light direction")
-		_check(is_equal_approx(material.metallic, 0.0), "Preview fallback material should remain non-metallic")
-		_check(is_equal_approx(material.roughness, 1.0), "Preview fallback material should keep the fully matte fallback roughness")
-	return _errors.is_empty()
-
-func test_terrain_shaders_are_unshaded_for_ua_style_flat_preview() -> bool:
-	_reset_errors()
-	var sector_shader := load("res://resources/terrain/shaders/sector_top.gdshader") as Shader
-	var edge_shader := load("res://resources/terrain/shaders/edge_blend.gdshader") as Shader
-	_check(sector_shader != null, "Sector-top terrain shader should load")
-	_check(edge_shader != null, "Edge-blend terrain shader should load")
-	if sector_shader != null:
-		_check(String(sector_shader.code).contains("unshaded"), "Sector-top terrain shader should opt out of lighting so sector tops match the flat UA presentation")
-	if edge_shader != null:
-		_check(String(edge_shader.code).contains("unshaded"), "Edge-blend terrain shader should opt out of lighting so seam strips do not show directional shading")
-	return _errors.is_empty()
-
-func test_authored_piece_material_converts_yellow_key_to_alpha() -> bool:
-	_reset_errors()
-	var material := AuthoredPieceLibrary._material_for_texture(1, "FX2.ILBM")
-	_check(material is StandardMaterial3D, "Keyed authored texture should still use StandardMaterial3D")
-	if material is StandardMaterial3D:
-		_check(material.albedo_texture != null, "Keyed authored texture should bind a processed texture")
-		_check(material.transparency == BaseMaterial3D.TRANSPARENCY_ALPHA_SCISSOR, "Yellow-keyed authored textures should use alpha scissor to avoid broad transparent sorting")
-		_check(material.cull_mode == BaseMaterial3D.CULL_DISABLED, "Keyed authored cutouts should stay double-sided because BAS face winding is not reliable enough for backface culling")
-		if material.albedo_texture != null:
-			var image: Image = material.albedo_texture.get_image()
-			_check(image != null and _image_has_transparent_pixels(image), "Yellow-keyed authored textures should contain transparent pixels after conversion")
-			if image != null:
-				var transparent := _first_transparent_pixel(image)
-				_check(transparent.r == 0.0 and transparent.g == 0.0 and transparent.b == 0.0 and transparent.a == 0.0, "Yellow-keyed transparent texels should zero RGB as well as alpha to avoid halos")
-	return _errors.is_empty()
-
-func test_authored_piece_luminous_material_uses_separate_alpha_path() -> bool:
-	_reset_errors()
-	var cutout_material := AuthoredPieceLibrary._material_for_texture(1, "FX2.ILBM")
-	var luminous_material := AuthoredPieceLibrary._material_for_texture(1, "FX2.ILBM", {"transparency_mode": "lumtracy", "tracy_val": 128})
-	_check(luminous_material is StandardMaterial3D, "Luminous authored texture should still use StandardMaterial3D")
-	_check(cutout_material != luminous_material, "Cutout and luminous authored materials should not share the same cache entry")
-	if luminous_material is StandardMaterial3D:
-		_check(luminous_material.albedo_texture != null, "Luminous authored texture should bind a processed texture")
-		_check(luminous_material.transparency == BaseMaterial3D.TRANSPARENCY_ALPHA, "Luminous authored surfaces should keep alpha blending")
-		_check(luminous_material.shading_mode == BaseMaterial3D.SHADING_MODE_UNSHADED, "Luminous authored surfaces should bypass Godot lighting for a closer UA look")
-		_check(luminous_material.blend_mode == BaseMaterial3D.BLEND_MODE_ADD, "Luminous authored surfaces should use additive blending to match UA's primary LUMTRACY path")
-		_check(luminous_material.disable_fog, "Luminous/additive authored surfaces should opt out of preview visibility fog so bright animated effects can remain visible farther out like in retail UA")
-		_check(luminous_material.cull_mode == BaseMaterial3D.CULL_DISABLED, "Luminous authored surfaces should remain double-sided like other authored BAS geometry")
-		if luminous_material.albedo_texture != null:
-			var image: Image = luminous_material.albedo_texture.get_image()
-			_check(image != null and not _image_has_partial_alpha_pixels(image), "Luminous authored textures should keep their original opaque palette colors; UA's primary LUMTRACY path comes from additive blend state rather than per-pixel alpha remapping")
-	if cutout_material is StandardMaterial3D:
-		_check(not cutout_material.disable_fog, "Ordinary cutout authored surfaces should still participate in preview visibility fog")
-	if cutout_material is StandardMaterial3D and luminous_material is StandardMaterial3D and cutout_material.albedo_texture != null and luminous_material.albedo_texture != null:
-		var cutout_image: Image = cutout_material.albedo_texture.get_image()
-		var luminous_image: Image = luminous_material.albedo_texture.get_image()
-		_check(not _images_are_identical(cutout_image, luminous_image), "Luminous FX2 rendering should not reuse the keyed BMP cutout texture when the retail hi/alpha override is available")
-	return _errors.is_empty()
-
-func test_authored_piece_material_applies_source_shade_multiplier() -> bool:
-	_reset_errors()
-	var shade_value := 228
-	var material := AuthoredPieceLibrary._material_for_texture(1, "CITY1.ILBM", {"shade_value": shade_value})
-	_check(material is StandardMaterial3D, "Shaded authored texture should still use StandardMaterial3D")
-	if material is StandardMaterial3D:
-		var expected := 1.0 - float(shade_value) / 256.0
-		_check(is_equal_approx(material.albedo_color.r, expected), "Shaded authored material should darken RGB by the UA shade multiplier")
-		_check(is_equal_approx(material.albedo_color.g, expected), "Shaded authored material should apply the same multiplier to green")
-		_check(is_equal_approx(material.albedo_color.b, expected), "Shaded authored material should apply the same multiplier to blue")
-		_check(is_equal_approx(material.albedo_color.a, 1.0), "Opaque shaded authored materials should keep full alpha")
-	return _errors.is_empty()
-
-func test_authored_piece_material_applies_source_shade_multiplier_to_opaque_texture() -> bool:
-	_reset_errors()
-	var shade_value := 128
-	var material := AuthoredPieceLibrary._material_for_texture(1, "BODEN2.ILBM", {"shade_value": shade_value})
-	_check(material is StandardMaterial3D, "Opaque shaded authored texture should still build a standard material")
-	if material is StandardMaterial3D:
-		var expected := 1.0 - float(shade_value) / 256.0
-		_check(is_equal_approx(material.albedo_color.r, expected), "Opaque authored textures should still receive the UA shade multiplier even without alpha")
-		_check(is_equal_approx(material.albedo_color.g, expected), "Opaque authored textures should tint green with the same UA shade multiplier")
-		_check(is_equal_approx(material.albedo_color.b, expected), "Opaque authored textures should tint blue with the same UA shade multiplier")
-		_check(is_equal_approx(material.albedo_color.a, 1.0), "Opaque authored textures should keep full alpha after shade tinting")
-	return _errors.is_empty()
-
-func test_authored_piece_luminous_fx2_resolves_retail_hi_alpha_override() -> bool:
-	_reset_errors()
-	var raw_path := AuthoredPieceLibrary._raw_texture_override_path(1, "FX2.ILBM", {"transparency_mode": "lumtracy", "tracy_val": 128})
-	_check(not raw_path.is_empty(), "Luminous FX2 should resolve a retail hi/alpha raw texture override when it exists in the set assets")
-	_check(raw_path.to_lower().ends_with("/set1/hi/alpha/fx2.ilb"), "Luminous FX2 should prefer the set-local hi/alpha override used by retail UA on normal blended hardware")
-	var non_luminous_raw_path := AuthoredPieceLibrary._raw_texture_override_path(1, "FX2.ILBM", {})
-	_check(non_luminous_raw_path.is_empty(), "Non-luminous FX2 should keep the existing keyed BMP path instead of always forcing the raw hi/alpha override")
-	return _errors.is_empty()
-
-func test_authored_piece_area_animation_frames_load_from_anm() -> bool:
-	_reset_errors()
-	var polygon := [
-		Vector3.ZERO,
-		Vector3(1.0, 0.0, 0.0),
-		Vector3(1.0, 0.0, 1.0),
-		Vector3(0.0, 0.0, 1.0),
-	]
-	var frames: Array = AuthoredPieceLibrary._load_anim_frames(1, "05079601.ANM", polygon)
-	_check(frames.size() == 4, "05079601.ANM should resolve to its 4 exported animation frames")
-	if frames.size() == 4:
-		_check(String(frames[0].get("texture_name", "")) == "FX2.ILBM", "05079601.ANM should reference FX2.ILBM frames")
-		_check(frames[0].get("triangles", []).size() == 2, "Quad ANM frames should triangulate into two triangles")
-		_check(is_equal_approx(float(frames[0].get("duration_sec", 0.0)), 0.04), "ANM frame_time 40 should map to 0.04 seconds")
-	return _errors.is_empty()
-
-func test_authored_piece_area_animation_frames_use_bmpanim_u8_uv_scale() -> bool:
-	_reset_errors()
-	var polygon := [
-		Vector3.ZERO,
-		Vector3(1.0, 0.0, 0.0),
-		Vector3(1.0, 0.0, 1.0),
-		Vector3(0.0, 0.0, 1.0),
-	]
-	var frames: Array = AuthoredPieceLibrary._load_anim_frames(1, "05079601.ANM", polygon)
-	_check(frames.size() == 4, "05079601.ANM should still resolve during bmpanim UV regression coverage")
-	if frames.size() == 4:
-		var triangles: Array = frames[2].get("triangles", [])
-		_check(triangles.size() == 2, "Edge-heavy ANM frame should still triangulate into two triangles")
-		if triangles.size() == 2:
-			var uvs: Array = triangles[0].get("uvs", [])
-			_check(uvs.size() == 3, "Triangulated ANM frame should preserve UVs per triangle vertex")
-			if uvs.size() == 3:
-				_check(is_equal_approx(uvs[0].x, 154.0 / 256.0), "ANM U coordinates should follow retail bmpanim's u8/256 normalization")
-				_check(is_equal_approx(uvs[0].y, 254.0 / 256.0), "ANM V coordinates should follow retail bmpanim's u8/256 normalization")
-				_check(float(uvs[0].y) < 1.0, "Edge-heavy ANM UVs should stay inside the atlas instead of landing on the outermost border")
-	return _errors.is_empty()
-
-func test_authored_piece_area_lumtracy_hints_are_preserved_for_typ185() -> bool:
-	_reset_errors()
-	var piece_source: Dictionary = AuthoredPieceLibrary._load_piece_source(1, "GR_254")
-	var surfaces: Array = AuthoredPieceLibrary._extract_surfaces(
-		piece_source.get("bas_data", {}),
-		piece_source.get("points", []),
-		piece_source.get("polys", []),
-		1
-	)
-	var found_luminous := false
-	for surface in surfaces:
-		if typeof(surface) != TYPE_DICTIONARY:
-			continue
-		var animation_frames: Array = surface.get("animation_frames", [])
-		var render_hints: Dictionary = surface.get("render_hints", {})
-		if animation_frames.is_empty():
-			continue
-		if String(render_hints.get("transparency_mode", "")) == "lumtracy":
-			found_luminous = true
-			_check(int(render_hints.get("tracy_val", -1)) == 128, "GR_254 luminous animated area should preserve its tracy value from BAS STRC")
-			break
-	_check(found_luminous, "typ185 GR_254 authored animated surfaces should preserve lumtracy render hints")
-	return _errors.is_empty()
-
-func test_set1_typ96_bottom_right_piece_preserves_dark_parapet_shade() -> bool:
-	_reset_errors()
-	var piece_source: Dictionary = AuthoredPieceLibrary._load_piece_source(1, "ST_GHTT4")
-	var surfaces: Array = AuthoredPieceLibrary._extract_surfaces(
-		piece_source.get("bas_data", {}),
-		piece_source.get("points", []),
-		piece_source.get("polys", []),
-		1
-	)
-	var found_dark_parapet := false
-	for surface in surfaces:
-		if typeof(surface) != TYPE_DICTIONARY:
-			continue
-		if String(surface.get("texture_name", "")) != "CITY1.ILBM":
-			continue
-		if not surface.get("animation_frames", []).is_empty():
-			continue
-		var render_hints: Dictionary = surface.get("render_hints", {})
-		if int(render_hints.get("shade_value", -1)) == 228:
-			found_dark_parapet = true
-			var mesh_surface: Dictionary = AuthoredPieceLibrary._mesh_surface_from_surface(surface, 1)
-			var material: Material = mesh_surface.get("material", null)
-			_check(material is StandardMaterial3D, "ST_GHTT4 parapet surface should still build a standard authored material")
-			if material is StandardMaterial3D:
-				var expected := 1.0 - 228.0 / 256.0
-				_check(is_equal_approx(material.albedo_color.r, expected), "ST_GHTT4 parapet surface should preserve the source dark shade multiplier")
-			break
-	_check(found_dark_parapet, "ST_GHTT4 should preserve the dark CITY1 parapet shading used by set1 typ96 bottom-right")
-	return _errors.is_empty()
-
-func test_authored_piece_mesh_uses_authored_uvs_for_st_empty() -> bool:
-	_reset_errors()
-	var mesh: ArrayMesh = AuthoredPieceLibrary._load_piece_mesh(1, "ST_EMPTY")
-	_check(mesh != null, "ST_EMPTY authored-piece mesh should load")
-	_check(mesh != null and mesh.get_surface_count() > 0, "ST_EMPTY authored-piece mesh should expose at least one surface")
-	if mesh != null and mesh.get_surface_count() > 0:
-		var arrays := mesh.surface_get_arrays(0)
-		var uvs: PackedVector2Array = arrays[Mesh.ARRAY_TEX_UV]
-		var bounds := _uv_bounds(uvs)
-		_check(uvs.size() > 0, "ST_EMPTY authored-piece mesh should carry UVs")
-		if not bounds.is_empty():
-			_check(is_equal_approx(float(bounds["min_u"]), 1.0 / 255.0) and is_equal_approx(float(bounds["max_u"]), 126.0 / 255.0), "ST_EMPTY UVs should preserve the authored U bounds from BAS data")
-			_check(is_equal_approx(float(bounds["min_v"]), 1.0 / 255.0) and is_equal_approx(float(bounds["max_v"]), 126.0 / 255.0), "ST_EMPTY UVs should preserve the authored V bounds from BAS data")
-	return _errors.is_empty()
-
-func test_authored_piece_mesh_loads_ground_slurp_assets_from_objects_ground() -> bool:
-	_reset_errors()
-	var mesh: ArrayMesh = AuthoredPieceLibrary._load_piece_mesh(1, "S00V")
-	var bounds := _mesh_xz_bounds(mesh)
-	_check(not bounds.is_empty(), "Ground slurp assets should load through the authored-piece library from objects/ground")
-	if not bounds.is_empty():
-		_check(is_equal_approx(float(bounds["min_x"]), -750.0) and is_equal_approx(float(bounds["max_x"]), -450.0), "S00V should preserve its authored seam-local X footprint from objects/ground")
-		_check(is_equal_approx(float(bounds["min_z"]), -600.0) and is_equal_approx(float(bounds["max_z"]), 600.0), "S00V should preserve its authored seam-local Z span from objects/ground")
-	return _errors.is_empty()
-
-func test_authored_piece_mesh_loads_vehicle_assets_from_objects_vehicles() -> bool:
-	_reset_errors()
-	var mesh: ArrayMesh = AuthoredPieceLibrary._load_piece_mesh(1, "VP_ROBO")
-	_check(mesh != null, "Vehicle BAS assets should resolve through the authored-piece library from objects/vehicles")
-	if mesh != null:
-		_check(mesh.get_surface_count() > 0, "Vehicle BAS assets should build at least one surface")
-		_check(not _mesh_xz_bounds(mesh).is_empty(), "Vehicle BAS assets should produce usable mesh bounds")
-	var piece := AuthoredPieceLibrary._build_piece_node(1, "VP_ROBO", 0)
-	_check(piece != null, "Vehicle overlays should still build when a baked scene exists but has no renderable content")
-	if piece != null:
-		_check(piece.get_child_count() > 0, "Vehicle overlays should fall back to legacy BAS/SKL content instead of returning an empty baked scene")
-		piece.free()
-	return _errors.is_empty()
-
-func test_authored_piece_known_vehicle_and_radar_models_skip_textureless_placeholder_surfaces() -> bool:
-	_reset_errors()
-	for base_name in ["VP_RADA", "VP_NFOX", "VP_KPAN1"]:
-		var piece := AuthoredPieceLibrary._build_piece_node(1, base_name, 0)
-		_check(piece != null, "%s authored overlay should still build after skipping texture-less surfaces" % base_name)
-		if piece != null:
-			_check(not _node_has_magenta_placeholder_material(piece), "%s should skip texture-less authored surfaces instead of rendering the magenta debug placeholder" % base_name)
-			piece.free()
-	return _errors.is_empty()
-
-func test_build_host_station_descriptors_emits_vehicle_overlay_and_visible_turrets_at_ua_mirrored_origin() -> bool:
-	_reset_errors()
-	var data := _make_typ_and_hgt(2, 2, [12, 12, 12, 12], 0)
-	_set_hgt_value(data["hgt"], 2, 0, 0, 8)
-	var descriptors := Map3DRendererScript._build_host_station_descriptors([
-		HostStationStub.new(56, 1800.0, 1800.0, -700)
-	], 1, data["hgt"], 2, 2)
-	_check(descriptors.size() == 5, "Vehicle id 56 should emit the body plus four visible attached gun overlays")
-	_check(_has_descriptor(descriptors, "VP_ROBO", _ua_vec3(1800.0, 1500.0, 1800.0)), "Vehicle id 56 should resolve to VP_ROBO at the host-station origin")
-	_check(_has_descriptor(descriptors, "VP_MFLAK", _ua_vec3(1800.0, 1700.0, 1745.0)), "Resistance front gun should mirror its local UA offset into Godot space")
-	_check(_has_descriptor(descriptors, "VP_MFLAK", _ua_vec3(1800.0, 1680.0, 1880.0)), "Resistance rear gun should mirror its local UA offset into Godot space")
-	_check(_has_descriptor(descriptors, "VP_MFLAK", _ua_vec3(1800.0, 1890.0, 1800.0)), "Resistance top gun should mirror its local UA offset into Godot space")
-	_check(_has_descriptor(descriptors, "VP_FLAK2", _ua_vec3(1800.0, 1350.0, 1800.0)), "Resistance lower gun should mirror its local UA offset into Godot space")
-	return _errors.is_empty()
-
-func test_build_host_station_overlay_node_instantiates_visible_resistance_robo_and_turrets() -> bool:
-	_reset_errors()
-	var data := _make_typ_and_hgt(2, 2, [12, 12, 12, 12], 0)
-	_set_hgt_value(data["hgt"], 2, 0, 0, 8)
-	var descriptors := Map3DRendererScript._build_host_station_descriptors([
-		HostStationStub.new(56, 1800.0, 1800.0, -700)
-	], 1, data["hgt"], 2, 2)
-	var overlay := AuthoredPieceLibrary.build_overlay_node(descriptors)
-	_check(overlay.get_child_count() == 5, "Resistance robo host-station overlays should instantiate the body plus four visible turret nodes")
-	for child in overlay.get_children():
-		_check(_node_has_runtime_content(child), "Resistance robo host-station overlay children should contain renderable runtime content instead of empty placeholder nodes")
-	overlay.free()
-	return _errors.is_empty()
-
-func test_build_host_station_descriptors_accepts_player_vehicle_alias_ids() -> bool:
-	_reset_errors()
-	var data := _make_typ_and_hgt(1, 1, [12], 6)
-	var descriptors := Map3DRendererScript._build_host_station_descriptors([
-		HostStationStub.new(176, 1800.0, 1200.0, -500)
-	], 1, data["hgt"], 1, 1)
-	_check(descriptors.size() == 1, "Player visual aliases should resolve to host-station overlay descriptors")
-	if descriptors.size() == 1:
-		_check(String(descriptors[0].get("base_name", "")) == "VP_GIGNT", "Player id 176 should resolve to the same host-station model family as faction id 59")
-		_check(is_equal_approx(Vector3(descriptors[0].get("origin", Vector3.ZERO)).y, 1100.0), "Player alias placement should still add the relative Y offset on top of sampled ground height")
-	return _errors.is_empty()
-
-func test_build_host_station_descriptors_emits_visible_black_sect_turrets() -> bool:
-	_reset_errors()
-	var data := _make_typ_and_hgt(1, 1, [12], 0)
-	var descriptors := Map3DRendererScript._build_host_station_descriptors([
-		HostStationStub.new(62, 1200.0, 1200.0, -500)
-	], 1, data["hgt"], 1, 1)
-	_check(descriptors.size() == 3, "Vehicle id 62 should emit the body plus its two visible turret overlays")
-	_check(_has_descriptor(descriptors, "VP_BSECT", _ua_vec3(1200.0, 500.0, 1200.0)), "Vehicle id 62 should still emit the Black Sect body overlay")
-	_check(_has_descriptor(descriptors, "VP_FLAK2", _ua_vec3(1200.0, 650.0, 825.0)), "Black Sect front gun should mirror its UA local offset into Godot space")
-	_check(_has_descriptor(descriptors, "VP_FLAK2", _ua_vec3(1200.0, 620.0, 1580.0)), "Black Sect rear gun should mirror its UA local offset into Godot space")
-	return _errors.is_empty()
-
-func test_build_host_station_descriptors_keeps_body_when_gun_visuals_are_invisible() -> bool:
-	_reset_errors()
-	var data := _make_typ_and_hgt(1, 1, [12], 0)
-	var descriptors := Map3DRendererScript._build_host_station_descriptors([
-		HostStationStub.new(57, 1200.0, 1200.0, -500)
-	], 1, data["hgt"], 1, 1)
-	_check(descriptors.size() == 1, "Host stations whose gun types resolve to dummy visuals should still keep their body overlay")
-	if descriptors.size() == 1:
-		_check(String(descriptors[0].get("base_name", "")) == "VP_KROBO", "Invisible gun attachments should not suppress the host-station body model")
-	return _errors.is_empty()
 
 func test_build_host_station_overlay_node_keeps_visible_body_when_gun_visuals_are_invisible() -> bool:
 	_reset_errors()
@@ -1230,6 +847,11 @@ func test_build_host_station_overlay_node_keeps_visible_body_when_gun_visuals_ar
 		_check(_node_has_runtime_content(overlay.get_child(0)), "The surviving host-station body node should contain renderable runtime content")
 	overlay.free()
 	return _errors.is_empty()
+
+
+func test_host_station_overlay_node_keeps_body_when_gun_visuals_are_dummy() -> bool:
+	return test_build_host_station_overlay_node_keeps_visible_body_when_gun_visuals_are_invisible()
+
 
 func test_build_host_station_descriptors_emits_source_backed_turret_forward_vectors() -> bool:
 	_reset_errors()
@@ -2739,10 +2361,10 @@ func test_build_from_current_map_wires_host_stations_into_authored_overlay() -> 
 
 	var overlay: Node3D = null
 	for child in renderer.get_children():
-		if child != null and child is Node3D and child.name == "AuthoredOverlay":
+		if child != null and child is Node3D and child.name == "DynamicOverlay":
 			overlay = child
 			break
-	_check(overlay != null, "Expected Map3DRenderer.build_from_current_map() to create an AuthoredOverlay node")
+	_check(overlay != null, "Expected Map3DRenderer.build_from_current_map() to create a DynamicOverlay node for host stations")
 
 	var found_keys: Dictionary = {}
 	if overlay != null:
@@ -2762,7 +2384,7 @@ func test_build_from_current_map_wires_host_stations_into_authored_overlay() -> 
 	_check(expected_descriptors.size() > 0, "Expected at least one host-station descriptor")
 	for desc in expected_descriptors:
 		var expected_key := String(desc.get("instance_key", ""))
-		_check(found_keys.has(expected_key), "AuthoredOverlay missing host descriptor instance_key: %s" % expected_key)
+		_check(found_keys.has(expected_key), "DynamicOverlay missing host descriptor instance_key: %s" % expected_key)
 
 	renderer.free()
 	return _errors.is_empty()
@@ -2862,6 +2484,58 @@ func test_dynamic_overlay_keeps_md_squads_after_mixed_pool_refresh_events() -> b
 	return _errors.is_empty()
 
 
+func test_unit_position_committed_uses_single_unit_dynamic_refresh_for_squads() -> bool:
+	_reset_errors()
+
+	var w := 2
+	var h := 2
+	var data := _make_typ_and_hgt(w, h, [12, 12, 12, 12], 0)
+	var squads := Node.new()
+	var squad := SquadStub.new(1, 1800.0, 1200.0, 1)
+	squads.add_child(squad)
+
+	var map_data := CurrentMapDataStub.new()
+	map_data.horizontal_sectors = w
+	map_data.vertical_sectors = h
+	map_data.level_set = 1
+	map_data.hgt_map = data["hgt"]
+	map_data.typ_map = data["typ"]
+	map_data.blg_map = PackedByteArray([0, 0, 0, 0])
+	map_data.host_stations = null
+	map_data.squads = squads
+
+	var editor_state := EditorStateStub.new()
+	editor_state.view_mode_3d = true
+	editor_state.game_data_type = "original"
+
+	var preloads := MockPreloads.new()
+	preloads.surface_type_map = {12: 0}
+
+	var renderer := Map3DRendererScript.new()
+	renderer._edge_overlay_enabled = false
+	renderer.set_current_map_data_override(map_data)
+	renderer.set_editor_state_override(editor_state)
+	renderer.set_preloads_override(preloads)
+	renderer._chunk_rt.last_map_dimensions = Vector2i(w, h)
+	renderer._chunk_rt.last_level_set = map_data.level_set
+	renderer._terrain_chunk_nodes[Vector2i.ZERO] = MeshInstance3D.new()
+
+	renderer._on_unit_position_committed("squad", int(squad.get_instance_id()))
+
+	_check(not renderer._dynamic_overlay_refresh_requested, "Single-unit movement should not schedule a broad dynamic overlay refresh when the direct squad path succeeds")
+	var dynamic_overlay := renderer.get_node_or_null("DynamicOverlay") as Node3D
+	_check(dynamic_overlay != null, "Single-unit movement refresh should create a DynamicOverlay node")
+	var found_keys := _instance_keys_from_overlay(dynamic_overlay)
+	var expected_descriptors: Array = Map3DRendererScript._build_squad_descriptors([squad], map_data.level_set, data["hgt"], w, h, [], editor_state.game_data_type)
+	_check(expected_descriptors.size() > 0, "Expected at least one squad descriptor for single-unit movement refresh")
+	for desc in expected_descriptors:
+		var expected_key := String(desc.get("instance_key", ""))
+		_check(found_keys.has(expected_key), "DynamicOverlay missing squad descriptor instance_key after unit_position_committed refresh: %s" % expected_key)
+
+	renderer.free()
+	return _errors.is_empty()
+
+
 func test_build_from_current_map_wires_squads_into_authored_overlay() -> bool:
 	_reset_errors()
 
@@ -2898,10 +2572,10 @@ func test_build_from_current_map_wires_squads_into_authored_overlay() -> bool:
 
 	var overlay: Node3D = null
 	for child in renderer.get_children():
-		if child != null and child is Node3D and child.name == "AuthoredOverlay":
+		if child != null and child is Node3D and child.name == "DynamicOverlay":
 			overlay = child
 			break
-	_check(overlay != null, "Expected Map3DRenderer.build_from_current_map() to create an AuthoredOverlay node")
+	_check(overlay != null, "Expected Map3DRenderer.build_from_current_map() to create a DynamicOverlay node for squads")
 
 	var found_keys: Dictionary = {}
 	if overlay != null:
@@ -2922,7 +2596,7 @@ func test_build_from_current_map_wires_squads_into_authored_overlay() -> bool:
 	_check(expected_descriptors.size() > 0, "Expected at least one squad descriptor")
 	for desc in expected_descriptors:
 		var expected_key := String(desc.get("instance_key", ""))
-		_check(found_keys.has(expected_key), "AuthoredOverlay missing squad descriptor instance_key: %s" % expected_key)
+		_check(found_keys.has(expected_key), "DynamicOverlay missing squad descriptor instance_key: %s" % expected_key)
 
 	renderer.free()
 	return _errors.is_empty()
@@ -2952,26 +2626,6 @@ func run() -> int:
 		"test_build_edge_overlay_result_skips_same_surface_fallback_when_authored_slurp_is_unavailable",
 		"test_build_edge_overlay_result_includes_pair_based_border_to_border_seam_on_north_ring",
 		"test_chunk_edge_overlay_assigns_vertical_seam_to_single_chunk_owner",
-		"test_authored_piece_uvs_decode_array_pairs_against_texture_size",
-		"test_authored_piece_material_keeps_opaque_textures_nontransparent",
-		"test_authored_piece_material_returns_null_for_empty_texture_name",
-		"test_preview_material_uses_unshaded_nonmetallic_presentation",
-		"test_terrain_shaders_are_unshaded_for_ua_style_flat_preview",
-			"test_authored_piece_material_converts_yellow_key_to_alpha",
-			"test_authored_piece_luminous_material_uses_separate_alpha_path",
-				"test_authored_piece_material_applies_source_shade_multiplier",
-			"test_authored_piece_material_applies_source_shade_multiplier_to_opaque_texture",
-			"test_authored_piece_area_lumtracy_hints_are_preserved_for_typ185",
-				"test_set1_typ96_bottom_right_piece_preserves_dark_parapet_shade",
-		"test_authored_piece_mesh_uses_authored_uvs_for_st_empty",
-		"test_authored_piece_mesh_loads_ground_slurp_assets_from_objects_ground",
-			"test_authored_piece_mesh_loads_vehicle_assets_from_objects_vehicles",
-			"test_authored_piece_known_vehicle_and_radar_models_skip_textureless_placeholder_surfaces",
-			"test_build_host_station_descriptors_emits_vehicle_overlay_and_visible_turrets_at_ua_mirrored_origin",
-			"test_build_host_station_overlay_node_instantiates_visible_resistance_robo_and_turrets",
-			"test_build_host_station_descriptors_accepts_player_vehicle_alias_ids",
-			"test_build_host_station_descriptors_emits_visible_black_sect_turrets",
-			"test_build_host_station_descriptors_keeps_body_when_gun_visuals_are_invisible",
 			"test_build_host_station_overlay_node_keeps_visible_body_when_gun_visuals_are_invisible",
 			"test_build_host_station_descriptors_emits_source_backed_turret_forward_vectors",
 			"test_build_host_station_descriptors_snaps_y_to_authored_support_mesh_when_present",
@@ -2992,11 +2646,12 @@ func run() -> int:
 			"test_build_blg_attachment_descriptors_emits_small_aa_overlay_for_blg28",
 			"test_build_blg_attachment_descriptors_keeps_sector_ground_height_when_authored_support_mesh_is_higher",
 			"test_build_blg_attachment_descriptors_skips_dummy_gflak_visuals",
-			"test_build_blg_attachment_descriptors_emits_radar_nozzle_overlay",
+			"test_host_station_overlay_node_keeps_body_when_gun_visuals_are_dummy",
 			"test_build_blg_attachment_overlay_applies_positive_x_forward_orientation",
 			"test_build_blg_attachment_overlay_applies_negative_x_forward_orientation",
 			"test_squad_formation_offsets_fill_left_to_right_and_rows_advance_upward",
 			"test_squad_formation_offsets_for_32_restart_each_row_from_left_and_move_upward",
+			"test_unit_position_committed_uses_single_unit_dynamic_refresh_for_squads",
 			"test_build_squad_descriptors_resolves_original_vehicle_visuals_and_uses_leftmost_single_unit_offset",
 			"test_build_squad_overlay_node_instantiates_visible_original_vehicle",
 			"test_build_squad_descriptors_expands_quantity_into_left_to_right_upward_formation",

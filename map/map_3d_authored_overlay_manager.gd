@@ -27,7 +27,7 @@ static func apply_overlay_for_prefixes(root: Node3D, key_prefixes: Array, descri
 	if key_prefixes.is_empty():
 		apply_overlay_node(root, descriptors)
 		return
-	if root.name != "AuthoredOverlay":
+	if root.name.is_empty():
 		root.name = "AuthoredOverlay"
 
 	var desired := _desired_descriptors_by_key(descriptors)
@@ -105,7 +105,7 @@ static func _key_matches_prefixes(key: String, key_prefixes: Array) -> bool:
 func begin_apply_overlay_node(root: Node3D, descriptors: Array) -> Dictionary:
 	if root == null or not is_instance_valid(root):
 		return {}
-	if root.name != "AuthoredOverlay":
+	if root.name.is_empty():
 		root.name = "AuthoredOverlay"
 
 	var desired := _desired_descriptors_by_key(descriptors)

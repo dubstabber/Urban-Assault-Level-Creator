@@ -112,8 +112,7 @@ func _ready() -> void:
 			xpos_host_station_line_edit.text = str(pos_x)
 		EditorState.selected_unit.position.x = pos_x
 		if moved:
-			EventSystem.unit_position_committed.emit()
-			EventSystem.unit_overlay_refresh_requested.emit("host", int(EditorState.selected_unit.get_instance_id()))
+			EventSystem.unit_position_committed.emit("host", int(EditorState.selected_unit.get_instance_id()))
 		_record_unit_snapshot("Move unit", unit_before)
 		)
 	ypos_host_station_line_edit.text_submitted.connect(func(text_value: String):
@@ -125,8 +124,7 @@ func _ready() -> void:
 			ypos_host_station_line_edit.text = str(pos_y)
 		EditorState.selected_unit.pos_y = pos_y
 		if moved:
-			EventSystem.unit_position_committed.emit()
-			EventSystem.unit_overlay_refresh_requested.emit("host", int(EditorState.selected_unit.get_instance_id()))
+			EventSystem.unit_position_committed.emit("host", int(EditorState.selected_unit.get_instance_id()))
 		_record_unit_snapshot("Move unit", unit_before)
 		)
 	zpos_host_station_line_edit.text_submitted.connect(func(text_value: String):
@@ -138,8 +136,7 @@ func _ready() -> void:
 			zpos_host_station_line_edit.text = "-%s" % str(pos_z)
 		EditorState.selected_unit.position.y = pos_z
 		if moved:
-			EventSystem.unit_position_committed.emit()
-			EventSystem.unit_overlay_refresh_requested.emit("host", int(EditorState.selected_unit.get_instance_id()))
+			EventSystem.unit_position_committed.emit("host", int(EditorState.selected_unit.get_instance_id()))
 		_record_unit_snapshot("Move unit", unit_before)
 		)
 	conquering_h_slider.value_changed.connect(func(value_changed: int):

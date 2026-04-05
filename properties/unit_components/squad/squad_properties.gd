@@ -57,8 +57,7 @@ func _ready() -> void:
 			xpos_squad_line_edit.text = str(pos_x)
 		EditorState.selected_unit.position.x = pos_x
 		if moved:
-			EventSystem.unit_position_committed.emit()
-			EventSystem.unit_overlay_refresh_requested.emit("squad", int(EditorState.selected_unit.get_instance_id()))
+			EventSystem.unit_position_committed.emit("squad", int(EditorState.selected_unit.get_instance_id()))
 		_record_unit_snapshot("Move unit", unit_before)
 	)
 	zpos_squad_line_edit.text_submitted.connect(func(text_value: String):
@@ -70,8 +69,7 @@ func _ready() -> void:
 			zpos_squad_line_edit.text = "-%s" % str(pos_z)
 		EditorState.selected_unit.position.y = pos_z
 		if moved:
-			EventSystem.unit_position_committed.emit()
-			EventSystem.unit_overlay_refresh_requested.emit("squad", int(EditorState.selected_unit.get_instance_id()))
+			EventSystem.unit_position_committed.emit("squad", int(EditorState.selected_unit.get_instance_id()))
 		_record_unit_snapshot("Move unit", unit_before)
 	)
 	useable_check_box.toggled.connect(func(toggled: bool):
