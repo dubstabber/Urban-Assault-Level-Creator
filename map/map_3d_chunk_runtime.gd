@@ -93,15 +93,7 @@ var last_level_set: int = -1
 
 # ---- Full-rebuild decision support ----
 
-var force_full_rebuild_next_update := false
-var force_full_rebuild_was_applied := false
-
-
 func needs_full_rebuild(w: int, h: int, level_set: int, has_chunk_nodes: bool) -> bool:
-	if force_full_rebuild_next_update:
-		force_full_rebuild_next_update = false
-		force_full_rebuild_was_applied = true
-		return true
 	var dims := Vector2i(w, h)
 	if dims != last_map_dimensions:
 		return true
@@ -110,6 +102,11 @@ func needs_full_rebuild(w: int, h: int, level_set: int, has_chunk_nodes: bool) -
 	if not has_chunk_nodes and _dirty_chunks.is_empty():
 		return true
 	return false
+
+func prepare_chunked_full_rebuild(w: int, h: int, level_set: int) -> void:
+	last_map_dimensions = Vector2i(w, h)
+	last_level_set = level_set
+	invalidate_all_chunks(w, h)
 
 
 # ---- Initial-build batching ----

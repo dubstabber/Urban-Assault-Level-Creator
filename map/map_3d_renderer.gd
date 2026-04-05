@@ -1467,73 +1467,64 @@ func build_from_current_map() -> void:
 
 	metrics["used_textured_preloads"] = true
 	var level_set := int(_cmd.level_set)
-	var use_chunked := _chunk_rt.chunked_terrain_enabled and not _needs_full_rebuild(w, h, level_set)
+	var requires_full_rebuild := _needs_full_rebuild(w, h, level_set)
+	if _chunk_rt.chunked_terrain_enabled and requires_full_rebuild:
+		_clear_chunk_nodes()
+		_chunk_rt.clear_authored_caches()
+		_chunk_rt.prepare_chunked_full_rebuild(w, h, level_set)
+		requires_full_rebuild = false
+	var use_chunked := _chunk_rt.chunked_terrain_enabled and not requires_full_rebuild
 
 	var terrain_started_usec := Time.get_ticks_usec()
 	var authored_piece_descriptors: Array = []
 	var support_descriptors: Array = []
 	var overlay_descriptors: Array = []
 
-	if use_chunked and _chunk_rt.has_dirty_chunks():
-		# Incremental chunk rebuild
-		_chunk_rt.force_full_rebuild_next_update = false
-		_chunk_rt.force_full_rebuild_was_applied = false
-		if _terrain_chunk_nodes.is_empty():
-			# We may be transitioning from the legacy full-mesh path into chunked mode.
-			# Seed all chunk nodes before clearing the shared terrain mesh, otherwise the
-			# first incremental edit would redraw only the dirty chunk subset and leave
-			# the rest of the map missing.
-			_invalidate_all_chunks(w, h)
-		# Snapshot the last known-good terrain/support descriptors before we apply
-		# any incremental cache updates. If our chunk overlap bookkeeping ever
-		# underflows and wipes the cache, we'd otherwise remove the entire authored
-		# overlay and leave only the edge meshes (the black grid).
-		var terrain_cache_snapshot_descriptors: Array = _chunk_rt.get_support_descriptors()
-		if _terrain_mesh:
-			_terrain_mesh.mesh = null
-		if _edge_mesh:
-			_edge_mesh.mesh = null
-		var max_chunks := -1
-		var is_initial_batch := _chunk_rt.initial_build_in_progress
-		if is_initial_batch:
-			max_chunks = _chunk_rt.initial_build_batch_size
-		var batch_authored_descriptors := _rebuild_dirty_chunks(hgt, effective_typ, w, h, pre, level_set, metrics, max_chunks)
-		metrics["terrain_build_ms"] = _elapsed_ms_since(terrain_started_usec)
-		metrics["incremental_rebuild"] = true
+	if use_chunked:
+		if _chunk_rt.has_dirty_chunks():
+			var terrain_cache_snapshot_descriptors: Array = _chunk_rt.get_support_descriptors()
+			if _terrain_mesh:
+				_terrain_mesh.mesh = null
+			if _edge_mesh:
+				_edge_mesh.mesh = null
+			var max_chunks := -1
+			var is_initial_batch := _chunk_rt.initial_build_in_progress
+			if is_initial_batch:
+				max_chunks = _chunk_rt.initial_build_batch_size
+			var batch_authored_descriptors := _rebuild_dirty_chunks(hgt, effective_typ, w, h, pre, level_set, metrics, max_chunks)
+			metrics["terrain_build_ms"] = _elapsed_ms_since(terrain_started_usec)
+			metrics["incremental_rebuild"] = true
 
-		if is_initial_batch:
-			_chunk_rt.initial_build_accumulated_authored_descriptors.append_array(batch_authored_descriptors)
-			metrics["terrain_authored_descriptor_count"] = _chunk_rt.initial_build_accumulated_authored_descriptors.size()
-
-			# Keep building chunks until the accumulator is complete, then proceed with overlay generation.
-			if _chunk_rt.has_dirty_chunks():
-				_finalize_build_metrics(metrics, build_started_usec)
-				_request_refresh(false)
-				return
-
-			authored_piece_descriptors = _chunk_rt.initial_build_accumulated_authored_descriptors
-			_chunk_rt.initial_build_in_progress = false
-			_chunk_rt.initial_build_accumulated_authored_descriptors.clear()
-		else:
-			authored_piece_descriptors = batch_authored_descriptors
-			metrics["terrain_authored_descriptor_count"] = authored_piece_descriptors.size()
-
-		var cached_terrain_descriptors: Array = _chunk_rt.get_support_descriptors()
-		if cached_terrain_descriptors.is_empty():
-			if not terrain_cache_snapshot_descriptors.is_empty():
-				cached_terrain_descriptors = terrain_cache_snapshot_descriptors.duplicate()
+			if is_initial_batch:
+				_chunk_rt.initial_build_accumulated_authored_descriptors.append_array(batch_authored_descriptors)
+				metrics["terrain_authored_descriptor_count"] = _chunk_rt.initial_build_accumulated_authored_descriptors.size()
+				if _chunk_rt.has_dirty_chunks():
+					_finalize_build_metrics(metrics, build_started_usec)
+					_request_refresh(false)
+					return
+				authored_piece_descriptors = _chunk_rt.initial_build_accumulated_authored_descriptors
+				_chunk_rt.initial_build_in_progress = false
+				_chunk_rt.initial_build_accumulated_authored_descriptors.clear()
 			else:
-				cached_terrain_descriptors = authored_piece_descriptors.duplicate()
+				authored_piece_descriptors = batch_authored_descriptors
+				metrics["terrain_authored_descriptor_count"] = authored_piece_descriptors.size()
+
+			var cached_terrain_descriptors: Array = _chunk_rt.get_support_descriptors()
+			if cached_terrain_descriptors.is_empty():
+				if not terrain_cache_snapshot_descriptors.is_empty():
+					cached_terrain_descriptors = terrain_cache_snapshot_descriptors.duplicate()
+				else:
+					cached_terrain_descriptors = authored_piece_descriptors.duplicate()
+			else:
+				cached_terrain_descriptors = cached_terrain_descriptors.duplicate()
+			support_descriptors = cached_terrain_descriptors
+			overlay_descriptors = cached_terrain_descriptors.duplicate()
+			metrics["terrain_authored_descriptor_count"] = support_descriptors.size()
 		else:
-			# The authored cache is already updated per rebuilt chunk;
-			# appending `authored_piece_descriptors` here duplicates keys and inflates
-			# overlay descriptors during incremental rebuilds.
-			cached_terrain_descriptors = cached_terrain_descriptors.duplicate()
-		support_descriptors = cached_terrain_descriptors
-		overlay_descriptors = cached_terrain_descriptors.duplicate()
-		metrics["terrain_authored_descriptor_count"] = support_descriptors.size()
+			support_descriptors = _chunk_rt.get_support_descriptors().duplicate()
+			overlay_descriptors = support_descriptors.duplicate()
+			metrics["terrain_authored_descriptor_count"] = support_descriptors.size()
 	else:
-		# Full rebuild (legacy path or first build)
 		_clear_chunk_nodes()
 		_invalidate_all_chunks(w, h)
 		_chunk_rt.last_map_dimensions = Vector2i(w, h)
@@ -1564,7 +1555,6 @@ func build_from_current_map() -> void:
 			_terrain_mesh.mesh = mesh
 			_apply_sector_top_materials(mesh, pre, surface_to_surface_type)
 
-		# Edge overlay uses ordered neighboring SurfaceType-pair seam strips for the live preview.
 		var edge_started_usec := Time.get_ticks_usec()
 		if _edge_overlay_enabled and effective_typ.size() == w * h:
 			var edge_result := _build_edge_overlay_result(hgt, w, h, effective_typ, pre.surface_type_map, level_set, pre)
@@ -1579,11 +1569,8 @@ func build_from_current_map() -> void:
 				_edge_mesh.mesh = null
 		metrics["edge_slurp_build_ms"] = _elapsed_ms_since(edge_started_usec)
 		_chunk_rt.clear_dirty_chunks()
-		# Ensure authored-terrain cache matches the current full rebuild.
 		_reset_terrain_authored_cache_from_descriptors(support_descriptors, w, h)
-		if not _chunk_rt.force_full_rebuild_was_applied:
-			_chunk_rt.force_full_rebuild_next_update = true
-		_chunk_rt.force_full_rebuild_was_applied = false
+
 	var overlay_descriptor_started_usec := Time.get_ticks_usec()
 	overlay_descriptors.append_array(_build_blg_attachment_descriptors(blg, effective_typ, int(_cmd.level_set), hgt, w, h, support_descriptors, game_data_type))
 	if _cmd.host_stations != null and is_instance_valid(_cmd.host_stations):

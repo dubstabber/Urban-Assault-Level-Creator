@@ -213,7 +213,7 @@ func test_typ_edit_triggers_incremental_chunk_rebuild() -> bool:
 	return _errors.is_empty()
 
 
-func test_first_incremental_rebuild_after_full_mode_seeds_all_chunks() -> bool:
+func test_first_local_edit_after_full_build_stays_local() -> bool:
 	_reset_errors()
 	var fixture := _create_fixture(true)
 	var renderer := fixture["renderer"] as Map3DRenderer
@@ -228,24 +228,23 @@ func test_first_incremental_rebuild_after_full_mode_seeds_all_chunks() -> bool:
 	current_map_data.typ_map = _make_zero_filled_packed_byte_array(w * h)
 	current_map_data.blg_map = _make_zero_filled_packed_byte_array(w * h)
 
-	# Match the editor flow seen in the user log: two full rebuilds happen before the
-	# first incremental edit when the renderer is still in legacy full-mesh mode.
 	renderer.build_from_current_map()
 	renderer.build_from_current_map()
 
 	var terrain_mesh := renderer.get_node_or_null("TerrainMesh")
-	_check(_count_named_children(terrain_mesh, "TerrainChunk_") == 0, "Expected no terrain chunk nodes before the first incremental transition")
+	var expected_chunk_count := Map3DRendererScript.TerrainBuilder.all_chunks_for_map(w, h).size()
+	_check_eq(_count_named_children(terrain_mesh, "TerrainChunk_"), expected_chunk_count, "Expected full build to seed terrain chunk nodes directly")
 
-	current_map_data.hgt_map[0] = 1
-	event_system.hgt_map_cells_edited.emit([0])
+	var sx := 1
+	var sy := 1
+	var typ_idx := sy * w + sx
+	current_map_data.typ_map[typ_idx] = 1
+	event_system.typ_map_cells_edited.emit([typ_idx])
 	renderer.build_from_current_map()
 
 	var metrics := renderer.get_last_build_metrics()
-	var expected_chunk_count := Map3DRendererScript.TerrainBuilder.all_chunks_for_map(w, h).size()
-	var terrain_chunk_count := _count_named_children(terrain_mesh, "TerrainChunk_")
-	_check(bool(metrics.get("incremental_rebuild", false)), "Expected the post-full-build edit to use incremental chunk rebuild")
-	_check_eq(int(metrics.get("chunks_rebuilt", 0)), expected_chunk_count, "Expected the first incremental transition to seed all terrain chunks")
-	_check_eq(terrain_chunk_count, expected_chunk_count, "Expected all terrain chunk nodes to be created during the first incremental transition")
+	_check(bool(metrics.get("incremental_rebuild", false)), "Expected the first local edit after a full build to use incremental chunk rebuild")
+	_check_eq(int(metrics.get("chunks_rebuilt", 0)), 1, "Expected the first local edit after a full build to stay localized to one chunk")
 
 	_dispose_fixture(fixture)
 	return _errors.is_empty()
@@ -304,7 +303,7 @@ func run() -> int:
 		"test_invalid_map_input_still_records_metrics",
 		"test_hgt_edit_triggers_incremental_chunk_rebuild",
 		"test_typ_edit_triggers_incremental_chunk_rebuild",
-		"test_first_incremental_rebuild_after_full_mode_seeds_all_chunks",
+		"test_first_local_edit_after_full_build_stays_local",
 	]:
 		print("RUN ", name)
 		if bool(call(name)):
