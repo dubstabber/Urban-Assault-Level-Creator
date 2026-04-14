@@ -93,9 +93,9 @@ func _capture_map_edit_event_sequence(callback: Callable) -> Array:
 func test_catalog_exposes_required_named_cases() -> bool:
 	_reset_errors()
 	var names := BenchmarkCases.all_case_names()
-	for required_name in ["small_visible_flat", "medium_visible_varied", "large_visible_varied", "set6_ptcl_visible", "large_hidden_refresh_workflow"]:
+	for required_name in ["small_visible_flat", "medium_visible_varied", "target_visible_varied_34x32", "large_visible_varied", "set6_ptcl_visible", "large_hidden_refresh_workflow"]:
 		_check(names.has(required_name), "Benchmark catalog should include '%s'" % required_name)
-	_check(names.size() == 5, "Benchmark catalog should stay intentionally small and reviewable in this phase")
+	_check(names.size() == 6, "Benchmark catalog should stay intentionally small and reviewable in this phase")
 	return _errors.is_empty()
 
 

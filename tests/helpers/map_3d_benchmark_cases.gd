@@ -3,6 +3,7 @@ extends RefCounted
 const CASE_NAMES := [
 	"small_visible_flat",
 	"medium_visible_varied",
+	"target_visible_varied_34x32",
 	"large_visible_varied",
 	"set6_ptcl_visible",
 	"large_hidden_refresh_workflow",
@@ -19,6 +20,8 @@ static func get_case(case_name: String) -> Dictionary:
 			return _make_case(case_name, "8x8 visible baseline terrain build", 8, 8, 1, "flat", [0, 1, 2, 3], true, 1, false, {"case_elapsed_ms_max": 1000.0, "build_total_ms_max": 1000.0})
 		"medium_visible_varied":
 			return _make_case(case_name, "24x24 visible mixed-height terrain and slurp workload", 24, 24, 1, "rolling", [0, 1, 2, 3, 4, 5], true, 1, false, {"case_elapsed_ms_max": 3000.0, "build_total_ms_max": 3000.0})
+		"target_visible_varied_34x32":
+			return _make_case(case_name, "34x32 visible target-sized terrain and slurp workload", 34, 32, 1, "rolling", [0, 1, 2, 3, 4, 5], true, 1, false, {"case_elapsed_ms_max": 4500.0, "build_total_ms_max": 4500.0})
 		"large_visible_varied":
 			return _make_case(case_name, "64x64 visible large-map terrain and overlay baseline", 64, 64, 1, "rolling", [0, 1, 2, 3, 4, 5], true, 1, false, {"case_elapsed_ms_max": 8000.0, "build_total_ms_max": 8000.0})
 		"set6_ptcl_visible":

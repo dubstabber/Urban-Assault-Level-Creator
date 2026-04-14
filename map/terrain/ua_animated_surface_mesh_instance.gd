@@ -17,14 +17,23 @@ func _ready() -> void:
 
 func setup_animation(frames: Array) -> void:
 	_frames.clear()
+	serialized_frame_meshes.clear()
+	serialized_frame_durations = PackedFloat32Array()
+	var serialized_durations: PackedFloat32Array = PackedFloat32Array()
 	for frame in frames:
 		var prepared := {}
 		prepared["duration_sec"] = float(frame.get("duration_sec", 0.04))
 		prepared["mesh"] = _mesh_from_triangles(frame.get("triangles", []), frame.get("material", null))
 		_frames.append(prepared)
+		var prepared_mesh: Mesh = prepared.get("mesh", null)
+		if prepared_mesh != null:
+			serialized_frame_meshes.append(prepared_mesh)
+			serialized_durations.append(prepared["duration_sec"])
+	serialized_frame_durations = serialized_durations
 	_frame_index = 0
 	_elapsed = 0.0
 	_apply_current_frame()
+	set_meta("ua_authored_animated", true)
 	set_process(_frames.size() > 1)
 
 func _restore_serialized_animation() -> void:

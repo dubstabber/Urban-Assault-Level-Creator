@@ -32,6 +32,10 @@ const BMPANIM_UV_SCALE := 256.0
 static var _piece_overlay_fast_path_count := 0
 static var _piece_overlay_slow_path_count := 0
 static var _deformed_slurp_mesh_cache := {}
+static var _piece_source_presence_cache := {}
+static var _piece_source_cache := {}
+static var _resolved_authored_descriptor_cache := {}
+static var _piece_scene_root_cache := {}
 static var _external_source_loading_enabled := true
 static var _external_source_root: String = ""
 static var _piece_game_data_type := "original"
@@ -51,6 +55,10 @@ static func _clear_runtime_caches() -> void:
 	AnimationBuilder.clear_runtime_caches()
 	SupportSampler.clear_runtime_caches()
 	_deformed_slurp_mesh_cache.clear()
+	_piece_source_presence_cache.clear()
+	_piece_source_cache.clear()
+	_resolved_authored_descriptor_cache.clear()
+	_piece_scene_root_cache.clear()
 
 static func set_piece_game_data_type(game_data_type: String) -> void:
 	var n := game_data_type.strip_edges()
@@ -100,14 +108,24 @@ static func _vector3_from_json(value) -> Vector3:
 	return Vector3(float(d.get("x", 0.0)), float(d.get("y", 0.0)), float(d.get("z", 0.0)))
 
 static func resolve_authored_descriptor(set_id: int, raw_id: int, lego_defs: Dictionary, origin: Vector3) -> Dictionary:
-	var lego := _lego_for_raw_id(lego_defs, raw_id)
-	if lego.is_empty():
+	var cache_key := "%d:%d:%s" % [set_id, raw_id, _piece_game_data_type.to_lower()]
+	if not _resolved_authored_descriptor_cache.has(cache_key):
+		var lego := _lego_for_raw_id(lego_defs, raw_id)
+		if lego.is_empty():
+			_resolved_authored_descriptor_cache[cache_key] = {}
+		else:
+			var base_name := String(lego.get("base_name", ""))
+			_resolved_authored_descriptor_cache[cache_key] = (
+				{"set_id": set_id, "raw_id": raw_id, "base_name": base_name}
+				if has_piece_source(set_id, base_name)
+				else {}
+			)
+	var cached = _resolved_authored_descriptor_cache.get(cache_key, {})
+	if typeof(cached) != TYPE_DICTIONARY or (cached as Dictionary).is_empty():
 		return {}
-	var base_name := String(lego.get("base_name", ""))
-	var mesh: ArrayMesh = _load_piece_mesh(set_id, base_name)
-	if mesh == null or mesh.get_surface_count() == 0:
-		return {}
-	return {"set_id": set_id, "raw_id": raw_id, "base_name": base_name, "origin": origin}
+	var descriptor := (cached as Dictionary).duplicate(true)
+	descriptor["origin"] = origin
+	return descriptor
 
 static func build_overlay_node(descriptors: Array) -> Node3D:
 	var overlay_manager = load("res://map/map_3d_authored_overlay_manager.gd")
@@ -208,13 +226,19 @@ static func has_piece_source(set_id: int, base_name: String) -> bool:
 		return false
 	if not _external_source_loading_enabled:
 		return false
+	var cache_key := "%d:%s:%s" % [set_id, base_name.to_lower(), _piece_game_data_type.to_lower()]
+	if _piece_source_presence_cache.has(cache_key):
+		return bool(_piece_source_presence_cache[cache_key])
 	var bas_path := _find_piece_bas_path(set_id, base_name)
 	if bas_path.is_empty():
+		_piece_source_presence_cache[cache_key] = false
 		return false
 	var bas_data := _load_json(bas_path)
 	var skel_ref := _find_first_skeleton_ref(bas_data)
 	var skel_name := skel_ref.get_file().get_basename() if not skel_ref.is_empty() else base_name
-	return not _find_file(_skeleton_dir(set_id), "%s.skl.json" % skel_name).is_empty()
+	var has_source := not _find_file(_skeleton_dir(set_id), "%s.skl.json" % skel_name).is_empty()
+	_piece_source_presence_cache[cache_key] = has_source
+	return has_source
 
 static func _lego_for_raw_id(lego_defs: Dictionary, raw_id: int) -> Dictionary:
 	if lego_defs.has(raw_id):
@@ -266,20 +290,49 @@ static func _build_piece_node(set_id: int, base_name: String, raw_id: int) -> No
 static func build_piece_scene_root(set_id: int, base_name: String, raw_id: int = -1) -> Node3D:
 	if base_name.is_empty():
 		return null
+	var template_key := "%d:%s:%d:%s:%d" % [
+		set_id,
+		base_name.to_lower(),
+		raw_id,
+		_piece_game_data_type.to_lower(),
+		1 if _force_static_terrain_overlays else 0,
+	]
+	if _piece_scene_root_cache.has(template_key):
+		var cached_template = _piece_scene_root_cache[template_key]
+		if cached_template is Node3D and is_instance_valid(cached_template):
+			_count_piece_overlay_build(String(cached_template.get_meta("overlay_build_path", "")))
+			return (cached_template as Node3D).duplicate()
+
+	var built_root: Node3D = null
+	var build_path := "slow"
 	if not _external_source_loading_enabled:
-		return _build_piece_node(set_id, base_name, raw_id)
-	var mesh: ArrayMesh = _load_piece_mesh(set_id, base_name)
-	var cache_key := "%d:%s:%s" % [set_id, base_name.to_lower(), _piece_game_data_type.to_lower()]
-	var runtime_flags := MeshLoader.piece_runtime_flags(cache_key)
-	var use_animated := bool(runtime_flags.get("has_animated_surfaces", false))
-	var has_emitters := bool(runtime_flags.get("has_emitters", false))
-	# Animated surfaces and particle emitters need the full piece node unless the editor
-	# explicitly requests static overlays for performance (`set_force_static_terrain_overlays`).
-	if mesh != null and mesh.get_surface_count() > 0 and (_force_static_terrain_overlays or (not use_animated and not has_emitters)):
+		built_root = _build_piece_node(set_id, base_name, raw_id)
+	else:
+		var mesh: ArrayMesh = _load_piece_mesh(set_id, base_name)
+		var cache_key := "%d:%s:%s" % [set_id, base_name.to_lower(), _piece_game_data_type.to_lower()]
+		var runtime_flags := MeshLoader.piece_runtime_flags(cache_key)
+		var use_animated := bool(runtime_flags.get("has_animated_surfaces", false))
+		var has_emitters := bool(runtime_flags.get("has_emitters", false))
+		# Animated surfaces and particle emitters need the full piece node unless the editor
+		# explicitly requests static overlays for performance (`set_force_static_terrain_overlays`).
+		if mesh != null and mesh.get_surface_count() > 0 and (_force_static_terrain_overlays or (not use_animated and not has_emitters)):
+			build_path = "fast"
+			built_root = MeshLoader.build_fast_piece_root(base_name, raw_id, mesh)
+		else:
+			built_root = _build_piece_node(set_id, base_name, raw_id)
+	if built_root == null:
+		return null
+	built_root.set_meta("overlay_build_path", build_path)
+	_piece_scene_root_cache[template_key] = built_root
+	_count_piece_overlay_build(build_path)
+	return built_root.duplicate()
+
+
+static func _count_piece_overlay_build(build_path: String) -> void:
+	if build_path == "fast":
 		_piece_overlay_fast_path_count += 1
-		return MeshLoader.build_fast_piece_root(base_name, raw_id, mesh)
-	_piece_overlay_slow_path_count += 1
-	return _build_piece_node(set_id, base_name, raw_id)
+	else:
+		_piece_overlay_slow_path_count += 1
 
 static func _apply_optional_piece_deform(piece_node: Node3D, desc: Dictionary) -> void:
 	var warp_mode := String(desc.get("warp_mode", ""))
@@ -959,15 +1012,23 @@ static func _find_frames_list(node) -> Array:
 static func _load_piece_source(set_id: int, base_name: String) -> Dictionary:
 	if not _external_source_loading_enabled:
 		return {}
+	var cache_key := "%d:%s:%s" % [set_id, base_name.to_lower(), _piece_game_data_type.to_lower()]
+	if _piece_source_cache.has(cache_key):
+		var cached = _piece_source_cache[cache_key]
+		return cached if typeof(cached) == TYPE_DICTIONARY else {}
 	var bas_path := _find_piece_bas_path(set_id, base_name)
 	var bas_data := _load_json(bas_path)
 	var skel_ref := _find_first_skeleton_ref(bas_data)
 	var skel_name := skel_ref.get_file().get_basename() if not skel_ref.is_empty() else base_name
-	return {
+	var skeleton_path := _find_file(_skeleton_dir(set_id), "%s.skl.json" % skel_name)
+	var skeleton_data := _load_json(skeleton_path)
+	var piece_source := {
 		"bas_data": bas_data,
-		"points": _find_first_points(_load_json(_find_file(_skeleton_dir(set_id), "%s.skl.json" % skel_name)), "POO2"),
-		"polys": _find_first_edges(_load_json(_find_file(_skeleton_dir(set_id), "%s.skl.json" % skel_name)), "POL2"),
+		"points": _find_first_points(skeleton_data, "POO2"),
+		"polys": _find_first_edges(skeleton_data, "POL2"),
 	}
+	_piece_source_cache[cache_key] = piece_source
+	return piece_source
 
 static func _surface_node_from_surface(surface: Dictionary, set_id: int) -> Node3D:
 	var animation_frames: Array = surface.get("animation_frames", [])

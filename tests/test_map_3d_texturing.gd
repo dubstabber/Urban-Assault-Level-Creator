@@ -2051,6 +2051,33 @@ func test_animated_surface_frame_advance_reuses_prepared_meshes() -> bool:
 	animated.free()
 	return _errors.is_empty()
 
+func test_cached_piece_scene_root_duplicate_restores_animated_playback() -> bool:
+	_reset_errors()
+	var first_piece := AuthoredPieceLibrary.build_piece_scene_root(6, "ST_ENDL4")
+	var second_piece := AuthoredPieceLibrary.build_piece_scene_root(6, "ST_ENDL4")
+	_check(first_piece != null, "First cached animated piece build should succeed")
+	_check(second_piece != null, "Second cached animated piece build should succeed")
+	if second_piece != null:
+		var animated := _first_node_with_meta(second_piece, "ua_authored_animated")
+		_check(animated != null, "Cached animated piece duplicate should still contain an authored animated child")
+		if animated is AnimatedSurfaceMeshInstanceScript:
+			var animated_node := animated as AnimatedSurfaceMeshInstanceScript
+			animated_node._ready()
+			_check(animated_node.serialized_frame_meshes.size() > 1, "Cached animated duplicate should preserve serialized frame meshes for playback restore")
+			var seen_mesh_ids: Array[int] = []
+			for step in 5:
+				if animated_node.mesh != null:
+					var mesh_id := animated_node.mesh.get_instance_id()
+					if not seen_mesh_ids.has(mesh_id):
+						seen_mesh_ids.append(mesh_id)
+				animated_node._process(0.05)
+			_check(seen_mesh_ids.size() > 1, "Cached animated duplicate should keep advancing across prepared frame meshes")
+	if first_piece != null:
+		first_piece.free()
+	if second_piece != null:
+		second_piece.free()
+	return _errors.is_empty()
+
 func test_baked_authored_piece_runtime_restores_animated_luminous_frames() -> bool:
 	_reset_errors()
 	# This repo version does not implement a `set_baked_piece_loading_enabled()` hook.
@@ -2840,6 +2867,7 @@ func run() -> int:
 		"test_set6_typ235_uses_authored_static_animation_overlay",
 		"test_apply_overlay_node_preserves_embedded_animated_surface_identity_for_transform_only_updates",
 		"test_animated_surface_frame_advance_reuses_prepared_meshes",
+		"test_cached_piece_scene_root_duplicate_restores_animated_playback",
 		"test_baked_authored_piece_runtime_restores_animated_luminous_frames",
 		"test_particle_emitter_node_pool_reuses_expired_particle_nodes",
 		"test_particle_emitter_mesh_assignment_only_on_stage_change",

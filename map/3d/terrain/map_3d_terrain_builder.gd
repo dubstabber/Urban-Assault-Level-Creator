@@ -35,7 +35,6 @@ static func build_mesh(hgt: PackedByteArray, w: int, h: int) -> ArrayMesh:
 			var z1 := float(y + 2) * SECTOR_SIZE
 			_draw_flat_sector_geometry(st, x0, x1, z0, z1, sector_y)
 	st.index()
-	st.generate_normals()
 	return st.commit()
 
 
@@ -146,7 +145,6 @@ static func build_mesh_with_textures(hgt: PackedByteArray, typ: PackedByteArray,
 		var st: SurfaceTool = surface_tools[surface_type]
 		var before := mesh.get_surface_count()
 		st.index()
-		st.generate_normals()
 		st.commit(mesh)
 		var after := mesh.get_surface_count()
 		if after > before:
@@ -209,6 +207,7 @@ static func _draw_flat_sector_geometry(st: SurfaceTool, x0: float, x1: float, z0
 	var ne := Vector3(x1, y, z0)
 	var se := Vector3(x1, y, z1)
 	var sw := Vector3(x0, y, z1)
+	st.set_normal(Vector3.UP)
 	st.add_vertex(nw); st.add_vertex(ne); st.add_vertex(se)
 	st.add_vertex(nw); st.add_vertex(se); st.add_vertex(sw)
 
@@ -241,6 +240,7 @@ static func _draw_quad(st: SurfaceTool, xl: float, xr: float, zt: float, zb: flo
 		uv_se = Vector2(u1, vv0)
 		uv_sw = Vector2(u1, vv1)
 	st.set_color(Color((float(v) + 0.5) / float(cells), (float(f) + 0.5) / 6.0, 0.0))
+	st.set_normal(Vector3.UP)
 	st.set_uv(uv_nw)
 	st.add_vertex(Vector3(xl, y, zt))
 	st.set_uv(uv_ne)
@@ -620,7 +620,6 @@ static func build_chunk_mesh_with_textures(
 		var st: SurfaceTool = surface_tools[surface_type]
 		var before := mesh.get_surface_count()
 		st.index()
-		st.generate_normals()
 		st.commit(mesh)
 		var after := mesh.get_surface_count()
 		if after > before:

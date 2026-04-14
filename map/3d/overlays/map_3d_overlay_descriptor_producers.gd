@@ -355,6 +355,8 @@ static func build_blg_attachment_descriptors_for_sectors(blg: PackedByteArray, e
 		for sector_value in sectors:
 			if sector_value is Vector2i:
 				sector_filter[Vector2i(sector_value)] = true
+	elif not _packed_byte_array_has_nonzero(blg):
+		return descriptors
 	# Source-backed building turret/radar sockets (`sbact_pos_*`) are defined relative to
 	# the sector center, so their Y anchor should stay on the terrain sector height rather
 	# than snapping up to the authored support mesh used by squads/host stations.
@@ -403,3 +405,10 @@ static func build_blg_attachment_descriptors_for_sectors(blg: PackedByteArray, e
 					descriptor["forward"] = godot_direction
 				descriptors.append(descriptor)
 	return descriptors
+
+
+static func _packed_byte_array_has_nonzero(values: PackedByteArray) -> bool:
+	for value in values:
+		if int(value) != 0:
+			return true
+	return false
