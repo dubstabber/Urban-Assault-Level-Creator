@@ -77,6 +77,10 @@ func record_resize_snapshot(before_snapshot: Dictionary, after_snapshot: Diction
 	})
 
 
+const UnitSnapshotReconcilerScript := preload("res://globals/unit_snapshot_reconciler.gd")
+const UnitChangeDispatcherScript := preload("res://globals/unit_change_dispatcher.gd")
+
+
 func record_unit_snapshot(before_snapshot: Dictionary, after_snapshot: Dictionary) -> void:
 	if _is_replaying:
 		return
@@ -208,6 +212,7 @@ func _apply_group(group: Dictionary, use_before: bool) -> void:
 	var edited_hgt_indices: Array = []
 	var edited_blg_indices: Array = []
 	var edited_item_data := false
+	var edited_unit_data := false
 
 	for change: Dictionary in group.changes:
 		if change.has("kind") and change.kind == "item_snapshot":
@@ -223,7 +228,7 @@ func _apply_group(group: Dictionary, use_before: bool) -> void:
 		if change.has("kind") and change.kind == "unit_snapshot":
 			var unit_snapshot_key := "before" if use_before else "after"
 			_apply_unit_snapshot(change[unit_snapshot_key])
-			edited_item_data = true
+			edited_unit_data = true
 			continue
 		if not _is_valid_change(change):
 			continue
@@ -259,7 +264,10 @@ func _apply_group(group: Dictionary, use_before: bool) -> void:
 		EventSystem.blg_map_cells_edited.emit(edited_blg_indices)
 	if edited_item_data:
 		EventSystem.item_updated.emit()
-	EventSystem.map_updated.emit()
+	if edited_unit_data:
+		CurrentMapData.is_saved = false
+	if edited_item_data or not edited_typ_indices.is_empty() or not edited_hgt_indices.is_empty() or not edited_blg_indices.is_empty():
+		EventSystem.map_updated.emit()
 
 
 func _has_active_group() -> bool:
@@ -442,6 +450,7 @@ func _serialize_host_stations() -> Array[Dictionary]:
 		return serialized
 	for hs: HostStation in CurrentMapData.host_stations.get_children():
 		serialized.append({
+			"editor_unit_id": hs.ensure_editor_unit_id(),
 			"owner_id": hs.owner_id,
 			"vehicle": hs.vehicle,
 			"position": hs.position,
@@ -478,6 +487,7 @@ func _serialize_squads() -> Array[Dictionary]:
 		return serialized
 	for squad: Squad in CurrentMapData.squads.get_children():
 		serialized.append({
+			"editor_unit_id": squad.ensure_editor_unit_id(),
 			"owner_id": squad.owner_id,
 			"vehicle": squad.vehicle,
 			"position": squad.position,
@@ -503,15 +513,9 @@ func _apply_resize_snapshot(snapshot: Dictionary) -> void:
 
 
 func _apply_unit_snapshot(snapshot: Dictionary) -> void:
-	_restore_host_stations(snapshot.get("host_stations", []))
-	_restore_squads(snapshot.get("squads", []))
-	var hs_index := int(snapshot.get("player_host_station_index", -1))
-	if hs_index >= 0 and hs_index < CurrentMapData.host_stations.get_child_count():
-		CurrentMapData.player_host_station = CurrentMapData.host_stations.get_child(hs_index)
-	else:
-		CurrentMapData.player_host_station = null
-	EditorState.selected_unit = null
-	EventSystem.unit_selected.emit()
+	var result := UnitSnapshotReconcilerScript.apply_unit_snapshot(snapshot)
+	var changes: Array = result.get("changes", [])
+	UnitChangeDispatcherScript.emit_changes(changes)
 
 
 func _restore_host_stations(host_stations_snapshot: Array) -> void:
@@ -524,6 +528,9 @@ func _restore_host_stations(host_stations_snapshot: Array) -> void:
 		var hoststation = Preloads.HOSTSTATION.instantiate()
 		CurrentMapData.host_stations.add_child(hoststation)
 		hoststation.create(int(entry.get("owner_id", 1)), int(entry.get("vehicle", 0)))
+		var host_editor_unit_id := int(entry.get("editor_unit_id", 0))
+		if host_editor_unit_id > 0:
+			hoststation.editor_unit_id = host_editor_unit_id
 		hoststation.position = entry.get("position", Vector2.ZERO)
 		hoststation.pos_y = int(entry.get("pos_y", -500))
 		hoststation.energy = int(entry.get("energy", 300000))
@@ -565,6 +572,9 @@ func _restore_squads(squads_snapshot: Array) -> void:
 		var squad = Preloads.SQUAD.instantiate()
 		CurrentMapData.squads.add_child(squad)
 		squad.create(int(entry.get("owner_id", 1)), int(entry.get("vehicle", 0)))
+		var squad_editor_unit_id := int(entry.get("editor_unit_id", 0))
+		if squad_editor_unit_id > 0:
+			squad.editor_unit_id = squad_editor_unit_id
 		squad.position = entry.get("position", Vector2.ZERO)
 		squad.quantity = int(entry.get("quantity", 1))
 		squad.useable = bool(entry.get("useable", false))

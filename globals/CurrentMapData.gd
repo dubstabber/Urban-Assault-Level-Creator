@@ -37,6 +37,7 @@ var blg_map: PackedByteArray = PackedByteArray()
 var beam_gates: Array[BeamGate] = []
 var stoudson_bombs: Array[StoudsonBomb] = []
 var tech_upgrades: Array[TechUpgrade] = []
+var _next_editor_unit_id := 1
 
 var resistance_enabled_units: Array[int] = []
 var ghorkov_enabled_units: Array[int] = []
@@ -116,6 +117,7 @@ func close_map() -> void:
 	beam_gates.clear()
 	stoudson_bombs.clear()
 	tech_upgrades.clear()
+	reset_editor_unit_ids()
 	
 	resistance_enabled_units.clear()
 	ghorkov_enabled_units.clear()
@@ -140,6 +142,22 @@ func close_map() -> void:
 	EventSystem.warning_logs_updated.emit(true)
 	
 	DisplayServer.window_set_title("Urban Assault Level Creator")
+
+
+func allocate_editor_unit_id() -> int:
+	var editor_unit_id := _next_editor_unit_id
+	_next_editor_unit_id += 1
+	return editor_unit_id
+
+
+func reserve_editor_unit_id(editor_unit_id: int) -> void:
+	if editor_unit_id <= 0:
+		return
+	_next_editor_unit_id = maxi(_next_editor_unit_id, editor_unit_id + 1)
+
+
+func reset_editor_unit_ids() -> void:
+	_next_editor_unit_id = 1
 
 
 func clear_sector(index: int, refresh_map := true) -> void:

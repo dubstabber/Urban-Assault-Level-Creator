@@ -41,6 +41,9 @@ static func apply_overlay_for_prefixes(root: Node3D, key_prefixes: Array, descri
 			continue
 		var node: Node = existing.get(key, null)
 		if node != null and is_instance_valid(node):
+			var parent := node.get_parent()
+			if parent != null:
+				parent.remove_child(node)
 			node.queue_free()
 		existing.erase(key)
 
@@ -69,6 +72,9 @@ static func apply_overlay_for_prefixes(root: Node3D, key_prefixes: Array, descri
 		var piece_node: Node3D = null
 		if needs_rebuild:
 			if node != null and is_instance_valid(node):
+				var parent := node.get_parent()
+				if parent != null:
+					parent.remove_child(node)
 				node.queue_free()
 			piece_node = PieceLibraryScript.build_piece_scene_root(set_id, base_name, raw_id)
 			if piece_node == null:
@@ -153,6 +159,9 @@ func apply_overlay_node_step(root: Node3D, state: Dictionary, max_ops: int = 64)
 		var key := String(to_remove[remove_index])
 		var node: Node = existing.get(key, null)
 		if node != null and is_instance_valid(node):
+			var parent := node.get_parent()
+			if parent != null:
+				parent.remove_child(node)
 			node.queue_free()
 		existing.erase(key)
 		remove_index += 1
@@ -181,6 +190,9 @@ func apply_overlay_node_step(root: Node3D, state: Dictionary, max_ops: int = 64)
 		var piece_node: Node3D = null
 		if needs_rebuild:
 			if node != null and is_instance_valid(node):
+				var parent := node.get_parent()
+				if parent != null:
+					parent.remove_child(node)
 				node.queue_free()
 			piece_node = PieceLibraryScript.build_piece_scene_root(set_id, base_name, raw_id)
 			if piece_node != null:

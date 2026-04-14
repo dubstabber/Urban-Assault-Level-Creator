@@ -51,6 +51,7 @@ func _on_index_pressed(index: int) -> void:
 		hoststation.cpl_delay = EditorState.selected_unit.cpl_delay
 		CurrentMapData.is_saved = false
 		EditorState.selected_unit = hoststation
+		UnitChangeDispatcher.emit_for_unit(hoststation, "created")
 		if CurrentMapData.host_stations.get_child_count() > 8:
 			EventSystem.safe_host_station_limit_exceeded.emit()
 	elif text == "Duplicate this squad":
@@ -64,5 +65,6 @@ func _on_index_pressed(index: int) -> void:
 		squad.mb_status = EditorState.selected_unit.mb_status
 		CurrentMapData.is_saved = false
 		EditorState.selected_unit = squad
+		UnitChangeDispatcher.emit_for_unit(squad, "created")
 	undo_redo_manager.record_unit_snapshot(unit_before, undo_redo_manager.create_unit_snapshot())
 	undo_redo_manager.commit_group()

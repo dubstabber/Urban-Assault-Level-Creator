@@ -178,8 +178,10 @@ static func snapshot_host_station_nodes(host_stations: Array) -> Array:
 			continue
 		var station := host_station as Node2D
 		var pos_y_value = host_station.get("pos_y")
+		var editor_unit_id: Variant = host_station.get("editor_unit_id")
+		var stable_id := int(editor_unit_id) if editor_unit_id != null and int(editor_unit_id) > 0 else int(host_station.get_instance_id())
 		snapshot.append({
-			"id": int(host_station.get_instance_id()),
+			"id": stable_id,
 			"vehicle": int(vehicle_value),
 			"x": float(station.position.x),
 			"y": float(station.position.y),
@@ -198,8 +200,10 @@ static func snapshot_squad_nodes(squads: Array) -> Array:
 		if vehicle_value == null:
 			continue
 		var squad_node := squad as Node2D
+		var editor_unit_id: Variant = squad.get("editor_unit_id")
+		var stable_id := int(editor_unit_id) if editor_unit_id != null and int(editor_unit_id) > 0 else int(squad.get_instance_id())
 		snapshot.append({
-			"id": int(squad.get_instance_id()),
+			"id": stable_id,
 			"vehicle": int(vehicle_value),
 			"x": float(squad_node.position.x),
 			"y": float(squad_node.position.y),

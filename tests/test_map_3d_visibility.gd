@@ -68,6 +68,7 @@ func _create_renderer_fixture(view_mode_3d: bool = true) -> Dictionary:
 	renderer.set_event_system_override(event_system)
 	renderer.set_current_map_data_override(current_map_data)
 	renderer.set_editor_state_override(editor_state)
+	renderer.set_preloads_override(null)
 	host.add_child(renderer)
 	var root := _scene_root()
 	if root != null:

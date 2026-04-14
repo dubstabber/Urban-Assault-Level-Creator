@@ -52,7 +52,7 @@ extends VBoxContainer
 func _record_unit_snapshot(label: String, before_snapshot: Dictionary) -> void:
 	var coalesce_key := ""
 	if label == "Edit host station properties" and EditorState.selected_unit:
-		coalesce_key = "unit_edit_host_%s" % int(EditorState.selected_unit.get_instance_id())
+		coalesce_key = "unit_edit_host_%s" % int(EditorState.selected_unit.ensure_editor_unit_id())
 	undo_redo_manager.begin_group(label, coalesce_key)
 	undo_redo_manager.record_unit_snapshot(before_snapshot, undo_redo_manager.create_unit_snapshot())
 	undo_redo_manager.commit_group()
@@ -112,7 +112,7 @@ func _ready() -> void:
 			xpos_host_station_line_edit.text = str(pos_x)
 		EditorState.selected_unit.position.x = pos_x
 		if moved:
-			EventSystem.unit_position_committed.emit("host", int(EditorState.selected_unit.get_instance_id()))
+			UnitChangeDispatcher.emit_for_unit(EditorState.selected_unit, "moved")
 		_record_unit_snapshot("Move unit", unit_before)
 		)
 	ypos_host_station_line_edit.text_submitted.connect(func(text_value: String):
@@ -124,7 +124,7 @@ func _ready() -> void:
 			ypos_host_station_line_edit.text = str(pos_y)
 		EditorState.selected_unit.pos_y = pos_y
 		if moved:
-			EventSystem.unit_position_committed.emit("host", int(EditorState.selected_unit.get_instance_id()))
+			UnitChangeDispatcher.emit_for_unit(EditorState.selected_unit, "moved")
 		_record_unit_snapshot("Move unit", unit_before)
 		)
 	zpos_host_station_line_edit.text_submitted.connect(func(text_value: String):
@@ -136,7 +136,7 @@ func _ready() -> void:
 			zpos_host_station_line_edit.text = "-%s" % str(pos_z)
 		EditorState.selected_unit.position.y = pos_z
 		if moved:
-			EventSystem.unit_position_committed.emit("host", int(EditorState.selected_unit.get_instance_id()))
+			UnitChangeDispatcher.emit_for_unit(EditorState.selected_unit, "moved")
 		_record_unit_snapshot("Move unit", unit_before)
 		)
 	conquering_h_slider.value_changed.connect(func(value_changed: int):
@@ -316,7 +316,7 @@ func _ready() -> void:
 		host_station_robo_texture_rect.texture = Preloads.hs_robo_images[new_vehicle_id].image
 		if vehicle_changed:
 			CurrentMapData.is_saved = false
-			EventSystem.unit_overlay_refresh_requested.emit("host", int(EditorState.selected_unit.get_instance_id()))
+			UnitChangeDispatcher.emit_for_unit(EditorState.selected_unit, "visual")
 		_record_unit_snapshot("Edit host station properties", unit_before)
 	)
 	load_behavior_file_button.pressed.connect(func():

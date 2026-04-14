@@ -22,6 +22,8 @@ export_presets.cfg
 .augment/
 .windsurf/
 .cursor/
+.claude/
+.codex/
 
 # OS-generated files
 .DS_Store

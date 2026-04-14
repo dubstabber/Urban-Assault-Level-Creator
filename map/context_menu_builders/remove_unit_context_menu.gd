@@ -21,25 +21,32 @@ func _on_index_pressed(index: int) -> void:
 	undo_redo_manager.begin_group("Remove unit")
 	var unit_before: Dictionary = undo_redo_manager.create_unit_snapshot()
 	var selected_unit := EditorState.selected_unit
-	var selected_unit_id := int(selected_unit.get_instance_id())
 	var selected_kind := "host" if selected_unit is HostStation else ("squad" if selected_unit is Squad else "")
 	if text == "Remove this host station":
 		if selected_unit == CurrentMapData.player_host_station:
 			if selected_kind == "host":
-				EventSystem.unit_overlay_refresh_requested.emit(selected_kind, selected_unit_id)
+				UnitChangeDispatcher.emit_for_unit(selected_unit, "removed", EventSystem, selected_kind)
+			if selected_unit.get_parent() != null:
+				selected_unit.get_parent().remove_child(selected_unit)
 			selected_unit.queue_free()
 			EditorState.selected_unit = null
 			if CurrentMapData.host_stations.get_child_count() > 0:
 				CurrentMapData.player_host_station = CurrentMapData.host_stations.get_child(0)
+			else:
+				CurrentMapData.player_host_station = null
 		else:
 			if selected_kind == "host":
-				EventSystem.unit_overlay_refresh_requested.emit(selected_kind, selected_unit_id)
+				UnitChangeDispatcher.emit_for_unit(selected_unit, "removed", EventSystem, selected_kind)
+			if selected_unit.get_parent() != null:
+				selected_unit.get_parent().remove_child(selected_unit)
 			selected_unit.queue_free()
 			EditorState.selected_unit = null
 		CurrentMapData.is_saved = false
 	elif text == "Remove this squad":
 		if selected_kind == "squad":
-			EventSystem.unit_overlay_refresh_requested.emit(selected_kind, selected_unit_id)
+			UnitChangeDispatcher.emit_for_unit(selected_unit, "removed", EventSystem, selected_kind)
+		if selected_unit.get_parent() != null:
+			selected_unit.get_parent().remove_child(selected_unit)
 		selected_unit.queue_free()
 		EditorState.selected_unit = null
 		CurrentMapData.is_saved = false

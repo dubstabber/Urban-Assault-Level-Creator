@@ -3,6 +3,10 @@ extends SceneTree
 # Run with: godot4 --headless -s res://tests/test_runner.gd
 
 func _init() -> void:
+	call_deferred("_run_tests")
+
+
+func _run_tests() -> void:
 	var failures := 0
 	var dir := "res://tests"
 	for f in DirAccess.get_files_at(dir):
@@ -44,4 +48,3 @@ func _init() -> void:
 	else:
 		push_error("%d test(s) failed" % failures)
 		quit(failures)
-

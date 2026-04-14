@@ -29,23 +29,39 @@ var cpl_delay := 0
 @onready var button: Button = $Button
 
 
+func _preloads() -> Node:
+	return get_node_or_null("/root/Preloads")
+
+
+func _editor_state() -> Node:
+	return get_node_or_null("/root/EditorState")
+
+
 func create(_owner_id, _vehicle):
 	owner_id = _owner_id
 	vehicle = _vehicle
+	var preloads := _preloads()
 	if owner_id > 0 and owner_id < 8:
 		setup_properties()
-		texture = Preloads.hs_images[owner_id]
+		if preloads != null:
+			texture = preloads.hs_images[owner_id]
 	else:
 		unit_name = "Invalid host station"
-		texture = Preloads.error_icon
+		if preloads != null:
+			texture = preloads.error_icon
 	
 	scale = Vector2(16, 16)
-	button.position = - Vector2(texture.get_width() / 2.0, texture.get_height() / 2.0)
+	if texture != null:
+		button.position = - Vector2(texture.get_width() / 2.0, texture.get_height() / 2.0)
 	button.tooltip_text = "%s\nEnergy: %s" % [unit_name, int(energy / 400.0)]
 
 
 func setup_properties() -> void:
-	var hoststations = Preloads.ua_data.data[EditorState.game_data_type].hoststations
+	var preloads := _preloads()
+	var editor_state := _editor_state()
+	if preloads == null or editor_state == null:
+		return
+	var hoststations = preloads.ua_data.data[editor_state.game_data_type].hoststations
 	for hs_key in hoststations:
 		if hoststations[hs_key].owner == owner_id:
 			unit_name = hs_key

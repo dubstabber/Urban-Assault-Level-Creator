@@ -18,7 +18,7 @@ extends VBoxContainer
 func _record_unit_snapshot(label: String, before_snapshot: Dictionary) -> void:
 	var coalesce_key := ""
 	if label == "Edit squad properties" and EditorState.selected_unit:
-		coalesce_key = "unit_edit_squad_%s" % int(EditorState.selected_unit.get_instance_id())
+		coalesce_key = "unit_edit_squad_%s" % int(EditorState.selected_unit.ensure_editor_unit_id())
 	undo_redo_manager.begin_group(label, coalesce_key)
 	undo_redo_manager.record_unit_snapshot(before_snapshot, undo_redo_manager.create_unit_snapshot())
 	undo_redo_manager.commit_group()
@@ -37,7 +37,7 @@ func _ready() -> void:
 				CurrentMapData.is_saved = false
 			EditorState.selected_unit.quantity = new_quantity
 			if changed:
-				EventSystem.unit_overlay_refresh_requested.emit("squad", int(EditorState.selected_unit.get_instance_id()))
+				UnitChangeDispatcher.emit_for_unit(EditorState.selected_unit, "visual")
 		_record_unit_snapshot("Edit squad properties", unit_before)
 	)
 	for hs in Preloads.ua_data.data[EditorState.game_data_type].hoststations.keys():
@@ -57,7 +57,7 @@ func _ready() -> void:
 			xpos_squad_line_edit.text = str(pos_x)
 		EditorState.selected_unit.position.x = pos_x
 		if moved:
-			EventSystem.unit_position_committed.emit("squad", int(EditorState.selected_unit.get_instance_id()))
+			UnitChangeDispatcher.emit_for_unit(EditorState.selected_unit, "moved")
 		_record_unit_snapshot("Move unit", unit_before)
 	)
 	zpos_squad_line_edit.text_submitted.connect(func(text_value: String):
@@ -69,7 +69,7 @@ func _ready() -> void:
 			zpos_squad_line_edit.text = "-%s" % str(pos_z)
 		EditorState.selected_unit.position.y = pos_z
 		if moved:
-			EventSystem.unit_position_committed.emit("squad", int(EditorState.selected_unit.get_instance_id()))
+			UnitChangeDispatcher.emit_for_unit(EditorState.selected_unit, "moved")
 		_record_unit_snapshot("Move unit", unit_before)
 	)
 	useable_check_box.toggled.connect(func(toggled: bool):

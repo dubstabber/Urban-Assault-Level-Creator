@@ -15,6 +15,7 @@ const ChunkRuntime := preload("res://map/map_3d_chunk_runtime.gd")
 const EffectiveTypService := preload("res://map/map_3d_effective_typ_service.gd")
 const OverlayProducers := preload("res://map/map_3d_overlay_descriptor_producers.gd")
 const LegacyScriptParser := preload("res://map/map_3d_legacy_script_parser.gd")
+const UnitOverlayController := preload("res://map/map_3d_unit_overlay_controller.gd")
 
 const SECTOR_SIZE := 1200.0
 const HEIGHT_SCALE := 100.0
@@ -238,6 +239,7 @@ var _overlay_only_refresh_requested := false
 var _dynamic_overlay_refresh_requested := false
 var _async_overlay_descriptor_dynamic_only := false
 var _skip_next_map_changed_refresh := false
+var _pending_unit_changes: Array = []
 var _overlay_apply_manager := Map3DAuthoredOverlayManager.new()
 
 func set_event_system_override(event_system: Node) -> void:
@@ -386,17 +388,38 @@ func _finalize_build_metrics(metrics: Dictionary, build_started_usec: int) -> vo
 func _event_system() -> Node:
 	if _event_system_override != null and is_instance_valid(_event_system_override):
 		return _event_system_override
-	return get_node_or_null("/root/EventSystem")
+	if is_inside_tree():
+		var tree := get_tree()
+		if tree != null and tree.root != null:
+			return tree.root.get_node_or_null("EventSystem")
+	var main_loop := Engine.get_main_loop()
+	if main_loop is SceneTree and main_loop.root != null:
+		return main_loop.root.get_node_or_null("EventSystem")
+	return null
 
 func _current_map_data() -> Node:
 	if _current_map_data_override != null and is_instance_valid(_current_map_data_override):
 		return _current_map_data_override
-	return get_node_or_null("/root/CurrentMapData")
+	if is_inside_tree():
+		var tree := get_tree()
+		if tree != null and tree.root != null:
+			return tree.root.get_node_or_null("CurrentMapData")
+	var main_loop := Engine.get_main_loop()
+	if main_loop is SceneTree and main_loop.root != null:
+		return main_loop.root.get_node_or_null("CurrentMapData")
+	return null
 
 func _editor_state() -> Node:
 	if _editor_state_override != null and is_instance_valid(_editor_state_override):
 		return _editor_state_override
-	return get_node_or_null("/root/EditorState")
+	if is_inside_tree():
+		var tree := get_tree()
+		if tree != null and tree.root != null:
+			return tree.root.get_node_or_null("EditorState")
+	var main_loop := Engine.get_main_loop()
+	if main_loop is SceneTree and main_loop.root != null:
+		return main_loop.root.get_node_or_null("EditorState")
+	return null
 
 func _preloads() -> Node:
 	if _preloads_override_set:
@@ -497,10 +520,8 @@ func _ready() -> void:
 		if _es.has_signal("map_3d_focus_sector_requested"):
 			_es.map_3d_focus_sector_requested.connect(_on_map_3d_focus_sector_requested)
 		_es.map_3d_overlay_animations_changed.connect(_on_map_3d_overlay_animations_changed)
-		if _es.has_signal("hoststation_added"):
-			_es.hoststation_added.connect(_on_host_station_added)
-		if _es.has_signal("squad_added"):
-			_es.squad_added.connect(_on_squad_added)
+		if _es.has_signal("units_changed"):
+			_es.units_changed.connect(_on_units_changed)
 		if _es.has_signal("unit_position_committed"):
 			_es.unit_position_committed.connect(_on_unit_position_committed)
 		if _es.has_signal("unit_overlay_refresh_requested"):
@@ -536,34 +557,50 @@ func _on_map_view_updated() -> void:
 		_bump_3d_viewport_rendering()
 	if _refresh_pending:
 		_request_refresh(_refresh_reframe_pending)
+	elif _preview_refresh_active():
+		_flush_pending_unit_changes()
 
 func _on_map_3d_overlay_animations_changed() -> void:
 	if _preview_refresh_active():
 		_request_overlay_only_refresh()
 
-func _on_host_station_added(_owner_id: int, _vehicle_id: int) -> void:
-	_request_dynamic_overlay_refresh()
-
-func _on_squad_added(_owner_id: int, _vehicle_id: int) -> void:
+func _on_units_changed(changes: Array) -> void:
+	var normalized := _normalize_unit_changes(changes)
+	if normalized.is_empty():
+		return
+	if not _preview_refresh_active():
+		_enqueue_pending_unit_changes(normalized)
+		return
+	if _is_async_pipeline_active():
+		_enqueue_pending_unit_changes(normalized)
+		return
+	if normalized.size() > 16:
+		_request_dynamic_overlay_refresh()
+		return
+	if _apply_unit_change_batch(normalized):
+		return
 	_request_dynamic_overlay_refresh()
 
 func _on_unit_position_committed(unit_kind: String, unit_id: int) -> void:
 	if unit_kind.is_empty() or unit_id <= 0:
 		_request_dynamic_overlay_refresh()
 		return
-	_on_unit_overlay_refresh_requested(unit_kind, unit_id)
+	_on_units_changed([{
+		"kind": unit_kind,
+		"unit_id": unit_id,
+		"action": "moved",
+	}])
 
 func _on_unit_overlay_refresh_requested(unit_kind: String, unit_id: int) -> void:
 	if not _preview_refresh_active():
 		_request_dynamic_overlay_refresh()
 		return
 	_skip_next_map_changed_refresh = true
-	if _is_async_pipeline_active():
-		_request_dynamic_overlay_refresh()
-		return
-	if _apply_single_unit_dynamic_refresh(unit_kind, unit_id):
-		return
-	_request_dynamic_overlay_refresh()
+	_on_units_changed([{
+		"kind": unit_kind,
+		"unit_id": unit_id,
+		"action": "visual",
+	}])
 
 func _request_overlay_only_refresh() -> void:
 	_overlay_only_refresh_requested = true
@@ -963,6 +1000,8 @@ func _pump_async_overlay_descriptor_build() -> void:
 		_reset_async_build_state()
 		if should_restart:
 			_request_refresh(restart_reframe)
+			return
+		_flush_pending_unit_changes()
 		return
 	_start_async_overlay_apply(static_descriptors, dynamic_descriptors, metrics)
 
@@ -985,63 +1024,77 @@ func _apply_dynamic_overlay(dynamic_descriptors: Array) -> void:
 	_apply_geometry_distance_culling_to_overlay()
 
 func _find_unit_by_instance_id(container: Node, unit_id: int) -> Node2D:
-	if container == null or not is_instance_valid(container):
-		return null
-	for child in container.get_children():
-		if child is Node2D and int(child.get_instance_id()) == unit_id:
-			return child as Node2D
-	return null
+	return UnitOverlayController.find_unit_by_identity(container, unit_id)
 
-func _apply_single_unit_dynamic_refresh(unit_kind: String, unit_id: int) -> bool:
-	if unit_id <= 0:
+func _normalize_unit_changes(changes: Array) -> Array:
+	var normalized: Array = []
+	var by_key := {}
+	for change_any in changes:
+		if typeof(change_any) != TYPE_DICTIONARY:
+			continue
+		var change := change_any as Dictionary
+		var unit_kind := String(change.get("kind", ""))
+		var unit_id := int(change.get("unit_id", 0))
+		var action := String(change.get("action", ""))
+		if unit_kind.is_empty() or unit_id <= 0 or action.is_empty():
+			continue
+		by_key["%s:%d" % [unit_kind, unit_id]] = {
+			"kind": unit_kind,
+			"unit_id": unit_id,
+			"action": action,
+		}
+	for value in by_key.values():
+		normalized.append(value)
+	return normalized
+
+func _enqueue_pending_unit_changes(changes: Array) -> void:
+	if changes.is_empty():
+		return
+	var merged: Array = _pending_unit_changes.duplicate(true)
+	merged.append_array(changes)
+	_pending_unit_changes = _normalize_unit_changes(merged)
+
+func _flush_pending_unit_changes() -> bool:
+	if _pending_unit_changes.is_empty():
+		return false
+	if not _preview_refresh_active() or _is_async_pipeline_active():
+		return false
+	var pending := _normalize_unit_changes(_pending_unit_changes)
+	_pending_unit_changes.clear()
+	if pending.is_empty():
+		return false
+	if pending.size() > 16:
+		_request_dynamic_overlay_refresh()
+		return true
+	if _apply_unit_change_batch(pending):
+		return true
+	_request_dynamic_overlay_refresh()
+	return true
+
+func _apply_unit_change_batch(changes: Array) -> bool:
+	if changes.is_empty():
 		return false
 	if not _can_use_overlay_only_refresh():
 		return false
 	var cmd := _current_map_data()
 	if cmd == null:
 		return false
-	var w := int(cmd.horizontal_sectors)
-	var h := int(cmd.vertical_sectors)
-	if w <= 0 or h <= 0:
-		return false
-	var hgt: PackedByteArray = cmd.hgt_map
-	if hgt.size() != (w + 2) * (h + 2):
-		return false
 	var support_descriptors: Array = _chunk_rt.get_support_descriptors()
 	_ensure_overlay_nodes()
+	var game_data_type := _async_game_data_type if not _async_game_data_type.is_empty() else _current_game_data_type()
+	var applied := UnitOverlayController.apply_unit_changes(_dynamic_overlay, changes, cmd, support_descriptors, game_data_type)
+	if not applied:
+		return false
+	_apply_geometry_distance_culling_to_overlay()
+	_bump_3d_viewport_rendering()
+	return true
 
-	if unit_kind == "host":
-		var hs := _find_unit_by_instance_id(cmd.host_stations, unit_id)
-		var host_descriptors: Array = []
-		var current_set_id := int(cmd.level_set)
-		if hs != null:
-			host_descriptors = _build_host_station_descriptors([hs], current_set_id, hgt, w, h, support_descriptors, _make_empty_build_metrics())
-		# Remove stale host entries for this unit across all set IDs, then apply the
-		# current descriptor set. This avoids overlap when async state lags behind UI edits.
-		var host_prefixes: Array = []
-		for set_id in range(1, 7):
-			host_prefixes.append("host:%d:%d:" % [set_id, unit_id])
-			host_prefixes.append("host_gun:%d:%d:" % [set_id, unit_id])
-		AuthoredOverlayManager.apply_overlay_for_prefixes(_dynamic_overlay, host_prefixes, host_descriptors)
-		_apply_geometry_distance_culling_to_overlay()
-		_bump_3d_viewport_rendering()
-		return true
-
-	if unit_kind == "squad":
-		var sq := _find_unit_by_instance_id(cmd.squads, unit_id)
-		var squad_descriptors: Array = []
-		var current_set_id := int(cmd.level_set)
-		if sq != null:
-			squad_descriptors = _build_squad_descriptors([sq], current_set_id, hgt, w, h, support_descriptors, _async_game_data_type, _make_empty_build_metrics())
-		var squad_prefixes: Array = []
-		for set_id in range(1, 7):
-			squad_prefixes.append("squad:%d:%d:" % [set_id, unit_id])
-		AuthoredOverlayManager.apply_overlay_for_prefixes(_dynamic_overlay, squad_prefixes, squad_descriptors)
-		_apply_geometry_distance_culling_to_overlay()
-		_bump_3d_viewport_rendering()
-		return true
-
-	return false
+func _apply_single_unit_dynamic_refresh(unit_kind: String, unit_id: int) -> bool:
+	return _apply_unit_change_batch([{
+		"kind": unit_kind,
+		"unit_id": unit_id,
+		"action": "visual",
+	}])
 
 func _start_async_overlay_apply(static_descriptors: Array, dynamic_descriptors: Array, metrics: Dictionary) -> void:
 	_ensure_overlay_nodes()
@@ -1102,6 +1155,8 @@ func _finalize_async_overlay_apply() -> void:
 		_request_refresh(restart_reframe)
 	elif _refresh_pending and _preview_refresh_active():
 		_request_refresh(_refresh_reframe_pending)
+	else:
+		_flush_pending_unit_changes()
 
 func _cancel_async_initial_build() -> void:
 	_coordinator.cancel_async_build(_async_overlay_apply_active)

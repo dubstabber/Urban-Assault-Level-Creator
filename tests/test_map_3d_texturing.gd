@@ -2325,6 +2325,15 @@ func _instance_keys_from_overlay(overlay: Node3D) -> Dictionary:
 	return found_keys
 
 
+func _overlay_child_by_instance_key(overlay: Node3D, instance_key: String) -> Node3D:
+	if overlay == null or instance_key.is_empty():
+		return null
+	for piece_root in overlay.get_children():
+		if piece_root != null and piece_root is Node3D and String(piece_root.get_meta("instance_key", "")) == instance_key:
+			return piece_root as Node3D
+	return null
+
+
 func test_build_from_current_map_wires_host_stations_into_authored_overlay() -> bool:
 	_reset_errors()
 
@@ -2536,6 +2545,145 @@ func test_unit_position_committed_uses_single_unit_dynamic_refresh_for_squads() 
 	return _errors.is_empty()
 
 
+func test_units_changed_removed_squad_updates_only_dynamic_overlay() -> bool:
+	_reset_errors()
+
+	var w := 2
+	var h := 2
+	var data := _make_typ_and_hgt(w, h, [12, 12, 12, 12], 0)
+	var squads := Node.new()
+	var removed_squad := SquadStub.new(1, 1800.0, 1200.0, 1)
+	var kept_squad := SquadStub.new(1, 1200.0, 1200.0, 1)
+	squads.add_child(removed_squad)
+	squads.add_child(kept_squad)
+
+	var map_data := CurrentMapDataStub.new()
+	map_data.horizontal_sectors = w
+	map_data.vertical_sectors = h
+	map_data.level_set = 1
+	map_data.hgt_map = data["hgt"]
+	map_data.typ_map = data["typ"]
+	map_data.blg_map = PackedByteArray([0, 0, 0, 0])
+	map_data.host_stations = null
+	map_data.squads = squads
+
+	var editor_state := EditorStateStub.new()
+	editor_state.view_mode_3d = true
+	editor_state.game_data_type = "original"
+
+	var preloads := MockPreloads.new()
+	preloads.surface_type_map = {12: 0}
+
+	var renderer := Map3DRendererScript.new()
+	renderer._edge_overlay_enabled = false
+	renderer.set_current_map_data_override(map_data)
+	renderer.set_editor_state_override(editor_state)
+	renderer.set_preloads_override(preloads)
+	renderer._chunk_rt.last_map_dimensions = Vector2i(w, h)
+	renderer._chunk_rt.last_level_set = map_data.level_set
+	renderer._terrain_chunk_nodes[Vector2i.ZERO] = MeshInstance3D.new()
+
+	renderer.build_from_current_map()
+	var initial_overlay := renderer.get_node_or_null("DynamicOverlay") as Node3D
+	_check(initial_overlay != null, "Expected initial dynamic overlay for squad removal test")
+	var removed_keys_before: Array = []
+	for desc in Map3DRendererScript._build_squad_descriptors([removed_squad], map_data.level_set, data["hgt"], w, h, [], editor_state.game_data_type):
+		removed_keys_before.append(String(desc.get("instance_key", "")))
+	var kept_keys: Array = []
+	for desc in Map3DRendererScript._build_squad_descriptors([kept_squad], map_data.level_set, data["hgt"], w, h, [], editor_state.game_data_type):
+		kept_keys.append(String(desc.get("instance_key", "")))
+
+	squads.remove_child(removed_squad)
+	removed_squad.queue_free()
+	renderer._on_units_changed([{
+		"kind": "squad",
+		"unit_id": int(removed_squad.get_instance_id()),
+		"action": "removed",
+	}])
+
+	_check(not renderer._dynamic_overlay_refresh_requested, "Targeted squad removal should not schedule a broad dynamic overlay refresh")
+	var updated_overlay := renderer.get_node_or_null("DynamicOverlay") as Node3D
+	var found_keys := _instance_keys_from_overlay(updated_overlay)
+	for removed_key in removed_keys_before:
+		_check(not found_keys.has(removed_key), "Removed squad key should be deleted from DynamicOverlay: %s" % removed_key)
+	for kept_key in kept_keys:
+		_check(found_keys.has(kept_key), "Unchanged squad key should remain in DynamicOverlay after targeted removal: %s" % kept_key)
+
+	renderer.free()
+	return _errors.is_empty()
+
+
+func test_units_changed_host_move_queues_targeted_refresh_during_async_pipeline() -> bool:
+	_reset_errors()
+
+	var w := 2
+	var h := 2
+	var data := _make_typ_and_hgt(w, h, [12, 12, 12, 12], 0)
+	var host_stations := Node.new()
+	var moved_host := HostStationStub.new(56, 1200.0, 1200.0, -500)
+	host_stations.add_child(moved_host)
+
+	var map_data := CurrentMapDataStub.new()
+	map_data.horizontal_sectors = w
+	map_data.vertical_sectors = h
+	map_data.level_set = 1
+	map_data.hgt_map = data["hgt"]
+	map_data.typ_map = data["typ"]
+	map_data.blg_map = PackedByteArray([0, 0, 0, 0])
+	map_data.host_stations = host_stations
+	map_data.squads = Node.new()
+
+	var editor_state := EditorStateStub.new()
+	editor_state.view_mode_3d = true
+	editor_state.game_data_type = "original"
+
+	var preloads := MockPreloads.new()
+	preloads.surface_type_map = {12: 0}
+
+	var renderer := Map3DRendererScript.new()
+	renderer._edge_overlay_enabled = false
+	renderer.set_current_map_data_override(map_data)
+	renderer.set_editor_state_override(editor_state)
+	renderer.set_preloads_override(preloads)
+	renderer._chunk_rt.last_map_dimensions = Vector2i(w, h)
+	renderer._chunk_rt.last_level_set = map_data.level_set
+	renderer._terrain_chunk_nodes[Vector2i.ZERO] = MeshInstance3D.new()
+
+	renderer.build_from_current_map()
+	var initial_overlay := renderer.get_node_or_null("DynamicOverlay") as Node3D
+	_check(initial_overlay != null, "Expected initial dynamic overlay for async host move test")
+	var expected_before: Array = Map3DRendererScript._build_host_station_descriptors([moved_host], map_data.level_set, data["hgt"], w, h, [], null)
+	_check(expected_before.size() > 0, "Expected at least one host station descriptor before moving the unit")
+	var instance_key := String(expected_before[0].get("instance_key", ""))
+	var initial_piece := _overlay_child_by_instance_key(initial_overlay, instance_key)
+	_check(initial_piece != null, "Expected host station overlay node before async move refresh")
+	var initial_position := initial_piece.position if initial_piece != null else Vector3.ZERO
+
+	moved_host.position = Vector2(1800.0, 1200.0)
+	renderer._async_overlay_apply_active = true
+	renderer._on_units_changed([{
+		"kind": "host",
+		"unit_id": int(moved_host.get_instance_id()),
+		"action": "moved",
+	}])
+
+	_check(not renderer._dynamic_overlay_refresh_requested, "Single host move during async overlay apply should queue a targeted refresh instead of scheduling a broad dynamic overlay rebuild")
+	_check(renderer._pending_unit_changes.size() == 1, "Expected a single queued host change while the async overlay apply is active")
+
+	renderer._async_overlay_apply_active = false
+	var flushed := renderer._flush_pending_unit_changes()
+	_check(flushed, "Expected queued host change to flush once the async overlay apply becomes idle")
+	_check(renderer._pending_unit_changes.is_empty(), "Queued host changes should be cleared after a successful flush")
+	var updated_overlay := renderer.get_node_or_null("DynamicOverlay") as Node3D
+	var updated_piece := _overlay_child_by_instance_key(updated_overlay, instance_key)
+	_check(updated_piece != null, "Expected moved host overlay node after queued refresh flush")
+	_check(updated_piece.position != initial_position, "Queued host refresh should update only the moved host overlay transform")
+	_check(not renderer._dynamic_overlay_refresh_requested, "Flushing a queued single host move should not leave a broad dynamic overlay refresh pending")
+
+	renderer.free()
+	return _errors.is_empty()
+
+
 func test_build_from_current_map_wires_squads_into_authored_overlay() -> bool:
 	_reset_errors()
 
@@ -2662,6 +2810,8 @@ func run() -> int:
 			"test_preferred_squad_visual_base_name_falls_back_from_dummy_wait_to_normal",
 			"test_build_squad_descriptors_snaps_y_to_authored_support_mesh_when_present",
 			"test_build_squad_descriptors_skips_unknown_vehicle_ids",
+			"test_units_changed_removed_squad_updates_only_dynamic_overlay",
+			"test_units_changed_host_move_queues_targeted_refresh_during_async_pipeline",
 			"test_authored_piece_mesh_keeps_st_empty_on_300_unit_subsector_footprint",
 			"test_authored_piece_mesh_keeps_gr_254_on_sector_sized_border_footprint",
 			"test_authored_piece_polygon_vertices_mirror_local_z_into_editor_space",
