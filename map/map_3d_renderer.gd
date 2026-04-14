@@ -10,6 +10,7 @@ const TerrainBuilder := preload("res://map/3d/terrain/map_3d_terrain_builder.gd"
 const SlurpBuilder := preload("res://map/3d/terrain/map_3d_slurp_builder.gd")
 const AuthoredOverlayManager := preload("res://map/3d/overlays/map_3d_authored_overlay_manager.gd")
 const ViewController := preload("res://map/3d/controllers/map_3d_view_controller.gd")
+const RendererEventController := preload("res://map/3d/controllers/map_3d_renderer_event_controller.gd")
 const RefreshCoordinator := preload("res://map/3d/services/map_3d_refresh_coordinator.gd")
 const ChunkRuntime := preload("res://map/3d/services/map_3d_chunk_runtime.gd")
 const EffectiveTypService := preload("res://map/3d/services/map_3d_effective_typ_service.gd")
@@ -19,6 +20,7 @@ const UnitOverlayController := preload("res://map/3d/overlays/map_3d_unit_overla
 const InvalidationRouter := preload("res://map/3d/services/map_3d_invalidation_router.gd")
 const StaticOverlayIndex := preload("res://map/3d/services/map_3d_static_overlay_index.gd")
 const UnitRuntimeIndex := preload("res://map/3d/services/map_3d_unit_runtime_index.gd")
+const BuildPipeline := preload("res://map/3d/services/map_3d_build_pipeline.gd")
 
 const SECTOR_SIZE := 1200.0
 const HEIGHT_SCALE := 100.0
@@ -249,6 +251,8 @@ var _static_overlay_index := StaticOverlayIndex.new()
 var _unit_runtime_index := UnitRuntimeIndex.new()
 var _localized_overlay_dirty_sectors: Dictionary = {}
 var _localized_dynamic_overlay_dirty_sectors: Dictionary = {}
+var _renderer_event_controller := RendererEventController.new()
+var _build_pipeline := BuildPipeline.new()
 
 func set_event_system_override(event_system: Node) -> void:
 	_event_system_override = event_system
@@ -504,87 +508,13 @@ func _apply_preview_activity_state() -> void:
 	set_process_unhandled_input(in_3d)
 
 func _request_refresh(reframe_camera: bool) -> void:
-	if not _refresh_pending and _refresh_requested_at_usec <= 0:
-		_refresh_requested_at_usec = Time.get_ticks_usec()
-	_refresh_pending = true
-	_refresh_reframe_pending = _refresh_reframe_pending or reframe_camera
-	if not _preview_refresh_active():
-		return
-	if _refresh_deferred:
-		return
-	_refresh_deferred = true
-	call_deferred("_apply_pending_refresh")
+	_renderer_event_controller.request_refresh(self, reframe_camera)
 
 func _apply_pending_refresh() -> void:
-	_refresh_deferred = false
-	if not _refresh_pending or not _preview_refresh_active():
-		return
-	var reframe_camera := _refresh_reframe_pending
-	_refresh_pending = false
-	_refresh_reframe_pending = false
-	if _is_async_pipeline_active():
-		_async_requested_restart = true
-		_async_requested_reframe = _async_requested_reframe or reframe_camera
-		_cancel_async_initial_build()
-		return
-	if _dynamic_overlay_refresh_requested:
-		if _start_async_dynamic_overlay_refresh(reframe_camera):
-			return
-	if _overlay_only_refresh_requested or _can_use_overlay_only_refresh():
-		if _start_async_overlay_only_refresh(reframe_camera):
-			return
-	if _try_start_async_initial_build(reframe_camera):
-		return
-	build_from_current_map()
-	_bump_3d_viewport_rendering()
-	if reframe_camera and is_inside_tree():
-		_framed = false
-		_frame_if_needed()
+	_renderer_event_controller.apply_pending_refresh(self)
 
 func _ready() -> void:
-	# Pre-load shaders once to avoid repeated load() calls during chunk apply.
-	_sector_top_shader = load("res://resources/terrain/shaders/sector_top.gdshader")
-	_edge_blend_shader = load(EDGE_BLEND_SHADER_PATH)
-
-	var test_mesh := get_node_or_null("TestMesh")
-	if test_mesh:
-		_ensure_edge_node()
-
-		test_mesh.visible = false
-	# Ensure we have an active camera in the SubViewport
-	if _camera:
-		_camera.current = true
-	# Listen for map events (guarded for test environment without autoloads)
-
-	var _es = _event_system()
-	if _es:
-		_es.map_created.connect(_on_map_created)
-		_es.map_updated.connect(_on_map_updated)
-		_es.level_set_changed.connect(_on_level_set_changed)
-		_es.map_view_updated.connect(_on_map_view_updated)
-		if _es.has_signal("map_3d_focus_sector_requested"):
-			_es.map_3d_focus_sector_requested.connect(_on_map_3d_focus_sector_requested)
-		_es.map_3d_overlay_animations_changed.connect(_on_map_3d_overlay_animations_changed)
-		if _es.has_signal("units_changed"):
-			_es.units_changed.connect(_on_units_changed)
-		if _es.has_signal("unit_position_committed"):
-			_es.unit_position_committed.connect(_on_unit_position_committed)
-		if _es.has_signal("unit_overlay_refresh_requested"):
-			_es.unit_overlay_refresh_requested.connect(_on_unit_overlay_refresh_requested)
-		if _es.has_signal("hgt_map_cells_edited"):
-			_es.hgt_map_cells_edited.connect(_on_hgt_map_cells_edited)
-		if _es.has_signal("typ_map_cells_edited"):
-			_es.typ_map_cells_edited.connect(_on_typ_map_cells_edited)
-		if _es.has_signal("blg_map_cells_edited"):
-			_es.blg_map_cells_edited.connect(_on_blg_map_cells_edited)
-	_apply_preview_activity_state()
-	_apply_visibility_range_from_editor_state()
-	var _cmd = _current_map_data()
-
-	if _cmd:
-		# Initial build if data already present
-		if _cmd.horizontal_sectors > 0 and _cmd.vertical_sectors > 0 and not _cmd.hgt_map.is_empty():
-			_request_refresh(true)
+	_renderer_event_controller.ready(self)
 
 func _apply_visibility_range_from_editor_state() -> void:
 	var editor_state := _editor_state()
@@ -596,18 +526,10 @@ func _apply_visibility_range_from_editor_state() -> void:
 	_apply_geometry_distance_culling_state(enabled)
 
 func _on_map_view_updated() -> void:
-	_apply_preview_activity_state()
-	_apply_visibility_range_from_editor_state()
-	if _preview_refresh_active():
-		_bump_3d_viewport_rendering()
-	if _refresh_pending:
-		_request_refresh(_refresh_reframe_pending)
-	elif _preview_refresh_active():
-		_flush_pending_unit_changes()
+	_renderer_event_controller.on_map_view_updated(self)
 
 func _on_map_3d_overlay_animations_changed() -> void:
-	if _preview_refresh_active():
-		_request_overlay_only_refresh()
+	_renderer_event_controller.on_map_overlay_animations_changed(self)
 
 func _on_units_changed(changes: Array) -> void:
 	var normalized := _normalize_unit_changes(changes)
@@ -1389,318 +1311,25 @@ func _on_map_3d_focus_sector_requested(sector_sx: int, sector_sy: int) -> void:
 		_bump_3d_viewport_rendering()
 
 func _on_map_changed() -> void:
-	if _skip_next_map_changed_refresh:
-		_skip_next_map_changed_refresh = false
-		return
-	_cancel_async_initial_build()
-	var has_localized_invalidation := _chunk_rt.take_localized_chunk_invalidation_pending()
-	var _cmd = _current_map_data()
-
-	if _cmd:
-		var w := int(_cmd.horizontal_sectors)
-		var h := int(_cmd.vertical_sectors)
-		if w > 0 and h > 0:
-			var hgt: PackedByteArray = _cmd.hgt_map
-			var typ: PackedByteArray = _cmd.typ_map
-			var blg: PackedByteArray = _cmd.blg_map
-			var level_set := int(_cmd.level_set)
-			var signature_changed := _is_map_signature_changed(w, h, level_set, hgt, typ, blg)
-			_record_map_signature(w, h, level_set, hgt, typ, blg)
-			if signature_changed and not has_localized_invalidation:
-				# Any map-array checksum change means terrain content potentially changed.
-				# Force dirty chunks so stale incremental chunk sets cannot miss distant sectors.
-				_invalidate_all_chunks(w, h)
-				_effective_typ_service.set_dirty(true)
-				_clear_localized_overlay_scope()
-		_request_refresh(false)
+	_renderer_event_controller.on_map_changed(self)
 
 func _on_map_created() -> void:
-	_cancel_async_initial_build()
-	var _cmd = _current_map_data()
-	if _cmd:
-		_effective_typ_service.invalidate_cache()
-		_effective_typ_service.set_dirty(true)
-		# Seed dirty chunks for non-blocking initial terrain creation.
-		# This enables the incremental chunk path immediately after map load.
-		var w := int(_cmd.horizontal_sectors)
-		var h := int(_cmd.vertical_sectors)
-		var level_set := int(_cmd.level_set)
-		_chunk_rt.last_map_dimensions = Vector2i(w, h)
-		_chunk_rt.last_level_set = level_set
-		_clear_chunk_nodes()
-		_set_authored_overlay([])
-		_clear_localized_overlay_scope()
-		_chunk_rt.clear_dirty_chunks()
-		_chunk_rt.clear_authored_caches()
-		_chunk_rt.invalidate_all_chunks(w, h)
-		_chunk_rt.initial_build_in_progress = true
-		_chunk_rt.initial_build_accumulated_authored_descriptors.clear()
-	_request_refresh(true)
+	_renderer_event_controller.on_map_created(self)
 
 func _on_map_updated() -> void:
 	_on_map_changed()
 
 func _on_hgt_map_cells_edited(border_indices: Array) -> void:
-	_cancel_async_initial_build()
-	var _cmd = _current_map_data()
-	if _cmd == null:
-		return
-	var w := int(_cmd.horizontal_sectors)
-	var h := int(_cmd.vertical_sectors)
-	if w <= 0 or h <= 0:
-		return
-	# hgt-only edit: `effective_typ` depends on typ/blg/entities; keep cached value if possible.
-	_effective_typ_service.set_dirty(false)
-	var invalidation := InvalidationRouter.invalidation_for_hgt_border_indices(border_indices, w, h)
-	mark_chunks_dirty(invalidation.get("dirty_chunks", []))
-	_record_localized_overlay_sectors(invalidation.get("dirty_sectors", []))
+	_renderer_event_controller.on_hgt_map_cells_edited(self, border_indices)
 
 func _on_typ_map_cells_edited(typ_indices: Array) -> void:
-	_cancel_async_initial_build()
-	var _cmd = _current_map_data()
-	if _cmd == null:
-		return
-	var w := int(_cmd.horizontal_sectors)
-	var h := int(_cmd.vertical_sectors)
-	if w <= 0 or h <= 0:
-		return
-	# typ-only edit: recompute effective typ for correct surface + piece selection.
-	_effective_typ_service.set_dirty(true)
-	var invalidation := InvalidationRouter.invalidation_for_typ_indices(typ_indices, w, h)
-	mark_chunks_dirty(invalidation.get("dirty_chunks", []))
-	_record_localized_overlay_sectors(invalidation.get("dirty_sectors", []))
+	_renderer_event_controller.on_typ_map_cells_edited(self, typ_indices)
 
 func _on_blg_map_cells_edited(blg_indices: Array) -> void:
-	_cancel_async_initial_build()
-	var _cmd = _current_map_data()
-	if _cmd == null:
-		return
-	var w := int(_cmd.horizontal_sectors)
-	var h := int(_cmd.vertical_sectors)
-	if w <= 0 or h <= 0:
-		return
-	_effective_typ_service.set_dirty(true)
-	var invalidation := InvalidationRouter.invalidation_for_blg_indices(blg_indices, w, h)
-	mark_chunks_dirty(invalidation.get("dirty_chunks", []))
-	_record_localized_overlay_sectors(invalidation.get("dirty_sectors", []))
+	_renderer_event_controller.on_blg_map_cells_edited(self, blg_indices)
 
 func build_from_current_map() -> void:
-	var build_started_usec := Time.get_ticks_usec()
-	var metrics := _make_empty_build_metrics()
-	_sync_terrain_overlay_animation_mode_from_editor()
-	var _cmd = _current_map_data()
-	if _cmd == null:
-		clear()
-		_finalize_build_metrics(metrics, build_started_usec)
-		return
-	var w: int = int(_cmd.horizontal_sectors)
-	var h: int = int(_cmd.vertical_sectors)
-	var hgt: PackedByteArray = _cmd.hgt_map
-	var typ: PackedByteArray = _cmd.typ_map
-	var blg: PackedByteArray = _cmd.blg_map
-	var expected := (w + 2) * (h + 2)
-	if w <= 0 or h <= 0 or hgt.size() != expected or typ.size() != w * h:
-		metrics["invalid_input"] = true
-		var clear_started_usec := Time.get_ticks_usec()
-		clear()
-		metrics["overlay_node_creation_ms"] = _elapsed_ms_since(clear_started_usec)
-		_finalize_build_metrics(metrics, build_started_usec)
-		return
-
-	_unit_runtime_index.rebuild_from_map(_cmd)
-	var game_data_type := _current_game_data_type()
-	UATerrainPieceLibraryScript.set_piece_game_data_type(game_data_type)
-	_async_blg = blg
-	_async_w = w
-	_async_h = h
-	_async_level_set = int(_cmd.level_set)
-	_async_game_data_type = game_data_type
-	var effective_typ: PackedByteArray
-	var typ_checksum := _checksum_packed_byte_array(typ)
-	var blg_checksum := _checksum_packed_byte_array(blg)
-	var can_reuse_effective_typ := _effective_typ_service.is_valid_cache(w, h, game_data_type, typ_checksum, blg_checksum)
-	if can_reuse_effective_typ:
-		effective_typ = _effective_typ_service.get_effective_typ()
-	else:
-		effective_typ = _compute_effective_typ_for_map(_cmd, w, h, typ, blg, game_data_type)
-	_async_effective_typ = effective_typ
-
-	var pre = _preloads()
-	if pre == null:
-		var fallback_started_usec := Time.get_ticks_usec()
-		var fallback_mesh := build_mesh(hgt, w, h)
-		metrics["terrain_build_ms"] = _elapsed_ms_since(fallback_started_usec)
-		if _terrain_mesh:
-			_terrain_mesh.mesh = fallback_mesh
-			_apply_untextured_materials(fallback_mesh)
-		var fallback_overlay_started_usec := Time.get_ticks_usec()
-		_set_authored_overlay([])
-		var pc_fb: Dictionary = UATerrainPieceLibraryScript.get_piece_overlay_build_counters()
-		metrics["piece_overlay_fast_path"] = int(pc_fb.get("piece_overlay_fast_path", 0))
-		metrics["piece_overlay_slow_path"] = int(pc_fb.get("piece_overlay_slow_path", 0))
-		metrics["overlay_node_creation_ms"] = _elapsed_ms_since(fallback_overlay_started_usec)
-		if _edge_mesh:
-			_edge_mesh.mesh = null
-		_finalize_build_metrics(metrics, build_started_usec)
-		return
-
-	metrics["used_textured_preloads"] = true
-	var level_set := int(_cmd.level_set)
-	var requires_full_rebuild := _needs_full_rebuild(w, h, level_set)
-	if _chunk_rt.chunked_terrain_enabled and requires_full_rebuild:
-		_clear_chunk_nodes()
-		_chunk_rt.clear_authored_caches()
-		_chunk_rt.prepare_chunked_full_rebuild(w, h, level_set)
-		requires_full_rebuild = false
-	var use_chunked := _chunk_rt.chunked_terrain_enabled and not requires_full_rebuild
-
-	var terrain_started_usec := Time.get_ticks_usec()
-	var authored_piece_descriptors: Array = []
-	var support_descriptors: Array = []
-	var overlay_descriptors: Array = []
-	var processed_chunks: Array = []
-	var localized_overlay_sectors := _localized_overlay_sector_list()
-	var localized_dynamic_sectors := _localized_dynamic_sector_list()
-	metrics["dirty_sector_count"] = localized_overlay_sectors.size()
-	metrics["dirty_chunk_count"] = _chunk_rt.get_dirty_chunk_count()
-
-	if use_chunked:
-		if _chunk_rt.has_dirty_chunks():
-			var terrain_cache_snapshot_descriptors: Array = _chunk_rt.get_support_descriptors()
-			if _terrain_mesh:
-				_terrain_mesh.mesh = null
-			if _edge_mesh:
-				_edge_mesh.mesh = null
-			var max_chunks := -1
-			var is_initial_batch := _chunk_rt.initial_build_in_progress
-			if is_initial_batch:
-				max_chunks = _chunk_rt.initial_build_batch_size
-			var rebuild_result := _rebuild_dirty_chunks(hgt, effective_typ, w, h, pre, level_set, metrics, max_chunks)
-			var batch_authored_descriptors: Array = rebuild_result.get("descriptors", [])
-			processed_chunks = rebuild_result.get("processed_chunks", [])
-			metrics["terrain_build_ms"] = _elapsed_ms_since(terrain_started_usec)
-			metrics["incremental_rebuild"] = true
-
-			if is_initial_batch:
-				_chunk_rt.initial_build_accumulated_authored_descriptors.append_array(batch_authored_descriptors)
-				metrics["terrain_authored_descriptor_count"] = _chunk_rt.initial_build_accumulated_authored_descriptors.size()
-				if _chunk_rt.has_dirty_chunks():
-					_finalize_build_metrics(metrics, build_started_usec)
-					_request_refresh(false)
-					return
-				authored_piece_descriptors = _chunk_rt.initial_build_accumulated_authored_descriptors
-				_chunk_rt.initial_build_in_progress = false
-				_chunk_rt.initial_build_accumulated_authored_descriptors.clear()
-			else:
-				authored_piece_descriptors = batch_authored_descriptors
-				metrics["terrain_authored_descriptor_count"] = authored_piece_descriptors.size()
-
-			var cached_terrain_descriptors: Array = _chunk_rt.get_support_descriptors()
-			if cached_terrain_descriptors.is_empty():
-				if not terrain_cache_snapshot_descriptors.is_empty():
-					cached_terrain_descriptors = terrain_cache_snapshot_descriptors.duplicate()
-				else:
-					cached_terrain_descriptors = authored_piece_descriptors.duplicate()
-			else:
-				cached_terrain_descriptors = cached_terrain_descriptors.duplicate()
-			support_descriptors = cached_terrain_descriptors
-			overlay_descriptors = cached_terrain_descriptors.duplicate()
-			metrics["terrain_authored_descriptor_count"] = support_descriptors.size()
-		else:
-			support_descriptors = _chunk_rt.get_support_descriptors().duplicate()
-			overlay_descriptors = support_descriptors.duplicate()
-			metrics["terrain_authored_descriptor_count"] = support_descriptors.size()
-	else:
-		_clear_chunk_nodes()
-		_invalidate_all_chunks(w, h)
-		_chunk_rt.last_map_dimensions = Vector2i(w, h)
-		_chunk_rt.last_level_set = level_set
-
-		var result := build_mesh_with_textures(
-			hgt,
-			effective_typ,
-			w,
-			h,
-			pre.surface_type_map,
-			pre.subsector_patterns,
-			pre.tile_mapping,
-			pre.tile_remap,
-			pre.subsector_idx_remap,
-			pre.lego_defs,
-			level_set
-		)
-		metrics["terrain_build_ms"] = _elapsed_ms_since(terrain_started_usec)
-		var mesh: ArrayMesh = result["mesh"]
-		var surface_to_surface_type: Dictionary = result["surface_to_surface_type"]
-		authored_piece_descriptors = result.get("authored_piece_descriptors", [])
-		metrics["terrain_authored_descriptor_count"] = authored_piece_descriptors.size()
-		metrics["incremental_rebuild"] = false
-		support_descriptors = authored_piece_descriptors.duplicate()
-		overlay_descriptors = authored_piece_descriptors.duplicate()
-		if _terrain_mesh:
-			_terrain_mesh.mesh = mesh
-			_apply_sector_top_materials(mesh, pre, surface_to_surface_type)
-
-		var edge_started_usec := Time.get_ticks_usec()
-		if _edge_overlay_enabled and effective_typ.size() == w * h:
-			var edge_result := _build_edge_overlay_result(hgt, w, h, effective_typ, pre.surface_type_map, level_set, pre)
-			var edge_authored_descriptors: Array = edge_result.get("authored_piece_descriptors", [])
-			metrics["edge_authored_descriptor_count"] = edge_authored_descriptors.size()
-			support_descriptors.append_array(edge_authored_descriptors)
-			overlay_descriptors.append_array(edge_authored_descriptors)
-			_ensure_edge_node()
-			_edge_mesh.mesh = edge_result.get("mesh", null)
-		else:
-			if _edge_mesh:
-				_edge_mesh.mesh = null
-		metrics["edge_slurp_build_ms"] = _elapsed_ms_since(edge_started_usec)
-		_chunk_rt.clear_dirty_chunks()
-		_reset_terrain_authored_cache_from_descriptors(support_descriptors, w, h)
-
-	var can_use_localized_overlay_refresh := use_chunked and not _chunk_rt.initial_build_in_progress and not processed_chunks.is_empty() and not localized_overlay_sectors.is_empty()
-	var overlay_descriptor_started_usec := Time.get_ticks_usec()
-	if can_use_localized_overlay_refresh:
-		var localized_static_descriptors: Array = authored_piece_descriptors.duplicate()
-		localized_static_descriptors.append_array(OverlayProducers.build_blg_attachment_descriptors_for_sectors(
-			blg,
-			effective_typ,
-			int(_cmd.level_set),
-			hgt,
-			w,
-			h,
-			localized_overlay_sectors,
-			game_data_type
-		))
-		metrics["static_overlay_descriptor_generation_ms"] = _elapsed_ms_since(overlay_descriptor_started_usec)
-		metrics["overlay_descriptor_generation_ms"] = metrics["static_overlay_descriptor_generation_ms"]
-		metrics["overlay_descriptor_count"] = localized_static_descriptors.size()
-		var overlay_node_started_usec := Time.get_ticks_usec()
-		_apply_localized_static_overlay_refresh(localized_static_descriptors, processed_chunks, localized_overlay_sectors, int(_cmd.level_set), w, h)
-		metrics["static_overlay_apply_ms"] = _elapsed_ms_since(overlay_node_started_usec)
-		metrics["overlay_node_creation_ms"] = metrics["static_overlay_apply_ms"]
-		var dynamic_descriptor_started_usec := Time.get_ticks_usec()
-		_apply_localized_dynamic_overlay_refresh(_cmd, int(_cmd.level_set), hgt, w, h, support_descriptors, game_data_type, localized_dynamic_sectors, metrics)
-		metrics["dynamic_overlay_descriptor_generation_ms"] = _elapsed_ms_since(dynamic_descriptor_started_usec)
-		metrics["dynamic_overlay_apply_ms"] = 0.0
-		metrics["localized_overlay_refresh"] = true
-	else:
-		overlay_descriptors.append_array(_build_blg_attachment_descriptors(blg, effective_typ, int(_cmd.level_set), hgt, w, h, support_descriptors, game_data_type))
-		if _cmd.host_stations != null and is_instance_valid(_cmd.host_stations):
-			overlay_descriptors.append_array(_build_host_station_descriptors(_cmd.host_stations.get_children(), int(_cmd.level_set), hgt, w, h, support_descriptors, metrics))
-		if _cmd.squads != null and is_instance_valid(_cmd.squads):
-			overlay_descriptors.append_array(_build_squad_descriptors(_cmd.squads.get_children(), int(_cmd.level_set), hgt, w, h, support_descriptors, game_data_type, metrics))
-		metrics["overlay_descriptor_generation_ms"] = _elapsed_ms_since(overlay_descriptor_started_usec)
-		metrics["static_overlay_descriptor_generation_ms"] = metrics["overlay_descriptor_generation_ms"]
-		metrics["overlay_descriptor_count"] = overlay_descriptors.size()
-		var overlay_node_started_usec := Time.get_ticks_usec()
-		_set_authored_overlay(overlay_descriptors)
-		metrics["static_overlay_apply_ms"] = _elapsed_ms_since(overlay_node_started_usec)
-		metrics["overlay_node_creation_ms"] = metrics["static_overlay_apply_ms"]
-	var pc: Dictionary = UATerrainPieceLibraryScript.get_piece_overlay_build_counters()
-	metrics["piece_overlay_fast_path"] = int(pc.get("piece_overlay_fast_path", 0))
-	metrics["piece_overlay_slow_path"] = int(pc.get("piece_overlay_slow_path", 0))
-	_clear_localized_overlay_scope()
-	_finalize_build_metrics(metrics, build_started_usec)
+	_build_pipeline.build_from_current_map(self)
 
 func _current_game_data_type() -> String:
 	var editor_state := _editor_state()
@@ -1844,73 +1473,7 @@ func _rebuild_dirty_chunks(
 	metrics: Dictionary,
 	max_chunks: int = -1
 ) -> Dictionary:
-	var all_authored_descriptors: Array = []
-	var chunks_rebuilt := 0
-	var processed: Array[Vector2i] = []
-	var apply_started_usec := Time.get_ticks_usec()
-	var dirty_chunk_list := _dirty_chunks_sorted_by_priority(w, h)
-
-	for chunk_coord in dirty_chunk_list:
-		if max_chunks > 0 and chunks_rebuilt >= max_chunks:
-			break
-		var terrain_result := TerrainBuilder.build_chunk_mesh_with_textures(
-			chunk_coord,
-			hgt,
-			effective_typ,
-			w,
-			h,
-			pre.surface_type_map,
-			pre.subsector_patterns,
-			pre.tile_mapping,
-			pre.tile_remap,
-			pre.subsector_idx_remap,
-			pre.lego_defs,
-			level_set,
-			true
-		)
-		var chunk_node := _get_or_create_terrain_chunk_node(chunk_coord)
-		chunk_node.mesh = terrain_result["mesh"]
-		_apply_sector_top_materials(terrain_result["mesh"], pre, terrain_result["surface_to_surface_type"])
-
-		var terrain_descriptors: Array = terrain_result.get("authored_piece_descriptors", [])
-		var chunk_authored_descriptors: Array = terrain_descriptors.duplicate()
-
-		if _edge_overlay_enabled:
-			var edge_result := SlurpBuilder.build_chunk_edge_overlay_result(
-				chunk_coord,
-				hgt,
-				w,
-				h,
-				effective_typ,
-				pre.surface_type_map,
-				level_set
-			)
-			var edge_chunk_node := _get_or_create_edge_chunk_node(chunk_coord)
-			edge_chunk_node.mesh = edge_result.get("mesh", null)
-			_apply_edge_surface_materials(
-				edge_chunk_node.mesh,
-				pre,
-				edge_result.get("fallback_horiz_keys", []),
-				edge_result.get("fallback_vert_keys", [])
-			)
-
-			var edge_descriptors: Array = edge_result.get("authored_piece_descriptors", [])
-			chunk_authored_descriptors.append_array(edge_descriptors)
-
-		all_authored_descriptors.append_array(chunk_authored_descriptors)
-		_update_terrain_authored_cache_for_chunk(chunk_coord, chunk_authored_descriptors)
-
-		chunks_rebuilt += 1
-		processed.append(chunk_coord)
-
-	for chunk_coord in processed:
-		_chunk_rt.erase_dirty_chunk(chunk_coord)
-	metrics["chunks_rebuilt"] = chunks_rebuilt
-	metrics["chunk_apply_ms"] = _elapsed_ms_since(apply_started_usec)
-	return {
-		"descriptors": all_authored_descriptors,
-		"processed_chunks": processed,
-	}
+	return _build_pipeline.rebuild_dirty_chunks(self, hgt, effective_typ, w, h, pre, level_set, metrics, max_chunks)
 
 static func _chunk_distance_sq(a: Vector2i, b: Vector2i) -> int:
 	var dx := a.x - b.x
@@ -1932,51 +1495,11 @@ func _chunk_focus_coord(w: int, h: int) -> Vector2i:
 	return TerrainBuilder.sector_to_chunk(center_sx, center_sy)
 
 func _apply_localized_static_overlay_refresh(replacement_descriptors: Array, affected_chunks: Array, affected_sectors: Array, set_id: int, w: int, h: int) -> void:
-	if _authored_overlay == null or not is_instance_valid(_authored_overlay):
-		return
-	var prefixes := StaticOverlayIndex.terrain_prefixes_for_chunks(set_id, affected_chunks, w, h)
-	prefixes.append_array(StaticOverlayIndex.building_attachment_prefixes_for_sectors(set_id, affected_sectors))
-	if prefixes.is_empty():
-		return
-	_static_overlay_index.replace_matching_prefixes(prefixes, replacement_descriptors)
-	AuthoredOverlayManager.apply_overlay_for_prefixes(_authored_overlay, prefixes, replacement_descriptors)
+	_build_pipeline.apply_localized_static_overlay_refresh(self, replacement_descriptors, affected_chunks, affected_sectors, set_id, w, h)
 
 
 func _apply_localized_dynamic_overlay_refresh(cmd: Node, set_id: int, hgt: PackedByteArray, w: int, h: int, support_descriptors: Array, game_data_type: String, affected_sectors: Array, metrics: Dictionary) -> void:
-	if affected_sectors.is_empty():
-		return
-	_ensure_overlay_nodes()
-	var descriptors: Array = []
-	if cmd.host_stations != null and is_instance_valid(cmd.host_stations):
-		var host_nodes := _unit_runtime_index.units_for_sectors(cmd, "host", affected_sectors)
-		descriptors.append_array(OverlayProducers.build_host_station_descriptors_for_sectors(
-			host_nodes,
-			set_id,
-			hgt,
-			w,
-			h,
-			affected_sectors,
-			support_descriptors,
-			metrics
-		))
-	if cmd.squads != null and is_instance_valid(cmd.squads):
-		var squad_nodes := _unit_runtime_index.units_for_sectors(cmd, "squad", affected_sectors)
-		descriptors.append_array(OverlayProducers.build_squad_descriptors_for_sectors(
-			squad_nodes,
-			set_id,
-			hgt,
-			w,
-			h,
-			affected_sectors,
-			support_descriptors,
-			game_data_type,
-			metrics
-		))
-	var prefixes := StaticOverlayIndex.exact_instance_key_prefixes(descriptors)
-	if prefixes.is_empty():
-		return
-	AuthoredOverlayManager.apply_overlay_for_prefixes(_dynamic_overlay, prefixes, descriptors)
-	_apply_geometry_distance_culling_to_overlay()
+	_build_pipeline.apply_localized_dynamic_overlay_refresh(self, cmd, set_id, hgt, w, h, support_descriptors, game_data_type, affected_sectors, metrics)
 
 
 func _set_authored_overlay(descriptors: Array) -> void:
@@ -2134,25 +1657,7 @@ func _apply_untextured_materials(mesh: ArrayMesh) -> void:
 # The strongest current retail evidence shows one raw height per playable cell, with
 # flat cell-top placement and separate filler/slurp geometry bridging neighboring cells.
 static func build_mesh(hgt: PackedByteArray, w: int, h: int) -> ArrayMesh:
-	var bw := w + 2
-	if hgt.size() != bw * (h + 2) or w <= 0 or h <= 0:
-		return ArrayMesh.new()
-	var st := SurfaceTool.new()
-	st.begin(Mesh.PRIMITIVE_TRIANGLES)
-	for y in range(-1, h + 1):
-		for x in range(-1, w + 1):
-			var sector_y := _sample_hgt_height(hgt, w, h, x, y)
-			var x0 := float(x + 1) * SECTOR_SIZE
-			var x1 := float(x + 2) * SECTOR_SIZE
-			var z0 := float(y + 1) * SECTOR_SIZE
-			var z1 := float(y + 2) * SECTOR_SIZE
-			_draw_flat_sector_geometry(st, x0, x1, z0, z1, sector_y)
-
-	# Index and generate normals
-	st.index()
-	st.generate_normals()
-	var mesh2: ArrayMesh = st.commit()
-	return mesh2
+	return TerrainBuilder.build_mesh(hgt, w, h)
 
 static func _sample_hgt_height(hgt: PackedByteArray, w: int, h: int, sx: int, sy: int) -> float:
 	var bw := w + 2
@@ -2656,129 +2161,7 @@ static func _should_emit_seam_strip(_surface_a: int, _surface_b: int, _outer_a: 
 	return true
 
 static func build_mesh_with_textures(hgt: PackedByteArray, typ: PackedByteArray, w: int, h: int, mapping: Dictionary, subsector_patterns: Dictionary = {}, tile_mapping: Dictionary = {}, tile_remap: Dictionary = {}, subsector_idx_remap: Dictionary = {}, lego_defs: Dictionary = {}, set_id: int = 1) -> Dictionary:
-	var bw := w + 2
-	var bh := h + 2
-	if hgt.size() != bw * bh or typ.size() != w * h or w <= 0 or h <= 0:
-		return {"mesh": ArrayMesh.new(), "surface_to_surface_type": {}, "authored_piece_descriptors": []}
-
-	# Retail evidence shows each playable sector stays at a single hgt_map height, but the visible
-	# top can still be composed from authored subsector pieces. Compact sectors render as 1x1,
-	# while non-compact sectors render a 3x3 grid. For the read-only preview we reuse the set.sdf
-	# subsector/tile tables to choose the default visible piece for each cell, then feed the ground
-	# shader per-piece file/variant data while keeping seam/slurp handling in the overlay mesh.
-
-	var surface_tools := {}
-	var surface_type_order: Array[int] = []
-	for i in 6:
-		var st := SurfaceTool.new()
-		st.begin(Mesh.PRIMITIVE_TRIANGLES)
-		surface_tools[i] = st
-		surface_type_order.append(i)
-	var st_invalid := SurfaceTool.new()
-	st_invalid.begin(Mesh.PRIMITIVE_TRIANGLES)
-	surface_tools[-1] = st_invalid
-	surface_type_order.append(-1)
-	var authored_piece_descriptors: Array = []
-
-	for y in range(-1, h + 1):
-		for x in range(-1, w + 1):
-			var typ_value := _typ_value_with_implicit_border(typ, w, h, x, y)
-			var surface_type := _preview_surface_type_for_typ(mapping, typ_value)
-			var st: SurfaceTool = surface_tools[surface_type]
-			var sector_y := _sample_hgt_height(hgt, w, h, x, y)
-			var x0 := float(x + 1) * SECTOR_SIZE
-			var x1 := float(x + 2) * SECTOR_SIZE
-			var z0 := float(y + 1) * SECTOR_SIZE
-			var z1 := float(y + 2) * SECTOR_SIZE
-			if surface_type == -1:
-				_draw_quad(st, x0, x1, z0, z1, sector_y, 0, 1, 0)
-				continue
-
-			var pattern := _sector_pattern_for_typ(subsector_patterns, typ_value, surface_type)
-			var sector_type := int(pattern.get("sector_type", 1))
-			var subsectors: PackedInt32Array = pattern.get("subsectors", PackedInt32Array())
-			if sector_type == 0 and subsectors.size() >= 9:
-				var piece_w := SECTOR_SIZE / 3.0
-				var piece_h := SECTOR_SIZE / 3.0
-				for sub_y in 3:
-					for sub_x in 3:
-						var sub_idx := sub_y * 3 + sub_x
-						var selection := _default_piece_selection_for_subsector(surface_type, int(subsectors[sub_idx]), tile_mapping, tile_remap, subsector_idx_remap)
-						var piece: Array = selection.get("piece", [surface_type, (16 if surface_type == 4 else 4), 0])
-						var piece_x0 := x0 + float(sub_x) * piece_w
-						var piece_x1 := x0 + float(sub_x + 1) * piece_w
-						var piece_z0 := z0 + float(sub_y) * piece_h
-						var piece_z1 := z0 + float(sub_y + 1) * piece_h
-						var authored := UATerrainPieceLibraryScript.resolve_authored_descriptor(
-							set_id,
-							int(selection.get("raw_id", -1)),
-							lego_defs,
-							_authored_origin_for_subsector(x0, z0, sector_y, sub_x, sub_y)
-						)
-						if not authored.is_empty():
-							authored["instance_key"] = "terrain:%d:%d:%d:%d:%d:%d" % [
-								set_id,
-								x,
-								y,
-								sub_x,
-								sub_y,
-								0
-							]
-							authored_piece_descriptors.append(authored)
-							continue
-						_draw_quad(
-							st,
-							piece_x0,
-							piece_x1,
-							piece_z0,
-							piece_z1,
-							sector_y,
-							int(piece[0]),
-							int(piece[1]),
-							int(piece[2]),
-							0,
-							clampf(float(sub_x) / 3.0 + SUBQUAD_UV_INSET, 0.0, 1.0),
-							clampf(1.0 - float(sub_y + 1) / 3.0 + SUBQUAD_UV_INSET, 0.0, 1.0),
-							clampf(float(sub_x + 1) / 3.0 - SUBQUAD_UV_INSET, 0.0, 1.0),
-							clampf(1.0 - float(sub_y) / 3.0 - SUBQUAD_UV_INSET, 0.0, 1.0)
-						)
-			else:
-				var piece := [surface_type, (16 if surface_type == 4 else 4), 0]
-				var authored := {}
-				if subsectors.size() > 0:
-					var selection := _default_piece_selection_for_subsector(surface_type, int(subsectors[0]), tile_mapping, tile_remap, subsector_idx_remap)
-					piece = selection.get("piece", piece)
-					authored = UATerrainPieceLibraryScript.resolve_authored_descriptor(
-						set_id,
-						int(selection.get("raw_id", -1)),
-						lego_defs,
-						Vector3((x0 + x1) * 0.5, sector_y, (z0 + z1) * 0.5)
-					)
-				if authored.is_empty():
-					_draw_quad(st, x0, x1, z0, z1, sector_y, int(piece[0]), int(piece[1]), int(piece[2]))
-				else:
-					authored["instance_key"] = "terrain:%d:%d:%d:%d" % [
-						set_id,
-						x,
-						y,
-						0
-					]
-					authored_piece_descriptors.append(authored)
-					continue
-
-	var mesh := ArrayMesh.new()
-	var surface_to_surface_type := {}
-	for i in surface_type_order.size():
-		var surface_type: int = surface_type_order[i]
-		var st: SurfaceTool = surface_tools[surface_type]
-		var before := mesh.get_surface_count()
-		st.index()
-		st.generate_normals()
-		st.commit(mesh)
-		var after := mesh.get_surface_count()
-		if after > before:
-			surface_to_surface_type[before] = surface_type
-	return {"mesh": mesh, "surface_to_surface_type": surface_to_surface_type, "authored_piece_descriptors": authored_piece_descriptors}
+	return TerrainBuilder.build_mesh_with_textures(hgt, typ, w, h, mapping, subsector_patterns, tile_mapping, tile_remap, subsector_idx_remap, lego_defs, set_id)
 
 func _apply_sector_top_materials(mesh: ArrayMesh, preloads, surface_to_surface_type: Dictionary) -> void:
 	if mesh == null:
@@ -2884,94 +2267,15 @@ func _build_edges_from_current_map() -> void:
 	_edge_mesh.mesh = result.get("mesh", null)
 
 func _build_edge_overlay_result(hgt: PackedByteArray, w: int, h: int, typ: PackedByteArray, mapping: Dictionary, set_id: int, preloads = null) -> Dictionary:
-	var authored_piece_descriptors: Array = []
-	var fallback_horiz := {}
-	var fallback_vert := {}
 	if preloads == null and is_inside_tree():
 		preloads = _preloads()
-
-	for y in range(-1, h + 1):
-		for x in range(-1, w):
-			var a := _typ_value_with_implicit_border(typ, w, h, x, y)
-			var b := _typ_value_with_implicit_border(typ, w, h, x + 1, y)
-			if not mapping.has(a) or not mapping.has(b):
-				continue
-			var sa := int(mapping.get(a, 0))
-			var sb := int(mapping.get(b, 0))
-			var yL := _center_h(hgt, w, h, x, y)
-			var yR := _center_h(hgt, w, h, x + 1, y)
-			var yTopAvg := _corner_average_h(hgt, w, h, x + 1, y)
-			var yBottomAvg := _corner_average_h(hgt, w, h, x + 1, y + 1)
-			if not _should_emit_seam_strip(sa, sb, yL, yR, yTopAvg, yBottomAvg):
-				continue
-			var base_name := _authored_slurp_base_name(sa, sb, true)
-			if UATerrainPieceLibraryScript.has_piece_source(set_id, base_name):
-				authored_piece_descriptors.append({
-					"set_id": set_id,
-					"raw_id": - 1,
-					"base_name": base_name,
-					"instance_key": "slurp:v:%d:%d:%d:%d:%d" % [set_id, x, y, sa, sb],
-					"origin": _sector_center_origin(x + 1, y, yR),
-					"y_offset": TerrainBuilder.TERRAIN_AUTHORED_Y_OFFSET,
-					"warp_mode": "vside",
-					"anchor_height": yR,
-					"left_height": yL,
-					"right_height": yR,
-					"top_avg": yTopAvg,
-					"bottom_avg": yBottomAvg,
-				})
-				continue
-			if sa == sb:
-				# Avoid same-surface fallback strips when no authored seam exists; these are
-				# perceived as "floating" edge textures during height edits.
-				continue
-			_append_vertical_fallback_group(fallback_horiz, _retail_slurp_bucket_key(sa, sb, 1, 0), float(x + 2) * SECTOR_SIZE, float(y + 1) * SECTOR_SIZE, float(y + 2) * SECTOR_SIZE, yL, yR, yTopAvg, yBottomAvg)
-
-	for y2 in range(-1, h):
-		for x2 in range(-1, w + 1):
-			var a2 := _typ_value_with_implicit_border(typ, w, h, x2, y2)
-			var b2 := _typ_value_with_implicit_border(typ, w, h, x2, y2 + 1)
-			if not mapping.has(a2) or not mapping.has(b2):
-				continue
-			var sa2 := int(mapping.get(a2, 0))
-			var sb2 := int(mapping.get(b2, 0))
-			var yT := _center_h(hgt, w, h, x2, y2)
-			var yB := _center_h(hgt, w, h, x2, y2 + 1)
-			var yLeftAvg := _corner_average_h(hgt, w, h, x2, y2 + 1)
-			var yRightAvg := _corner_average_h(hgt, w, h, x2 + 1, y2 + 1)
-			if not _should_emit_seam_strip(sa2, sb2, yT, yB, yLeftAvg, yRightAvg):
-				continue
-			var base_name_h := _authored_slurp_base_name(sa2, sb2, false)
-			if UATerrainPieceLibraryScript.has_piece_source(set_id, base_name_h):
-				authored_piece_descriptors.append({
-					"set_id": set_id,
-					"raw_id": - 1,
-					"base_name": base_name_h,
-					"instance_key": "slurp:h:%d:%d:%d:%d:%d" % [set_id, x2, y2, sa2, sb2],
-					"origin": _sector_center_origin(x2, y2 + 1, yB),
-					"y_offset": TerrainBuilder.TERRAIN_AUTHORED_Y_OFFSET,
-					"warp_mode": "hside",
-					"anchor_height": yB,
-					"top_height": yT,
-					"bottom_height": yB,
-					"left_avg": yLeftAvg,
-					"right_avg": yRightAvg,
-				})
-				continue
-			if sa2 == sb2:
-				continue
-			_append_horizontal_fallback_group(fallback_vert, _retail_slurp_bucket_key(sa2, sb2, 0, 1), float(x2 + 1) * SECTOR_SIZE, float(x2 + 2) * SECTOR_SIZE, float(y2 + 2) * SECTOR_SIZE, yT, yB, yLeftAvg, yRightAvg)
-
-	var fallback_mesh := ArrayMesh.new()
-	for key_h in fallback_horiz.keys():
-		var st_h: SurfaceTool = fallback_horiz[key_h]
-		st_h.index(); st_h.generate_normals(); st_h.commit(fallback_mesh)
-		fallback_mesh.surface_set_material(fallback_mesh.get_surface_count() - 1, _make_edge_blend_material(String(key_h), preloads, false))
-	for key_v in fallback_vert.keys():
-		var st_v: SurfaceTool = fallback_vert[key_v]
-		st_v.index(); st_v.generate_normals(); st_v.commit(fallback_mesh)
-		fallback_mesh.surface_set_material(fallback_mesh.get_surface_count() - 1, _make_edge_blend_material(String(key_v), preloads, true))
-	return {"authored_piece_descriptors": authored_piece_descriptors, "mesh": fallback_mesh if fallback_mesh.get_surface_count() > 0 else null}
+	var result := SlurpBuilder.build_edge_overlay_result(hgt, w, h, typ, mapping, set_id)
+	var mesh: ArrayMesh = result.get("mesh", null)
+	_apply_edge_surface_materials(mesh, preloads, result.get("fallback_horiz_keys", []), result.get("fallback_vert_keys", []))
+	return {
+		"authored_piece_descriptors": result.get("authored_piece_descriptors", []),
+		"mesh": mesh,
+	}
 
 func _append_vertical_fallback_group(groups: Dictionary, bucket_key: String, seam_x: float, z0: float, z1: float, left_height: float, right_height: float, top_avg: float, bottom_avg: float) -> void:
 	if bucket_key.is_empty():
