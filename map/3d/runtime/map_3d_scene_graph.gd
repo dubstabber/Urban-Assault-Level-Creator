@@ -1,6 +1,5 @@
 extends RefCounted
 
-const UATerrainPieceLibraryScript := preload("res://map/terrain/ua_authored_piece_library.gd")
 const AuthoredOverlayManager := preload("res://map/3d/overlays/map_3d_authored_overlay_manager.gd")
 const SlurpBuilder := preload("res://map/3d/terrain/map_3d_slurp_builder.gd")
 const StaticOverlayIndex := preload("res://map/3d/services/map_3d_static_overlay_index.gd")
@@ -102,7 +101,7 @@ func set_authored_overlay(descriptors: Array) -> void:
 			dynamic_descriptors.append(desc)
 		else:
 			static_descriptors.append(desc)
-	UATerrainPieceLibraryScript.reset_piece_overlay_build_counters()
+	UATerrainPieceLibrary.reset_piece_overlay_build_counters()
 	_renderer._static_overlay_index.replace_all(static_descriptors)
 	AuthoredOverlayManager.apply_overlay_node(_renderer._authored_overlay, static_descriptors)
 	AuthoredOverlayManager.apply_overlay_node(_renderer._dynamic_overlay, dynamic_descriptors)

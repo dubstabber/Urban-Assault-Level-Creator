@@ -1,9 +1,6 @@
 extends RefCounted
 
-const _UAProjectDataRoots = preload("res://map/ua_project_data_roots.gd")
 const LegacyScriptParser = preload("res://map/3d/parsers/map_3d_legacy_script_parser.gd")
-const _UALegacyText = preload("res://map/ua_legacy_text.gd")
-const _ResDir = preload("res://scripts/res_dir.gd")
 const HOST_STATION_BASE_NAMES := {
 	56: "VP_ROBO",
 	57: "VP_KROBO",
@@ -117,13 +114,13 @@ static func _normalized_game_data_type(game_data_type: String) -> String:
 
 
 static func _source_set_dir_for_set(set_id: int, game_data_type: String) -> String:
-	return _UAProjectDataRoots.first_existing_set_directory(set_id, game_data_type)
+	return UAProjectDataRoots.first_existing_set_directory(set_id, game_data_type)
 
 
 static func _first_existing_file(candidates: Array) -> String:
 	for candidate_value in candidates:
 		var candidate := String(candidate_value)
-		if not candidate.is_empty() and _ResDir.file_exists(candidate):
+		if not candidate.is_empty() and ResDir.file_exists(candidate):
 			return candidate
 	return String(candidates[0]) if not candidates.is_empty() else ""
 
@@ -135,7 +132,7 @@ static func _script_root_for_game_data_type(set_id_or_game_data_type = 1, game_d
 		resolved_game_data_type = String(set_id_or_game_data_type)
 	else:
 		resolved_set_id = int(set_id_or_game_data_type)
-	var shared_root := _UAProjectDataRoots.shared_script_root_for_game_data_type(resolved_game_data_type)
+	var shared_root := UAProjectDataRoots.shared_script_root_for_game_data_type(resolved_game_data_type)
 	var candidates: Array = []
 	if not shared_root.is_empty():
 		candidates.append(shared_root)
@@ -143,7 +140,7 @@ static func _script_root_for_game_data_type(set_id_or_game_data_type = 1, game_d
 	candidates.append("%s/scripts" % _source_set_dir_for_set(resolved_set_id, resolved_game_data_type))
 	for candidate_value in candidates:
 		var candidate := String(candidate_value)
-		if not candidate.is_empty() and _ResDir.dir_exists(candidate):
+		if not candidate.is_empty() and ResDir.dir_exists(candidate):
 			return candidate
 	return String(candidates[0]) if not candidates.is_empty() else ""
 
@@ -164,20 +161,20 @@ static func _metadata_file_candidates(set_id: int, game_data_type: String, metad
 	var filename := metadata_filename.strip_edges().trim_prefix("/")
 	if filename.is_empty():
 		return []
-	var normalized_game_data_type := _UAProjectDataRoots.normalized_game_data_type(game_data_type)
+	var normalized_game_data_type := UAProjectDataRoots.normalized_game_data_type(game_data_type)
 	var sid := maxi(set_id, 1)
 	var relative_path := "metadata/%s" % filename
 	var out: Array[String] = []
-	var primary := _UAProjectDataRoots.first_existing_path_under_set_roots(sid, normalized_game_data_type, relative_path)
+	var primary := UAProjectDataRoots.first_existing_path_under_set_roots(sid, normalized_game_data_type, relative_path)
 	if not primary.is_empty():
 		out.append(primary)
 	return out
 
 
 static func _metadata_json_dictionary(path: String) -> Dictionary:
-	if path.is_empty() or not _ResDir.file_exists(path):
+	if path.is_empty() or not ResDir.file_exists(path):
 		return {}
-	return _ResDir.load_json_dict(path)
+	return ResDir.load_json_dict(path)
 
 
 static func _metadata_visproto_base_names_for_set(set_id: int, game_data_type: String) -> Array:
@@ -278,7 +275,7 @@ static func _metadata_building_definitions_for_set(set_id: int, game_data_type: 
 static func _script_paths_for_game_data_type(set_id: int, game_data_type: String) -> Array:
 	var script_root := _script_root_for_game_data_type(set_id, game_data_type)
 	var result: Array = []
-	for entry in _ResDir.get_files_at(script_root):
+	for entry in ResDir.get_files_at(script_root):
 		if entry.get_extension().to_lower() == "scr":
 			result.append("%s/%s" % [script_root, entry])
 	result.sort()
@@ -337,8 +334,8 @@ static func _visproto_base_names_for_set(set_id: int, game_data_type: String) ->
 
 	var result: Array = []
 	var visproto_path := _visproto_path_for_set(set_id, normalized_game_data_type)
-	if _ResDir.file_exists(visproto_path):
-		var full := _UALegacyText.read_file(visproto_path)
+	if ResDir.file_exists(visproto_path):
+		var full := UALegacyText.read_file(visproto_path)
 		for line_raw in full.split("\n"):
 			var line := line_raw.get_slice(";", 0).strip_edges()
 			if line.is_empty():

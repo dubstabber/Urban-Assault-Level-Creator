@@ -1,6 +1,5 @@
 extends RefCounted
 
-const UATerrainPieceLibraryScript := preload("res://map/terrain/ua_authored_piece_library.gd")
 const OverlayProducers := preload("res://map/3d/overlays/map_3d_overlay_descriptor_producers.gd")
 
 const SECTOR_SIZE := 1200.0
@@ -83,7 +82,7 @@ static func support_height_at_world_position(hgt: PackedByteArray, w: int, h: in
 	var terrain_height := ground_height_at_world_position(hgt, w, h, world_x, world_z)
 	var authored_support: Variant = null
 	if support_descriptors.size() > 0:
-		authored_support = UATerrainPieceLibraryScript.support_height_at_world_position(support_descriptors, world_x, world_z)
+		authored_support = UATerrainPieceLibrary.support_height_at_world_position(support_descriptors, world_x, world_z)
 	_profile_increment(profile, "support_height_query_count")
 	_profile_add_duration(profile, "support_height_query_ms", _elapsed_ms_since(started_usec))
 	if authored_support != null:

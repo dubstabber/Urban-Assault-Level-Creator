@@ -1,19 +1,18 @@
 extends RefCounted
 
-const PieceLibraryScript := preload("res://map/terrain/ua_authored_piece_library.gd")
 const _NODE_INDEX_META := "_overlay_node_index"
 
 
-static func build_overlay_node(descriptors: Array) -> Node3D:
+static func build_overlay_node(overlay_descriptors: Array) -> Node3D:
 	var root := Node3D.new()
 	root.name = "AuthoredOverlay"
-	apply_overlay_node(root, descriptors)
+	apply_overlay_node(root, overlay_descriptors)
 	return root
 
 
-static func apply_overlay_node(root: Node3D, descriptors: Array) -> void:
+static func apply_overlay_node(root: Node3D, overlay_descriptors: Array) -> void:
 	var manager: RefCounted = load("res://map/3d/overlays/map_3d_authored_overlay_manager.gd").new()
-	var state: Dictionary = manager.begin_apply_overlay_node(root, descriptors)
+	var state: Dictionary = manager.begin_apply_overlay_node(root, overlay_descriptors)
 	if state.is_empty():
 		return
 	while not manager.apply_overlay_node_step(root, state, 256):
@@ -21,16 +20,16 @@ static func apply_overlay_node(root: Node3D, descriptors: Array) -> void:
 	manager.finalize_apply_overlay_node(root, state)
 
 
-static func apply_overlay_for_prefixes(root: Node3D, key_prefixes: Array, descriptors: Array) -> void:
+static func apply_overlay_for_prefixes(root: Node3D, key_prefixes: Array, overlay_descriptors: Array) -> void:
 	if root == null or not is_instance_valid(root):
 		return
 	if key_prefixes.is_empty():
-		apply_overlay_node(root, descriptors)
+		apply_overlay_node(root, overlay_descriptors)
 		return
 	if root.name.is_empty():
 		root.name = "AuthoredOverlay"
 
-	var desired := _desired_descriptors_by_key(descriptors)
+	var desired := _desired_descriptors_by_key(overlay_descriptors)
 	var existing := _existing_nodes_by_key(root)
 
 	for key_value in existing.keys():
@@ -76,7 +75,7 @@ static func apply_overlay_for_prefixes(root: Node3D, key_prefixes: Array, descri
 				if parent != null:
 					parent.remove_child(node)
 				node.queue_free()
-			piece_node = PieceLibraryScript.build_piece_scene_root(set_id, base_name, raw_id)
+			piece_node = UATerrainPieceLibrary.build_piece_scene_root(set_id, base_name, raw_id)
 			if piece_node == null:
 				continue
 			piece_node.set_meta("instance_key", key)
@@ -94,11 +93,11 @@ static func apply_overlay_for_prefixes(root: Node3D, key_prefixes: Array, descri
 			existing[key] = piece_node
 
 		piece_node.position = _piece_position_from_desc(desc)
-		PieceLibraryScript._apply_optional_piece_orientation(piece_node, desc)
+		UATerrainPieceLibrary._apply_optional_piece_orientation(piece_node, desc)
 		var warp_sig := _warp_signature(desc)
 		var prev_warp_sig := String(piece_node.get_meta("warp_sig", ""))
 		if warp_sig != prev_warp_sig:
-			PieceLibraryScript._apply_optional_piece_deform(piece_node, desc)
+			UATerrainPieceLibrary._apply_optional_piece_deform(piece_node, desc)
 			piece_node.set_meta("warp_sig", warp_sig)
 
 
@@ -110,13 +109,13 @@ static func _key_matches_prefixes(key: String, key_prefixes: Array) -> bool:
 	return false
 
 
-func begin_apply_overlay_node(root: Node3D, descriptors: Array) -> Dictionary:
+func begin_apply_overlay_node(root: Node3D, overlay_descriptors: Array) -> Dictionary:
 	if root == null or not is_instance_valid(root):
 		return {}
 	if root.name.is_empty():
 		root.name = "AuthoredOverlay"
 
-	var desired := _desired_descriptors_by_key(descriptors)
+	var desired := _desired_descriptors_by_key(overlay_descriptors)
 	var existing := _existing_nodes_by_key(root)
 	var existing_count_before := existing.size()
 	var root_children_before := root.get_child_count()
@@ -139,7 +138,7 @@ func begin_apply_overlay_node(root: Node3D, descriptors: Array) -> Dictionary:
 		"upsert_index": 0,
 		"rebuilt_count": 0,
 		"reused_count": 0,
-		"descriptor_count": descriptors.size(),
+		"descriptor_count": overlay_descriptors.size(),
 		"desired_count": desired.size(),
 		"existing_count_before": existing_count_before,
 		"root_children_before": root_children_before,
@@ -196,7 +195,7 @@ func apply_overlay_node_step(root: Node3D, state: Dictionary, max_ops: int = 64)
 				if parent != null:
 					parent.remove_child(node)
 				node.queue_free()
-			piece_node = PieceLibraryScript.build_piece_scene_root(set_id, base_name, raw_id)
+			piece_node = UATerrainPieceLibrary.build_piece_scene_root(set_id, base_name, raw_id)
 			if piece_node != null:
 				piece_node.set_meta("instance_key", key)
 				piece_node.set_meta("set_id", set_id)
@@ -215,11 +214,11 @@ func apply_overlay_node_step(root: Node3D, state: Dictionary, max_ops: int = 64)
 
 		if piece_node != null:
 			piece_node.position = _piece_position_from_desc(desc)
-			PieceLibraryScript._apply_optional_piece_orientation(piece_node, desc)
+			UATerrainPieceLibrary._apply_optional_piece_orientation(piece_node, desc)
 			var warp_sig := _warp_signature(desc)
 			var prev_warp_sig := String(piece_node.get_meta("warp_sig", ""))
 			if warp_sig != prev_warp_sig:
-				PieceLibraryScript._apply_optional_piece_deform(piece_node, desc)
+				UATerrainPieceLibrary._apply_optional_piece_deform(piece_node, desc)
 				piece_node.set_meta("warp_sig", warp_sig)
 
 		upsert_index += 1
@@ -246,9 +245,9 @@ func overlay_apply_progress(state: Dictionary) -> Dictionary:
 	return {"done": done, "total": total}
 
 
-static func _desired_descriptors_by_key(descriptors: Array) -> Dictionary:
+static func _desired_descriptors_by_key(overlay_descriptors: Array) -> Dictionary:
 	var desired := {}
-	for desc in descriptors:
+	for desc in overlay_descriptors:
 		if typeof(desc) != TYPE_DICTIONARY:
 			continue
 		var d := desc as Dictionary
@@ -323,4 +322,4 @@ static func _str_position_key(pos: Vector3) -> String:
 
 
 static func _piece_position_from_desc(desc: Dictionary) -> Vector3:
-	return Vector3(desc.get("origin", Vector3.ZERO)) + Vector3(0.0, PieceLibraryScript.OVERLAY_Y_BIAS + float(desc.get("y_offset", 0.0)), 0.0)
+	return Vector3(desc.get("origin", Vector3.ZERO)) + Vector3(0.0, UATerrainPieceLibrary.OVERLAY_Y_BIAS + float(desc.get("y_offset", 0.0)), 0.0)

@@ -77,10 +77,6 @@ func record_resize_snapshot(before_snapshot: Dictionary, after_snapshot: Diction
 	})
 
 
-const UnitSnapshotReconcilerScript := preload("res://globals/unit_snapshot_reconciler.gd")
-const UnitChangeDispatcherScript := preload("res://globals/unit_change_dispatcher.gd")
-
-
 func record_unit_snapshot(before_snapshot: Dictionary, after_snapshot: Dictionary) -> void:
 	if _is_replaying:
 		return
@@ -513,9 +509,9 @@ func _apply_resize_snapshot(snapshot: Dictionary) -> void:
 
 
 func _apply_unit_snapshot(snapshot: Dictionary) -> void:
-	var result := UnitSnapshotReconcilerScript.apply_unit_snapshot(snapshot)
+	var result := UnitSnapshotReconciler.apply_unit_snapshot(snapshot)
 	var changes: Array = result.get("changes", [])
-	UnitChangeDispatcherScript.emit_changes(changes)
+	UnitChangeDispatcher.emit_changes(changes)
 
 
 func _restore_host_stations(host_stations_snapshot: Array) -> void:

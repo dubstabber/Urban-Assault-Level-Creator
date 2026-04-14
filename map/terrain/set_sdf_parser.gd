@@ -1,8 +1,6 @@
 extends Resource
 class_name SetSdfParser
 
-const _UAProjectDataRoots = preload("res://map/ua_project_data_roots.gd")
-const _UALegacyText = preload("res://map/ua_legacy_text.gd")
 static var _full_typ_data_cache: Dictionary = {}
 static var _tile_mapping_cache: Dictionary = {}
 static var _lego_defs_cache: Dictionary = {}
@@ -33,7 +31,7 @@ static func parse_full_typ_data(set_id: int, game_data_type: String = "original"
 	if set_id < 1 or set_id > 6:
 		push_warning("SetSdfParser: invalid set_id %d; defaulting to 1" % set_id)
 		set_id = 1
-	var path := _UAProjectDataRoots.set_sdf_path_for_set(set_id, game_data_type)
+	var path := UAProjectDataRoots.set_sdf_path_for_set(set_id, game_data_type)
 	var res := parse_full_typ_data_at(path)
 	var subs: Dictionary = res.get("subsector_patterns", {})
 	var tiles: Dictionary = res.get("tile_mapping", {})
@@ -62,7 +60,7 @@ static func parse_lego_defs(path: String) -> Dictionary:
 	if not cache_key.is_empty() and _lego_defs_cache.has(cache_key):
 		var cached = _lego_defs_cache[cache_key]
 		return cached.duplicate(true) if typeof(cached) == TYPE_DICTIONARY else {}
-	var full := _UALegacyText.read_file(path)
+	var full := UALegacyText.read_file(path)
 	if full.is_empty():
 		return lego_defs
 	var raw_id := 0
@@ -97,7 +95,7 @@ static func parse_surface_type_map(set_id: int, game_data_type: String = "origin
 	if set_id < 1 or set_id > 6:
 		push_warning("SetSdfParser: invalid set_id %d; defaulting to 1" % set_id)
 		set_id = 1
-	var path := _UAProjectDataRoots.set_sdf_path_for_set(set_id, game_data_type)
+	var path := UAProjectDataRoots.set_sdf_path_for_set(set_id, game_data_type)
 	var mapping := parse_surface_type_map_at(path)
 	if mapping.is_empty():
 		var alt := ""

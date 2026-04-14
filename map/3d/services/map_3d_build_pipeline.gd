@@ -1,6 +1,5 @@
 extends RefCounted
 
-const UATerrainPieceLibraryScript := preload("res://map/terrain/ua_authored_piece_library.gd")
 const TerrainBuilder := preload("res://map/3d/terrain/map_3d_terrain_builder.gd")
 const SlurpBuilder := preload("res://map/3d/terrain/map_3d_slurp_builder.gd")
 const OverlayProducers := preload("res://map/3d/overlays/map_3d_overlay_descriptor_producers.gd")
@@ -34,7 +33,7 @@ func build_from_current_map(renderer) -> void:
 
 	renderer._unit_runtime_index.rebuild_from_map(current_map_data)
 	var game_data_type = renderer._current_game_data_type()
-	UATerrainPieceLibraryScript.set_piece_game_data_type(game_data_type)
+	UATerrainPieceLibrary.set_piece_game_data_type(game_data_type)
 	renderer._async_blg = blg
 	renderer._async_w = w
 	renderer._async_h = h
@@ -61,7 +60,7 @@ func build_from_current_map(renderer) -> void:
 			renderer._apply_untextured_materials(fallback_mesh)
 		var fallback_overlay_started_usec = Time.get_ticks_usec()
 		renderer._set_authored_overlay([])
-		var fallback_counters: Dictionary = UATerrainPieceLibraryScript.get_piece_overlay_build_counters()
+		var fallback_counters: Dictionary = UATerrainPieceLibrary.get_piece_overlay_build_counters()
 		metrics["piece_overlay_fast_path"] = int(fallback_counters.get("piece_overlay_fast_path", 0))
 		metrics["piece_overlay_slow_path"] = int(fallback_counters.get("piece_overlay_slow_path", 0))
 		metrics["overlay_node_creation_ms"] = renderer._elapsed_ms_since(fallback_overlay_started_usec)
@@ -223,7 +222,7 @@ func build_from_current_map(renderer) -> void:
 		metrics["static_overlay_apply_ms"] = renderer._elapsed_ms_since(overlay_node_started_usec)
 		metrics["overlay_node_creation_ms"] = metrics["static_overlay_apply_ms"]
 
-	var piece_counters: Dictionary = UATerrainPieceLibraryScript.get_piece_overlay_build_counters()
+	var piece_counters: Dictionary = UATerrainPieceLibrary.get_piece_overlay_build_counters()
 	metrics["piece_overlay_fast_path"] = int(piece_counters.get("piece_overlay_fast_path", 0))
 	metrics["piece_overlay_slow_path"] = int(piece_counters.get("piece_overlay_slow_path", 0))
 	renderer._clear_localized_overlay_scope()

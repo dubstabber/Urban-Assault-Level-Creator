@@ -1,9 +1,6 @@
 extends RefCounted
 class_name UnitSnapshotReconciler
 
-const UnitChangeDispatcherScript := preload("res://globals/unit_change_dispatcher.gd")
-
-
 static func _autoload(name: String) -> Node:
 	var main_loop := Engine.get_main_loop()
 	if main_loop is SceneTree and main_loop.root != null:
@@ -31,7 +28,7 @@ static func apply_unit_snapshot(snapshot: Dictionary) -> Dictionary:
 			"changes": [],
 			"selected_unit": null,
 		}
-	var previous_selected_id := UnitChangeDispatcherScript.unit_id_for(editor_state.selected_unit)
+	var previous_selected_id := UnitChangeDispatcher.unit_id_for(editor_state.selected_unit)
 	var changes: Array = []
 	changes.append_array(_reconcile_host_stations(snapshot.get("host_stations", [])))
 	changes.append_array(_reconcile_squads(snapshot.get("squads", [])))
@@ -74,7 +71,7 @@ static func _reconcile_units(container: Node, snapshot_entries: Array, unit_kind
 		if child_any == null or not is_instance_valid(child_any):
 			continue
 		var child := child_any as Node
-		var editor_unit_id := UnitChangeDispatcherScript.unit_id_for(child)
+		var editor_unit_id := UnitChangeDispatcher.unit_id_for(child)
 		if editor_unit_id > 0:
 			existing_by_id[editor_unit_id] = child
 
@@ -106,7 +103,7 @@ static func _reconcile_units(container: Node, snapshot_entries: Array, unit_kind
 			container.move_child(unit_node, idx)
 
 		if created:
-			changes.append(UnitChangeDispatcherScript.change_for_unit(unit_node, "created", unit_kind))
+			changes.append(UnitChangeDispatcher.change_for_unit(unit_node, "created", unit_kind))
 			continue
 
 		var after_state := _serialize_live_unit(unit_node, unit_kind)
@@ -115,7 +112,7 @@ static func _reconcile_units(container: Node, snapshot_entries: Array, unit_kind
 		var action := "visual"
 		if Vector2(before_state.get("position", Vector2.ZERO)) != Vector2(after_state.get("position", Vector2.ZERO)) or int(before_state.get("pos_y", 0)) != int(after_state.get("pos_y", 0)):
 			action = "moved"
-		changes.append(UnitChangeDispatcherScript.change_for_unit(unit_node, action, unit_kind))
+		changes.append(UnitChangeDispatcher.change_for_unit(unit_node, action, unit_kind))
 
 	for existing_id_any in existing_by_id.keys():
 		var existing_id := int(existing_id_any)
@@ -124,7 +121,7 @@ static func _reconcile_units(container: Node, snapshot_entries: Array, unit_kind
 		var unit_node: Node = existing_by_id[existing_id]
 		if unit_node == null or not is_instance_valid(unit_node):
 			continue
-		changes.append(UnitChangeDispatcherScript.change_for_unit(unit_node, "removed", unit_kind))
+		changes.append(UnitChangeDispatcher.change_for_unit(unit_node, "removed", unit_kind))
 		if unit_node.get_parent() == container:
 			container.remove_child(unit_node)
 		unit_node.queue_free()
@@ -191,7 +188,7 @@ static func _serialize_live_unit(unit_node: Node, unit_kind: String) -> Dictiona
 	if unit_kind == "host" and unit_node is HostStation:
 		var hs := unit_node as HostStation
 		return {
-			"editor_unit_id": UnitChangeDispatcherScript.unit_id_for(hs),
+			"editor_unit_id": UnitChangeDispatcher.unit_id_for(hs),
 			"owner_id": hs.owner_id,
 			"vehicle": hs.vehicle,
 			"position": hs.position,
@@ -222,7 +219,7 @@ static func _serialize_live_unit(unit_node: Node, unit_kind: String) -> Dictiona
 	if unit_kind == "squad" and unit_node is Squad:
 		var squad := unit_node as Squad
 		return {
-			"editor_unit_id": UnitChangeDispatcherScript.unit_id_for(squad),
+			"editor_unit_id": UnitChangeDispatcher.unit_id_for(squad),
 			"owner_id": squad.owner_id,
 			"vehicle": squad.vehicle,
 			"position": squad.position,

@@ -1,6 +1,5 @@
 extends RefCounted
 
-const UATerrainPieceLibraryScript := preload("res://map/terrain/ua_authored_piece_library.gd")
 const TerrainBuilder := preload("res://map/3d/terrain/map_3d_terrain_builder.gd")
 
 const SECTOR_SIZE := 1200.0
@@ -117,7 +116,7 @@ static func build_edge_overlay_result(hgt: PackedByteArray, w: int, h: int, typ:
 			if not _should_emit_seam_strip(sa, sb, yL, yR, yTopAvg, yBottomAvg):
 				continue
 			var base_name := _authored_slurp_base_name(sa, sb, true)
-			if UATerrainPieceLibraryScript.has_piece_source(set_id, base_name):
+			if UATerrainPieceLibrary.has_piece_source(set_id, base_name):
 				authored_piece_descriptors.append({
 					"set_id": set_id,
 					"raw_id": - 1,
@@ -152,7 +151,7 @@ static func build_edge_overlay_result(hgt: PackedByteArray, w: int, h: int, typ:
 			if not _should_emit_seam_strip(sa2, sb2, yT, yB, yLeftAvg, yRightAvg):
 				continue
 			var base_name_h := _authored_slurp_base_name(sa2, sb2, false)
-			if UATerrainPieceLibraryScript.has_piece_source(set_id, base_name_h):
+			if UATerrainPieceLibrary.has_piece_source(set_id, base_name_h):
 				authored_piece_descriptors.append({
 					"set_id": set_id,
 					"raw_id": - 1,
@@ -253,7 +252,7 @@ static func build_chunk_edge_overlay_result(
 			if not _should_emit_seam_strip(sa, sb, yL, yR, yTopAvg, yBottomAvg):
 				continue
 			var base_name := _authored_slurp_base_name(sa, sb, true)
-			if UATerrainPieceLibraryScript.has_piece_source(_set_id, base_name):
+			if UATerrainPieceLibrary.has_piece_source(_set_id, base_name):
 				authored_piece_descriptors.append({
 					"set_id": _set_id,
 					"raw_id": - 1,
@@ -292,7 +291,7 @@ static func build_chunk_edge_overlay_result(
 			if not _should_emit_seam_strip(sa2, sb2, yT, yB, yLeftAvg, yRightAvg):
 				continue
 			var base_name_h := _authored_slurp_base_name(sa2, sb2, false)
-			if UATerrainPieceLibraryScript.has_piece_source(_set_id, base_name_h):
+			if UATerrainPieceLibrary.has_piece_source(_set_id, base_name_h):
 				authored_piece_descriptors.append({
 					"set_id": _set_id,
 					"raw_id": - 1,

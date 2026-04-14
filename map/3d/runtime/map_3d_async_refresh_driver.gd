@@ -4,7 +4,6 @@ const AuthoredOverlayManager := preload("res://map/3d/overlays/map_3d_authored_o
 const OverlayProducers := preload("res://map/3d/overlays/map_3d_overlay_descriptor_producers.gd")
 const SlurpBuilder := preload("res://map/3d/terrain/map_3d_slurp_builder.gd")
 const TerrainBuilder := preload("res://map/3d/terrain/map_3d_terrain_builder.gd")
-const UATerrainPieceLibraryScript := preload("res://map/terrain/ua_authored_piece_library.gd")
 const UnitOverlayController := preload("res://map/3d/overlays/map_3d_unit_overlay_controller.gd")
 
 var _renderer = null
@@ -257,7 +256,7 @@ func sync_async_overlay_state_from_current_map() -> bool:
 	if typ.size() != w * h:
 		return false
 	var game_data_type: String = _renderer._current_game_data_type()
-	UATerrainPieceLibraryScript.set_piece_game_data_type(game_data_type)
+	UATerrainPieceLibrary.set_piece_game_data_type(game_data_type)
 	_renderer._async_effective_typ = _renderer._compute_effective_typ_for_map(cmd, w, h, typ, blg, game_data_type)
 	_renderer._async_blg = blg
 	_renderer._async_w = w
@@ -297,7 +296,7 @@ func try_start_async_initial_build(reframe_camera: bool) -> bool:
 	if chunk_list.is_empty():
 		return false
 	var game_data_type: String = _renderer._current_game_data_type()
-	UATerrainPieceLibraryScript.set_piece_game_data_type(game_data_type)
+	UATerrainPieceLibrary.set_piece_game_data_type(game_data_type)
 	var effective_typ: PackedByteArray = _renderer._compute_effective_typ_for_map(cmd, w, h, typ, blg, game_data_type)
 	var snapshot := {
 		"w": w,
@@ -606,7 +605,7 @@ func start_async_overlay_apply(static_descriptors: Array, dynamic_descriptors: A
 	_async_overlay_apply_state = _renderer._overlay_apply_manager.begin_apply_overlay_node(_renderer._authored_overlay, _async_overlay_descriptors)
 	_async_overlay_apply_started_usec = Time.get_ticks_usec()
 	_async_overlay_apply_active = true
-	UATerrainPieceLibraryScript.reset_piece_overlay_build_counters()
+	UATerrainPieceLibrary.reset_piece_overlay_build_counters()
 	update_build_progress(total_chunks, total_chunks, "Applying 3D overlays... 0%")
 
 
@@ -640,7 +639,7 @@ func finalize_async_overlay_apply() -> void:
 	_renderer._apply_dynamic_overlay(_async_dynamic_overlay_descriptors)
 	_renderer._apply_geometry_distance_culling_to_overlay()
 	var metrics := _async_overlay_metrics
-	var pc: Dictionary = UATerrainPieceLibraryScript.get_piece_overlay_build_counters()
+	var pc: Dictionary = UATerrainPieceLibrary.get_piece_overlay_build_counters()
 	metrics["piece_overlay_fast_path"] = int(pc.get("piece_overlay_fast_path", 0))
 	metrics["piece_overlay_slow_path"] = int(pc.get("piece_overlay_slow_path", 0))
 	metrics["overlay_node_creation_ms"] = _renderer._elapsed_ms_since(_async_overlay_apply_started_usec)
@@ -725,7 +724,7 @@ func apply_unit_change_batch(changes: Array) -> bool:
 	var support_descriptors: Array = _renderer._chunk_rt.get_support_descriptors()
 	_renderer._ensure_overlay_nodes()
 	var game_data_type: String = _renderer._current_game_data_type()
-	UATerrainPieceLibraryScript.set_piece_game_data_type(game_data_type)
+	UATerrainPieceLibrary.set_piece_game_data_type(game_data_type)
 	var applied := UnitOverlayController.apply_unit_changes(_renderer._dynamic_overlay, changes, cmd, support_descriptors, game_data_type, _renderer._unit_runtime_index)
 	if not applied:
 		return false

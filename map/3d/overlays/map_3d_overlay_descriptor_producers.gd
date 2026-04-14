@@ -5,7 +5,6 @@ extends RefCounted
 # All functions are static and produce plain descriptor dictionaries
 # without touching the scene tree.
 
-const UATerrainPieceLibraryScript = preload("res://map/terrain/ua_authored_piece_library.gd")
 const VisualLookupService = preload("res://map/3d/services/map_3d_visual_lookup_service.gd")
 
 const SECTOR_SIZE := 1200.0
@@ -74,7 +73,7 @@ static func support_height_at_world_position(hgt: PackedByteArray, w: int, h: in
 	var terrain_height := ground_height_at_world_position(hgt, w, h, world_x, world_z)
 	var authored_support: Variant = null
 	if support_descriptors.size() > 0:
-		authored_support = UATerrainPieceLibraryScript.support_height_at_world_position(support_descriptors, world_x, world_z)
+		authored_support = UATerrainPieceLibrary.support_height_at_world_position(support_descriptors, world_x, world_z)
 	_profile_increment(profile, "support_height_query_count")
 	_profile_add_duration(profile, "support_height_query_ms", _elapsed_ms_since(started_usec))
 	if authored_support != null:
@@ -250,7 +249,7 @@ static func build_host_station_descriptors_from_snapshot(host_stations: Array, s
 		var base_name := host_station_base_name_for_vehicle(vehicle)
 		if base_name.is_empty():
 			continue
-		if not UATerrainPieceLibraryScript.has_piece_source(set_id, base_name):
+		if not UATerrainPieceLibrary.has_piece_source(set_id, base_name):
 			continue
 		var world_x := float(hs.get("x", 0.0))
 		var world_z := absf(float(hs.get("y", 0.0)))
@@ -274,7 +273,7 @@ static func build_host_station_descriptors_from_snapshot(host_stations: Array, s
 				var gun_base_name := host_station_gun_base_name_for_type(gun_type)
 				if gun_base_name.is_empty():
 					continue
-				if not UATerrainPieceLibraryScript.has_piece_source(set_id, gun_base_name):
+				if not UATerrainPieceLibrary.has_piece_source(set_id, gun_base_name):
 					continue
 				var ua_offset := vector3_from_variant(attachment.get("ua_offset", Vector3.ZERO))
 				var gun_descriptor := {
@@ -312,7 +311,7 @@ static func build_squad_descriptors_from_snapshot(squads: Array, set_id: int, hg
 		var base_name := squad_base_name_for_vehicle(vehicle, set_id, game_data_type)
 		if base_name.is_empty():
 			continue
-		var has_piece_source := UATerrainPieceLibraryScript.has_piece_source(set_id, base_name)
+		var has_piece_source := UATerrainPieceLibrary.has_piece_source(set_id, base_name)
 		if not has_piece_source:
 			continue
 		var world_x := float(sq.get("x", 0.0))
@@ -383,7 +382,7 @@ static func build_blg_attachment_descriptors_for_sectors(blg: PackedByteArray, e
 				var base_name := building_attachment_base_name_for_vehicle(int(attachment.get("vehicle_id", -1)), set_id, game_data_type)
 				if base_name.is_empty():
 					continue
-				var has_piece_source := UATerrainPieceLibraryScript.has_piece_source(set_id, base_name)
+				var has_piece_source := UATerrainPieceLibrary.has_piece_source(set_id, base_name)
 				if not has_piece_source:
 					continue
 				var descriptor := {

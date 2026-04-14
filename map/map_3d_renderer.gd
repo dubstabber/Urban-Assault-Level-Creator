@@ -4,7 +4,6 @@ class_name Map3DRenderer
 signal build_state_changed(is_building: bool, completed: int, total: int, status: String)
 signal build_finished(success: bool)
 
-const UATerrainPieceLibraryScript := preload("res://map/terrain/ua_authored_piece_library.gd")
 const VisualLookupService := preload("res://map/3d/services/map_3d_visual_lookup_service.gd")
 const TerrainBuilder := preload("res://map/3d/terrain/map_3d_terrain_builder.gd")
 const SlurpBuilder := preload("res://map/3d/terrain/map_3d_slurp_builder.gd")
@@ -103,6 +102,39 @@ func _init() -> void:
 	_camera_controller.bind(self)
 	_scene_graph.bind(self)
 
+
+func _retain_collaborator_owned_state() -> void:
+	# These fields intentionally live on the renderer as shared mutable state for
+	# extracted collaborators and legacy tests that still poke the renderer surface.
+	var retained_state := [
+		_terrain_mesh,
+		_authored_overlay,
+		_dynamic_overlay,
+		_edge_overlay_enabled,
+		_edge_chunk_nodes,
+		_geometry_distance_culling_enabled,
+		_geometry_cull_distance,
+		_sector_top_shader,
+		_edge_blend_shader,
+		_async_pending_reframe_camera,
+		_async_requested_restart,
+		_async_requested_reframe,
+		_async_overlay_apply_state,
+		_async_overlay_descriptors,
+		_async_dynamic_overlay_descriptors,
+		_async_overlay_metrics,
+		_async_build_started_usec,
+		_async_overlay_apply_started_usec,
+		_async_overlay_descriptor_dynamic_only,
+		_async_overlay_apply_active,
+		_overlay_only_refresh_requested,
+		_dynamic_overlay_refresh_requested,
+		_pending_unit_changes,
+		_overlay_apply_manager,
+	]
+	if retained_state.size() < 0:
+		push_error("unreachable collaborator state marker")
+
 # Preview top surfaces use world-space tiling with one repeat per sector.
 func _compute_tile_scale() -> float:
 	return 1.0 / SECTOR_SIZE
@@ -174,23 +206,12 @@ var _edge_overlay_enabled := true
 @onready var _camera: Camera3D = $Camera3D
 @onready var _world_environment: WorldEnvironment = $WorldEnvironment if has_node("WorldEnvironment") else null
 
-var _mouselook := false
-var _yaw := 0.0
-var _pitch := -0.6
-var _move_speed := 1200.0
-var _sprint_mult := 2.0
-var _look_sens := 0.0025
-var _framed := false
 var _debug_shader_mode: int = 0 # Debug visualization for the current surface-type preview shader.
 var _event_system_override: Node = null
 var _current_map_data_override: Node = null
 var _editor_state_override: Node = null
 var _preloads_override: Node = null
 var _preloads_override_set := false
-var _refresh_pending := false
-var _refresh_reframe_pending := false
-var _refresh_deferred := false
-var _refresh_requested_at_usec := 0
 var _last_build_metrics: Dictionary = {}
 
 var _terrain_chunk_nodes: Dictionary = {}
@@ -549,6 +570,7 @@ func _apply_pending_refresh() -> void:
 	_async_refresh_driver.apply_pending_refresh()
 
 func _ready() -> void:
+	_retain_collaborator_owned_state()
 	_renderer_event_controller.ready(self)
 
 func _apply_visibility_range_from_editor_state() -> void:
@@ -695,7 +717,7 @@ func _sync_terrain_overlay_animation_mode_from_editor() -> void:
 		var raw: Variant = es.get("map_3d_terrain_overlay_animations_enabled")
 		if typeof(raw) == TYPE_BOOL:
 			anims_on = raw
-	UATerrainPieceLibraryScript.set_force_static_terrain_overlays(not anims_on)
+	UATerrainPieceLibrary.set_force_static_terrain_overlays(not anims_on)
 
 func _apply_debug_mode_to_existing_materials() -> void:
 	# Update cached terrain materials (shared across all chunks).
@@ -892,8 +914,8 @@ func _chunk_focus_coord(w: int, h: int) -> Vector2i:
 		var sx := clampi(_world_to_sector_index(world_pos.x), 0, maxi(w - 1, 0))
 		var sy := clampi(_world_to_sector_index(world_pos.z), 0, maxi(h - 1, 0))
 		return TerrainBuilder.sector_to_chunk(sx, sy)
-	var center_sx := maxi(w / 2, 0)
-	var center_sy := maxi(h / 2, 0)
+	var center_sx := maxi(w >> 1, 0)
+	var center_sy := maxi(h >> 1, 0)
 	return TerrainBuilder.sector_to_chunk(center_sx, center_sy)
 
 func _apply_localized_static_overlay_refresh(replacement_descriptors: Array, affected_chunks: Array, affected_sectors: Array, set_id: int, w: int, h: int) -> void:
@@ -1075,7 +1097,7 @@ static func _support_height_at_world_position(hgt: PackedByteArray, w: int, h: i
 	var terrain_height := _ground_height_at_world_position(hgt, w, h, world_x, world_z)
 	var authored_support: Variant = null
 	if support_descriptors.size() > 0:
-		authored_support = UATerrainPieceLibraryScript.support_height_at_world_position(support_descriptors, world_x, world_z)
+		authored_support = UATerrainPieceLibrary.support_height_at_world_position(support_descriptors, world_x, world_z)
 	_profile_increment(profile, "support_height_query_count")
 	_profile_add_duration(profile, "support_height_query_ms", _elapsed_ms_since(started_usec))
 	if authored_support != null:

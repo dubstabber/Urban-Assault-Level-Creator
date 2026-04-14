@@ -1,7 +1,5 @@
 extends RefCounted
 
-const UATerrainPieceLibraryScript := preload("res://map/terrain/ua_authored_piece_library.gd")
-
 const SECTOR_SIZE := 1200.0
 const HEIGHT_SCALE := 100.0
 const TERRAIN_AUTHORED_Y_OFFSET := 0.5
@@ -411,7 +409,7 @@ static func _authored_descriptor_from_cache(cache: Dictionary, set_id: int, raw_
 	if raw_id < 0:
 		return {}
 	if not cache.has(raw_id):
-		cache[raw_id] = UATerrainPieceLibraryScript.resolve_authored_descriptor(set_id, raw_id, lego_defs, Vector3.ZERO)
+		cache[raw_id] = UATerrainPieceLibrary.resolve_authored_descriptor(set_id, raw_id, lego_defs, Vector3.ZERO)
 	var cached_desc = cache.get(raw_id, {})
 	if typeof(cached_desc) != TYPE_DICTIONARY or (cached_desc as Dictionary).is_empty():
 		return {}

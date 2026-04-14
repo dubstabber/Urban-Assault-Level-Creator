@@ -46,7 +46,7 @@ static func sectors_for_playable_indices(indices: Array, w: int, h: int) -> Arra
 		if idx < 0 or idx >= (w * h):
 			continue
 		var sx := idx % w
-		var sy: int = int(idx / w)
+		var sy: int = floori(float(idx) / float(w))
 		var sector := Vector2i(sx, sy)
 		if seen.has(sector):
 			continue
@@ -67,7 +67,7 @@ static func sectors_for_hgt_border_indices(border_indices: Array, w: int, h: int
 		if border_idx < 0 or border_idx >= total:
 			continue
 		var bx := border_idx % bw
-		var by: int = int(border_idx / bw)
+		var by: int = floori(float(border_idx) / float(bw))
 		var sx: int = bx - 1
 		var sy: int = by - 1
 		for oy in [-1, 0, 1]:

@@ -1,9 +1,5 @@
 extends RefCounted
 
-const _UALegacyText = preload("res://map/ua_legacy_text.gd")
-const _ResDir = preload("res://scripts/res_dir.gd")
-
-
 static func script_assignment_text(raw_line: String, prefix: String) -> String:
 	var equals_index := raw_line.find("=")
 	if equals_index >= 0:
@@ -57,9 +53,9 @@ static func _append_vehicle_visual_entry(result: Dictionary, vehicle_id: int, en
 
 static func parse_building_definitions(script_path: String) -> Array:
 	var result: Array = []
-	if script_path.is_empty() or not _ResDir.file_exists(script_path):
+	if script_path.is_empty() or not ResDir.file_exists(script_path):
 		return result
-	var full := _UALegacyText.read_file(script_path)
+	var full := UALegacyText.read_file(script_path)
 	if full.is_empty():
 		return result
 	var current_building := {}
@@ -139,9 +135,9 @@ static func parse_building_definitions(script_path: String) -> Array:
 
 static func parse_vehicle_visual_entries(script_path: String) -> Dictionary:
 	var result := {}
-	if script_path.is_empty() or not _ResDir.file_exists(script_path):
+	if script_path.is_empty() or not ResDir.file_exists(script_path):
 		return result
-	var full := _UALegacyText.read_file(script_path)
+	var full := UALegacyText.read_file(script_path)
 	if full.is_empty():
 		return result
 	var current_vehicle_id := -1
@@ -186,9 +182,9 @@ static func parse_vehicle_visual_entries(script_path: String) -> Dictionary:
 
 static func parse_vehicle_visual_pairs(script_path: String) -> Dictionary:
 	var result := {}
-	if script_path.is_empty() or not _ResDir.file_exists(script_path):
+	if script_path.is_empty() or not ResDir.file_exists(script_path):
 		return result
-	var full := _UALegacyText.read_file(script_path)
+	var full := UALegacyText.read_file(script_path)
 	if full.is_empty():
 		return result
 	var current_vehicle_id := -1

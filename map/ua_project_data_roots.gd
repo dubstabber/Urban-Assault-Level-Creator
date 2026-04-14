@@ -1,8 +1,6 @@
 extends RefCounted
 class_name UAProjectDataRoots
 
-const _ResDir = preload("res://scripts/res_dir.gd")
-
 # All UA terrain / script data is read from files inside the Godot project directory.
 # Nothing is shipped as pre-baked Godot mesh assets for map pieces: set.sdf, BAS/SKLT JSON,
 # textures, and global .SCR pools drive `UATerrainPieceLibrary` and parsers at runtime.
@@ -45,12 +43,12 @@ static func first_existing_set_directory(set_id: int, game_data_type: String) ->
 	var xp_suffix := "_xp" if norm == "metropolisDawn" else ""
 	for base in all_set_root_base_paths():
 		var candidate := "%s/set%d%s" % [base, sid, xp_suffix]
-		if _ResDir.dir_exists(candidate):
+		if ResDir.dir_exists(candidate):
 			return candidate
 	if norm == "metropolisDawn":
 		for base in all_set_root_base_paths():
 			var retail := "%s/set%d" % [base, sid]
-			if _ResDir.dir_exists(retail):
+			if ResDir.dir_exists(retail):
 				return retail
 	return "%s/set%d%s" % [BUNDLED_SETS_ROOT, sid, xp_suffix]
 
@@ -76,7 +74,7 @@ static func first_existing_metadata_file(set_id: int, game_data_type: String, me
 static func first_existing_file(candidates: Array) -> String:
 	for candidate_value in candidates:
 		var candidate := String(candidate_value)
-		if not candidate.is_empty() and _ResDir.file_exists(candidate):
+		if not candidate.is_empty() and ResDir.file_exists(candidate):
 			return candidate
 	return ""
 
@@ -93,13 +91,13 @@ static func first_existing_path_under_set_roots(set_id: int, game_data_type: Str
 	for base in all_set_root_base_paths():
 		var set_dir := "%s/set%d%s" % [base, sid, xp_suffix]
 		var candidate := "%s/%s" % [set_dir, rel]
-		if _ResDir.file_exists(candidate):
+		if ResDir.file_exists(candidate):
 			return candidate
 	if norm == "metropolisDawn":
 		for base in all_set_root_base_paths():
 			var retail_root := "%s/set%d" % [base, sid]
 			var candidate := "%s/%s" % [retail_root, rel]
-			if _ResDir.file_exists(candidate):
+			if ResDir.file_exists(candidate):
 				return candidate
 	return ""
 
@@ -127,6 +125,6 @@ static func set_sdf_path_for_set(set_id: int, game_data_type: String) -> String:
 static func shared_script_root_for_game_data_type(game_data_type: String) -> String:
 	var norm := normalized_game_data_type(game_data_type)
 	var bundled := BUNDLED_ORIGINAL_SHARED_SCRIPTS if norm == "original" else BUNDLED_METROPOLIS_DAWN_SHARED_SCRIPTS
-	if _ResDir.dir_exists(bundled):
+	if ResDir.dir_exists(bundled):
 		return bundled
 	return bundled

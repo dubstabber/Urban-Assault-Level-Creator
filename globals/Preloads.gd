@@ -1,11 +1,5 @@
 extends Node
 
-const _UAProjectDataRoots = preload("res://map/ua_project_data_roots.gd")
-const _UALegacyText = preload("res://map/ua_legacy_text.gd")
-const _ResDir = preload("res://scripts/res_dir.gd")
-
-
-
 var ua_data: JSON = preload("res://resources/UAdata.json")
 
 const HOSTSTATION = preload("res://map/ua_structures/host_station.tscn")
@@ -276,7 +270,7 @@ func get_valid_building_indices(set_id: int) -> Array:
 
 func reload_mb_db_maps() -> void:
 	mbmaps.clear()
-	for file_name in _ResDir.get_files_at("res://resources/img/mbgfx/%s/" % EditorState.game_data_type):
+	for file_name in ResDir.get_files_at("res://resources/img/mbgfx/%s/" % EditorState.game_data_type):
 		if not file_name.get_extension().to_lower() == "png":
 			continue
 		var map_name := file_name.replace(".png", "")
@@ -298,14 +292,14 @@ func load_ground_textures() -> void:
 		var common_path := "res://resources/terrain/textures/common/ground_%d.png" % i
 		var tex: Texture2D = null
 		# Only try loading set-specific if the file exists to avoid benign loader errors
-		if _ResDir.file_exists(set_path):
+		if ResDir.file_exists(set_path):
 			tex = load(set_path)
 			if tex is Texture2D:
 				ground_textures[i] = tex
 				print("[Preloads] ground_%d <- %s" % [i, set_path])
 				continue
 		# Try common fallback if present
-		if _ResDir.file_exists(common_path):
+		if ResDir.file_exists(common_path):
 			tex = load(common_path)
 			if tex is Texture2D:
 				ground_textures[i] = tex
@@ -313,7 +307,7 @@ func load_ground_textures() -> void:
 				continue
 		else:
 			_ensure_common_placeholder_png(i)
-			if _ResDir.file_exists(common_path):
+			if ResDir.file_exists(common_path):
 				tex = load(common_path)
 				if tex is Texture2D:
 					ground_textures[i] = tex
@@ -353,22 +347,22 @@ func reload_surface_type_map() -> void:
 	# Optional per-set remap file (editor overrides first, then bundled set scripts).
 	# Format: { "0": {"file": 2, "variant": 0}, "1": {"file": 0, "variant": 1}, ... }
 	tile_remap = {}
-	var remap_path := "%s/set%d/tile_remap.json" % [_UAProjectDataRoots.EDITOR_OVERRIDES_ROOT, set_id]
-	if not _ResDir.file_exists(remap_path):
+	var remap_path := "%s/set%d/tile_remap.json" % [UAProjectDataRoots.EDITOR_OVERRIDES_ROOT, set_id]
+	if not ResDir.file_exists(remap_path):
 		remap_path = UAProjectDataRoots.first_existing_path_under_set_roots(
 			set_id, game_data_type, "scripts/tile_remap.json"
 		)
-	if _ResDir.file_exists(remap_path):
-		tile_remap = _ResDir.load_json_dict(remap_path)
+	if ResDir.file_exists(remap_path):
+		tile_remap = ResDir.load_json_dict(remap_path)
 
 	subsector_idx_remap = {}
-	var subremap_path := "%s/set%d/subsector_idx_remap.json" % [_UAProjectDataRoots.EDITOR_OVERRIDES_ROOT, set_id]
-	if not _ResDir.file_exists(subremap_path):
+	var subremap_path := "%s/set%d/subsector_idx_remap.json" % [UAProjectDataRoots.EDITOR_OVERRIDES_ROOT, set_id]
+	if not ResDir.file_exists(subremap_path):
 		subremap_path = UAProjectDataRoots.first_existing_path_under_set_roots(
 			set_id, game_data_type, "scripts/subsector_idx_remap.json"
 		)
-	if _ResDir.file_exists(subremap_path):
-		subsector_idx_remap = _ResDir.load_json_dict(subremap_path)
+	if ResDir.file_exists(subremap_path):
+		subsector_idx_remap = ResDir.load_json_dict(subremap_path)
 
 	if surface_type_map.is_empty():
 		# Leave empty; renderer will default to 0

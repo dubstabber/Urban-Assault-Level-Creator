@@ -8,9 +8,9 @@ func clear() -> void:
 	_descriptors_by_key.clear()
 
 
-func replace_all(descriptors: Array) -> void:
+func replace_all(overlay_descriptors: Array) -> void:
 	_descriptors_by_key.clear()
-	for desc_any in descriptors:
+	for desc_any in overlay_descriptors:
 		if typeof(desc_any) != TYPE_DICTIONARY:
 			continue
 		var desc := desc_any as Dictionary
@@ -20,12 +20,12 @@ func replace_all(descriptors: Array) -> void:
 		_descriptors_by_key[key] = desc
 
 
-func replace_matching_prefixes(prefixes: Array, descriptors: Array) -> void:
+func replace_matching_prefixes(prefixes: Array, overlay_descriptors: Array) -> void:
 	for key_value in _descriptors_by_key.keys():
 		var key := String(key_value)
 		if _matches_prefixes(key, prefixes):
 			_descriptors_by_key.erase(key)
-	for desc_any in descriptors:
+	for desc_any in overlay_descriptors:
 		if typeof(desc_any) != TYPE_DICTIONARY:
 			continue
 		var desc := desc_any as Dictionary
@@ -74,10 +74,10 @@ static func building_attachment_prefixes_for_sectors(set_id: int, sectors: Array
 	return prefixes
 
 
-static func exact_instance_key_prefixes(descriptors: Array) -> Array[String]:
+static func exact_instance_key_prefixes(overlay_descriptors: Array) -> Array[String]:
 	var prefixes: Array[String] = []
 	var seen := {}
-	for desc_any in descriptors:
+	for desc_any in overlay_descriptors:
 		if typeof(desc_any) != TYPE_DICTIONARY:
 			continue
 		var key := String((desc_any as Dictionary).get("instance_key", ""))
