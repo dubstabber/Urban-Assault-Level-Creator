@@ -1,21 +1,23 @@
 extends RefCounted
 
-const SECTOR_SIZE := 1200.0
-const HEIGHT_SCALE := 100.0
-const TERRAIN_AUTHORED_Y_OFFSET := 0.5
+const SharedConstants := preload("res://map/3d/config/map_3d_shared_constants.gd")
+
+const SECTOR_SIZE := SharedConstants.SECTOR_SIZE
+const HEIGHT_SCALE := SharedConstants.HEIGHT_SCALE
+const TERRAIN_AUTHORED_Y_OFFSET := SharedConstants.TERRAIN_AUTHORED_Y_OFFSET
 const SUBQUAD_UV_INSET := 0.002 # Prevent internal 1/3 and 2/3 seam sampling bleed
 
 const CHUNK_SIZE := 4
 const CHUNK_SHIFT := 2
 
-const BORDER_TYP_TOP_LEFT := 248
-const BORDER_TYP_TOP := 252
-const BORDER_TYP_TOP_RIGHT := 249
-const BORDER_TYP_LEFT := 255
-const BORDER_TYP_RIGHT := 253
-const BORDER_TYP_BOTTOM_LEFT := 251
-const BORDER_TYP_BOTTOM := 254
-const BORDER_TYP_BOTTOM_RIGHT := 250
+const BORDER_TYP_TOP_LEFT := SharedConstants.BORDER_TYP_TOP_LEFT
+const BORDER_TYP_TOP := SharedConstants.BORDER_TYP_TOP
+const BORDER_TYP_TOP_RIGHT := SharedConstants.BORDER_TYP_TOP_RIGHT
+const BORDER_TYP_LEFT := SharedConstants.BORDER_TYP_LEFT
+const BORDER_TYP_RIGHT := SharedConstants.BORDER_TYP_RIGHT
+const BORDER_TYP_BOTTOM_LEFT := SharedConstants.BORDER_TYP_BOTTOM_LEFT
+const BORDER_TYP_BOTTOM := SharedConstants.BORDER_TYP_BOTTOM
+const BORDER_TYP_BOTTOM_RIGHT := SharedConstants.BORDER_TYP_BOTTOM_RIGHT
 
 
 static func build_mesh(hgt: PackedByteArray, w: int, h: int) -> ArrayMesh:

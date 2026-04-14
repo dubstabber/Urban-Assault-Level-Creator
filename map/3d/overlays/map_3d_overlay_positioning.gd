@@ -1,10 +1,12 @@
 extends RefCounted
 
+const SharedConstants := preload("res://map/3d/config/map_3d_shared_constants.gd")
+const VisualCatalog := preload("res://map/3d/config/map_3d_visual_catalog.gd")
 const OverlayProducers := preload("res://map/3d/overlays/map_3d_overlay_descriptor_producers.gd")
 
-const SECTOR_SIZE := 1200.0
-const HEIGHT_SCALE := 100.0
-const WORLD_SCALE := 1.0 / SECTOR_SIZE
+const SECTOR_SIZE := SharedConstants.SECTOR_SIZE
+const HEIGHT_SCALE := SharedConstants.HEIGHT_SCALE
+const WORLD_SCALE := SharedConstants.WORLD_SCALE
 
 
 static func sector_center_origin(sx: int, sy: int, sector_y: float) -> Vector3:
@@ -16,11 +18,11 @@ static func sector_center_origin_scaled(sx: int, sy: int, sector_y: float) -> Ve
 
 
 static func host_station_base_name_for_vehicle(vehicle_id: int) -> String:
-	return String(OverlayProducers.HOST_STATION_BASE_NAMES.get(vehicle_id, ""))
+	return String(VisualCatalog.HOST_STATION_BASE_NAMES.get(vehicle_id, ""))
 
 
 static func host_station_gun_base_name_for_type(gun_type: int) -> String:
-	return String(OverlayProducers.HOST_STATION_VISIBLE_GUN_BASE_NAMES.get(gun_type, ""))
+	return String(VisualCatalog.HOST_STATION_VISIBLE_GUN_BASE_NAMES.get(gun_type, ""))
 
 
 static func vector3_from_variant(value) -> Vector3:

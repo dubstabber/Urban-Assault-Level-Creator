@@ -1,19 +1,20 @@
 extends RefCounted
 
+const SharedConstants := preload("res://map/3d/config/map_3d_shared_constants.gd")
 const TerrainBuilder := preload("res://map/3d/terrain/map_3d_terrain_builder.gd")
 
-const SECTOR_SIZE := 1200.0
-const HEIGHT_SCALE := 100.0
-const WORLD_SCALE := 1.0 / SECTOR_SIZE
-const EDGE_SLOPE := 150.0
-const BORDER_TYP_TOP_LEFT := 248
-const BORDER_TYP_TOP := 252
-const BORDER_TYP_TOP_RIGHT := 249
-const BORDER_TYP_LEFT := 255
-const BORDER_TYP_RIGHT := 253
-const BORDER_TYP_BOTTOM_LEFT := 251
-const BORDER_TYP_BOTTOM := 254
-const BORDER_TYP_BOTTOM_RIGHT := 250
+const SECTOR_SIZE := SharedConstants.SECTOR_SIZE
+const HEIGHT_SCALE := SharedConstants.HEIGHT_SCALE
+const WORLD_SCALE := SharedConstants.WORLD_SCALE
+const EDGE_SLOPE := SharedConstants.EDGE_SLOPE
+const BORDER_TYP_TOP_LEFT := SharedConstants.BORDER_TYP_TOP_LEFT
+const BORDER_TYP_TOP := SharedConstants.BORDER_TYP_TOP
+const BORDER_TYP_TOP_RIGHT := SharedConstants.BORDER_TYP_TOP_RIGHT
+const BORDER_TYP_LEFT := SharedConstants.BORDER_TYP_LEFT
+const BORDER_TYP_RIGHT := SharedConstants.BORDER_TYP_RIGHT
+const BORDER_TYP_BOTTOM_LEFT := SharedConstants.BORDER_TYP_BOTTOM_LEFT
+const BORDER_TYP_BOTTOM := SharedConstants.BORDER_TYP_BOTTOM
+const BORDER_TYP_BOTTOM_RIGHT := SharedConstants.BORDER_TYP_BOTTOM_RIGHT
 
 
 static func sample_hgt_height(hgt: PackedByteArray, w: int, h: int, sx: int, sy: int) -> float:

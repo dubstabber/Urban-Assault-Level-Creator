@@ -1,10 +1,11 @@
 extends RefCounted
 
+const SharedConstants := preload("res://map/3d/config/map_3d_shared_constants.gd")
 const TerrainBuilder := preload("res://map/3d/terrain/map_3d_terrain_builder.gd")
 
-const SECTOR_SIZE := 1200.0
-const HEIGHT_SCALE := 100.0
-const EDGE_SLOPE := 150.0
+const SECTOR_SIZE := SharedConstants.SECTOR_SIZE
+const HEIGHT_SCALE := SharedConstants.HEIGHT_SCALE
+const EDGE_SLOPE := SharedConstants.EDGE_SLOPE
 
 
 static func _retail_slurp_bucket_key(surface_a: int, surface_b: int, neighbor_dx: int, neighbor_dy: int) -> String:

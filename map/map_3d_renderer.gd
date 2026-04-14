@@ -13,6 +13,10 @@ const RendererEventController := preload("res://map/3d/controllers/map_3d_render
 const AsyncRefreshDriver := preload("res://map/3d/runtime/map_3d_async_refresh_driver.gd")
 const CameraController := preload("res://map/3d/runtime/map_3d_camera_controller.gd")
 const SceneGraph := preload("res://map/3d/runtime/map_3d_scene_graph.gd")
+const RuntimeState := preload("res://map/3d/runtime/map_3d_runtime_state.gd")
+const RuntimeContext := preload("res://map/3d/runtime/map_3d_runtime_context.gd")
+const SharedConstants := preload("res://map/3d/config/map_3d_shared_constants.gd")
+const VisualCatalog := preload("res://map/3d/config/map_3d_visual_catalog.gd")
 const PreviewGeometry := preload("res://map/3d/terrain/map_3d_preview_geometry.gd")
 const OverlayPositioning := preload("res://map/3d/overlays/map_3d_overlay_positioning.gd")
 const RefreshCoordinator := preload("res://map/3d/services/map_3d_refresh_coordinator.gd")
@@ -26,21 +30,21 @@ const StaticOverlayIndex := preload("res://map/3d/services/map_3d_static_overlay
 const UnitRuntimeIndex := preload("res://map/3d/services/map_3d_unit_runtime_index.gd")
 const BuildPipeline := preload("res://map/3d/services/map_3d_build_pipeline.gd")
 
-const SECTOR_SIZE := 1200.0
-const HEIGHT_SCALE := 100.0
+const SECTOR_SIZE := SharedConstants.SECTOR_SIZE
+const HEIGHT_SCALE := SharedConstants.HEIGHT_SCALE
 # The 2D editor / UA coordinate system uses a 1200-unit sector span.
 # The 3D preview + authored-piece sampling operates in scaled-world units
 # where that span is 1.0. This constant is used to convert UA->scaled.
-const WORLD_SCALE := 1.0 / SECTOR_SIZE
-const EDGE_SLOPE := 150.0 # Per-side width; UA fillers span ~300 across seam (~150 into each sector)
-const BORDER_TYP_TOP_LEFT := 248
-const BORDER_TYP_TOP := 252
-const BORDER_TYP_TOP_RIGHT := 249
-const BORDER_TYP_LEFT := 255
-const BORDER_TYP_RIGHT := 253
-const BORDER_TYP_BOTTOM_LEFT := 251
-const BORDER_TYP_BOTTOM := 254
-const BORDER_TYP_BOTTOM_RIGHT := 250
+const WORLD_SCALE := SharedConstants.WORLD_SCALE
+const EDGE_SLOPE := SharedConstants.EDGE_SLOPE # Per-side width; UA fillers span ~300 across seam (~150 into each sector)
+const BORDER_TYP_TOP_LEFT := SharedConstants.BORDER_TYP_TOP_LEFT
+const BORDER_TYP_TOP := SharedConstants.BORDER_TYP_TOP
+const BORDER_TYP_TOP_RIGHT := SharedConstants.BORDER_TYP_TOP_RIGHT
+const BORDER_TYP_LEFT := SharedConstants.BORDER_TYP_LEFT
+const BORDER_TYP_RIGHT := SharedConstants.BORDER_TYP_RIGHT
+const BORDER_TYP_BOTTOM_LEFT := SharedConstants.BORDER_TYP_BOTTOM_LEFT
+const BORDER_TYP_BOTTOM := SharedConstants.BORDER_TYP_BOTTOM
+const BORDER_TYP_BOTTOM_RIGHT := SharedConstants.BORDER_TYP_BOTTOM_RIGHT
 const TERRAIN_PREVIEW_COLOR := Color(0.62, 0.66, 0.58, 1.0)
 const EDGE_PREVIEW_COLOR := Color(0.82, 0.48, 0.24, 0.55)
 const EDGE_BLEND_SHADER_PATH := "res://resources/terrain/shaders/edge_blend.gdshader"
@@ -50,63 +54,27 @@ const UA_NORMAL_GEOMETRY_CULL_DISTANCE := float(UA_NORMAL_RENDER_SECTORS) * SECT
 const _ASYNC_APPLY_RESULTS_PER_FRAME := 4
 const _ASYNC_OVERLAY_APPLY_OPS_PER_FRAME := 48
 const _MAX_INCREMENTAL_UNIT_BATCH := 64
-const HOST_STATION_BASE_NAMES := {
-	56: "VP_ROBO",
-	57: "VP_KROBO",
-	58: "VP_BRGRO",
-	59: "VP_GIGNT",
-	60: "VP_TAERO",
-	61: "VP_SULG1",
-	62: "VP_BSECT",
-	132: "VP_TRAIN",
-	176: "VP_GIGNT",
-	177: "VP_KROBO",
-	178: "VP_TAERO",
-}
-const HOST_STATION_VISIBLE_GUN_BASE_NAMES := {
-	90: "VP_MFLAK",
-	91: "VP_MFLAK",
-	92: "VP_MFLAK",
-	93: "VP_FLAK2",
-	94: "VP_FLAK2",
-	95: "VP_FLAK2",
-}
-const HOST_STATION_GUN_ATTACHMENTS := {
-	56: [
-		{"gun_type": 90, "ua_offset": Vector3(0.0, -200.0, 55.0), "ua_direction": Vector3(0.0, 0.0, 1.0)},
-		{"gun_type": 91, "ua_offset": Vector3(0.0, -180.0, -80.0), "ua_direction": Vector3(0.0, 0.0, -1.0)},
-		{"gun_type": 92, "ua_offset": Vector3(0.0, -390.0, 0.0), "ua_direction": Vector3(0.0, 0.0, 1.0)},
-		{"gun_type": 93, "ua_offset": Vector3(0.0, 150.0, 0.0), "ua_direction": Vector3(0.0, 0.0, 1.0)},
-	],
-	62: [
-		{"gun_type": 95, "ua_offset": Vector3(0.0, -150.0, 375.0), "ua_direction": Vector3(0.0, 0.0, 1.0)},
-		{"gun_type": 94, "ua_offset": Vector3(0.0, -120.0, -380.0), "ua_direction": Vector3(0.0, 0.0, -1.0)},
-	],
-}
-const TECH_UPGRADE_EDITOR_TYP_OVERRIDES := {
-	4: 100,
-	7: 73,
-	15: 104,
-	16: 103,
-	50: 102,
-	51: 101,
-	60: 106,
-	61: 113,
-	65: 110,
-}
-const SQUAD_FORMATION_SPACING := 100.0
-const SQUAD_EXTRA_Y_OFFSET := 8.0
+const HOST_STATION_BASE_NAMES := VisualCatalog.HOST_STATION_BASE_NAMES
+const HOST_STATION_VISIBLE_GUN_BASE_NAMES := VisualCatalog.HOST_STATION_VISIBLE_GUN_BASE_NAMES
+const HOST_STATION_GUN_ATTACHMENTS := VisualCatalog.HOST_STATION_GUN_ATTACHMENTS
+const TECH_UPGRADE_EDITOR_TYP_OVERRIDES := VisualCatalog.TECH_UPGRADE_EDITOR_TYP_OVERRIDES
+const SQUAD_FORMATION_SPACING := SharedConstants.SQUAD_FORMATION_SPACING
+const SQUAD_EXTRA_Y_OFFSET := SharedConstants.SQUAD_EXTRA_Y_OFFSET
 
 func _init() -> void:
+	_runtime_context.bind(self)
 	_async_refresh_driver.bind(self)
 	_camera_controller.bind(self)
 	_scene_graph.bind(self)
+	_geometry_cull_distance = UA_NORMAL_GEOMETRY_CULL_DISTANCE
 
 
 func _retain_collaborator_owned_state() -> void:
-	# These fields intentionally live on the renderer as shared mutable state for
-	# extracted collaborators and legacy tests that still poke the renderer surface.
+	# These fields intentionally stay reachable on the renderer facade for
+	# compatibility while the real mutable storage lives in shared runtime state.
 	var retained_state := [
+		_runtime_state,
+		_runtime_context,
 		_terrain_mesh,
 		_authored_overlay,
 		_dynamic_overlay,
@@ -199,32 +167,80 @@ static func facade_contract() -> Dictionary:
 @onready var _edge_mesh: MeshInstance3D = $EdgeMesh if has_node("EdgeMesh") else null
 @onready var _authored_overlay: Node3D = $AuthoredOverlay if has_node("AuthoredOverlay") else null
 @onready var _dynamic_overlay: Node3D = $DynamicOverlay if has_node("DynamicOverlay") else null
-# Keep seam/slurp strips visible in the live preview; redundant flat/same-surface
-# seams are filtered out in the builder to avoid needless overdraw.
-var _edge_overlay_enabled := true
 
 @onready var _camera: Camera3D = $Camera3D
 @onready var _world_environment: WorldEnvironment = $WorldEnvironment if has_node("WorldEnvironment") else null
 
-var _debug_shader_mode: int = 0 # Debug visualization for the current surface-type preview shader.
-var _event_system_override: Node = null
-var _current_map_data_override: Node = null
-var _editor_state_override: Node = null
-var _preloads_override: Node = null
-var _preloads_override_set := false
-var _last_build_metrics: Dictionary = {}
+var _runtime_state := RuntimeState.new()
+var _runtime_context := RuntimeContext.new()
 
-var _terrain_chunk_nodes: Dictionary = {}
-var _edge_chunk_nodes: Dictionary = {}
+var _debug_shader_mode: int:
+	get:
+		return _runtime_state.debug_shader_mode
+	set(value):
+		_runtime_state.debug_shader_mode = int(value)
 
-var _geometry_distance_culling_enabled := false
-var _geometry_cull_distance := UA_NORMAL_GEOMETRY_CULL_DISTANCE
+var _last_build_metrics: Dictionary:
+	get:
+		return _runtime_state.last_build_metrics
+	set(value):
+		_runtime_state.last_build_metrics = Dictionary(value)
 
-# Material pooling: reuse identical ShaderMaterials across chunks.
-var _sector_top_shader: Shader = null
-var _edge_blend_shader: Shader = null
-var _terrain_material_cache: Dictionary = {} # surface_type (int) -> ShaderMaterial
-var _edge_material_cache: Dictionary = {} # "bucket_key:vertical_bool" -> ShaderMaterial
+var _terrain_chunk_nodes: Dictionary:
+	get:
+		return _runtime_state.terrain_chunk_nodes
+	set(value):
+		_runtime_state.terrain_chunk_nodes = Dictionary(value)
+
+var _edge_chunk_nodes: Dictionary:
+	get:
+		return _runtime_state.edge_chunk_nodes
+	set(value):
+		_runtime_state.edge_chunk_nodes = Dictionary(value)
+
+var _geometry_distance_culling_enabled:
+	get:
+		return _runtime_state.geometry_distance_culling_enabled
+	set(value):
+		_runtime_state.geometry_distance_culling_enabled = bool(value)
+
+var _geometry_cull_distance:
+	get:
+		return _runtime_state.geometry_cull_distance
+	set(value):
+		_runtime_state.geometry_cull_distance = float(value)
+
+var _sector_top_shader: Shader:
+	get:
+		return _runtime_state.sector_top_shader
+	set(value):
+		_runtime_state.sector_top_shader = value
+
+var _edge_blend_shader: Shader:
+	get:
+		return _runtime_state.edge_blend_shader
+	set(value):
+		_runtime_state.edge_blend_shader = value
+
+var _terrain_material_cache: Dictionary:
+	get:
+		return _runtime_state.terrain_material_cache
+	set(value):
+		_runtime_state.terrain_material_cache = Dictionary(value)
+
+var _edge_material_cache: Dictionary:
+	get:
+		return _runtime_state.edge_material_cache
+	set(value):
+		_runtime_state.edge_material_cache = Dictionary(value)
+
+# Keep seam/slurp strips visible in the live preview; redundant flat/same-surface
+# seams are filtered out in the builder to avoid needless overdraw.
+var _edge_overlay_enabled:
+	get:
+		return _runtime_state.edge_overlay_enabled
+	set(value):
+		_runtime_state.edge_overlay_enabled = bool(value)
 
 # Scheduling and async build coordination is delegated to the coordinator.
 # Thread-safe state, chunk payload queues, generation IDs, and map-signature
@@ -273,26 +289,86 @@ var status_text:
 	set(value):
 		_async_refresh_driver.status_text = String(value)
 
-var _async_pending_reframe_camera := false
-var _async_effective_typ: PackedByteArray = PackedByteArray()
-var _async_blg: PackedByteArray = PackedByteArray()
-var _async_w := 0
-var _async_h := 0
-var _async_level_set := 0
-var _async_game_data_type := "original"
-var _async_requested_restart := false
-var _async_requested_reframe := false
+var _async_pending_reframe_camera:
+	get:
+		return _async_refresh_driver._async_pending_reframe_camera
+	set(value):
+		_async_refresh_driver._async_pending_reframe_camera = bool(value)
+var _async_effective_typ: PackedByteArray:
+	get:
+		return _runtime_state.async_effective_typ
+	set(value):
+		_runtime_state.async_effective_typ = value
+var _async_blg: PackedByteArray:
+	get:
+		return _runtime_state.async_blg
+	set(value):
+		_runtime_state.async_blg = value
+var _async_w:
+	get:
+		return _runtime_state.async_w
+	set(value):
+		_runtime_state.async_w = int(value)
+var _async_h:
+	get:
+		return _runtime_state.async_h
+	set(value):
+		_runtime_state.async_h = int(value)
+var _async_level_set:
+	get:
+		return _runtime_state.async_level_set
+	set(value):
+		_runtime_state.async_level_set = int(value)
+var _async_game_data_type:
+	get:
+		return _runtime_state.async_game_data_type
+	set(value):
+		_runtime_state.async_game_data_type = String(value)
+var _async_requested_restart:
+	get:
+		return _async_refresh_driver._async_requested_restart
+	set(value):
+		_async_refresh_driver._async_requested_restart = bool(value)
+var _async_requested_reframe:
+	get:
+		return _async_refresh_driver._async_requested_reframe
+	set(value):
+		_async_refresh_driver._async_requested_reframe = bool(value)
 var _async_overlay_apply_active:
 	get:
 		return _async_refresh_driver.is_async_overlay_apply_active()
 	set(value):
 		_async_refresh_driver._async_overlay_apply_active = bool(value)
-var _async_overlay_apply_state: Dictionary = {}
-var _async_overlay_descriptors: Array = []
-var _async_dynamic_overlay_descriptors: Array = []
-var _async_overlay_metrics: Dictionary = {}
-var _async_build_started_usec := 0
-var _async_overlay_apply_started_usec := 0
+var _async_overlay_apply_state: Dictionary:
+	get:
+		return _async_refresh_driver._async_overlay_apply_state
+	set(value):
+		_async_refresh_driver._async_overlay_apply_state = Dictionary(value)
+var _async_overlay_descriptors: Array:
+	get:
+		return _async_refresh_driver._async_overlay_descriptors
+	set(value):
+		_async_refresh_driver._async_overlay_descriptors = Array(value)
+var _async_dynamic_overlay_descriptors: Array:
+	get:
+		return _async_refresh_driver._async_dynamic_overlay_descriptors
+	set(value):
+		_async_refresh_driver._async_dynamic_overlay_descriptors = Array(value)
+var _async_overlay_metrics: Dictionary:
+	get:
+		return _async_refresh_driver._async_overlay_metrics
+	set(value):
+		_async_refresh_driver._async_overlay_metrics = Dictionary(value)
+var _async_build_started_usec:
+	get:
+		return _async_refresh_driver._async_build_started_usec
+	set(value):
+		_async_refresh_driver._async_build_started_usec = int(value)
+var _async_overlay_apply_started_usec:
+	get:
+		return _async_refresh_driver._async_overlay_apply_started_usec
+	set(value):
+		_async_refresh_driver._async_overlay_apply_started_usec = int(value)
 var _overlay_only_refresh_requested:
 	get:
 		return _async_refresh_driver._overlay_only_refresh_requested
@@ -303,18 +379,40 @@ var _dynamic_overlay_refresh_requested:
 		return _async_refresh_driver._dynamic_overlay_refresh_requested
 	set(value):
 		_async_refresh_driver._dynamic_overlay_refresh_requested = bool(value)
-var _async_overlay_descriptor_dynamic_only := false
-var _skip_next_map_changed_refresh := false
+var _async_overlay_descriptor_dynamic_only:
+	get:
+		return _async_refresh_driver._async_overlay_descriptor_dynamic_only
+	set(value):
+		_async_refresh_driver._async_overlay_descriptor_dynamic_only = bool(value)
+var _skip_next_map_changed_refresh:
+	get:
+		return _runtime_state.skip_next_map_changed_refresh
+	set(value):
+		_runtime_state.skip_next_map_changed_refresh = bool(value)
 var _pending_unit_changes:
 	get:
 		return _async_refresh_driver._pending_unit_changes
 	set(value):
 		_async_refresh_driver._pending_unit_changes = Array(value)
-var _overlay_apply_manager := AuthoredOverlayManager.new()
-var _static_overlay_index := StaticOverlayIndex.new()
-var _unit_runtime_index := UnitRuntimeIndex.new()
-var _localized_overlay_dirty_sectors: Dictionary = {}
-var _localized_dynamic_overlay_dirty_sectors: Dictionary = {}
+var _overlay_apply_manager:
+	get:
+		return _runtime_state.overlay_apply_manager
+var _static_overlay_index:
+	get:
+		return _runtime_state.static_overlay_index
+var _unit_runtime_index:
+	get:
+		return _runtime_state.unit_runtime_index
+var _localized_overlay_dirty_sectors: Dictionary:
+	get:
+		return _runtime_state.localized_overlay_dirty_sectors
+	set(value):
+		_runtime_state.localized_overlay_dirty_sectors = Dictionary(value)
+var _localized_dynamic_overlay_dirty_sectors: Dictionary:
+	get:
+		return _runtime_state.localized_dynamic_overlay_dirty_sectors
+	set(value):
+		_runtime_state.localized_dynamic_overlay_dirty_sectors = Dictionary(value)
 var _renderer_event_controller := RendererEventController.new()
 var _build_pipeline := BuildPipeline.new()
 var _async_refresh_driver := AsyncRefreshDriver.new()
@@ -322,17 +420,16 @@ var _camera_controller := CameraController.new()
 var _scene_graph := SceneGraph.new()
 
 func set_event_system_override(event_system: Node) -> void:
-	_event_system_override = event_system
+	_runtime_context.set_event_system_override(event_system)
 
 func set_current_map_data_override(current_map_data: Node) -> void:
-	_current_map_data_override = current_map_data
+	_runtime_context.set_current_map_data_override(current_map_data)
 
 func set_editor_state_override(editor_state: Node) -> void:
-	_editor_state_override = editor_state
+	_runtime_context.set_editor_state_override(editor_state)
 
 func set_preloads_override(preloads: Node) -> void:
-	_preloads_override = preloads
-	_preloads_override_set = true
+	_runtime_context.set_preloads_override(preloads)
 
 func get_build_state_snapshot() -> Dictionary:
 	return _async_refresh_driver.get_build_state_snapshot()
@@ -491,75 +588,25 @@ func _finalize_build_metrics(metrics: Dictionary, build_started_usec: int) -> vo
 	_last_build_metrics = metrics.duplicate(true)
 
 func _event_system() -> Node:
-	if _event_system_override != null and is_instance_valid(_event_system_override):
-		return _event_system_override
-	if is_inside_tree():
-		var tree := get_tree()
-		if tree != null and tree.root != null:
-			return tree.root.get_node_or_null("EventSystem")
-	var main_loop := Engine.get_main_loop()
-	if main_loop is SceneTree and main_loop.root != null:
-		return main_loop.root.get_node_or_null("EventSystem")
-	return null
+	return _runtime_context.event_system()
 
 func _current_map_data() -> Node:
-	if _current_map_data_override != null and is_instance_valid(_current_map_data_override):
-		return _current_map_data_override
-	if is_inside_tree():
-		var tree := get_tree()
-		if tree != null and tree.root != null:
-			return tree.root.get_node_or_null("CurrentMapData")
-	var main_loop := Engine.get_main_loop()
-	if main_loop is SceneTree and main_loop.root != null:
-		return main_loop.root.get_node_or_null("CurrentMapData")
-	return null
+	return _runtime_context.current_map_data()
 
 func _editor_state() -> Node:
-	if _editor_state_override != null and is_instance_valid(_editor_state_override):
-		return _editor_state_override
-	if is_inside_tree():
-		var tree := get_tree()
-		if tree != null and tree.root != null:
-			return tree.root.get_node_or_null("EditorState")
-	var main_loop := Engine.get_main_loop()
-	if main_loop is SceneTree and main_loop.root != null:
-		return main_loop.root.get_node_or_null("EditorState")
-	return null
+	return _runtime_context.editor_state()
 
 func _preloads() -> Node:
-	if _preloads_override_set:
-		if _preloads_override != null and is_instance_valid(_preloads_override):
-			return _preloads_override
-		return null
-	if is_inside_tree():
-		var tree := get_tree()
-		if tree != null and tree.root != null:
-			return tree.root.get_node_or_null("Preloads")
-	var main_loop := Engine.get_main_loop()
-	if main_loop is SceneTree and main_loop.root != null:
-		return main_loop.root.get_node_or_null("Preloads")
-	return null
+	return _runtime_context.preloads()
 
 func _preview_refresh_active() -> bool:
-	# Allow in-progress async builds to continue even when the user switches
-	# to 2D mode, so completed chunks are ready when they switch back.
-	# New refreshes defer until 3D is visible to avoid wasting CPU on edits
-	# the user hasn't asked to preview yet.
-	if _is_async_pipeline_active():
-		return true
-	var editor_state := _editor_state()
-	if editor_state != null:
-		return bool(editor_state.get("view_mode_3d"))
-	return true
+	return _runtime_context.preview_refresh_active(_is_async_pipeline_active())
 
 func _is_3d_view_visible() -> bool:
-	var editor_state := _editor_state()
-	if editor_state != null:
-		return bool(editor_state.get("view_mode_3d"))
-	return true
+	return _runtime_context.is_3d_view_visible()
 
 func _apply_preview_activity_state() -> void:
-	var in_3d := _is_3d_view_visible()
+	var in_3d := _runtime_context.is_3d_view_visible()
 	set_physics_process(in_3d)
 	set_process_unhandled_input(in_3d)
 
@@ -571,13 +618,12 @@ func _apply_pending_refresh() -> void:
 
 func _ready() -> void:
 	_retain_collaborator_owned_state()
+	_sector_top_shader = load("res://resources/terrain/shaders/sector_top.gdshader")
+	_edge_blend_shader = load(EDGE_BLEND_SHADER_PATH)
 	_renderer_event_controller.ready(self)
 
 func _apply_visibility_range_from_editor_state() -> void:
-	var editor_state := _editor_state()
-	var enabled := false
-	if editor_state != null:
-		enabled = bool(editor_state.get("map_3d_visibility_range_enabled"))
+	var enabled := _runtime_context.visibility_range_enabled()
 	if _world_environment != null and _world_environment.environment != null:
 		apply_visibility_range_to_environment(_world_environment.environment, enabled)
 	_apply_geometry_distance_culling_state(enabled)
@@ -711,13 +757,7 @@ func _reset_async_build_state() -> void:
 	_skip_next_map_changed_refresh = false
 
 func _sync_terrain_overlay_animation_mode_from_editor() -> void:
-	var es := _editor_state()
-	var anims_on := true
-	if es != null:
-		var raw: Variant = es.get("map_3d_terrain_overlay_animations_enabled")
-		if typeof(raw) == TYPE_BOOL:
-			anims_on = raw
-	UATerrainPieceLibrary.set_force_static_terrain_overlays(not anims_on)
+	UATerrainPieceLibrary.set_force_static_terrain_overlays(not _runtime_context.terrain_overlay_animations_enabled())
 
 func _apply_debug_mode_to_existing_materials() -> void:
 	# Update cached terrain materials (shared across all chunks).
@@ -796,15 +836,7 @@ func build_from_current_map() -> void:
 	_build_pipeline.build_from_current_map(self)
 
 func _current_game_data_type() -> String:
-	var editor_state := _editor_state()
-	var game_data_type := "original"
-	if editor_state != null:
-		var editor_game_data_type = editor_state.get("game_data_type")
-		if editor_game_data_type != null:
-			game_data_type = String(editor_game_data_type)
-	if game_data_type.is_empty():
-		return "original"
-	return game_data_type
+	return _runtime_context.current_game_data_type()
 
 func clear() -> void:
 	_scene_graph.clear()
@@ -972,146 +1004,64 @@ static func build_mesh(hgt: PackedByteArray, w: int, h: int) -> ArrayMesh:
 	return TerrainBuilder.build_mesh(hgt, w, h)
 
 static func _sample_hgt_height(hgt: PackedByteArray, w: int, h: int, sx: int, sy: int) -> float:
-	var bw := w + 2
-	var bh := h + 2
-	sx = clampi(sx + 1, 0, bw - 1)
-	sy = clampi(sy + 1, 0, bh - 1)
-	return float(hgt[sy * bw + sx]) * HEIGHT_SCALE
+	return PreviewGeometry.sample_hgt_height(hgt, w, h, sx, sy)
 
 static func _implicit_border_typ_value(w: int, h: int, sx: int, sy: int) -> int:
-	var at_left := sx < 0
-	var at_right := sx >= w
-	var at_top := sy < 0
-	var at_bottom := sy >= h
-	if at_top:
-		if at_left:
-			return BORDER_TYP_TOP_LEFT
-		if at_right:
-			return BORDER_TYP_TOP_RIGHT
-		return BORDER_TYP_TOP
-	if at_bottom:
-		if at_left:
-			return BORDER_TYP_BOTTOM_LEFT
-		if at_right:
-			return BORDER_TYP_BOTTOM_RIGHT
-		return BORDER_TYP_BOTTOM
-	if at_left:
-		return BORDER_TYP_LEFT
-	if at_right:
-		return BORDER_TYP_RIGHT
-	return -1
+	return PreviewGeometry.implicit_border_typ_value(w, h, sx, sy)
 
 static func _typ_value_with_implicit_border(typ: PackedByteArray, w: int, h: int, sx: int, sy: int) -> int:
-	if sx >= 0 and sx < w and sy >= 0 and sy < h:
-		return int(typ[sy * w + sx])
-	return _implicit_border_typ_value(w, h, sx, sy)
+	return PreviewGeometry.typ_value_with_implicit_border(typ, w, h, sx, sy)
 
 static func _corner_average_h(hgt: PackedByteArray, w: int, h: int, corner_x: int, corner_y: int) -> float:
-	var h_nw := _sample_hgt_height(hgt, w, h, corner_x - 1, corner_y - 1)
-	var h_ne := _sample_hgt_height(hgt, w, h, corner_x, corner_y - 1)
-	var h_sw := _sample_hgt_height(hgt, w, h, corner_x - 1, corner_y)
-	var h_se := _sample_hgt_height(hgt, w, h, corner_x, corner_y)
-	return (h_nw + h_ne + h_sw + h_se) * 0.25
+	return PreviewGeometry.corner_average_h(hgt, w, h, corner_x, corner_y)
 
 static func _draw_flat_sector_geometry(st: SurfaceTool, x0: float, x1: float, z0: float, z1: float, y: float) -> void:
-	var nw := Vector3(x0, y, z0)
-	var ne := Vector3(x1, y, z0)
-	var se := Vector3(x1, y, z1)
-	var sw := Vector3(x0, y, z1)
-	st.add_vertex(nw); st.add_vertex(ne); st.add_vertex(se)
-	st.add_vertex(nw); st.add_vertex(se); st.add_vertex(sw)
+	PreviewGeometry.draw_flat_sector_geometry(st, x0, x1, z0, z1, y)
 
 static func _preview_surface_type_for_typ(mapping: Dictionary, typ_value: int) -> int:
-	if not mapping.has(typ_value):
-		return -1
-	return clampi(int(mapping.get(typ_value, 0)), 0, 5)
+	return PreviewGeometry.preview_surface_type_for_typ(mapping, typ_value)
 
 static func _retail_slurp_bucket_key(surface_a: int, surface_b: int, neighbor_dx: int, neighbor_dy: int) -> String:
-	# Retail draw-list helpers (`sub_4D8498` / `sub_4D85B8`) select slurp tables by the
-	# ordered neighboring SurfaceType pair and by seam orientation.
-	# - left/right neighboring sectors -> `vside`
-	# - top/bottom neighboring sectors -> `hside`
-	if neighbor_dx != 0 and neighbor_dy == 0:
-		return "vside_%d_%d" % [surface_a, surface_b]
-	if neighbor_dy != 0 and neighbor_dx == 0:
-		return "hside_%d_%d" % [surface_a, surface_b]
-	return ""
+	return PreviewGeometry.retail_slurp_bucket_key(surface_a, surface_b, neighbor_dx, neighbor_dy)
 
 static func _surface_pair_from_slurp_bucket_key(bucket_key: String) -> Dictionary:
-	var parts := bucket_key.split("_")
-	if parts.size() != 3:
-		return {}
-	if parts[0] != "vside" and parts[0] != "hside":
-		return {}
-	return {
-		"family": parts[0],
-		"surface_a": clampi(int(parts[1]), 0, 5),
-		"surface_b": clampi(int(parts[2]), 0, 5),
-	}
+	return PreviewGeometry.surface_pair_from_slurp_bucket_key(bucket_key)
 
 static func _authored_slurp_base_name(surface_a: int, surface_b: int, vertical: bool) -> String:
-	return "S%d%d%s" % [clampi(surface_a, 0, 5), clampi(surface_b, 0, 5), ("V" if vertical else "H")]
+	return PreviewGeometry.authored_slurp_base_name(surface_a, surface_b, vertical)
 
 static func _sector_center_origin(sx: int, sy: int, sector_y: float) -> Vector3:
-	# UA-space sector center origin. Used by edge/slurp overlay descriptor tests.
-	return Vector3((float(sx) + 1.5) * SECTOR_SIZE, sector_y, (float(sy) + 1.5) * SECTOR_SIZE)
+	return OverlayPositioning.sector_center_origin(sx, sy, sector_y)
 
 static func _sector_center_origin_scaled(sx: int, sy: int, sector_y: float) -> Vector3:
-	# Scaled-world sector center origin. Used by host-station / BLG placement tests.
-	return Vector3((float(sx) + 1.5) * SECTOR_SIZE * WORLD_SCALE, sector_y * WORLD_SCALE, (float(sy) + 1.5) * SECTOR_SIZE * WORLD_SCALE)
+	return OverlayPositioning.sector_center_origin_scaled(sx, sy, sector_y)
 
 static func _host_station_base_name_for_vehicle(vehicle_id: int) -> String:
-	return String(HOST_STATION_BASE_NAMES.get(vehicle_id, ""))
+	return OverlayPositioning.host_station_base_name_for_vehicle(vehicle_id)
 
 static func _host_station_gun_base_name_for_type(gun_type: int) -> String:
-	return String(HOST_STATION_VISIBLE_GUN_BASE_NAMES.get(gun_type, ""))
+	return OverlayPositioning.host_station_gun_base_name_for_type(gun_type)
 
 static func _vector3_from_variant(value) -> Vector3:
-	if typeof(value) == TYPE_VECTOR3:
-		return Vector3(value)
-	if typeof(value) != TYPE_DICTIONARY:
-		return Vector3.ZERO
-	var dict := Dictionary(value)
-	return Vector3(float(dict.get("x", 0.0)), float(dict.get("y", 0.0)), float(dict.get("z", 0.0)))
+	return OverlayPositioning.vector3_from_variant(value)
 
 static func _host_station_godot_offset_from_ua(ua_offset: Vector3) -> Vector3:
-	return Vector3(ua_offset.x, -ua_offset.y, -ua_offset.z)
+	return OverlayPositioning.host_station_godot_offset_from_ua(ua_offset)
 
 static func _host_station_godot_direction_from_ua(ua_direction: Vector3) -> Vector3:
-	var godot_direction := Vector3(ua_direction.x, -ua_direction.y, -ua_direction.z)
-	var horizontal_direction := Vector3(godot_direction.x, 0.0, godot_direction.z)
-	if horizontal_direction.length_squared() <= 0.000001:
-		return Vector3.ZERO
-	return horizontal_direction.normalized()
+	return OverlayPositioning.host_station_godot_direction_from_ua(ua_direction)
 
 static func _world_to_sector_index(world_coord: float) -> int:
-	return int(floor(world_coord / SECTOR_SIZE)) - 1
+	return OverlayPositioning.world_to_sector_index(world_coord)
 
 static func _ground_height_at_world_position(hgt: PackedByteArray, w: int, h: int, world_x: float, world_z: float) -> float:
-	if w <= 0 or h <= 0 or hgt.size() != (w + 2) * (h + 2):
-		return 0.0
-	return _sample_hgt_height(hgt, w, h, _world_to_sector_index(world_x), _world_to_sector_index(world_z))
+	return OverlayPositioning.ground_height_at_world_position(hgt, w, h, world_x, world_z)
 
 static func _support_height_at_world_position(hgt: PackedByteArray, w: int, h: int, support_descriptors: Array, world_x: float, world_z: float, profile = null) -> float:
-	var started_usec := Time.get_ticks_usec()
-	var terrain_height := _ground_height_at_world_position(hgt, w, h, world_x, world_z)
-	var authored_support: Variant = null
-	if support_descriptors.size() > 0:
-		authored_support = UATerrainPieceLibrary.support_height_at_world_position(support_descriptors, world_x, world_z)
-	_profile_increment(profile, "support_height_query_count")
-	_profile_add_duration(profile, "support_height_query_ms", _elapsed_ms_since(started_usec))
-	if authored_support != null:
-		return max(float(authored_support), terrain_height)
-	return terrain_height
+	return OverlayPositioning.support_height_at_world_position(hgt, w, h, support_descriptors, world_x, world_z, profile)
 
 static func _host_station_origin(host_station: Node2D, hgt: PackedByteArray, w: int, h: int, support_descriptors: Array, profile = null) -> Vector3:
-	var pos_y_value = host_station.get("pos_y")
-	var ua_x := float(host_station.position.x)
-	var world_z := absf(float(host_station.position.y))
-	var ua_y := float(pos_y_value if pos_y_value != null else 0.0)
-	var world_x := ua_x
-	var support_y := _support_height_at_world_position(hgt, w, h, support_descriptors, world_x, world_z, profile)
-	return Vector3(world_x, support_y - ua_y, world_z)
+	return OverlayPositioning.host_station_origin(host_station, hgt, w, h, support_descriptors, profile)
 
 static func _snapshot_host_station_nodes(host_stations: Array) -> Array:
 	return OverlayProducers.snapshot_host_station_nodes(host_stations)
@@ -1222,15 +1172,10 @@ static func _squad_base_name_for_vehicle(vehicle_id: int, set_id: int, game_data
 	return VisualLookupService._squad_base_name_for_vehicle(vehicle_id, set_id, game_data_type)
 
 static func _squad_quantity(squad: Object) -> int:
-	var quantity_value = squad.get("quantity")
-	if quantity_value == null:
-		return 1
-	return max(1, int(quantity_value))
+	return OverlayPositioning.squad_quantity(squad)
 
 static func _squad_anchor_origin(squad: Node2D, hgt: PackedByteArray, w: int, h: int, support_descriptors: Array, profile = null) -> Vector3:
-	var world_x := float(squad.position.x)
-	var world_z := absf(float(squad.position.y))
-	return Vector3(world_x, _support_height_at_world_position(hgt, w, h, support_descriptors, world_x, world_z, profile), world_z)
+	return OverlayPositioning.squad_anchor_origin(squad, hgt, w, h, support_descriptors, profile)
 
 static func _squad_formation_offsets(quantity: int) -> Array:
 	return OverlayProducers.squad_formation_offsets(quantity)
@@ -1247,230 +1192,46 @@ static func _build_squad_descriptors(squads: Array, set_id: int, hgt: PackedByte
 	return OverlayProducers.build_squad_descriptors(squads, set_id, hgt, w, h, support_descriptors, game_data_type, profile)
 
 static func _draw_quad(st: SurfaceTool, xl: float, xr: float, zt: float, zb: float, y: float, f: int, cells: int, v: int, rot_deg: int = 0, u0: float = 0.0, vv0: float = 0.0, u1: float = 1.0, vv1: float = 1.0) -> void:
-	var rot := ((rot_deg % 360) + 360) % 360
-	var uv_nw := Vector2(u0, vv0)
-	var uv_ne := Vector2(u1, vv0)
-	var uv_se := Vector2(u1, vv1)
-	var uv_sw := Vector2(u0, vv1)
-	if rot == 90:
-		uv_nw = Vector2(u1, vv0)
-		uv_ne = Vector2(u1, vv1)
-		uv_se = Vector2(u0, vv1)
-		uv_sw = Vector2(u0, vv0)
-	elif rot == 180:
-		uv_nw = Vector2(u1, vv1)
-		uv_ne = Vector2(u0, vv1)
-		uv_se = Vector2(u0, vv0)
-		uv_sw = Vector2(u1, vv0)
-	elif rot == 270:
-		uv_nw = Vector2(u0, vv1)
-		uv_ne = Vector2(u0, vv0)
-		uv_se = Vector2(u1, vv0)
-		uv_sw = Vector2(u1, vv1)
-	st.set_color(Color((float(v) + 0.5) / float(cells), (float(f) + 0.5) / 6.0, 0.0))
-	st.set_uv(uv_nw)
-	st.add_vertex(Vector3(xl, y, zt))
-	st.set_uv(uv_ne)
-	st.add_vertex(Vector3(xr, y, zt))
-	st.set_uv(uv_se)
-	st.add_vertex(Vector3(xr, y, zb))
-	st.set_uv(uv_nw)
-	st.add_vertex(Vector3(xl, y, zt))
-	st.set_uv(uv_se)
-	st.add_vertex(Vector3(xr, y, zb))
-	st.set_uv(uv_sw)
-	st.add_vertex(Vector3(xl, y, zb))
+	PreviewGeometry.draw_quad(st, xl, xr, zt, zb, y, f, cells, v, rot_deg, u0, vv0, u1, vv1)
 
 static func _decode_raw_to_fcv(raw_val: int, default_file: int) -> Array:
-	var f: int
-	var cells: int
-	var v: int
-	var n := maxi(raw_val, 0)
-	if n <= 3:
-		f = default_file
-		cells = (16 if f == 4 else 4)
-		v = n
-	elif n <= 7:
-		f = 1
-		cells = 4
-		v = n - 4
-	elif n <= 11:
-		f = 2
-		cells = 4
-		v = n - 8
-	elif n <= 15:
-		f = 3
-		cells = 4
-		v = n - 12
-	elif n <= 31:
-		f = 4
-		cells = 16
-		v = n - 16
-	elif n <= 35:
-		f = 5
-		cells = 4
-		v = n - 32
-	elif n <= 127:
-		var file_idx := (n - 36) % 6
-		f = (default_file if file_idx == 0 else file_idx)
-		cells = (16 if f == 4 else 4)
-		v = 0
-	else:
-		f = default_file
-		cells = (16 if f == 4 else 4)
-		v = 0
-	return [f, cells, v]
+	return PreviewGeometry.decode_raw_to_fcv(raw_val, default_file)
 
 static func _decode_raw_to_fcv_with_remap(raw_val: int, default_file: int, tile_remap: Dictionary) -> Array:
-	if tile_remap:
-		var raw_key := str(raw_val)
-		if tile_remap.has(raw_key):
-			var remap_entry: Dictionary = tile_remap[raw_key]
-			var file_idx := int(remap_entry.get("file", default_file))
-			var cells := (16 if file_idx == 4 else 4)
-			var variant_idx := clampi(int(remap_entry.get("variant", 0)), 0, cells - 1)
-			return [file_idx, cells, variant_idx]
-	return _decode_raw_to_fcv(raw_val, default_file)
+	return PreviewGeometry.decode_raw_to_fcv_with_remap(raw_val, default_file, tile_remap)
 
 static func _remap_subsector_idx(subsector_idx: int, remap_table: Dictionary) -> int:
-	if remap_table:
-		var key := str(subsector_idx)
-		if remap_table.has(key):
-			return int(remap_table[key])
-		if remap_table.has(subsector_idx):
-			return int(remap_table[subsector_idx])
-	return subsector_idx
+	return PreviewGeometry.remap_subsector_idx(subsector_idx, remap_table)
 
 static func _tile_desc_for_subsector(tile_mapping: Dictionary, subsector_idx: int) -> Dictionary:
-	if tile_mapping.is_empty():
-		return {}
-	if tile_mapping.has(subsector_idx):
-		return tile_mapping[subsector_idx]
-	var key := str(subsector_idx)
-	if tile_mapping.has(key):
-		return tile_mapping[key]
-	return {}
+	return PreviewGeometry.tile_desc_for_subsector(tile_mapping, subsector_idx)
 
 static func _sector_pattern_for_typ(subsector_patterns: Dictionary, typ_value: int, fallback_surface_type: int) -> Dictionary:
-	if subsector_patterns.is_empty():
-		return {
-			"surface_type": fallback_surface_type,
-			"sector_type": 1,
-			"subsectors": PackedInt32Array()
-		}
-	if subsector_patterns.has(typ_value):
-		return subsector_patterns[typ_value]
-	var key := str(typ_value)
-	if subsector_patterns.has(key):
-		return subsector_patterns[key]
-	return {
-		"surface_type": fallback_surface_type,
-		"sector_type": 1,
-		"subsectors": PackedInt32Array()
-	}
+	return PreviewGeometry.sector_pattern_for_typ(subsector_patterns, typ_value, fallback_surface_type)
 
 static func _default_file_variant_for_subsector(surface_type: int, subsector_idx: int, tile_mapping: Dictionary, tile_remap: Dictionary, subsector_idx_remap: Dictionary) -> Array:
-	return _default_piece_selection_for_subsector(surface_type, subsector_idx, tile_mapping, tile_remap, subsector_idx_remap).get("piece", [clampi(surface_type, 0, 5), (16 if surface_type == 4 else 4), 0])
+	return PreviewGeometry.default_file_variant_for_subsector(surface_type, subsector_idx, tile_mapping, tile_remap, subsector_idx_remap)
 
 static func _default_stage_slot_for_raw(raw_value: int) -> int:
-	if raw_value <= 0:
-		return 3
-	if raw_value <= 99:
-		return 2
-	if raw_value <= 199:
-		return 1
-	return 0
+	return PreviewGeometry.default_stage_slot_for_raw(raw_value)
 
 static func _selected_raw_id_for_tile_desc(tile_desc: Dictionary) -> int:
-	var vals: Array[int] = [
-		int(tile_desc.get("val0", 0)),
-		int(tile_desc.get("val1", 0)),
-		int(tile_desc.get("val2", 0)),
-		int(tile_desc.get("val3", 0)),
-	]
-	# Conservative preview-only exception: shipped typ155 in sets 2..6 uses a one-off payload
-	# {203,203,203,35,flag 0}. It is the only repeated "three identical non-zero stage
-	# entries plus a different val3" signature in the bundled set data, and selecting val3
-	# produces the known wrong bottom-left subsector. Prefer the repeated steady-state piece.
-	if int(tile_desc.get("flag", 0)) == 0 and vals[0] != 0 and vals[0] == vals[1] and vals[1] == vals[2] and vals[3] != 0 and vals[3] != vals[0]:
-		return vals[0]
-	var raw_val := vals[_default_stage_slot_for_raw(int(tile_desc.get("flag", 0)))]
-	if raw_val != 0:
-		return raw_val
-	var single_nonzero_raw := 0
-	for candidate in vals:
-		if candidate == 0:
-			continue
-		if single_nonzero_raw == 0:
-			single_nonzero_raw = candidate
-			continue
-		if candidate != single_nonzero_raw:
-			return raw_val
-	return single_nonzero_raw
+	return PreviewGeometry.selected_raw_id_for_tile_desc(tile_desc)
 
 static func _default_piece_selection_for_subsector(surface_type: int, subsector_idx: int, tile_mapping: Dictionary, tile_remap: Dictionary, subsector_idx_remap: Dictionary) -> Dictionary:
-	var default_file := clampi(surface_type, 0, 5)
-	var remapped_idx := _remap_subsector_idx(subsector_idx, subsector_idx_remap)
-	var tile_desc := _tile_desc_for_subsector(tile_mapping, remapped_idx)
-	if tile_desc.is_empty():
-		return {"raw_id": - 1, "piece": [default_file, (16 if default_file == 4 else 4), 0]}
-	var raw_val := _selected_raw_id_for_tile_desc(tile_desc)
-	return {"raw_id": raw_val, "piece": _decode_raw_to_fcv_with_remap(raw_val, default_file, tile_remap)}
+	return PreviewGeometry.default_piece_selection_for_subsector(surface_type, subsector_idx, tile_mapping, tile_remap, subsector_idx_remap)
 
 static func _authored_origin_for_subsector(x0: float, z0: float, sector_y: float, sub_x: int, sub_y: int) -> Vector3:
-	var sector_center_x := x0 + SECTOR_SIZE * 0.5
-	var sector_center_z := z0 + SECTOR_SIZE * 0.5
-	var lattice_step := SECTOR_SIZE * 0.25
-	return Vector3(
-		sector_center_x + (float(sub_x) - 1.0) * lattice_step,
-		sector_y,
-		sector_center_z + (float(sub_y) - 1.0) * lattice_step
-	)
+	return PreviewGeometry.authored_origin_for_subsector(x0, z0, sector_y, sub_x, sub_y)
 
 static func _append_vertical_seam_strip(st: SurfaceTool, x0: float, seam_x: float, x1: float, z0: float, z1: float, y_left: float, y_right: float, y_top_avg: float, y_bottom_avg: float) -> void:
-	var lt := Vector3(x0, y_left, z0)
-	var st_top := Vector3(seam_x, y_top_avg, z0)
-	var rt := Vector3(x1, y_right, z0)
-	var lb := Vector3(x0, y_left, z1)
-	var st_bottom := Vector3(seam_x, y_bottom_avg, z1)
-	var rb := Vector3(x1, y_right, z1)
-	st.set_uv(Vector2(0.0, 0.0)); st.add_vertex(lt)
-	st.set_uv(Vector2(0.5, 0.0)); st.add_vertex(st_top)
-	st.set_uv(Vector2(0.5, 1.0)); st.add_vertex(st_bottom)
-	st.set_uv(Vector2(0.0, 0.0)); st.add_vertex(lt)
-	st.set_uv(Vector2(0.5, 1.0)); st.add_vertex(st_bottom)
-	st.set_uv(Vector2(0.0, 1.0)); st.add_vertex(lb)
-	st.set_uv(Vector2(0.5, 0.0)); st.add_vertex(st_top)
-	st.set_uv(Vector2(1.0, 0.0)); st.add_vertex(rt)
-	st.set_uv(Vector2(1.0, 1.0)); st.add_vertex(rb)
-	st.set_uv(Vector2(0.5, 0.0)); st.add_vertex(st_top)
-	st.set_uv(Vector2(1.0, 1.0)); st.add_vertex(rb)
-	st.set_uv(Vector2(0.5, 1.0)); st.add_vertex(st_bottom)
+	PreviewGeometry.append_vertical_seam_strip(st, x0, seam_x, x1, z0, z1, y_left, y_right, y_top_avg, y_bottom_avg)
 
 static func _append_horizontal_seam_strip(st: SurfaceTool, x0: float, x1: float, z0: float, seam_z: float, z1: float, y_top: float, y_bottom: float, y_left_avg: float, y_right_avg: float) -> void:
-	var tl := Vector3(x0, y_top, z0)
-	var top_right := Vector3(x1, y_top, z0)
-	var sl := Vector3(x0, y_left_avg, seam_z)
-	var sr := Vector3(x1, y_right_avg, seam_z)
-	var bl := Vector3(x0, y_bottom, z1)
-	var br := Vector3(x1, y_bottom, z1)
-	st.set_uv(Vector2(0.0, 0.0)); st.add_vertex(tl)
-	st.set_uv(Vector2(1.0, 0.0)); st.add_vertex(top_right)
-	st.set_uv(Vector2(1.0, 0.5)); st.add_vertex(sr)
-	st.set_uv(Vector2(0.0, 0.0)); st.add_vertex(tl)
-	st.set_uv(Vector2(1.0, 0.5)); st.add_vertex(sr)
-	st.set_uv(Vector2(0.0, 0.5)); st.add_vertex(sl)
-	st.set_uv(Vector2(0.0, 0.5)); st.add_vertex(sl)
-	st.set_uv(Vector2(1.0, 0.5)); st.add_vertex(sr)
-	st.set_uv(Vector2(1.0, 1.0)); st.add_vertex(br)
-	st.set_uv(Vector2(0.0, 0.5)); st.add_vertex(sl)
-	st.set_uv(Vector2(1.0, 1.0)); st.add_vertex(br)
-	st.set_uv(Vector2(0.0, 1.0)); st.add_vertex(bl)
+	PreviewGeometry.append_horizontal_seam_strip(st, x0, x1, z0, seam_z, z1, y_top, y_bottom, y_left_avg, y_right_avg)
 
 static func _should_emit_seam_strip(_surface_a: int, _surface_b: int, _outer_a: float, _outer_b: float, _seam_mid_a: float, _seam_mid_b: float) -> bool:
-	# Keep seams for all adjacent pairs (including same-surface and border-ring pairs)
-	# so sector joins stay stable and authored slurp selection remains valid.
-	return true
+	return PreviewGeometry.should_emit_seam_strip(_surface_a, _surface_b, _outer_a, _outer_b, _seam_mid_a, _seam_mid_b)
 
 static func build_mesh_with_textures(hgt: PackedByteArray, typ: PackedByteArray, w: int, h: int, mapping: Dictionary, subsector_patterns: Dictionary = {}, tile_mapping: Dictionary = {}, tile_remap: Dictionary = {}, subsector_idx_remap: Dictionary = {}, lego_defs: Dictionary = {}, set_id: int = 1) -> Dictionary:
 	return TerrainBuilder.build_mesh_with_textures(hgt, typ, w, h, mapping, subsector_patterns, tile_mapping, tile_remap, subsector_idx_remap, lego_defs, set_id)
@@ -1650,4 +1411,4 @@ func _apply_edge_surface_materials(mesh: ArrayMesh, preloads, fallback_horiz_key
 	_scene_graph.apply_edge_surface_materials(mesh, preloads, fallback_horiz_keys, fallback_vert_keys)
 
 func _center_h(hgt: PackedByteArray, w: int, h: int, sx: int, sy: int) -> float:
-	return _sample_hgt_height(hgt, w, h, sx, sy)
+	return PreviewGeometry.sample_hgt_height(hgt, w, h, sx, sy)
