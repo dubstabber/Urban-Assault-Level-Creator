@@ -3,7 +3,7 @@ extends RefCounted
 # Unit tests for Map3DOverlayDescriptorProducers
 # Run via: godot4 --headless -s res://tests/_selected_test_runner.gd
 
-const Producers = preload("res://map/map_3d_overlay_descriptor_producers.gd")
+const Producers = preload("res://map/3d/overlays/map_3d_overlay_descriptor_producers.gd")
 const Map3DRendererScript = preload("res://map/map_3d_renderer.gd")
 
 var _errors: Array[String] = []

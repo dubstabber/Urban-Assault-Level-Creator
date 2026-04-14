@@ -1,7 +1,7 @@
 extends RefCounted
 
-const Router := preload("res://map/map_3d_invalidation_router.gd")
-const TerrainBuilder := preload("res://map/map_3d_terrain_builder.gd")
+const Router := preload("res://map/3d/services/map_3d_invalidation_router.gd")
+const TerrainBuilder := preload("res://map/3d/terrain/map_3d_terrain_builder.gd")
 
 var _errors: Array[String] = []
 

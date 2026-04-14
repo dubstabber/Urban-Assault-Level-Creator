@@ -128,11 +128,11 @@ static func resolve_authored_descriptor(set_id: int, raw_id: int, lego_defs: Dic
 	return descriptor
 
 static func build_overlay_node(descriptors: Array) -> Node3D:
-	var overlay_manager = load("res://map/map_3d_authored_overlay_manager.gd")
+	var overlay_manager = load("res://map/3d/overlays/map_3d_authored_overlay_manager.gd")
 	return overlay_manager.build_overlay_node(descriptors)
 
 static func apply_overlay_node(root: Node3D, descriptors: Array) -> void:
-	var overlay_manager = load("res://map/map_3d_authored_overlay_manager.gd")
+	var overlay_manager = load("res://map/3d/overlays/map_3d_authored_overlay_manager.gd")
 	overlay_manager.apply_overlay_node(root, descriptors)
 
 static func _warp_signature(desc: Dictionary) -> String:
@@ -160,7 +160,7 @@ static func _str_position_key(pos: Vector3) -> String:
 	return "%.2f,%.2f,%.2f" % [pos.x, pos.y, pos.z]
 
 func apply_overlay_node_to(root: Node3D, descriptors: Array) -> void:
-	var overlay_manager = load("res://map/map_3d_authored_overlay_manager.gd")
+	var overlay_manager = load("res://map/3d/overlays/map_3d_authored_overlay_manager.gd")
 	overlay_manager.apply_overlay_node(root, descriptors)
 
 static func _piece_position_from_desc(desc: Dictionary) -> Vector3:

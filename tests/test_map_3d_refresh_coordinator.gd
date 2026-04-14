@@ -3,7 +3,7 @@ extends RefCounted
 # Unit tests for Map3DRefreshCoordinator
 # Run via: godot4 --headless -s res://tests/test_runner.gd
 
-const CoordinatorScript = preload("res://map/map_3d_refresh_coordinator.gd")
+const CoordinatorScript = preload("res://map/3d/services/map_3d_refresh_coordinator.gd")
 
 var _errors: Array[String] = []
 

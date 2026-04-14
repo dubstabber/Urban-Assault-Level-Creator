@@ -1,6 +1,6 @@
 extends RefCounted
 
-const EffectiveTypServiceScript = preload("res://map/map_3d_effective_typ_service.gd")
+const EffectiveTypServiceScript = preload("res://map/3d/services/map_3d_effective_typ_service.gd")
 const RendererScript = preload("res://map/map_3d_renderer.gd")
 
 const LOOKUP_TEST_SET_ID := 178

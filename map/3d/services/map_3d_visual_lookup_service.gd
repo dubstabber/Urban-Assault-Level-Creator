@@ -1,7 +1,7 @@
 extends RefCounted
 
 const _UAProjectDataRoots = preload("res://map/ua_project_data_roots.gd")
-const LegacyScriptParser = preload("res://map/map_3d_legacy_script_parser.gd")
+const LegacyScriptParser = preload("res://map/3d/parsers/map_3d_legacy_script_parser.gd")
 const _UALegacyText = preload("res://map/ua_legacy_text.gd")
 const _ResDir = preload("res://scripts/res_dir.gd")
 const HOST_STATION_BASE_NAMES := {

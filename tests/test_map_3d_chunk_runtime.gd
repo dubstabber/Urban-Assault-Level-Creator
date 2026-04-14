@@ -3,8 +3,8 @@ extends RefCounted
 # Unit tests for Map3DChunkRuntime
 # Run via: godot4 --headless -s res://tests/test_runner.gd
 
-const ChunkRuntimeScript = preload("res://map/map_3d_chunk_runtime.gd")
-const TerrainBuilder = preload("res://map/map_3d_terrain_builder.gd")
+const ChunkRuntimeScript = preload("res://map/3d/services/map_3d_chunk_runtime.gd")
+const TerrainBuilder = preload("res://map/3d/terrain/map_3d_terrain_builder.gd")
 
 var _errors: Array[String] = []
 

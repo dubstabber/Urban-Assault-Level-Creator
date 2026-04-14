@@ -41,47 +41,15 @@ func ready(renderer) -> void:
 	renderer._apply_visibility_range_from_editor_state()
 	var current_map_data = renderer._current_map_data()
 	if current_map_data and current_map_data.horizontal_sectors > 0 and current_map_data.vertical_sectors > 0 and not current_map_data.hgt_map.is_empty():
-		request_refresh(renderer, true)
+		renderer._request_refresh(true)
 
 
 func request_refresh(renderer, reframe_camera: bool) -> void:
-	if not renderer._refresh_pending and renderer._refresh_requested_at_usec <= 0:
-		renderer._refresh_requested_at_usec = Time.get_ticks_usec()
-	renderer._refresh_pending = true
-	renderer._refresh_reframe_pending = renderer._refresh_reframe_pending or reframe_camera
-	if not renderer._preview_refresh_active():
-		return
-	if renderer._refresh_deferred:
-		return
-	renderer._refresh_deferred = true
-	renderer.call_deferred("_apply_pending_refresh")
+	renderer._async_refresh_driver.request_refresh(reframe_camera)
 
 
 func apply_pending_refresh(renderer) -> void:
-	renderer._refresh_deferred = false
-	if not renderer._refresh_pending or not renderer._preview_refresh_active():
-		return
-	var reframe_camera = renderer._refresh_reframe_pending
-	renderer._refresh_pending = false
-	renderer._refresh_reframe_pending = false
-	if renderer._is_async_pipeline_active():
-		renderer._async_requested_restart = true
-		renderer._async_requested_reframe = renderer._async_requested_reframe or reframe_camera
-		renderer._cancel_async_initial_build()
-		return
-	if renderer._dynamic_overlay_refresh_requested:
-		if renderer._start_async_dynamic_overlay_refresh(reframe_camera):
-			return
-	if renderer._overlay_only_refresh_requested or renderer._can_use_overlay_only_refresh():
-		if renderer._start_async_overlay_only_refresh(reframe_camera):
-			return
-	if renderer._try_start_async_initial_build(reframe_camera):
-		return
-	renderer.build_from_current_map()
-	renderer._bump_3d_viewport_rendering()
-	if reframe_camera and renderer.is_inside_tree():
-		renderer._framed = false
-		renderer._frame_if_needed()
+	renderer._async_refresh_driver.apply_pending_refresh()
 
 
 func on_map_view_updated(renderer) -> void:
@@ -89,8 +57,8 @@ func on_map_view_updated(renderer) -> void:
 	renderer._apply_visibility_range_from_editor_state()
 	if renderer._preview_refresh_active():
 		renderer._bump_3d_viewport_rendering()
-	if renderer._refresh_pending:
-		request_refresh(renderer, renderer._refresh_reframe_pending)
+	if renderer.has_pending_refresh():
+		renderer._request_refresh(false)
 	elif renderer._preview_refresh_active():
 		renderer._flush_pending_unit_changes()
 
@@ -121,7 +89,7 @@ func on_map_changed(renderer) -> void:
 				renderer._invalidate_all_chunks(w, h)
 				renderer._effective_typ_service.set_dirty(true)
 				renderer._clear_localized_overlay_scope()
-		request_refresh(renderer, false)
+		renderer._request_refresh(false)
 
 
 func on_map_created(renderer) -> void:
@@ -143,7 +111,7 @@ func on_map_created(renderer) -> void:
 		renderer._chunk_rt.invalidate_all_chunks(w, h)
 		renderer._chunk_rt.initial_build_in_progress = true
 		renderer._chunk_rt.initial_build_accumulated_authored_descriptors.clear()
-	request_refresh(renderer, true)
+	renderer._request_refresh(true)
 
 
 func on_hgt_map_cells_edited(renderer, border_indices: Array) -> void:

@@ -1,6 +1,6 @@
 extends RefCounted
 
-const TerrainBuilder := preload("res://map/map_3d_terrain_builder.gd")
+const TerrainBuilder := preload("res://map/3d/terrain/map_3d_terrain_builder.gd")
 const RendererScript := preload("res://map/map_3d_renderer.gd")
 # Use scaled SECTOR_SIZE from renderer (WORLD_SCALE = 1/1200)
 const SECTOR_SIZE := RendererScript.SECTOR_SIZE

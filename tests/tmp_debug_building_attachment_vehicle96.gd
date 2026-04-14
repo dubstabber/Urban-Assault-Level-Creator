@@ -1,7 +1,7 @@
 extends SceneTree
 
 const Map3DRendererScript = preload("res://map/map_3d_renderer.gd")
-const VisualLookupService = preload("res://map/map_3d_visual_lookup_service.gd")
+const VisualLookupService = preload("res://map/3d/services/map_3d_visual_lookup_service.gd")
 
 const LOOKUP_TEST_SET_ID := 178
 
@@ -29,4 +29,3 @@ func _init() -> void:
 		print("entry[", i, "] model=", String((e as Dictionary).get("model","")), " wait=", e.get("wait",""), " normal=", e.get("normal",""))
 
 	quit()
-

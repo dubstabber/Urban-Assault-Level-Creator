@@ -1,7 +1,7 @@
 extends RefCounted
 
 const Map3DRendererScript = preload("res://map/map_3d_renderer.gd")
-const SlurpBuilder = preload("res://map/map_3d_slurp_builder.gd")
+const SlurpBuilder = preload("res://map/3d/terrain/map_3d_slurp_builder.gd")
 const AuthoredPieceLibrary = preload("res://map/terrain/ua_authored_piece_library.gd")
 const AnimatedSurfaceMeshInstanceScript = preload("res://map/terrain/ua_animated_surface_mesh_instance.gd")
 const ParticleEmitterScript = preload("res://map/terrain/ua_authored_particle_emitter.gd")

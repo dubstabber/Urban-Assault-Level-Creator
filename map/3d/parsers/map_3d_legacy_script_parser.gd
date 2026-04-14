@@ -1,14 +1,15 @@
 extends RefCounted
-class_name Map3DLegacyScriptParser
 
 const _UALegacyText = preload("res://map/ua_legacy_text.gd")
 const _ResDir = preload("res://scripts/res_dir.gd")
+
 
 static func script_assignment_text(raw_line: String, prefix: String) -> String:
 	var equals_index := raw_line.find("=")
 	if equals_index >= 0:
 		return raw_line.substr(equals_index + 1).strip_edges()
 	return raw_line.replacen(prefix, "").strip_edges()
+
 
 static func _vector3_from_variant(value) -> Vector3:
 	if typeof(value) == TYPE_VECTOR3:
@@ -18,6 +19,7 @@ static func _vector3_from_variant(value) -> Vector3:
 	var dict := Dictionary(value)
 	return Vector3(float(dict.get("x", 0.0)), float(dict.get("y", 0.0)), float(dict.get("z", 0.0)))
 
+
 static func _empty_building_attachment() -> Dictionary:
 	return {
 		"act": -1,
@@ -26,6 +28,7 @@ static func _empty_building_attachment() -> Dictionary:
 		"ua_direction": Vector3.ZERO,
 	}
 
+
 static func _append_building_attachment(target_building: Dictionary, attachment: Dictionary) -> void:
 	if target_building.is_empty() or attachment.is_empty():
 		return
@@ -33,12 +36,14 @@ static func _append_building_attachment(target_building: Dictionary, attachment:
 	attachments.append(attachment.duplicate(true))
 	target_building["attachments"] = attachments
 
+
 static func _append_building_definition(result: Array, building: Dictionary) -> void:
 	if building.is_empty():
 		return
 	if int(building.get("building_id", -1)) < 0 or int(building.get("sec_type", -1)) < 0:
 		return
 	result.append(building.duplicate(true))
+
 
 static func _append_vehicle_visual_entry(result: Dictionary, vehicle_id: int, entry: Dictionary) -> void:
 	if vehicle_id < 0:
@@ -48,6 +53,7 @@ static func _append_vehicle_visual_entry(result: Dictionary, vehicle_id: int, en
 	var entries: Array = result.get(vehicle_id, [])
 	entries.append(entry.duplicate(true))
 	result[vehicle_id] = entries
+
 
 static func parse_building_definitions(script_path: String) -> Array:
 	var result: Array = []
@@ -130,6 +136,7 @@ static func parse_building_definitions(script_path: String) -> Array:
 	_append_building_definition(result, current_building)
 	return result
 
+
 static func parse_vehicle_visual_entries(script_path: String) -> Dictionary:
 	var result := {}
 	if script_path.is_empty() or not _ResDir.file_exists(script_path):
@@ -175,6 +182,7 @@ static func parse_vehicle_visual_entries(script_path: String) -> Dictionary:
 	if current_vehicle_id >= 0 and not current_entries.is_empty():
 		result[current_vehicle_id] = current_entries.duplicate(true)
 	return result
+
 
 static func parse_vehicle_visual_pairs(script_path: String) -> Dictionary:
 	var result := {}

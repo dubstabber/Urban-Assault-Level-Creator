@@ -4,7 +4,7 @@ const AuthoredPieceLibrary = preload("res://map/terrain/ua_authored_piece_librar
 const SET_IDS := [1, 2, 3, 4, 5, 6]
 const RUNTIME_FILES := [
 	"res://map/map_3d_renderer.gd",
-	"res://map/map_3d_visual_lookup_service.gd",
+	"res://map/3d/services/map_3d_visual_lookup_service.gd",
 	"res://map/terrain/ua_authored_piece_library.gd",
 ]
 const FORBIDDEN_RUNTIME_ROOT_TOKENS := [

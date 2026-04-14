@@ -1,6 +1,6 @@
 extends RefCounted
 
-const Parser := preload("res://map/map_3d_legacy_script_parser.gd")
+const Parser := preload("res://map/3d/parsers/map_3d_legacy_script_parser.gd")
 
 var _errors: Array[String] = []
 
