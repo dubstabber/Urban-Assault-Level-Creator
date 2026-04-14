@@ -5,19 +5,20 @@ signal build_state_changed(is_building: bool, completed: int, total: int, status
 signal build_finished(success: bool)
 
 const UATerrainPieceLibraryScript := preload("res://map/terrain/ua_authored_piece_library.gd")
-const VisualLookupService := preload("res://map/map_3d_visual_lookup_service.gd")
-const TerrainBuilder := preload("res://map/map_3d_terrain_builder.gd")
-const SlurpBuilder := preload("res://map/map_3d_slurp_builder.gd")
-const AuthoredOverlayManager := preload("res://map/map_3d_authored_overlay_manager.gd")
-const ViewController := preload("res://map/map_3d_view_controller.gd")
-const RefreshCoordinator := preload("res://map/map_3d_refresh_coordinator.gd")
-const ChunkRuntime := preload("res://map/map_3d_chunk_runtime.gd")
-const EffectiveTypService := preload("res://map/map_3d_effective_typ_service.gd")
-const OverlayProducers := preload("res://map/map_3d_overlay_descriptor_producers.gd")
+const VisualLookupService := preload("res://map/3d/services/map_3d_visual_lookup_service.gd")
+const TerrainBuilder := preload("res://map/3d/terrain/map_3d_terrain_builder.gd")
+const SlurpBuilder := preload("res://map/3d/terrain/map_3d_slurp_builder.gd")
+const AuthoredOverlayManager := preload("res://map/3d/overlays/map_3d_authored_overlay_manager.gd")
+const ViewController := preload("res://map/3d/controllers/map_3d_view_controller.gd")
+const RefreshCoordinator := preload("res://map/3d/services/map_3d_refresh_coordinator.gd")
+const ChunkRuntime := preload("res://map/3d/services/map_3d_chunk_runtime.gd")
+const EffectiveTypService := preload("res://map/3d/services/map_3d_effective_typ_service.gd")
+const OverlayProducers := preload("res://map/3d/overlays/map_3d_overlay_descriptor_producers.gd")
 const LegacyScriptParser := preload("res://map/map_3d_legacy_script_parser.gd")
-const UnitOverlayController := preload("res://map/map_3d_unit_overlay_controller.gd")
-const InvalidationRouter := preload("res://map/map_3d_invalidation_router.gd")
-const StaticOverlayIndex := preload("res://map/map_3d_static_overlay_index.gd")
+const UnitOverlayController := preload("res://map/3d/overlays/map_3d_unit_overlay_controller.gd")
+const InvalidationRouter := preload("res://map/3d/services/map_3d_invalidation_router.gd")
+const StaticOverlayIndex := preload("res://map/3d/services/map_3d_static_overlay_index.gd")
+const UnitRuntimeIndex := preload("res://map/3d/services/map_3d_unit_runtime_index.gd")
 
 const SECTOR_SIZE := 1200.0
 const HEIGHT_SCALE := 100.0
@@ -42,6 +43,7 @@ const UA_NORMAL_RENDER_SECTORS := 5
 const UA_NORMAL_GEOMETRY_CULL_DISTANCE := float(UA_NORMAL_RENDER_SECTORS) * SECTOR_SIZE + SECTOR_SIZE * 0.5
 const _ASYNC_APPLY_RESULTS_PER_FRAME := 4
 const _ASYNC_OVERLAY_APPLY_OPS_PER_FRAME := 48
+const _MAX_INCREMENTAL_UNIT_BATCH := 64
 const HOST_STATION_BASE_NAMES := {
 	56: "VP_ROBO",
 	57: "VP_KROBO",
@@ -242,8 +244,9 @@ var _dynamic_overlay_refresh_requested := false
 var _async_overlay_descriptor_dynamic_only := false
 var _skip_next_map_changed_refresh := false
 var _pending_unit_changes: Array = []
-var _overlay_apply_manager := Map3DAuthoredOverlayManager.new()
+var _overlay_apply_manager := AuthoredOverlayManager.new()
 var _static_overlay_index := StaticOverlayIndex.new()
+var _unit_runtime_index := UnitRuntimeIndex.new()
 var _localized_overlay_dirty_sectors: Dictionary = {}
 var _localized_dynamic_overlay_dirty_sectors: Dictionary = {}
 
@@ -616,7 +619,7 @@ func _on_units_changed(changes: Array) -> void:
 	if _is_async_pipeline_active():
 		_enqueue_pending_unit_changes(normalized)
 		return
-	if normalized.size() > 16:
+	if normalized.size() > _MAX_INCREMENTAL_UNIT_BATCH:
 		_request_dynamic_overlay_refresh()
 		return
 	if _apply_unit_change_batch(normalized):
@@ -736,7 +739,7 @@ func _sync_async_overlay_state_from_current_map() -> bool:
 	return true
 
 func _try_start_async_initial_build(reframe_camera: bool) -> bool:
-	if not _chunk_rt.initial_build_in_progress:
+	if not _chunk_rt.chunked_terrain_enabled:
 		return false
 	if not _chunk_rt.has_dirty_chunks():
 		return false
@@ -753,6 +756,12 @@ func _try_start_async_initial_build(reframe_camera: bool) -> bool:
 	var pre := _preloads()
 	if pre == null:
 		return false
+	var level_set := int(cmd.level_set)
+	var requires_full_rebuild := _needs_full_rebuild(w, h, level_set)
+	if requires_full_rebuild:
+		_clear_chunk_nodes()
+		_chunk_rt.clear_authored_caches()
+		_chunk_rt.prepare_chunked_full_rebuild(w, h, level_set)
 	if _terrain_chunk_nodes.is_empty():
 		_invalidate_all_chunks(w, h)
 	var chunk_list := _dirty_chunks_sorted_by_priority(w, h)
@@ -761,7 +770,6 @@ func _try_start_async_initial_build(reframe_camera: bool) -> bool:
 	var game_data_type := _current_game_data_type()
 	UATerrainPieceLibraryScript.set_piece_game_data_type(game_data_type)
 	var effective_typ := _compute_effective_typ_for_map(cmd, w, h, typ, blg, game_data_type)
-	var level_set := int(cmd.level_set)
 	var snapshot := {
 		"w": w,
 		"h": h,
@@ -1111,7 +1119,7 @@ func _flush_pending_unit_changes() -> bool:
 	_pending_unit_changes.clear()
 	if pending.is_empty():
 		return false
-	if pending.size() > 16:
+	if pending.size() > _MAX_INCREMENTAL_UNIT_BATCH:
 		_request_dynamic_overlay_refresh()
 		return true
 	if _apply_unit_change_batch(pending):
@@ -1127,10 +1135,11 @@ func _apply_unit_change_batch(changes: Array) -> bool:
 	var cmd := _current_map_data()
 	if cmd == null:
 		return false
+	_unit_runtime_index.apply_changes(cmd, changes)
 	var support_descriptors: Array = _chunk_rt.get_support_descriptors()
 	_ensure_overlay_nodes()
 	var game_data_type := _async_game_data_type if not _async_game_data_type.is_empty() else _current_game_data_type()
-	var applied := UnitOverlayController.apply_unit_changes(_dynamic_overlay, changes, cmd, support_descriptors, game_data_type)
+	var applied := UnitOverlayController.apply_unit_changes(_dynamic_overlay, changes, cmd, support_descriptors, game_data_type, _unit_runtime_index)
 	if not applied:
 		return false
 	_apply_geometry_distance_culling_to_overlay()
@@ -1498,6 +1507,7 @@ func build_from_current_map() -> void:
 		_finalize_build_metrics(metrics, build_started_usec)
 		return
 
+	_unit_runtime_index.rebuild_from_map(_cmd)
 	var game_data_type := _current_game_data_type()
 	UATerrainPieceLibraryScript.set_piece_game_data_type(game_data_type)
 	_async_blg = blg
@@ -1706,6 +1716,7 @@ func _current_game_data_type() -> String:
 func clear() -> void:
 	_terrain_material_cache.clear()
 	_edge_material_cache.clear()
+	_unit_runtime_index.clear()
 	if _terrain_mesh:
 		_terrain_mesh.mesh = null
 	if _edge_mesh:
@@ -1937,8 +1948,9 @@ func _apply_localized_dynamic_overlay_refresh(cmd: Node, set_id: int, hgt: Packe
 	_ensure_overlay_nodes()
 	var descriptors: Array = []
 	if cmd.host_stations != null and is_instance_valid(cmd.host_stations):
+		var host_nodes := _unit_runtime_index.units_for_sectors(cmd, "host", affected_sectors)
 		descriptors.append_array(OverlayProducers.build_host_station_descriptors_for_sectors(
-			cmd.host_stations.get_children(),
+			host_nodes,
 			set_id,
 			hgt,
 			w,
@@ -1948,8 +1960,9 @@ func _apply_localized_dynamic_overlay_refresh(cmd: Node, set_id: int, hgt: Packe
 			metrics
 		))
 	if cmd.squads != null and is_instance_valid(cmd.squads):
+		var squad_nodes := _unit_runtime_index.units_for_sectors(cmd, "squad", affected_sectors)
 		descriptors.append_array(OverlayProducers.build_squad_descriptors_for_sectors(
-			cmd.squads.get_children(),
+			squad_nodes,
 			set_id,
 			hgt,
 			w,
@@ -2999,8 +3012,12 @@ func _make_edge_blend_material(bucket_key: String, preloads, use_uv_y_for_blend:
 
 	var mat := ShaderMaterial.new()
 	mat.shader = _edge_blend_shader
-	mat.set_shader_parameter("texture_a", preloads.get_ground_texture(int(pair["surface_a"])))
-	mat.set_shader_parameter("texture_b", preloads.get_ground_texture(int(pair["surface_b"])))
+	var texture_a = preloads.get_ground_texture(int(pair["surface_a"]))
+	var texture_b = preloads.get_ground_texture(int(pair["surface_b"]))
+	if texture_a == null or texture_b == null:
+		return _make_preview_material(EDGE_PREVIEW_COLOR)
+	mat.set_shader_parameter("texture_a", texture_a)
+	mat.set_shader_parameter("texture_b", texture_b)
 	mat.set_shader_parameter("vertical_seam", use_uv_y_for_blend)
 	mat.set_shader_parameter("tile_scale", _compute_tile_scale())
 	mat.set_shader_parameter("atlas_grid", Vector2(1.0, 1.0))
