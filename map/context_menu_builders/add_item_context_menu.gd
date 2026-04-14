@@ -112,7 +112,10 @@ func _new_item(index:int, new_item_submenu: PopupMenu) -> void:
 	})
 	undo_redo_manager.record_item_snapshot(item_before, undo_redo_manager.create_item_snapshot())
 	undo_redo_manager.commit_group()
-	EventSystem.typ_map_cells_edited.emit([EditorState.selected_sector_idx])
+	var edited_typ_indices: Array = []
+	var edited_blg_indices: Array = []
+	CurrentMapData.append_edited_map_index(edited_typ_indices, EditorState.selected_sector_idx, typ_before, int(CurrentMapData.typ_map[EditorState.selected_sector_idx]))
+	CurrentMapData.append_edited_map_index(edited_blg_indices, EditorState.selected_sector_idx, blg_before, int(CurrentMapData.blg_map[EditorState.selected_sector_idx]))
 	EventSystem.map_updated.emit()
 
 
@@ -165,7 +168,8 @@ func _add_bomb_key_sector(index: int) -> void:
 	})
 	undo_redo_manager.record_item_snapshot(item_before, undo_redo_manager.create_item_snapshot())
 	undo_redo_manager.commit_group()
-	EventSystem.typ_map_cells_edited.emit([EditorState.selected_sector_idx])
+	var edited_typ_indices: Array = []
+	CurrentMapData.append_edited_map_index(edited_typ_indices, EditorState.selected_sector_idx, typ_before, int(CurrentMapData.typ_map[EditorState.selected_sector_idx]))
 	EventSystem.map_updated.emit()
 
 

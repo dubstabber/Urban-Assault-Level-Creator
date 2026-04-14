@@ -160,7 +160,30 @@ func reset_editor_unit_ids() -> void:
 	_next_editor_unit_id = 1
 
 
+func append_edited_map_index(target: Array, index: int, before: int, after: int) -> void:
+	if before == after or target.has(index):
+		return
+	target.append(index)
+
+
+func emit_map_edit_signals(edited_hgt_indices: Array = [], edited_typ_indices: Array = [], edited_blg_indices: Array = []) -> void:
+	if not edited_hgt_indices.is_empty():
+		EventSystem.hgt_map_cells_edited.emit(edited_hgt_indices.duplicate())
+	if not edited_typ_indices.is_empty():
+		EventSystem.typ_map_cells_edited.emit(edited_typ_indices.duplicate())
+	if not edited_blg_indices.is_empty():
+		EventSystem.blg_map_cells_edited.emit(edited_blg_indices.duplicate())
+
+
+func emit_map_edit_update(edited_hgt_indices: Array = [], edited_typ_indices: Array = [], edited_blg_indices: Array = [], fine_grained_already_emitted := false) -> void:
+	if not fine_grained_already_emitted:
+		emit_map_edit_signals(edited_hgt_indices, edited_typ_indices, edited_blg_indices)
+	EventSystem.map_updated.emit()
+
+
 func clear_sector(index: int, refresh_map := true) -> void:
+	var typ_before := int(typ_map[index])
+	var blg_before := int(blg_map[index])
 	typ_map[index] = 0
 	blg_map[index] = 0
 	own_map[index] = 0
@@ -178,5 +201,9 @@ func clear_sector(index: int, refresh_map := true) -> void:
 		bomb.key_sectors.erase(EditorState.selected_bomb_key_sector)
 	EditorState.selected_bomb_key_sector = Vector2i(-1, -1)
 	if refresh_map:
-		EventSystem.map_updated.emit()
+		var edited_typ_indices: Array = []
+		var edited_blg_indices: Array = []
+		append_edited_map_index(edited_typ_indices, index, typ_before, int(typ_map[index]))
+		append_edited_map_index(edited_blg_indices, index, blg_before, int(blg_map[index]))
+		emit_map_edit_update([], edited_typ_indices, edited_blg_indices)
 		EventSystem.item_updated.emit()

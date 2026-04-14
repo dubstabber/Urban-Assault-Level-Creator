@@ -135,9 +135,10 @@ func _handle_typ_map_design():
 		"after": after
 	})
 	CurrentMapData.is_saved = false
-	EventSystem.typ_map_cells_edited.emit([idx])
 	map.queue_redraw()
-	EventSystem.map_updated.emit()
+	var edited_typ_indices: Array = []
+	CurrentMapData.append_edited_map_index(edited_typ_indices, idx, before, after)
+	CurrentMapData.emit_map_edit_update([], edited_typ_indices, [])
 
 func _handle_single_selection():
 	var mouse_pos = map.get_local_mouse_position()
@@ -197,8 +198,6 @@ func _handle_height_change(direction: int):
 	undo_redo_manager.commit_group()
 	CurrentMapData.is_saved = false
 	map.queue_redraw()
-	if not edited_border_indices.is_empty():
-		EventSystem.hgt_map_cells_edited.emit(edited_border_indices)
 	EventSystem.map_updated.emit()
 
 
@@ -243,13 +242,13 @@ func _handle_building_change(direction: int):
 		})
 	undo_redo_manager.commit_group()
 	CurrentMapData.is_saved = false
-	if not edited_typ_indices.is_empty():
-		EventSystem.typ_map_cells_edited.emit(edited_typ_indices)
 	EventSystem.map_updated.emit()
 
 func _handle_clear_sector():
 	undo_redo_manager.begin_group("Clear sector")
 	var item_before: Dictionary = undo_redo_manager.create_item_snapshot()
+	var edited_typ_indices: Array = []
+	var edited_blg_indices: Array = []
 	if EditorState.selected_sectors.size() > 1:
 		for sector_dict in EditorState.selected_sectors:
 			if sector_dict.has("idx"):
@@ -258,6 +257,8 @@ func _handle_clear_sector():
 				var own_before := int(CurrentMapData.own_map[idx])
 				var blg_before := int(CurrentMapData.blg_map[idx])
 				CurrentMapData.clear_sector(idx, false)
+				CurrentMapData.append_edited_map_index(edited_typ_indices, idx, typ_before, int(CurrentMapData.typ_map[idx]))
+				CurrentMapData.append_edited_map_index(edited_blg_indices, idx, blg_before, int(CurrentMapData.blg_map[idx]))
 				undo_redo_manager.record_change({
 					"map": "typ_map",
 					"index": idx,
@@ -284,7 +285,9 @@ func _handle_clear_sector():
 		var typ_before := int(CurrentMapData.typ_map[idx])
 		var own_before := int(CurrentMapData.own_map[idx])
 		var blg_before := int(CurrentMapData.blg_map[idx])
-		CurrentMapData.clear_sector(idx)
+		CurrentMapData.clear_sector(idx, false)
+		CurrentMapData.append_edited_map_index(edited_typ_indices, idx, typ_before, int(CurrentMapData.typ_map[idx]))
+		CurrentMapData.append_edited_map_index(edited_blg_indices, idx, blg_before, int(CurrentMapData.blg_map[idx]))
 		undo_redo_manager.record_change({
 			"map": "typ_map",
 			"index": idx,
@@ -302,7 +305,7 @@ func _handle_clear_sector():
 			"index": idx,
 			"before": blg_before,
 			"after": int(CurrentMapData.blg_map[idx])
-		})
+	})
 	undo_redo_manager.record_item_snapshot(item_before, undo_redo_manager.create_item_snapshot())
 	undo_redo_manager.commit_group()
 	EventSystem.map_updated.emit()

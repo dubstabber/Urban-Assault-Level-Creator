@@ -45,6 +45,7 @@ func add_special_building(building_id: int, typ_map: int, own_map: int) -> void:
 	if CurrentMapData.blg_map.size() > 0:
 		undo_redo_manager.begin_group("Add special building")
 		var edited_typ_indices: Array = []
+		var edited_blg_indices: Array = []
 		if EditorState.selected_sectors.size() > 1:
 			for sector_dict in EditorState.selected_sectors:
 				if sector_dict.has("idx"):
@@ -55,7 +56,8 @@ func add_special_building(building_id: int, typ_map: int, own_map: int) -> void:
 					CurrentMapData.blg_map[idx] = building_id
 					CurrentMapData.typ_map[idx] = typ_map
 					CurrentMapData.own_map[idx] = own_map
-					edited_typ_indices.append(idx)
+					CurrentMapData.append_edited_map_index(edited_typ_indices, idx, typ_before, int(CurrentMapData.typ_map[idx]))
+					CurrentMapData.append_edited_map_index(edited_blg_indices, idx, blg_before, int(CurrentMapData.blg_map[idx]))
 					undo_redo_manager.record_change({
 						"map": "blg_map",
 						"index": idx,
@@ -82,7 +84,8 @@ func add_special_building(building_id: int, typ_map: int, own_map: int) -> void:
 			CurrentMapData.blg_map[idx] = building_id
 			CurrentMapData.typ_map[idx] = typ_map
 			CurrentMapData.own_map[idx] = own_map
-			edited_typ_indices.append(idx)
+			CurrentMapData.append_edited_map_index(edited_typ_indices, idx, typ_before, int(CurrentMapData.typ_map[idx]))
+			CurrentMapData.append_edited_map_index(edited_blg_indices, idx, blg_before, int(CurrentMapData.blg_map[idx]))
 			undo_redo_manager.record_change({
 				"map": "blg_map",
 				"index": idx,
@@ -102,6 +105,4 @@ func add_special_building(building_id: int, typ_map: int, own_map: int) -> void:
 				"after": int(CurrentMapData.own_map[idx])
 			})
 		undo_redo_manager.commit_group()
-		if not edited_typ_indices.is_empty():
-			EventSystem.typ_map_cells_edited.emit(edited_typ_indices)
 		EventSystem.map_updated.emit()

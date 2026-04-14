@@ -212,6 +212,28 @@ static func snapshot_squad_nodes(squads: Array) -> Array:
 	return snapshot
 
 
+static func playable_sector_at_world_position(world_x: float, world_z: float) -> Vector2i:
+	return Vector2i(_world_to_sector_index(world_x), _world_to_sector_index(world_z))
+
+
+static func filter_snapshot_to_sectors(snapshot: Array, sectors: Array) -> Array:
+	if sectors.is_empty():
+		return []
+	var wanted := {}
+	for sector_value in sectors:
+		if sector_value is Vector2i:
+			wanted[Vector2i(sector_value)] = true
+	var filtered: Array = []
+	for entry_value in snapshot:
+		if typeof(entry_value) != TYPE_DICTIONARY:
+			continue
+		var entry := entry_value as Dictionary
+		var sector := playable_sector_at_world_position(float(entry.get("x", 0.0)), absf(float(entry.get("y", 0.0))))
+		if wanted.has(sector):
+			filtered.append(entry)
+	return filtered
+
+
 # ---------------------------------------------------------------------------
 # Descriptor producers.
 # ---------------------------------------------------------------------------
@@ -274,6 +296,10 @@ static func build_host_station_descriptors(host_stations: Array, set_id: int, hg
 	return build_host_station_descriptors_from_snapshot(snapshot_host_station_nodes(host_stations), set_id, hgt, w, h, support_descriptors, profile)
 
 
+static func build_host_station_descriptors_for_sectors(host_stations: Array, set_id: int, hgt: PackedByteArray, w: int, h: int, sectors: Array, support_descriptors: Array = [], profile = null) -> Array:
+	return build_host_station_descriptors_from_snapshot(filter_snapshot_to_sectors(snapshot_host_station_nodes(host_stations), sectors), set_id, hgt, w, h, support_descriptors, profile)
+
+
 static func build_squad_descriptors_from_snapshot(squads: Array, set_id: int, hgt: PackedByteArray, w: int, h: int, support_descriptors: Array, game_data_type: String, profile = null) -> Array:
 	var descriptors: Array = []
 	for squad in squads:
@@ -312,15 +338,30 @@ static func build_squad_descriptors(squads: Array, set_id: int, hgt: PackedByteA
 	return build_squad_descriptors_from_snapshot(snapshot_squad_nodes(squads), set_id, hgt, w, h, support_descriptors, game_data_type, profile)
 
 
+static func build_squad_descriptors_for_sectors(squads: Array, set_id: int, hgt: PackedByteArray, w: int, h: int, sectors: Array, support_descriptors: Array, game_data_type: String, profile = null) -> Array:
+	return build_squad_descriptors_from_snapshot(filter_snapshot_to_sectors(snapshot_squad_nodes(squads), sectors), set_id, hgt, w, h, support_descriptors, game_data_type, profile)
+
+
 static func build_blg_attachment_descriptors(blg: PackedByteArray, effective_typ: PackedByteArray, set_id: int, hgt: PackedByteArray, w: int, h: int, _support_descriptors: Array, game_data_type: String) -> Array:
+	return build_blg_attachment_descriptors_for_sectors(blg, effective_typ, set_id, hgt, w, h, [], game_data_type)
+
+
+static func build_blg_attachment_descriptors_for_sectors(blg: PackedByteArray, effective_typ: PackedByteArray, set_id: int, hgt: PackedByteArray, w: int, h: int, sectors: Array, game_data_type: String) -> Array:
 	var descriptors: Array = []
 	if blg.size() != w * h or effective_typ.size() != w * h:
 		return descriptors
+	var sector_filter := {}
+	if not sectors.is_empty():
+		for sector_value in sectors:
+			if sector_value is Vector2i:
+				sector_filter[Vector2i(sector_value)] = true
 	# Source-backed building turret/radar sockets (`sbact_pos_*`) are defined relative to
 	# the sector center, so their Y anchor should stay on the terrain sector height rather
 	# than snapping up to the authored support mesh used by squads/host stations.
 	for sy in h:
 		for sx in w:
+			if not sector_filter.is_empty() and not sector_filter.has(Vector2i(sx, sy)):
+				continue
 			var idx := sy * w + sx
 			var building_id := int(blg[idx])
 			if building_id <= 0:

@@ -34,12 +34,12 @@ Thumbs.db
 *.tmp
 *.temp
 *.bak
+__pycache__/
 
 .usor/
 PLANNING.md
 TASK.md
 scripts/
-tests/
 docs/
 ua_source_code_prototype/
 .augmentignore

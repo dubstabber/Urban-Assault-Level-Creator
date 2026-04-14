@@ -15,6 +15,8 @@ func _on_index_pressed(index: int) -> void:
 		if CurrentMapData.horizontal_sectors > 0:
 			undo_redo_manager.begin_group("Clear sector")
 			var item_before: Dictionary = undo_redo_manager.create_item_snapshot()
+			var edited_typ_indices: Array = []
+			var edited_blg_indices: Array = []
 			if EditorState.selected_sectors.size() > 1:
 				for sector_dict in EditorState.selected_sectors:
 					if sector_dict.has("idx"):
@@ -23,6 +25,8 @@ func _on_index_pressed(index: int) -> void:
 						var own_before := int(CurrentMapData.own_map[idx])
 						var blg_before := int(CurrentMapData.blg_map[idx])
 						CurrentMapData.clear_sector(idx, false)
+						CurrentMapData.append_edited_map_index(edited_typ_indices, idx, typ_before, int(CurrentMapData.typ_map[idx]))
+						CurrentMapData.append_edited_map_index(edited_blg_indices, idx, blg_before, int(CurrentMapData.blg_map[idx]))
 						undo_redo_manager.record_change({
 							"map": "typ_map",
 							"index": idx,
@@ -49,7 +53,9 @@ func _on_index_pressed(index: int) -> void:
 				var typ_before := int(CurrentMapData.typ_map[idx])
 				var own_before := int(CurrentMapData.own_map[idx])
 				var blg_before := int(CurrentMapData.blg_map[idx])
-				CurrentMapData.clear_sector(idx)
+				CurrentMapData.clear_sector(idx, false)
+				CurrentMapData.append_edited_map_index(edited_typ_indices, idx, typ_before, int(CurrentMapData.typ_map[idx]))
+				CurrentMapData.append_edited_map_index(edited_blg_indices, idx, blg_before, int(CurrentMapData.blg_map[idx]))
 				undo_redo_manager.record_change({
 					"map": "typ_map",
 					"index": idx,

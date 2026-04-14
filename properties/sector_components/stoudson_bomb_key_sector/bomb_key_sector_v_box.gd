@@ -18,6 +18,8 @@ func _ready() -> void:
 				"after":int(CurrentMapData.typ_map[EditorState.selected_sector_idx])
 			})
 			undo_redo_manager.commit_group()
+			var edited_typ_indices: Array = []
+			CurrentMapData.append_edited_map_index(edited_typ_indices, EditorState.selected_sector_idx, typ_before, int(CurrentMapData.typ_map[EditorState.selected_sector_idx]))
 			EventSystem.map_updated.emit()
 		)
 	parasite_key_sector_option_button.item_selected.connect(func(index: int):
@@ -33,6 +35,8 @@ func _ready() -> void:
 				"after":int(CurrentMapData.typ_map[EditorState.selected_sector_idx])
 			})
 			undo_redo_manager.commit_group()
+			var edited_typ_indices: Array = []
+			CurrentMapData.append_edited_map_index(edited_typ_indices, EditorState.selected_sector_idx, typ_before, int(CurrentMapData.typ_map[EditorState.selected_sector_idx]))
 			EventSystem.map_updated.emit()
 		)
 

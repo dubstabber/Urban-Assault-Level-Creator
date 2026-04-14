@@ -42,6 +42,8 @@ signal warning_logs_updated(refresh: bool)
 signal sector_faction_changed(faction_id: int)
 signal sector_height_changed(height_value: int)
 # Batched editor notifications intended for the live 3D preview.
+# Contract: if a mutation changes `hgt_map`, `typ_map`, or `blg_map`,
+# emit the corresponding fine-grained signals before `map_updated`.
 # - `hgt_map` is indexed by border footprint cells: size = (w+2)*(h+2)
 # - `typ_map` is indexed by playable sectors: size = w*h
 signal hgt_map_cells_edited(border_indices: Array)

@@ -16,6 +16,8 @@ const EffectiveTypService := preload("res://map/map_3d_effective_typ_service.gd"
 const OverlayProducers := preload("res://map/map_3d_overlay_descriptor_producers.gd")
 const LegacyScriptParser := preload("res://map/map_3d_legacy_script_parser.gd")
 const UnitOverlayController := preload("res://map/map_3d_unit_overlay_controller.gd")
+const InvalidationRouter := preload("res://map/map_3d_invalidation_router.gd")
+const StaticOverlayIndex := preload("res://map/map_3d_static_overlay_index.gd")
 
 const SECTOR_SIZE := 1200.0
 const HEIGHT_SCALE := 100.0
@@ -241,6 +243,9 @@ var _async_overlay_descriptor_dynamic_only := false
 var _skip_next_map_changed_refresh := false
 var _pending_unit_changes: Array = []
 var _overlay_apply_manager := Map3DAuthoredOverlayManager.new()
+var _static_overlay_index := StaticOverlayIndex.new()
+var _localized_overlay_dirty_sectors: Dictionary = {}
+var _localized_dynamic_overlay_dirty_sectors: Dictionary = {}
 
 func set_event_system_override(event_system: Node) -> void:
 	_event_system_override = event_system
@@ -276,14 +281,22 @@ func _make_empty_build_metrics() -> Dictionary:
 		"used_textured_preloads": false,
 		"invalid_input": false,
 		"terrain_build_ms": 0.0,
+		"chunk_apply_ms": 0.0,
 		"edge_slurp_build_ms": 0.0,
 		"overlay_descriptor_generation_ms": 0.0,
 		"overlay_node_creation_ms": 0.0,
+		"static_overlay_descriptor_generation_ms": 0.0,
+		"static_overlay_apply_ms": 0.0,
+		"dynamic_overlay_descriptor_generation_ms": 0.0,
+		"dynamic_overlay_apply_ms": 0.0,
 		"support_height_query_ms": 0.0,
 		"support_height_query_count": 0,
 		"terrain_authored_descriptor_count": 0,
 		"edge_authored_descriptor_count": 0,
 		"overlay_descriptor_count": 0,
+		"dirty_sector_count": 0,
+		"dirty_chunk_count": 0,
+		"localized_overlay_refresh": false,
 		"piece_overlay_fast_path": 0,
 		"piece_overlay_slow_path": 0,
 		"build_total_ms": 0.0,
@@ -349,6 +362,35 @@ func _clear_async_chunk_payloads() -> void:
 
 func _async_chunk_payload_count() -> int:
 	return _coordinator.async_chunk_payload_count()
+
+
+func _record_localized_overlay_sectors(sectors: Array) -> void:
+	for sector_value in sectors:
+		if sector_value is Vector2i:
+			var sector := Vector2i(sector_value)
+			_localized_overlay_dirty_sectors[sector] = true
+			_localized_dynamic_overlay_dirty_sectors[sector] = true
+
+
+func _localized_overlay_sector_list() -> Array[Vector2i]:
+	var sectors: Array[Vector2i] = []
+	for key in _localized_overlay_dirty_sectors.keys():
+		if key is Vector2i:
+			sectors.append(Vector2i(key))
+	return sectors
+
+
+func _localized_dynamic_sector_list() -> Array[Vector2i]:
+	var sectors: Array[Vector2i] = []
+	for key in _localized_dynamic_overlay_dirty_sectors.keys():
+		if key is Vector2i:
+			sectors.append(Vector2i(key))
+	return sectors
+
+
+func _clear_localized_overlay_scope() -> void:
+	_localized_overlay_dirty_sectors.clear()
+	_localized_dynamic_overlay_dirty_sectors.clear()
 
 func _compute_effective_typ_for_map(
 	cmd: Node,
@@ -935,19 +977,23 @@ func _async_overlay_descriptor_worker(payload: Dictionary) -> void:
 	var game_data_type := String(payload.get("game_data_type", "original"))
 	var host_station_snapshot: Array = payload.get("host_station_snapshot", [])
 	var squad_snapshot: Array = payload.get("squad_snapshot", [])
+	var static_started_usec := Time.get_ticks_usec()
 	if not dynamic_only:
 		_set_async_overlay_descriptor_stage("Preparing overlays: building attachments")
 		static_descriptors.append_array(_build_blg_attachment_descriptors(blg, effective_typ, set_id, hgt, w, h, support_descriptors, game_data_type))
+	metrics["static_overlay_descriptor_generation_ms"] = _elapsed_ms_since(static_started_usec)
 	if _is_async_cancel_requested(generation_id):
 		_set_async_overlay_descriptor_state(true, false, {}, {})
 		return
 	_set_async_overlay_descriptor_stage("Preparing overlays: host stations")
+	var dynamic_started_usec := Time.get_ticks_usec()
 	dynamic_descriptors.append_array(_build_host_station_descriptors_from_snapshot(host_station_snapshot, set_id, hgt, w, h, support_descriptors, metrics))
 	if _is_async_cancel_requested(generation_id):
 		_set_async_overlay_descriptor_state(true, false, {}, {})
 		return
 	_set_async_overlay_descriptor_stage("Preparing overlays: squads")
 	dynamic_descriptors.append_array(_build_squad_descriptors_from_snapshot(squad_snapshot, set_id, hgt, w, h, support_descriptors, game_data_type, metrics))
+	metrics["dynamic_overlay_descriptor_generation_ms"] = _elapsed_ms_since(dynamic_started_usec)
 	metrics["overlay_descriptor_generation_ms"] = _elapsed_ms_since(started_usec)
 	metrics["overlay_descriptor_count"] = static_descriptors.size() + dynamic_descriptors.size()
 	_set_async_overlay_descriptor_stage("Preparing overlays: complete")
@@ -988,7 +1034,9 @@ func _pump_async_overlay_descriptor_build() -> void:
 	var dynamic_descriptors: Array = result_payload.get("dynamic_descriptors", [])
 	var metrics: Dictionary = state.get("metrics", {})
 	if _async_overlay_descriptor_dynamic_only:
+		var dynamic_apply_started_usec := Time.get_ticks_usec()
 		_apply_dynamic_overlay(dynamic_descriptors)
+		metrics["dynamic_overlay_apply_ms"] = _elapsed_ms_since(dynamic_apply_started_usec)
 		_last_build_metrics = metrics
 		_end_build_state(true, "3D map ready")
 		_bump_3d_viewport_rendering()
@@ -1101,6 +1149,7 @@ func _start_async_overlay_apply(static_descriptors: Array, dynamic_descriptors: 
 	_async_overlay_descriptors = static_descriptors
 	_async_dynamic_overlay_descriptors = dynamic_descriptors
 	_async_overlay_metrics = metrics.duplicate(true)
+	_static_overlay_index.replace_all(static_descriptors)
 	_async_overlay_apply_state = _overlay_apply_manager.begin_apply_overlay_node(_authored_overlay, _async_overlay_descriptors)
 	_async_overlay_apply_started_usec = Time.get_ticks_usec()
 	_async_overlay_apply_active = true
@@ -1132,6 +1181,7 @@ func _pump_async_overlay_apply() -> void:
 func _finalize_async_overlay_apply() -> void:
 	if _authored_overlay != null and is_instance_valid(_authored_overlay):
 		_overlay_apply_manager.finalize_apply_overlay_node(_authored_overlay, _async_overlay_apply_state)
+	var dynamic_apply_started_usec := Time.get_ticks_usec()
 	_apply_dynamic_overlay(_async_dynamic_overlay_descriptors)
 	_apply_geometry_distance_culling_to_overlay()
 	var metrics := _async_overlay_metrics
@@ -1139,6 +1189,8 @@ func _finalize_async_overlay_apply() -> void:
 	metrics["piece_overlay_fast_path"] = int(pc.get("piece_overlay_fast_path", 0))
 	metrics["piece_overlay_slow_path"] = int(pc.get("piece_overlay_slow_path", 0))
 	metrics["overlay_node_creation_ms"] = _elapsed_ms_since(_async_overlay_apply_started_usec)
+	metrics["static_overlay_apply_ms"] = metrics["overlay_node_creation_ms"]
+	metrics["dynamic_overlay_apply_ms"] = _elapsed_ms_since(dynamic_apply_started_usec)
 	_last_build_metrics = metrics
 	_chunk_rt.initial_build_in_progress = false
 	_chunk_rt.initial_build_accumulated_authored_descriptors.clear()
@@ -1350,6 +1402,7 @@ func _on_map_changed() -> void:
 				# Force dirty chunks so stale incremental chunk sets cannot miss distant sectors.
 				_invalidate_all_chunks(w, h)
 				_effective_typ_service.set_dirty(true)
+				_clear_localized_overlay_scope()
 		_request_refresh(false)
 
 func _on_map_created() -> void:
@@ -1367,6 +1420,7 @@ func _on_map_created() -> void:
 		_chunk_rt.last_level_set = level_set
 		_clear_chunk_nodes()
 		_set_authored_overlay([])
+		_clear_localized_overlay_scope()
 		_chunk_rt.clear_dirty_chunks()
 		_chunk_rt.clear_authored_caches()
 		_chunk_rt.invalidate_all_chunks(w, h)
@@ -1388,32 +1442,9 @@ func _on_hgt_map_cells_edited(border_indices: Array) -> void:
 		return
 	# hgt-only edit: `effective_typ` depends on typ/blg/entities; keep cached value if possible.
 	_effective_typ_service.set_dirty(false)
-
-	var bw := w + 2
-	# Convert `hgt_map` border indices to a conservative set of affected playable sectors.
-	# This intentionally rebuilds a small neighborhood to cover seam/edge-dependent geometry.
-	var seen_playable := {}
-	for idx_value in border_indices:
-		var border_idx := int(idx_value)
-		if border_idx < 0 or border_idx >= (bw * (h + 2)):
-			continue
-		var bx := border_idx % bw
-		var by: int = int(border_idx / bw)
-		var sx: int = bx - 1
-		var sy: int = by - 1
-		for oy in [-1, 0, 1]:
-			var py: int = sy + oy
-			if py < 0 or py >= h:
-				continue
-			for ox in [-1, 0, 1]:
-				var px: int = sx + ox
-				if px < 0 or px >= w:
-					continue
-				var key := "%d:%d" % [px, py]
-				if seen_playable.has(key):
-					continue
-				seen_playable[key] = true
-				mark_sector_dirty(px, py, "hgt")
+	var invalidation := InvalidationRouter.invalidation_for_hgt_border_indices(border_indices, w, h)
+	mark_chunks_dirty(invalidation.get("dirty_chunks", []))
+	_record_localized_overlay_sectors(invalidation.get("dirty_sectors", []))
 
 func _on_typ_map_cells_edited(typ_indices: Array) -> void:
 	_cancel_async_initial_build()
@@ -1426,19 +1457,9 @@ func _on_typ_map_cells_edited(typ_indices: Array) -> void:
 		return
 	# typ-only edit: recompute effective typ for correct surface + piece selection.
 	_effective_typ_service.set_dirty(true)
-
-	var seen_playable := {}
-	for idx_value in typ_indices:
-		var typ_idx := int(idx_value)
-		if typ_idx < 0 or typ_idx >= (w * h):
-			continue
-		var sx := typ_idx % w
-		var sy: int = int(typ_idx / w)
-		var key := "%d:%d" % [sx, sy]
-		if seen_playable.has(key):
-			continue
-		seen_playable[key] = true
-		mark_sector_dirty(sx, sy, "typ")
+	var invalidation := InvalidationRouter.invalidation_for_typ_indices(typ_indices, w, h)
+	mark_chunks_dirty(invalidation.get("dirty_chunks", []))
+	_record_localized_overlay_sectors(invalidation.get("dirty_sectors", []))
 
 func _on_blg_map_cells_edited(blg_indices: Array) -> void:
 	_cancel_async_initial_build()
@@ -1450,19 +1471,9 @@ func _on_blg_map_cells_edited(blg_indices: Array) -> void:
 	if w <= 0 or h <= 0:
 		return
 	_effective_typ_service.set_dirty(true)
-
-	var seen_playable := {}
-	for idx_value in blg_indices:
-		var blg_idx := int(idx_value)
-		if blg_idx < 0 or blg_idx >= (w * h):
-			continue
-		var sx := blg_idx % w
-		var sy: int = int(blg_idx / w)
-		var key := "%d:%d" % [sx, sy]
-		if seen_playable.has(key):
-			continue
-		seen_playable[key] = true
-		mark_sector_dirty(sx, sy, "blg")
+	var invalidation := InvalidationRouter.invalidation_for_blg_indices(blg_indices, w, h)
+	mark_chunks_dirty(invalidation.get("dirty_chunks", []))
+	_record_localized_overlay_sectors(invalidation.get("dirty_sectors", []))
 
 func build_from_current_map() -> void:
 	var build_started_usec := Time.get_ticks_usec()
@@ -1537,6 +1548,11 @@ func build_from_current_map() -> void:
 	var authored_piece_descriptors: Array = []
 	var support_descriptors: Array = []
 	var overlay_descriptors: Array = []
+	var processed_chunks: Array = []
+	var localized_overlay_sectors := _localized_overlay_sector_list()
+	var localized_dynamic_sectors := _localized_dynamic_sector_list()
+	metrics["dirty_sector_count"] = localized_overlay_sectors.size()
+	metrics["dirty_chunk_count"] = _chunk_rt.get_dirty_chunk_count()
 
 	if use_chunked:
 		if _chunk_rt.has_dirty_chunks():
@@ -1549,7 +1565,9 @@ func build_from_current_map() -> void:
 			var is_initial_batch := _chunk_rt.initial_build_in_progress
 			if is_initial_batch:
 				max_chunks = _chunk_rt.initial_build_batch_size
-			var batch_authored_descriptors := _rebuild_dirty_chunks(hgt, effective_typ, w, h, pre, level_set, metrics, max_chunks)
+			var rebuild_result := _rebuild_dirty_chunks(hgt, effective_typ, w, h, pre, level_set, metrics, max_chunks)
+			var batch_authored_descriptors: Array = rebuild_result.get("descriptors", [])
+			processed_chunks = rebuild_result.get("processed_chunks", [])
 			metrics["terrain_build_ms"] = _elapsed_ms_since(terrain_started_usec)
 			metrics["incremental_rebuild"] = true
 
@@ -1629,20 +1647,49 @@ func build_from_current_map() -> void:
 		_chunk_rt.clear_dirty_chunks()
 		_reset_terrain_authored_cache_from_descriptors(support_descriptors, w, h)
 
+	var can_use_localized_overlay_refresh := use_chunked and not _chunk_rt.initial_build_in_progress and not processed_chunks.is_empty() and not localized_overlay_sectors.is_empty()
 	var overlay_descriptor_started_usec := Time.get_ticks_usec()
-	overlay_descriptors.append_array(_build_blg_attachment_descriptors(blg, effective_typ, int(_cmd.level_set), hgt, w, h, support_descriptors, game_data_type))
-	if _cmd.host_stations != null and is_instance_valid(_cmd.host_stations):
-		overlay_descriptors.append_array(_build_host_station_descriptors(_cmd.host_stations.get_children(), int(_cmd.level_set), hgt, w, h, support_descriptors, metrics))
-	if _cmd.squads != null and is_instance_valid(_cmd.squads):
-		overlay_descriptors.append_array(_build_squad_descriptors(_cmd.squads.get_children(), int(_cmd.level_set), hgt, w, h, support_descriptors, game_data_type, metrics))
-	metrics["overlay_descriptor_generation_ms"] = _elapsed_ms_since(overlay_descriptor_started_usec)
-	metrics["overlay_descriptor_count"] = overlay_descriptors.size()
-	var overlay_node_started_usec := Time.get_ticks_usec()
-	_set_authored_overlay(overlay_descriptors)
+	if can_use_localized_overlay_refresh:
+		var localized_static_descriptors: Array = authored_piece_descriptors.duplicate()
+		localized_static_descriptors.append_array(OverlayProducers.build_blg_attachment_descriptors_for_sectors(
+			blg,
+			effective_typ,
+			int(_cmd.level_set),
+			hgt,
+			w,
+			h,
+			localized_overlay_sectors,
+			game_data_type
+		))
+		metrics["static_overlay_descriptor_generation_ms"] = _elapsed_ms_since(overlay_descriptor_started_usec)
+		metrics["overlay_descriptor_generation_ms"] = metrics["static_overlay_descriptor_generation_ms"]
+		metrics["overlay_descriptor_count"] = localized_static_descriptors.size()
+		var overlay_node_started_usec := Time.get_ticks_usec()
+		_apply_localized_static_overlay_refresh(localized_static_descriptors, processed_chunks, localized_overlay_sectors, int(_cmd.level_set), w, h)
+		metrics["static_overlay_apply_ms"] = _elapsed_ms_since(overlay_node_started_usec)
+		metrics["overlay_node_creation_ms"] = metrics["static_overlay_apply_ms"]
+		var dynamic_descriptor_started_usec := Time.get_ticks_usec()
+		_apply_localized_dynamic_overlay_refresh(_cmd, int(_cmd.level_set), hgt, w, h, support_descriptors, game_data_type, localized_dynamic_sectors, metrics)
+		metrics["dynamic_overlay_descriptor_generation_ms"] = _elapsed_ms_since(dynamic_descriptor_started_usec)
+		metrics["dynamic_overlay_apply_ms"] = 0.0
+		metrics["localized_overlay_refresh"] = true
+	else:
+		overlay_descriptors.append_array(_build_blg_attachment_descriptors(blg, effective_typ, int(_cmd.level_set), hgt, w, h, support_descriptors, game_data_type))
+		if _cmd.host_stations != null and is_instance_valid(_cmd.host_stations):
+			overlay_descriptors.append_array(_build_host_station_descriptors(_cmd.host_stations.get_children(), int(_cmd.level_set), hgt, w, h, support_descriptors, metrics))
+		if _cmd.squads != null and is_instance_valid(_cmd.squads):
+			overlay_descriptors.append_array(_build_squad_descriptors(_cmd.squads.get_children(), int(_cmd.level_set), hgt, w, h, support_descriptors, game_data_type, metrics))
+		metrics["overlay_descriptor_generation_ms"] = _elapsed_ms_since(overlay_descriptor_started_usec)
+		metrics["static_overlay_descriptor_generation_ms"] = metrics["overlay_descriptor_generation_ms"]
+		metrics["overlay_descriptor_count"] = overlay_descriptors.size()
+		var overlay_node_started_usec := Time.get_ticks_usec()
+		_set_authored_overlay(overlay_descriptors)
+		metrics["static_overlay_apply_ms"] = _elapsed_ms_since(overlay_node_started_usec)
+		metrics["overlay_node_creation_ms"] = metrics["static_overlay_apply_ms"]
 	var pc: Dictionary = UATerrainPieceLibraryScript.get_piece_overlay_build_counters()
 	metrics["piece_overlay_fast_path"] = int(pc.get("piece_overlay_fast_path", 0))
 	metrics["piece_overlay_slow_path"] = int(pc.get("piece_overlay_slow_path", 0))
-	metrics["overlay_node_creation_ms"] = _elapsed_ms_since(overlay_node_started_usec)
+	_clear_localized_overlay_scope()
 	_finalize_build_metrics(metrics, build_started_usec)
 
 func _current_game_data_type() -> String:
@@ -1665,6 +1712,7 @@ func clear() -> void:
 		_edge_mesh.mesh = null
 	_clear_chunk_nodes()
 	_set_authored_overlay([])
+	_clear_localized_overlay_scope()
 
 func _clear_chunk_nodes() -> void:
 	for chunk_key in _terrain_chunk_nodes.keys():
@@ -1691,6 +1739,15 @@ func _record_map_signature(w: int, h: int, level_set: int, hgt: PackedByteArray,
 func _invalidate_chunks_for_sector_edit(sx: int, sy: int, w: int, h: int, edit_type: String) -> void:
 	_chunk_rt.invalidate_chunks_for_sector_edit(sx, sy, w, h, edit_type)
 
+func mark_chunks_dirty(chunk_coords: Array) -> void:
+	if chunk_coords.is_empty():
+		return
+	_chunk_rt.explicit_chunk_invalidation_pending = true
+	_chunk_rt.localized_chunk_invalidation_pending = true
+	for chunk_value in chunk_coords:
+		if chunk_value is Vector2i:
+			_chunk_rt.mark_chunk_dirty(Vector2i(chunk_value))
+
 func mark_sector_dirty(sx: int, sy: int, edit_type: String = "hgt") -> void:
 	var _cmd = _current_map_data()
 	if _cmd == null:
@@ -1701,6 +1758,7 @@ func mark_sector_dirty(sx: int, sy: int, edit_type: String = "hgt") -> void:
 		return
 	_chunk_rt.explicit_chunk_invalidation_pending = true
 	_invalidate_chunks_for_sector_edit(sx, sy, w, h, edit_type)
+	_record_localized_overlay_sectors([Vector2i(sx, sy)])
 
 func mark_sectors_dirty(sectors: Array, edit_type: String = "hgt") -> void:
 	var _cmd = _current_map_data()
@@ -1714,8 +1772,10 @@ func mark_sectors_dirty(sectors: Array, edit_type: String = "hgt") -> void:
 	for sector in sectors:
 		if sector is Vector2i:
 			_invalidate_chunks_for_sector_edit(sector.x, sector.y, w, h, edit_type)
+			_record_localized_overlay_sectors([Vector2i(sector)])
 		elif sector is Vector2:
 			_invalidate_chunks_for_sector_edit(int(sector.x), int(sector.y), w, h, edit_type)
+			_record_localized_overlay_sectors([Vector2i(int(sector.x), int(sector.y))])
 
 func get_dirty_chunk_count() -> int:
 	return _chunk_rt.get_dirty_chunk_count()
@@ -1772,10 +1832,11 @@ func _rebuild_dirty_chunks(
 	level_set: int,
 	metrics: Dictionary,
 	max_chunks: int = -1
-) -> Array:
+) -> Dictionary:
 	var all_authored_descriptors: Array = []
 	var chunks_rebuilt := 0
 	var processed: Array[Vector2i] = []
+	var apply_started_usec := Time.get_ticks_usec()
 	var dirty_chunk_list := _dirty_chunks_sorted_by_priority(w, h)
 
 	for chunk_coord in dirty_chunk_list:
@@ -1834,7 +1895,11 @@ func _rebuild_dirty_chunks(
 	for chunk_coord in processed:
 		_chunk_rt.erase_dirty_chunk(chunk_coord)
 	metrics["chunks_rebuilt"] = chunks_rebuilt
-	return all_authored_descriptors
+	metrics["chunk_apply_ms"] = _elapsed_ms_since(apply_started_usec)
+	return {
+		"descriptors": all_authored_descriptors,
+		"processed_chunks": processed,
+	}
 
 static func _chunk_distance_sq(a: Vector2i, b: Vector2i) -> int:
 	var dx := a.x - b.x
@@ -1855,6 +1920,52 @@ func _chunk_focus_coord(w: int, h: int) -> Vector2i:
 	var center_sy := maxi(h / 2, 0)
 	return TerrainBuilder.sector_to_chunk(center_sx, center_sy)
 
+func _apply_localized_static_overlay_refresh(replacement_descriptors: Array, affected_chunks: Array, affected_sectors: Array, set_id: int, w: int, h: int) -> void:
+	if _authored_overlay == null or not is_instance_valid(_authored_overlay):
+		return
+	var prefixes := StaticOverlayIndex.terrain_prefixes_for_chunks(set_id, affected_chunks, w, h)
+	prefixes.append_array(StaticOverlayIndex.building_attachment_prefixes_for_sectors(set_id, affected_sectors))
+	if prefixes.is_empty():
+		return
+	_static_overlay_index.replace_matching_prefixes(prefixes, replacement_descriptors)
+	AuthoredOverlayManager.apply_overlay_for_prefixes(_authored_overlay, prefixes, replacement_descriptors)
+
+
+func _apply_localized_dynamic_overlay_refresh(cmd: Node, set_id: int, hgt: PackedByteArray, w: int, h: int, support_descriptors: Array, game_data_type: String, affected_sectors: Array, metrics: Dictionary) -> void:
+	if affected_sectors.is_empty():
+		return
+	_ensure_overlay_nodes()
+	var descriptors: Array = []
+	if cmd.host_stations != null and is_instance_valid(cmd.host_stations):
+		descriptors.append_array(OverlayProducers.build_host_station_descriptors_for_sectors(
+			cmd.host_stations.get_children(),
+			set_id,
+			hgt,
+			w,
+			h,
+			affected_sectors,
+			support_descriptors,
+			metrics
+		))
+	if cmd.squads != null and is_instance_valid(cmd.squads):
+		descriptors.append_array(OverlayProducers.build_squad_descriptors_for_sectors(
+			cmd.squads.get_children(),
+			set_id,
+			hgt,
+			w,
+			h,
+			affected_sectors,
+			support_descriptors,
+			game_data_type,
+			metrics
+		))
+	var prefixes := StaticOverlayIndex.exact_instance_key_prefixes(descriptors)
+	if prefixes.is_empty():
+		return
+	AuthoredOverlayManager.apply_overlay_for_prefixes(_dynamic_overlay, prefixes, descriptors)
+	_apply_geometry_distance_culling_to_overlay()
+
+
 func _set_authored_overlay(descriptors: Array) -> void:
 	_ensure_overlay_nodes()
 	var static_descriptors: Array = []
@@ -1869,6 +1980,7 @@ func _set_authored_overlay(descriptors: Array) -> void:
 		else:
 			static_descriptors.append(desc)
 	UATerrainPieceLibraryScript.reset_piece_overlay_build_counters()
+	_static_overlay_index.replace_all(static_descriptors)
 	AuthoredOverlayManager.apply_overlay_node(_authored_overlay, static_descriptors)
 	AuthoredOverlayManager.apply_overlay_node(_dynamic_overlay, dynamic_descriptors)
 	_apply_geometry_distance_culling_to_overlay()

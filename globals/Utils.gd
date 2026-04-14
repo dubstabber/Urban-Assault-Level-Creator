@@ -97,8 +97,6 @@ func randomize_whole_typ_map() -> void:
 		edited_typ_indices.append(i)
 
 	undo_redo_manager.commit_group()
-	if not edited_typ_indices.is_empty():
-		EventSystem.typ_map_cells_edited.emit(edited_typ_indices)
 	EventSystem.map_updated.emit()
 
 
@@ -140,6 +138,8 @@ func paste_sector() -> void:
 		var undo_redo_manager = get_node("/root/UndoRedoManager")
 		undo_redo_manager.begin_group("Paste sector")
 		var item_before: Dictionary = undo_redo_manager.create_item_snapshot()
+		var edited_typ_indices: Array = []
+		var edited_blg_indices: Array = []
 		var typ_before := int(CurrentMapData.typ_map[EditorState.selected_sector_idx])
 		var own_before := int(CurrentMapData.own_map[EditorState.selected_sector_idx])
 		var blg_before := int(CurrentMapData.blg_map[EditorState.selected_sector_idx])
@@ -162,6 +162,8 @@ func paste_sector() -> void:
 					undo_redo_manager.record_change({"map":"blg_map","index":EditorState.selected_sector_idx,"before":blg_before,"after":int(CurrentMapData.blg_map[EditorState.selected_sector_idx])})
 					undo_redo_manager.record_item_snapshot(item_before, undo_redo_manager.create_item_snapshot())
 					undo_redo_manager.commit_group()
+					CurrentMapData.append_edited_map_index(edited_typ_indices, EditorState.selected_sector_idx, typ_before, int(CurrentMapData.typ_map[EditorState.selected_sector_idx]))
+					CurrentMapData.append_edited_map_index(edited_blg_indices, EditorState.selected_sector_idx, blg_before, int(CurrentMapData.blg_map[EditorState.selected_sector_idx]))
 					EventSystem.map_updated.emit()
 					return
 			
@@ -182,6 +184,8 @@ func paste_sector() -> void:
 					undo_redo_manager.record_change({"map":"blg_map","index":EditorState.selected_sector_idx,"before":blg_before,"after":int(CurrentMapData.blg_map[EditorState.selected_sector_idx])})
 					undo_redo_manager.record_item_snapshot(item_before, undo_redo_manager.create_item_snapshot())
 					undo_redo_manager.commit_group()
+					CurrentMapData.append_edited_map_index(edited_typ_indices, EditorState.selected_sector_idx, typ_before, int(CurrentMapData.typ_map[EditorState.selected_sector_idx]))
+					CurrentMapData.append_edited_map_index(edited_blg_indices, EditorState.selected_sector_idx, blg_before, int(CurrentMapData.blg_map[EditorState.selected_sector_idx]))
 					EventSystem.map_updated.emit()
 					return
 			
@@ -203,6 +207,8 @@ func paste_sector() -> void:
 					undo_redo_manager.record_change({"map":"blg_map","index":EditorState.selected_sector_idx,"before":blg_before,"after":int(CurrentMapData.blg_map[EditorState.selected_sector_idx])})
 					undo_redo_manager.record_item_snapshot(item_before, undo_redo_manager.create_item_snapshot())
 					undo_redo_manager.commit_group()
+					CurrentMapData.append_edited_map_index(edited_typ_indices, EditorState.selected_sector_idx, typ_before, int(CurrentMapData.typ_map[EditorState.selected_sector_idx]))
+					CurrentMapData.append_edited_map_index(edited_blg_indices, EditorState.selected_sector_idx, blg_before, int(CurrentMapData.blg_map[EditorState.selected_sector_idx]))
 					EventSystem.map_updated.emit()
 					return
 			
@@ -225,6 +231,8 @@ func paste_sector() -> void:
 		undo_redo_manager.record_change({"map":"blg_map","index":EditorState.selected_sector_idx,"before":blg_before,"after":int(CurrentMapData.blg_map[EditorState.selected_sector_idx])})
 		undo_redo_manager.record_item_snapshot(item_before, undo_redo_manager.create_item_snapshot())
 		undo_redo_manager.commit_group()
+		CurrentMapData.append_edited_map_index(edited_typ_indices, EditorState.selected_sector_idx, typ_before, int(CurrentMapData.typ_map[EditorState.selected_sector_idx]))
+		CurrentMapData.append_edited_map_index(edited_blg_indices, EditorState.selected_sector_idx, blg_before, int(CurrentMapData.blg_map[EditorState.selected_sector_idx]))
 		EventSystem.map_updated.emit()
 
 

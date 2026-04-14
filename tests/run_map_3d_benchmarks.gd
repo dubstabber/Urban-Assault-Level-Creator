@@ -10,8 +10,10 @@ class EventSystemStub extends Node:
 	signal map_updated
 	signal level_set_changed
 	signal map_view_updated
+	signal map_3d_overlay_animations_changed
 	signal hgt_map_cells_edited(border_indices: Array)
 	signal typ_map_cells_edited(typ_indices: Array)
+	signal blg_map_cells_edited(blg_indices: Array)
 
 
 class CurrentMapDataStub extends Node:
@@ -172,6 +174,23 @@ static func build_case_summary(case_name: String, case_data: Dictionary, workflo
 	return summary
 
 
+static func summary_has_non_zero_build_metrics(summary: Dictionary) -> bool:
+	var metrics_value = summary.get("metrics", {})
+	var metrics := metrics_value as Dictionary if typeof(metrics_value) == TYPE_DICTIONARY else {}
+	for key in ["terrain_build_ms", "edge_slurp_build_ms", "overlay_descriptor_generation_ms", "overlay_node_creation_ms", "build_total_ms", "refresh_end_to_end_ms"]:
+		if float(metrics.get(key, 0.0)) > 0.0:
+			return true
+	if int(metrics.get("overlay_descriptor_count", 0)) > 0:
+		return true
+	if int(metrics.get("terrain_authored_descriptor_count", 0)) > 0:
+		return true
+	if int(metrics.get("edge_authored_descriptor_count", 0)) > 0:
+		return true
+	if int(metrics.get("chunks_rebuilt", 0)) > 0:
+		return true
+	return false
+
+
 static func _count_named_children(parent: Node, prefix: String) -> int:
 	if parent == null:
 		return 0
@@ -274,6 +293,10 @@ func _run_case(case_name: String) -> bool:
 		hidden_build_started_before_reactivate
 	)
 	print("BENCH ", JSON.stringify(summary))
+	if not summary_has_non_zero_build_metrics(summary):
+		push_error("Benchmark case %s produced zero build metrics" % case_name)
+		_dispose_fixture(fixture)
+		return false
 	if _should_assert_budgets() and not bool(Dictionary(summary.get("smoke", {})).get("within_budget", false)):
 		push_error("Benchmark smoke budget failed for %s: %s" % [case_name, JSON.stringify(Dictionary(summary.get("smoke", {})).get("violations", []))])
 		_dispose_fixture(fixture)
