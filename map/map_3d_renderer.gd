@@ -240,6 +240,7 @@ var _async_overlay_apply_state: Dictionary = {}
 var _async_overlay_descriptors: Array = []
 var _async_dynamic_overlay_descriptors: Array = []
 var _async_overlay_metrics: Dictionary = {}
+var _async_build_started_usec := 0
 var _async_overlay_apply_started_usec := 0
 var _overlay_only_refresh_requested := false
 var _dynamic_overlay_refresh_requested := false
@@ -610,6 +611,7 @@ func _start_async_overlay_only_refresh(reframe_camera: bool) -> bool:
 	_coordinator.active_build_generation_id = _coordinator.build_generation_id
 	_coordinator.cancel_requested_generation_id = 0
 	_async_pending_reframe_camera = reframe_camera
+	_async_build_started_usec = Time.get_ticks_usec()
 	_coordinator._async_cancel_requested = false
 	_async_requested_restart = false
 	_async_requested_reframe = false
@@ -631,6 +633,7 @@ func _start_async_dynamic_overlay_refresh(reframe_camera: bool) -> bool:
 	_coordinator.active_build_generation_id = _coordinator.build_generation_id
 	_coordinator.cancel_requested_generation_id = 0
 	_async_pending_reframe_camera = reframe_camera
+	_async_build_started_usec = Time.get_ticks_usec()
 	_coordinator._async_cancel_requested = false
 	_async_requested_restart = false
 	_async_requested_reframe = false
@@ -711,6 +714,7 @@ func _try_start_async_initial_build(reframe_camera: bool) -> bool:
 	_coordinator.active_build_generation_id = _coordinator.build_generation_id
 	_coordinator.cancel_requested_generation_id = 0
 	_async_pending_reframe_camera = reframe_camera
+	_async_build_started_usec = Time.get_ticks_usec()
 	_async_effective_typ = effective_typ
 	_async_blg = blg
 	_async_w = w
@@ -967,7 +971,7 @@ func _pump_async_overlay_descriptor_build() -> void:
 		var dynamic_apply_started_usec := Time.get_ticks_usec()
 		_apply_dynamic_overlay(dynamic_descriptors)
 		metrics["dynamic_overlay_apply_ms"] = _elapsed_ms_since(dynamic_apply_started_usec)
-		_last_build_metrics = metrics
+		_finalize_build_metrics(metrics, _async_build_started_usec)
 		_end_build_state(true, "3D map ready")
 		_bump_3d_viewport_rendering()
 		if _async_pending_reframe_camera and is_inside_tree():
@@ -1060,7 +1064,8 @@ func _apply_unit_change_batch(changes: Array) -> bool:
 	_unit_runtime_index.apply_changes(cmd, changes)
 	var support_descriptors: Array = _chunk_rt.get_support_descriptors()
 	_ensure_overlay_nodes()
-	var game_data_type := _async_game_data_type if not _async_game_data_type.is_empty() else _current_game_data_type()
+	var game_data_type := _current_game_data_type()
+	UATerrainPieceLibraryScript.set_piece_game_data_type(game_data_type)
 	var applied := UnitOverlayController.apply_unit_changes(_dynamic_overlay, changes, cmd, support_descriptors, game_data_type, _unit_runtime_index)
 	if not applied:
 		return false
@@ -1122,7 +1127,7 @@ func _finalize_async_overlay_apply() -> void:
 	metrics["overlay_node_creation_ms"] = _elapsed_ms_since(_async_overlay_apply_started_usec)
 	metrics["static_overlay_apply_ms"] = metrics["overlay_node_creation_ms"]
 	metrics["dynamic_overlay_apply_ms"] = _elapsed_ms_since(dynamic_apply_started_usec)
-	_last_build_metrics = metrics
+	_finalize_build_metrics(metrics, _async_build_started_usec)
 	_chunk_rt.initial_build_in_progress = false
 	_chunk_rt.initial_build_accumulated_authored_descriptors.clear()
 	_async_overlay_apply_active = false
@@ -1150,6 +1155,7 @@ func _join_async_thread() -> void:
 func _reset_async_build_state() -> void:
 	_coordinator.reset_async_state()
 	_async_pending_reframe_camera = false
+	_async_build_started_usec = 0
 	_async_effective_typ = PackedByteArray()
 	_async_blg = PackedByteArray()
 	_async_w = 0

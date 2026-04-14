@@ -1,6 +1,7 @@
 extends RefCounted
 
 const Map3DRendererScript = preload("res://map/map_3d_renderer.gd")
+const BenchmarkRunner = preload("res://tests/run_map_3d_benchmarks.gd")
 
 var _errors: Array[String] = []
 
@@ -285,11 +286,12 @@ func test_visible_refresh_records_stage_timings_with_preloads() -> bool:
 	var fixture := _create_fixture(true)
 	var renderer := fixture["renderer"] as Map3DRenderer
 	renderer._apply_pending_refresh()
+	_check(BenchmarkRunner.drain_renderer_work(renderer), "Expected visible refresh profiling fixture to finish async renderer work")
 	var metrics := renderer.get_last_build_metrics()
 	_check_metric_keys(metrics)
 	_check(bool(metrics.get("used_textured_preloads", false)), "Expected textured-path profiling to record Preloads usage")
-	_check(float(metrics.get("build_total_ms", -1.0)) >= 0.0, "Expected non-negative total build timing")
-	_check(float(metrics.get("refresh_end_to_end_ms", -1.0)) >= 0.0, "Expected non-negative refresh end-to-end timing")
+	_check(float(metrics.get("build_total_ms", 0.0)) > 0.0, "Expected async visible refresh profiling to record positive total build timing")
+	_check(float(metrics.get("refresh_end_to_end_ms", 0.0)) > 0.0, "Expected async visible refresh profiling to record positive refresh end-to-end timing")
 	_dispose_fixture(fixture)
 	return _errors.is_empty()
 

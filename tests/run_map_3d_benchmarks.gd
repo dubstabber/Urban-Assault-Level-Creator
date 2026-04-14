@@ -191,6 +191,22 @@ static func summary_has_non_zero_build_metrics(summary: Dictionary) -> bool:
 	return false
 
 
+static func drain_renderer_work(renderer: Map3DRenderer, timeout_ms: int = 20000) -> bool:
+	if renderer == null:
+		return false
+	var deadline_usec = Time.get_ticks_usec() + (timeout_ms * 1000)
+	while Time.get_ticks_usec() <= deadline_usec:
+		if renderer.has_pending_refresh() and not bool(renderer.get_build_state_snapshot().get("is_building_3d", false)):
+			renderer._apply_pending_refresh()
+		renderer._process(0.0)
+		var snapshot = renderer.get_build_state_snapshot()
+		var building = bool(snapshot.get("is_building_3d", false))
+		if not building and not renderer.has_pending_refresh():
+			return true
+		OS.delay_msec(1)
+	return false
+
+
 static func _count_named_children(parent: Node, prefix: String) -> int:
 	if parent == null:
 		return 0
@@ -266,6 +282,10 @@ func _run_case(case_name: String) -> bool:
 	var hidden_build_started_before_reactivate := false
 	if bool(workflow.get("start_visible", true)):
 		renderer._apply_pending_refresh()
+		if not drain_renderer_work(renderer):
+			push_error("Benchmark case %s timed out waiting for renderer work to finish" % case_name)
+			_dispose_fixture(fixture)
+			return false
 	else:
 		var hidden_burst_started_usec := Time.get_ticks_usec()
 		for update_step in range(int(workflow.get("map_update_burst", 1))):
@@ -281,6 +301,10 @@ func _run_case(case_name: String) -> bool:
 			editor_state.view_mode_3d = true
 			event_system.map_view_updated.emit()
 			renderer._apply_pending_refresh()
+			if not drain_renderer_work(renderer):
+				push_error("Benchmark case %s timed out waiting for renderer work to finish after reactivation" % case_name)
+				_dispose_fixture(fixture)
+				return false
 	var summary := build_case_summary(
 		case_name,
 		case_data,

@@ -2520,6 +2520,92 @@ func test_dynamic_overlay_keeps_md_squads_after_mixed_pool_refresh_events() -> b
 	return _errors.is_empty()
 
 
+func test_md_squad_incremental_refresh_uses_current_game_data_type() -> bool:
+	_reset_errors()
+
+	var w := 2
+	var h := 2
+	var data := _make_typ_and_hgt(w, h, [12, 12, 12, 12], 0)
+	var squads := Node.new()
+
+	var map_data := CurrentMapDataStub.new()
+	map_data.horizontal_sectors = w
+	map_data.vertical_sectors = h
+	map_data.level_set = 1
+	map_data.hgt_map = data["hgt"]
+	map_data.typ_map = data["typ"]
+	map_data.blg_map = PackedByteArray([0, 0, 0, 0])
+	map_data.host_stations = null
+	map_data.squads = squads
+
+	var editor_state := EditorStateStub.new()
+	editor_state.view_mode_3d = true
+	editor_state.game_data_type = "metropolisDawn"
+
+	var preloads := MockPreloads.new()
+	preloads.surface_type_map = {12: 0}
+
+	var renderer := Map3DRendererScript.new()
+	renderer._edge_overlay_enabled = false
+	renderer.set_current_map_data_override(map_data)
+	renderer.set_editor_state_override(editor_state)
+	renderer.set_preloads_override(preloads)
+	renderer.build_from_current_map()
+
+	var md_squad := SquadStub.new(63, 1200.0, 1200.0, 1)
+	squads.add_child(md_squad)
+
+	renderer._async_game_data_type = "original"
+	renderer._on_units_changed([{
+		"kind": "squad",
+		"unit_id": int(md_squad.get_instance_id()),
+		"action": "created",
+	}])
+
+	var dynamic_overlay := renderer.get_node_or_null("DynamicOverlay") as Node3D
+	_check(dynamic_overlay != null, "Expected targeted MD squad creation refresh to create a DynamicOverlay node")
+	var expected_created: Array = Map3DRendererScript._build_squad_descriptors([md_squad], map_data.level_set, data["hgt"], w, h, [], editor_state.game_data_type)
+	_check(expected_created.size() > 0, "Expected MD squad creation refresh to emit descriptors")
+	var found_created := _instance_keys_from_overlay(dynamic_overlay)
+	for desc in expected_created:
+		var expected_key := String(desc.get("instance_key", ""))
+		_check(found_created.has(expected_key), "DynamicOverlay missing MD squad key after targeted creation refresh: %s" % expected_key)
+
+	md_squad.quantity = 3
+	renderer._async_game_data_type = "original"
+	renderer._on_units_changed([{
+		"kind": "squad",
+		"unit_id": int(md_squad.get_instance_id()),
+		"action": "visual",
+	}])
+
+	dynamic_overlay = renderer.get_node_or_null("DynamicOverlay") as Node3D
+	var expected_visual: Array = Map3DRendererScript._build_squad_descriptors([md_squad], map_data.level_set, data["hgt"], w, h, [], editor_state.game_data_type)
+	_check(expected_visual.size() == 3, "Expected MD squad quantity refresh to rebuild all formation descriptors")
+	var found_visual := _instance_keys_from_overlay(dynamic_overlay)
+	for desc in expected_visual:
+		var expected_key := String(desc.get("instance_key", ""))
+		_check(found_visual.has(expected_key), "DynamicOverlay missing MD squad key after quantity refresh: %s" % expected_key)
+
+	md_squad.position = Vector2(1800.0, 1200.0)
+	renderer._async_game_data_type = "original"
+	renderer._on_units_changed([{
+		"kind": "squad",
+		"unit_id": int(md_squad.get_instance_id()),
+		"action": "moved",
+	}])
+
+	dynamic_overlay = renderer.get_node_or_null("DynamicOverlay") as Node3D
+	var expected_moved: Array = Map3DRendererScript._build_squad_descriptors([md_squad], map_data.level_set, data["hgt"], w, h, [], editor_state.game_data_type)
+	var found_moved := _instance_keys_from_overlay(dynamic_overlay)
+	for desc in expected_moved:
+		var expected_key := String(desc.get("instance_key", ""))
+		_check(found_moved.has(expected_key), "DynamicOverlay missing MD squad key after move refresh: %s" % expected_key)
+
+	renderer.free()
+	return _errors.is_empty()
+
+
 func test_unit_position_committed_uses_single_unit_dynamic_refresh_for_squads() -> bool:
 	_reset_errors()
 
@@ -2874,9 +2960,10 @@ func run() -> int:
 		"test_apply_overlay_node_preserves_particle_emitter_identity_for_transform_only_updates",
 		"test_set4_typ155_uses_repeated_steady_state_piece_for_bottom_left",
 		"test_build_mesh_with_textures_unknown_typ_uses_debug_surface",
-		"test_build_mesh_with_textures_invalid_input_returns_empty_mesh",
+	"test_build_mesh_with_textures_invalid_input_returns_empty_mesh",
 	"test_build_from_current_map_wires_host_stations_into_authored_overlay",
 	"test_dynamic_overlay_keeps_md_squads_after_mixed_pool_refresh_events",
+	"test_md_squad_incremental_refresh_uses_current_game_data_type",
 	"test_build_from_current_map_wires_squads_into_authored_overlay",
 	]
 	for name in tests:
