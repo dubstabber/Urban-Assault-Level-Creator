@@ -322,60 +322,73 @@ static func build_blg_attachment_descriptors_for_sectors(blg: PackedByteArray, e
 	if blg.size() != w * h or effective_typ.size() != w * h:
 		return descriptors
 	var sector_filter := {}
+	var sector_list: Array[Vector2i] = []
 	if not sectors.is_empty():
 		for sector_value in sectors:
-			if sector_value is Vector2i:
-				sector_filter[Vector2i(sector_value)] = true
+			if not (sector_value is Vector2i):
+				continue
+			var sector := Vector2i(sector_value)
+			if sector.x < 0 or sector.y < 0 or sector.x >= w or sector.y >= h or sector_filter.has(sector):
+				continue
+			sector_filter[sector] = true
+			sector_list.append(sector)
 	elif not _packed_byte_array_has_nonzero(blg):
 		return descriptors
 	# Source-backed building turret/radar sockets (`sbact_pos_*`) are defined relative to
 	# the sector center, so their Y anchor should stay on the terrain sector height rather
 	# than snapping up to the authored support mesh used by squads/host stations.
-	for sy in h:
-		for sx in w:
-			if not sector_filter.is_empty() and not sector_filter.has(Vector2i(sx, sy)):
-				continue
-			var idx := sy * w + sx
-			var building_id := int(blg[idx])
-			if building_id <= 0:
-				continue
-			var definition := building_definition_for_id_and_sec_type(building_id, int(effective_typ[idx]), set_id, game_data_type)
-			if definition.is_empty():
-				continue
-			var world_x := (float(sx) + 1.5) * SECTOR_SIZE
-			var world_z := (float(sy) + 1.5) * SECTOR_SIZE
-			var sector_origin := sector_center_origin(sx, sy, ground_height_at_world_position(hgt, w, h, world_x, world_z))
-			var attachments: Array = definition.get("attachments", [])
-			for attachment_idx in attachments.size():
-				var attachment_value = attachments[attachment_idx]
-				if typeof(attachment_value) != TYPE_DICTIONARY:
-					continue
-				var attachment := attachment_value as Dictionary
-				var base_name := building_attachment_base_name_for_vehicle(int(attachment.get("vehicle_id", -1)), set_id, game_data_type)
-				if base_name.is_empty():
-					continue
-				var has_piece_source := UATerrainPieceLibrary.has_piece_source(set_id, base_name)
-				if not has_piece_source:
-					continue
-				var descriptor := {
-					"set_id": set_id,
-					"raw_id": - 1,
-					"base_name": base_name,
-					"instance_key": "blg_attach:%d:%d:%d:%d:%d:%s" % [
-						set_id,
-						sx,
-						sy,
-						building_id,
-						int(attachment.get("vehicle_id", -1)),
-						str(attachment_idx)
-					],
-					"origin": sector_origin + godot_offset_from_ua(vector3_from_variant(attachment.get("ua_offset", Vector3.ZERO))),
-				}
-				var godot_direction := godot_direction_from_ua(vector3_from_variant(attachment.get("ua_direction", Vector3.ZERO)))
-				if godot_direction.length_squared() > 0.000001:
-					descriptor["forward"] = godot_direction
-				descriptors.append(descriptor)
+	if sector_list.is_empty():
+		for sy in h:
+			for sx in w:
+				_append_building_attachment_descriptors_for_sector(descriptors, blg, effective_typ, set_id, hgt, w, h, sx, sy, game_data_type)
+	else:
+		for sector in sector_list:
+			_append_building_attachment_descriptors_for_sector(descriptors, blg, effective_typ, set_id, hgt, w, h, sector.x, sector.y, game_data_type)
 	return descriptors
+
+
+static func _append_building_attachment_descriptors_for_sector(descriptors: Array, blg: PackedByteArray, effective_typ: PackedByteArray, set_id: int, hgt: PackedByteArray, w: int, h: int, sx: int, sy: int, game_data_type: String) -> void:
+	if sx < 0 or sy < 0 or sx >= w or sy >= h:
+		return
+	var idx := sy * w + sx
+	var building_id := int(blg[idx])
+	if building_id <= 0:
+		return
+	var definition := building_definition_for_id_and_sec_type(building_id, int(effective_typ[idx]), set_id, game_data_type)
+	if definition.is_empty():
+		return
+	var world_x := (float(sx) + 1.5) * SECTOR_SIZE
+	var world_z := (float(sy) + 1.5) * SECTOR_SIZE
+	var sector_origin := sector_center_origin(sx, sy, ground_height_at_world_position(hgt, w, h, world_x, world_z))
+	var attachments: Array = definition.get("attachments", [])
+	for attachment_idx in attachments.size():
+		var attachment_value = attachments[attachment_idx]
+		if typeof(attachment_value) != TYPE_DICTIONARY:
+			continue
+		var attachment := attachment_value as Dictionary
+		var base_name := building_attachment_base_name_for_vehicle(int(attachment.get("vehicle_id", -1)), set_id, game_data_type)
+		if base_name.is_empty():
+			continue
+		if not UATerrainPieceLibrary.has_piece_source(set_id, base_name):
+			continue
+		var descriptor := {
+			"set_id": set_id,
+			"raw_id": - 1,
+			"base_name": base_name,
+			"instance_key": "blg_attach:%d:%d:%d:%d:%d:%s" % [
+				set_id,
+				sx,
+				sy,
+				building_id,
+				int(attachment.get("vehicle_id", -1)),
+				str(attachment_idx)
+			],
+			"origin": sector_origin + godot_offset_from_ua(vector3_from_variant(attachment.get("ua_offset", Vector3.ZERO))),
+		}
+		var godot_direction := godot_direction_from_ua(vector3_from_variant(attachment.get("ua_direction", Vector3.ZERO)))
+		if godot_direction.length_squared() > 0.000001:
+			descriptor["forward"] = godot_direction
+		descriptors.append(descriptor)
 
 
 static func _packed_byte_array_has_nonzero(values: PackedByteArray) -> bool:

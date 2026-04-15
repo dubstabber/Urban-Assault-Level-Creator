@@ -36,6 +36,7 @@ static func build_overlay_plan_from_snapshots(
 		metrics: Dictionary,
 		dynamic_only: bool = false
 	) -> Dictionary:
+	UATerrainPieceLibrary.set_piece_game_data_type(game_data_type)
 	var started_usec := Time.get_ticks_usec()
 	var static_descriptors: Array = support_descriptors.duplicate()
 	var dynamic_descriptors: Array = []
@@ -122,6 +123,7 @@ static func build_localized_static_descriptors(
 		chunk_support_descriptors: Array,
 		game_data_type: String
 	) -> Array:
+	UATerrainPieceLibrary.set_piece_game_data_type(game_data_type)
 	var descriptors: Array = chunk_support_descriptors.duplicate()
 	descriptors.append_array(OverlayProducers.build_blg_attachment_descriptors_for_sectors(
 		blg,
@@ -148,30 +150,29 @@ static func build_localized_dynamic_descriptors(
 		game_data_type: String,
 		metrics: Dictionary
 	) -> Array:
+	UATerrainPieceLibrary.set_piece_game_data_type(game_data_type)
 	var descriptors: Array = []
 	if current_map_data == null or affected_sectors.is_empty():
 		return descriptors
 	if current_map_data.host_stations != null and is_instance_valid(current_map_data.host_stations):
 		var host_nodes = unit_runtime_index.units_for_sectors(current_map_data, "host", affected_sectors)
-		descriptors.append_array(OverlayProducers.build_host_station_descriptors_for_sectors(
+		descriptors.append_array(OverlayProducers.build_host_station_descriptors(
 			host_nodes,
 			set_id,
 			hgt,
 			w,
 			h,
-			affected_sectors,
 			support_descriptors,
 			metrics
 		))
 	if current_map_data.squads != null and is_instance_valid(current_map_data.squads):
 		var squad_nodes = unit_runtime_index.units_for_sectors(current_map_data, "squad", affected_sectors)
-		descriptors.append_array(OverlayProducers.build_squad_descriptors_for_sectors(
+		descriptors.append_array(OverlayProducers.build_squad_descriptors(
 			squad_nodes,
 			set_id,
 			hgt,
 			w,
 			h,
-			affected_sectors,
 			support_descriptors,
 			game_data_type,
 			metrics

@@ -47,18 +47,30 @@ static func terrain_prefixes_for_chunks(set_id: int, chunks: Array, w: int, h: i
 			continue
 		var chunk_coord := Vector2i(chunk_value)
 		var chunk_range := TerrainBuilder.chunk_sector_range(chunk_coord.x, chunk_coord.y)
-		var sx_min := maxi(chunk_range.position.x - 1, -1)
-		var sy_min := maxi(chunk_range.position.y - 1, -1)
-		var sx_max := mini(chunk_range.position.x + TerrainBuilder.CHUNK_SIZE + 1, w + 1)
-		var sy_max := mini(chunk_range.position.y + TerrainBuilder.CHUNK_SIZE + 1, h + 1)
+		var main_sx_min := chunk_range.position.x
+		var main_sy_min := chunk_range.position.y
+		var main_sx_max := mini(main_sx_min + TerrainBuilder.CHUNK_SIZE, w)
+		var main_sy_max := mini(main_sy_min + TerrainBuilder.CHUNK_SIZE, h)
+		var sx_min := maxi(main_sx_min - 1, -1)
+		var sy_min := maxi(main_sy_min - 1, -1)
+		var sx_max := mini(main_sx_max + 1, w + 1)
+		var sy_max := mini(main_sy_max + 1, h + 1)
 		for y in range(sy_min, sy_max):
 			for x in range(sx_min, sx_max):
 				_add_prefix(prefixes, seen, "terrain:%d:%d:%d:" % [set_id, x, y])
-		for y in range(sy_min, sy_max):
-			for x in range(sx_min, mini(chunk_range.position.x + TerrainBuilder.CHUNK_SIZE, w)):
+		var slurp_v_sx_min := -1 if main_sx_min == 0 else main_sx_min
+		var slurp_v_sy_min := -1 if main_sy_min == 0 else main_sy_min
+		var slurp_v_sx_max := main_sx_max
+		var slurp_v_sy_max := h + 1 if main_sy_max == h else main_sy_max
+		for y in range(slurp_v_sy_min, slurp_v_sy_max):
+			for x in range(slurp_v_sx_min, slurp_v_sx_max):
 				_add_prefix(prefixes, seen, "slurp:v:%d:%d:%d:" % [set_id, x, y])
-		for y in range(sy_min, mini(chunk_range.position.y + TerrainBuilder.CHUNK_SIZE, h)):
-			for x in range(sx_min, sx_max):
+		var slurp_h_sx_min := -1 if main_sx_min == 0 else main_sx_min
+		var slurp_h_sy_min := -1 if main_sy_min == 0 else main_sy_min
+		var slurp_h_sx_max := w + 1 if main_sx_max == w else main_sx_max
+		var slurp_h_sy_max := main_sy_max
+		for y in range(slurp_h_sy_min, slurp_h_sy_max):
+			for x in range(slurp_h_sx_min, slurp_h_sx_max):
 				_add_prefix(prefixes, seen, "slurp:h:%d:%d:%d:" % [set_id, x, y])
 	return prefixes
 

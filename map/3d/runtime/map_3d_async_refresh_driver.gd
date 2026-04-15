@@ -2,6 +2,7 @@ extends RefCounted
 
 const AsyncOverlayPipeline := preload("res://map/3d/runtime/map_3d_async_overlay_pipeline.gd")
 const ChunkBuildExecutor := preload("res://map/3d/services/map_3d_chunk_build_executor.gd")
+const OverlayPlanBuilder := preload("res://map/3d/services/map_3d_overlay_plan_builder.gd")
 const UnitOverlayController := preload("res://map/3d/overlays/map_3d_unit_overlay_controller.gd")
 
 var _renderer_node = null
@@ -33,6 +34,8 @@ var _overlay_only_refresh_requested := false
 var _dynamic_overlay_refresh_requested := false
 var _async_overlay_descriptor_dynamic_only := false
 var _pending_unit_changes: Array = []
+var _async_processed_chunks: Array = []
+var _async_chunk_authored_descriptors: Array = []
 var _overlay_pipeline := AsyncOverlayPipeline.new()
 
 
@@ -277,6 +280,8 @@ func try_start_async_initial_build(reframe_camera: bool) -> bool:
 	_async_requested_reframe = false
 	_build.clear_async_chunk_payloads()
 	_build.set_async_worker_state(false, false, "")
+	_async_processed_chunks.clear()
+	_async_chunk_authored_descriptors.clear()
 	var total: int = chunk_list.size()
 	begin_build_state(total, "Rendering map...")
 	var thread := Thread.new()
@@ -347,6 +352,8 @@ func apply_async_chunk_payload(payload: Dictionary) -> void:
 	var pre: Node = _context.preloads()
 	var apply_result := ChunkBuildExecutor.apply_chunk_result(_scene, _build.chunk_runtime(), payload, pre)
 	var chunk_coord := Vector2i(apply_result.get("chunk_coord", Vector2i.ZERO))
+	_async_processed_chunks.append(chunk_coord)
+	_async_chunk_authored_descriptors.append_array(apply_result.get("descriptors", []))
 	_build.chunk_runtime().erase_dirty_chunk(chunk_coord)
 	var done := completed_chunks + 1
 	update_build_progress(done, total_chunks, "Rendering map... %d / %d" % [done, total_chunks])
@@ -370,7 +377,91 @@ func finish_async_initial_build() -> void:
 		reset_async_build_state()
 		request_refresh(restart_reframe)
 		return
+	if try_finalize_async_localized_overlay_refresh():
+		return
 	start_async_overlay_descriptor_build()
+
+
+func try_finalize_async_localized_overlay_refresh() -> bool:
+	var chunk_runtime = _build.chunk_runtime()
+	if chunk_runtime.initial_build_in_progress:
+		return false
+	if _async_processed_chunks.is_empty():
+		return false
+	var localized_overlay_sectors: Array[Vector2i] = _build.localized_overlay_sector_list()
+	if localized_overlay_sectors.is_empty():
+		return false
+	var cmd: Node = _context.current_map_data()
+	if cmd == null:
+		return false
+	var w := int(cmd.horizontal_sectors)
+	var h := int(cmd.vertical_sectors)
+	if w <= 0 or h <= 0:
+		return false
+	var hgt: PackedByteArray = cmd.hgt_map
+	var typ: PackedByteArray = cmd.typ_map
+	var blg: PackedByteArray = cmd.blg_map
+	if hgt.size() != (w + 2) * (h + 2) or typ.size() != w * h or blg.size() != w * h:
+		return false
+	var level_set := int(cmd.level_set)
+	var game_data_type: String = _context.current_game_data_type()
+	UATerrainPieceLibrary.set_piece_game_data_type(game_data_type)
+	var effective_typ: PackedByteArray = _build.compute_effective_typ_for_map(cmd, w, h, typ, blg, game_data_type)
+	_build.set_async_map_snapshot(effective_typ, blg, w, h, level_set, game_data_type)
+	var metrics: Dictionary = _build.make_empty_build_metrics()
+	metrics["incremental_rebuild"] = true
+	metrics["chunks_rebuilt"] = _async_processed_chunks.size()
+	metrics["dirty_chunk_count"] = _async_processed_chunks.size()
+	metrics["dirty_sector_count"] = localized_overlay_sectors.size()
+	var localized_dynamic_sectors: Array[Vector2i] = _build.localized_dynamic_sector_list()
+	var rebuild_unit_index: bool = _build.unit_runtime_index().is_empty() or localized_dynamic_sectors.is_empty()
+	if rebuild_unit_index:
+		_build.unit_runtime_index().rebuild_from_map(cmd)
+	metrics["unit_index_rebuilt"] = rebuild_unit_index
+	var support_descriptors: Array = chunk_runtime.get_support_descriptors()
+	metrics["terrain_authored_descriptor_count"] = support_descriptors.size()
+	var overlay_descriptor_started_usec := Time.get_ticks_usec()
+	var localized_static_descriptors: Array = OverlayPlanBuilder.build_localized_static_descriptors(
+		blg,
+		effective_typ,
+		level_set,
+		hgt,
+		w,
+		h,
+		localized_overlay_sectors,
+		_async_chunk_authored_descriptors,
+		game_data_type
+	)
+	metrics["static_overlay_descriptor_generation_ms"] = _build.elapsed_ms_since(overlay_descriptor_started_usec)
+	metrics["overlay_descriptor_generation_ms"] = metrics["static_overlay_descriptor_generation_ms"]
+	metrics["overlay_descriptor_count"] = localized_static_descriptors.size()
+	UATerrainPieceLibrary.reset_piece_overlay_build_counters()
+	var overlay_node_started_usec := Time.get_ticks_usec()
+	_build.apply_localized_static_overlay_refresh(localized_static_descriptors, _async_processed_chunks, localized_overlay_sectors, level_set, w, h)
+	metrics["static_overlay_apply_ms"] = _build.elapsed_ms_since(overlay_node_started_usec)
+	metrics["overlay_node_creation_ms"] = metrics["static_overlay_apply_ms"]
+	var dynamic_descriptor_started_usec := Time.get_ticks_usec()
+	_build.apply_localized_dynamic_overlay_refresh(cmd, level_set, hgt, w, h, support_descriptors, game_data_type, localized_dynamic_sectors, metrics)
+	metrics["dynamic_overlay_descriptor_generation_ms"] = _build.elapsed_ms_since(dynamic_descriptor_started_usec)
+	metrics["dynamic_overlay_apply_ms"] = 0.0
+	metrics["localized_overlay_refresh"] = true
+	var piece_counters: Dictionary = UATerrainPieceLibrary.get_piece_overlay_build_counters()
+	metrics["piece_overlay_fast_path"] = int(piece_counters.get("piece_overlay_fast_path", 0))
+	metrics["piece_overlay_slow_path"] = int(piece_counters.get("piece_overlay_slow_path", 0))
+	_build.finalize_build_metrics(metrics, _async_build_started_usec)
+	end_build_state(true, "3D map ready")
+	_scene.bump_3d_viewport_rendering()
+	if _async_pending_reframe_camera and _scene.is_inside_tree():
+		_build.set_camera_framed(false)
+		_build.frame_if_needed()
+	var should_restart: bool = _async_requested_restart
+	var restart_reframe: bool = _async_requested_reframe
+	reset_async_build_state()
+	if should_restart:
+		request_refresh(restart_reframe)
+	elif _refresh_pending and _context.preview_refresh_active():
+		request_refresh(_refresh_reframe_pending)
+	return true
 
 
 func start_async_overlay_descriptor_build(dynamic_only: bool = false) -> void:
@@ -412,6 +503,8 @@ func reset_async_build_state() -> void:
 	_overlay_only_refresh_requested = false
 	_dynamic_overlay_refresh_requested = false
 	_async_overlay_descriptor_dynamic_only = false
+	_async_processed_chunks.clear()
+	_async_chunk_authored_descriptors.clear()
 
 
 func normalize_unit_changes(changes: Array) -> Array:

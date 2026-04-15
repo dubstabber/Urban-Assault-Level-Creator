@@ -281,6 +281,38 @@ func test_typ_edit_uses_localized_overlay_refresh() -> bool:
 	return _errors.is_empty()
 
 
+func test_async_typ_edit_uses_localized_overlay_refresh() -> bool:
+	_reset_errors()
+	var fixture := _create_fixture(true)
+	var renderer := fixture["renderer"] as Map3DRenderer
+	var event_system: EventSystemStub = fixture["event_system"]
+	var current_map_data := fixture["current_map_data"] as CurrentMapDataStub
+
+	var w := 8
+	var h := 8
+	current_map_data.horizontal_sectors = w
+	current_map_data.vertical_sectors = h
+	current_map_data.hgt_map = _make_zero_filled_packed_byte_array((w + 2) * (h + 2))
+	current_map_data.typ_map = _make_zero_filled_packed_byte_array(w * h)
+	current_map_data.blg_map = _make_zero_filled_packed_byte_array(w * h)
+
+	event_system.map_created.emit()
+	_check(BenchmarkRunner.drain_renderer_work(renderer), "Expected async initial build to complete before localized typ edit")
+
+	var typ_idx := 3 * w + 3
+	current_map_data.typ_map[typ_idx] = 1
+	event_system.typ_map_cells_edited.emit([typ_idx])
+	event_system.map_updated.emit()
+
+	_check(BenchmarkRunner.drain_renderer_work(renderer), "Expected async localized typ edit refresh to complete")
+	var metrics := renderer.get_last_build_metrics()
+	_check(bool(metrics.get("localized_overlay_refresh", false)), "Expected async typ edit to use localized overlay refresh")
+	_check(int(metrics.get("chunks_rebuilt", 0)) > 0, "Expected async typ edit to rebuild at least one chunk")
+
+	_dispose_fixture(fixture)
+	return _errors.is_empty()
+
+
 func test_visible_refresh_records_stage_timings_with_preloads() -> bool:
 	_reset_errors()
 	var fixture := _create_fixture(true)
@@ -337,6 +369,7 @@ func run() -> int:
 		"test_typ_edit_triggers_incremental_chunk_rebuild",
 		"test_first_local_edit_after_full_build_stays_local",
 		"test_typ_edit_uses_localized_overlay_refresh",
+		"test_async_typ_edit_uses_localized_overlay_refresh",
 	]:
 		print("RUN ", name)
 		if bool(call(name)):
