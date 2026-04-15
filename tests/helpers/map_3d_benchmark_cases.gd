@@ -4,6 +4,7 @@ const CASE_NAMES := [
 	"small_visible_flat",
 	"medium_visible_varied",
 	"target_visible_varied_34x32",
+	"target_visible_dense_units_32x32",
 	"large_visible_varied",
 	"set6_ptcl_visible",
 	"large_hidden_refresh_workflow",
@@ -22,6 +23,8 @@ static func get_case(case_name: String) -> Dictionary:
 			return _make_case(case_name, "24x24 visible mixed-height terrain and slurp workload", 24, 24, 1, "rolling", [0, 1, 2, 3, 4, 5], true, 1, false, {"case_elapsed_ms_max": 3000.0, "build_total_ms_max": 3000.0})
 		"target_visible_varied_34x32":
 			return _make_case(case_name, "34x32 visible target-sized terrain and slurp workload", 34, 32, 1, "rolling", [0, 1, 2, 3, 4, 5], true, 1, false, {"case_elapsed_ms_max": 4500.0, "build_total_ms_max": 4500.0})
+		"target_visible_dense_units_32x32":
+			return _make_case(case_name, "32x32 visible dense squads and host stations for overlay-load profiling", 32, 32, 1, "rolling", [0, 1, 2, 3, 4, 5], true, 1, false, {"case_elapsed_ms_max": 12000.0, "build_total_ms_max": 12000.0}, _make_dense_unit_specs(32, 32))
 		"large_visible_varied":
 			return _make_case(case_name, "64x64 visible large-map terrain and overlay baseline", 64, 64, 1, "rolling", [0, 1, 2, 3, 4, 5], true, 1, false, {"case_elapsed_ms_max": 8000.0, "build_total_ms_max": 8000.0})
 		"set6_ptcl_visible":
@@ -39,11 +42,14 @@ static func apply_map_data(target: Node, map_data: Dictionary) -> bool:
 	return true
 
 
-static func _make_case(case_name: String, description: String, w: int, h: int, set_id: int, height_mode: String, typ_palette: Array, start_visible: bool, map_update_burst: int, reactivate_after_burst: bool, smoke_budgets: Dictionary) -> Dictionary:
+static func _make_case(case_name: String, description: String, w: int, h: int, set_id: int, height_mode: String, typ_palette: Array, start_visible: bool, map_update_burst: int, reactivate_after_burst: bool, smoke_budgets: Dictionary, unit_specs: Dictionary = {}) -> Dictionary:
+	var map_data := _make_map_data(w, h, set_id, height_mode, typ_palette)
+	for key in unit_specs.keys():
+		map_data[key] = unit_specs[key]
 	return {
 		"name": case_name,
 		"description": description,
-		"map_data": _make_map_data(w, h, set_id, height_mode, typ_palette),
+		"map_data": map_data,
 		"workflow": {
 			"start_visible": start_visible,
 			"map_update_burst": map_update_burst,
@@ -77,6 +83,37 @@ static func _make_map_data(w: int, h: int, set_id: int, height_mode: String, typ
 		"beam_gates": [],
 		"tech_upgrades": [],
 		"stoudson_bombs": [],
+	}
+
+
+static func _make_dense_unit_specs(w: int, h: int) -> Dictionary:
+	var host_station_specs: Array = []
+	var squad_specs: Array = []
+	var host_id := 1000
+	var squad_id := 2000
+	for sy in range(0, h, 4):
+		for sx in range(0, w, 4):
+			host_station_specs.append({
+				"vehicle": 56,
+				"x": (float(sx) + 1.5) * 1200.0,
+				"y": (float(sy) + 1.5) * 1200.0,
+				"pos_y": -700.0,
+				"id": host_id,
+			})
+			host_id += 1
+	for sy in range(0, h, 2):
+		for sx in range(0, w, 2):
+			squad_specs.append({
+				"vehicle": 1,
+				"x": (float(sx) + 1.5) * 1200.0,
+				"y": (float(sy) + 1.5) * 1200.0,
+				"quantity": 4 if ((sx + sy) % 4 == 0) else 2,
+				"id": squad_id,
+			})
+			squad_id += 1
+	return {
+		"host_station_specs": host_station_specs,
+		"squad_specs": squad_specs,
 	}
 
 

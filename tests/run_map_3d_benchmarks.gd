@@ -30,6 +30,18 @@ class CurrentMapDataStub extends Node:
 	var level_set := 1
 
 
+class HostStationStub extends Node2D:
+	var vehicle := 56
+	var pos_y := 0.0
+	var editor_unit_id := 0
+
+
+class SquadStub extends Node2D:
+	var vehicle := 1
+	var quantity := 1
+	var editor_unit_id := 0
+
+
 class EditorStateStub extends Node:
 	var view_mode_3d := true
 	var map_3d_visibility_range_enabled := false
@@ -347,6 +359,7 @@ func _create_fixture(case_data: Dictionary, start_visible: bool) -> Dictionary:
 	var event_system := EventSystemStub.new()
 	var current_map_data := CurrentMapDataStub.new()
 	BenchmarkCases.apply_map_data(current_map_data, case_data.get("map_data", {}))
+	_populate_unit_nodes_from_map_data(current_map_data, case_data.get("map_data", {}))
 	var editor_state := EditorStateStub.new()
 	editor_state.view_mode_3d = start_visible
 	var preloads := BenchmarkPreloads.new()
@@ -369,6 +382,39 @@ func _create_fixture(case_data: Dictionary, start_visible: bool) -> Dictionary:
 		"editor_state": editor_state,
 		"preloads": preloads,
 	}
+
+
+static func _populate_unit_nodes_from_map_data(current_map_data: CurrentMapDataStub, map_data: Dictionary) -> void:
+	var host_station_specs: Array = map_data.get("host_station_specs", [])
+	var squad_specs: Array = map_data.get("squad_specs", [])
+	if not host_station_specs.is_empty():
+		var host_stations := Node2D.new()
+		host_stations.name = "HostStations"
+		for spec_value in host_station_specs:
+			if typeof(spec_value) != TYPE_DICTIONARY:
+				continue
+			var spec := spec_value as Dictionary
+			var host_station := HostStationStub.new()
+			host_station.vehicle = int(spec.get("vehicle", 56))
+			host_station.pos_y = float(spec.get("pos_y", 0.0))
+			host_station.editor_unit_id = int(spec.get("id", host_stations.get_child_count() + 1))
+			host_station.position = Vector2(float(spec.get("x", 0.0)), float(spec.get("y", 0.0)))
+			host_stations.add_child(host_station)
+		current_map_data.host_stations = host_stations
+	if not squad_specs.is_empty():
+		var squads := Node2D.new()
+		squads.name = "Squads"
+		for spec_value in squad_specs:
+			if typeof(spec_value) != TYPE_DICTIONARY:
+				continue
+			var spec := spec_value as Dictionary
+			var squad := SquadStub.new()
+			squad.vehicle = int(spec.get("vehicle", 1))
+			squad.quantity = max(1, int(spec.get("quantity", 1)))
+			squad.editor_unit_id = int(spec.get("id", squads.get_child_count() + 1))
+			squad.position = Vector2(float(spec.get("x", 0.0)), float(spec.get("y", 0.0)))
+			squads.add_child(squad)
+		current_map_data.squads = squads
 
 
 func _dispose_fixture(fixture: Dictionary) -> void:

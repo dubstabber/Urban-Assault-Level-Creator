@@ -93,9 +93,9 @@ func _capture_map_edit_event_sequence(callback: Callable) -> Array:
 func test_catalog_exposes_required_named_cases() -> bool:
 	_reset_errors()
 	var names := BenchmarkCases.all_case_names()
-	for required_name in ["small_visible_flat", "medium_visible_varied", "target_visible_varied_34x32", "large_visible_varied", "set6_ptcl_visible", "large_hidden_refresh_workflow"]:
+	for required_name in ["small_visible_flat", "medium_visible_varied", "target_visible_varied_34x32", "target_visible_dense_units_32x32", "large_visible_varied", "set6_ptcl_visible", "large_hidden_refresh_workflow"]:
 		_check(names.has(required_name), "Benchmark catalog should include '%s'" % required_name)
-	_check(names.size() == 6, "Benchmark catalog should stay intentionally small and reviewable in this phase")
+	_check(names.size() == 7, "Benchmark catalog should stay intentionally small and reviewable in this phase")
 	return _errors.is_empty()
 
 
@@ -130,6 +130,19 @@ func test_cases_define_smoke_budgets() -> bool:
 		var case_data := BenchmarkCases.get_case(case_name)
 		var budgets_value = case_data.get("smoke_budgets", {})
 		_check(typeof(budgets_value) == TYPE_DICTIONARY and not Dictionary(budgets_value).is_empty(), "Benchmark case '%s' should define smoke budgets" % case_name)
+	return _errors.is_empty()
+
+
+func test_dense_units_case_defines_host_and_squad_specs() -> bool:
+	_reset_errors()
+	var case_data := BenchmarkCases.get_case("target_visible_dense_units_32x32")
+	var map_data: Dictionary = case_data.get("map_data", {})
+	var host_station_specs: Array = map_data.get("host_station_specs", [])
+	var squad_specs: Array = map_data.get("squad_specs", [])
+	_check(not host_station_specs.is_empty(), "Dense-units benchmark should define host station specs")
+	_check(not squad_specs.is_empty(), "Dense-units benchmark should define squad specs")
+	_check(host_station_specs.size() >= 16, "Dense-units benchmark should seed enough host stations to stress overlay prep")
+	_check(squad_specs.size() >= 64, "Dense-units benchmark should seed enough squads to stress overlay prep")
 	return _errors.is_empty()
 
 
@@ -328,6 +341,7 @@ func run() -> int:
 		"test_particle_case_uses_set6_ptcl_typ_values",
 		"test_hidden_workflow_case_starts_inactive_and_has_burst_updates",
 		"test_cases_define_smoke_budgets",
+		"test_dense_units_case_defines_host_and_squad_specs",
 		"test_runtime_count_helpers_report_expected_structure",
 		"test_hidden_smoke_budget_accepts_expected_summary_shape",
 		"test_runner_event_system_stub_exposes_renderer_signals",

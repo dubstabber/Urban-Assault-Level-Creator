@@ -61,6 +61,8 @@ const UA_NORMAL_RENDER_SECTORS := 5
 const UA_NORMAL_GEOMETRY_CULL_DISTANCE := float(UA_NORMAL_RENDER_SECTORS) * SECTOR_SIZE + SECTOR_SIZE * 0.5
 const _ASYNC_APPLY_RESULTS_PER_FRAME := 4
 const _ASYNC_OVERLAY_APPLY_OPS_PER_FRAME := 48
+const _INITIAL_LOAD_ASYNC_APPLY_RESULTS_PER_FRAME := 16
+const _INITIAL_LOAD_ASYNC_OVERLAY_APPLY_OPS_PER_FRAME := 384
 const _MAX_INCREMENTAL_UNIT_BATCH := 64
 const HOST_STATION_BASE_NAMES := VisualCatalog.HOST_STATION_BASE_NAMES
 const HOST_STATION_VISIBLE_GUN_BASE_NAMES := VisualCatalog.HOST_STATION_VISIBLE_GUN_BASE_NAMES
@@ -760,6 +762,16 @@ func _apply_debug_mode_to_existing_materials() -> void:
 func _process(_delta: float) -> void:
 	_camera_controller.process_frame()
 	_async_refresh_driver.process_frame()
+
+func _async_chunk_apply_budget() -> int:
+	return _INITIAL_LOAD_ASYNC_APPLY_RESULTS_PER_FRAME if _chunk_rt.initial_build_in_progress else _ASYNC_APPLY_RESULTS_PER_FRAME
+
+func _async_overlay_apply_budget(descriptor_count: int = 0) -> int:
+	if not _chunk_rt.initial_build_in_progress:
+		return _ASYNC_OVERLAY_APPLY_OPS_PER_FRAME
+	if descriptor_count >= 12000:
+		return maxi(_INITIAL_LOAD_ASYNC_OVERLAY_APPLY_OPS_PER_FRAME * 2, _ASYNC_OVERLAY_APPLY_OPS_PER_FRAME)
+	return _INITIAL_LOAD_ASYNC_OVERLAY_APPLY_OPS_PER_FRAME
 
 func _notification(what: int) -> void:
 	if what == NOTIFICATION_VISIBILITY_CHANGED and is_visible_in_tree() and _preview_refresh_active():

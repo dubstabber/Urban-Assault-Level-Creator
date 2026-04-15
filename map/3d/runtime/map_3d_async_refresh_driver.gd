@@ -334,7 +334,8 @@ func _async_initial_build_worker(snapshot: Dictionary, generation_id: int) -> vo
 func pump_async_initial_build() -> void:
 	if not _build.is_async_build_active():
 		return
-	for _i in _renderer_node._ASYNC_APPLY_RESULTS_PER_FRAME:
+	var apply_budget := maxi(int(_renderer_node._async_chunk_apply_budget()), 1)
+	for _i in range(apply_budget):
 		var payload: Dictionary = _build.pop_async_chunk_payload()
 		if payload.is_empty():
 			break
@@ -430,7 +431,8 @@ func try_finalize_async_localized_overlay_refresh() -> bool:
 		h,
 		localized_overlay_sectors,
 		_async_chunk_authored_descriptors,
-		game_data_type
+		game_data_type,
+		metrics
 	)
 	metrics["static_overlay_descriptor_generation_ms"] = _build.elapsed_ms_since(overlay_descriptor_started_usec)
 	metrics["overlay_descriptor_generation_ms"] = metrics["static_overlay_descriptor_generation_ms"]
@@ -439,11 +441,9 @@ func try_finalize_async_localized_overlay_refresh() -> bool:
 	var overlay_node_started_usec := Time.get_ticks_usec()
 	_build.apply_localized_static_overlay_refresh(localized_static_descriptors, _async_processed_chunks, localized_overlay_sectors, level_set, w, h)
 	metrics["static_overlay_apply_ms"] = _build.elapsed_ms_since(overlay_node_started_usec)
-	metrics["overlay_node_creation_ms"] = metrics["static_overlay_apply_ms"]
-	var dynamic_descriptor_started_usec := Time.get_ticks_usec()
 	_build.apply_localized_dynamic_overlay_refresh(cmd, level_set, hgt, w, h, support_descriptors, game_data_type, localized_dynamic_sectors, metrics)
-	metrics["dynamic_overlay_descriptor_generation_ms"] = _build.elapsed_ms_since(dynamic_descriptor_started_usec)
-	metrics["dynamic_overlay_apply_ms"] = 0.0
+	metrics["overlay_node_creation_ms"] = float(metrics.get("static_overlay_apply_ms", 0.0)) + float(metrics.get("dynamic_overlay_apply_ms", 0.0))
+	metrics["overlay_descriptor_generation_ms"] = float(metrics.get("static_overlay_descriptor_generation_ms", 0.0)) + float(metrics.get("dynamic_overlay_descriptor_generation_ms", 0.0))
 	metrics["localized_overlay_refresh"] = true
 	var piece_counters: Dictionary = UATerrainPieceLibrary.get_piece_overlay_build_counters()
 	metrics["piece_overlay_fast_path"] = int(piece_counters.get("piece_overlay_fast_path", 0))

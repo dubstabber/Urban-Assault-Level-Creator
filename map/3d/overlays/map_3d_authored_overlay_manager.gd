@@ -84,6 +84,12 @@ static func apply_overlay_for_prefixes(root: Node3D, key_prefixes: Array, overla
 			piece_node.set_meta("raw_id", raw_id)
 			piece_node.set_meta("overlay_force_static", UATerrainPieceLibrary.is_force_static_terrain_overlays())
 			piece_node.set_meta("warp_sig", "")
+			piece_node.position = _piece_position_from_desc(desc)
+			UATerrainPieceLibrary._apply_optional_piece_orientation(piece_node, desc)
+			var initial_warp_sig := _warp_signature(desc)
+			if not initial_warp_sig.is_empty():
+				UATerrainPieceLibrary._apply_optional_piece_deform(piece_node, desc)
+				piece_node.set_meta("warp_sig", initial_warp_sig)
 			root.add_child(piece_node)
 			existing[key] = piece_node
 		else:
@@ -92,13 +98,14 @@ static func apply_overlay_for_prefixes(root: Node3D, key_prefixes: Array, overla
 				continue
 			existing[key] = piece_node
 
-		piece_node.position = _piece_position_from_desc(desc)
-		UATerrainPieceLibrary._apply_optional_piece_orientation(piece_node, desc)
-		var warp_sig := _warp_signature(desc)
-		var prev_warp_sig := String(piece_node.get_meta("warp_sig", ""))
-		if warp_sig != prev_warp_sig:
-			UATerrainPieceLibrary._apply_optional_piece_deform(piece_node, desc)
-			piece_node.set_meta("warp_sig", warp_sig)
+		if not needs_rebuild:
+			piece_node.position = _piece_position_from_desc(desc)
+			UATerrainPieceLibrary._apply_optional_piece_orientation(piece_node, desc)
+			var warp_sig := _warp_signature(desc)
+			var prev_warp_sig := String(piece_node.get_meta("warp_sig", ""))
+			if warp_sig != prev_warp_sig:
+				UATerrainPieceLibrary._apply_optional_piece_deform(piece_node, desc)
+				piece_node.set_meta("warp_sig", warp_sig)
 
 
 static func _key_matches_prefixes(key: String, key_prefixes: Array) -> bool:
@@ -114,6 +121,19 @@ func begin_apply_overlay_node(root: Node3D, overlay_descriptors: Array) -> Dicti
 		return {}
 	if root.name.is_empty():
 		root.name = "AuthoredOverlay"
+	if root.get_child_count() == 0:
+		return {
+			"cold_start": true,
+			"cold_start_descriptors": _cold_start_descriptors(overlay_descriptors),
+			"cold_start_index": 0,
+			"existing": {},
+			"descriptor_count": overlay_descriptors.size(),
+			"desired_count": overlay_descriptors.size(),
+			"existing_count_before": 0,
+			"root_children_before": 0,
+			"rebuilt_count": 0,
+			"reused_count": 0,
+		}
 
 	var desired := _desired_descriptors_by_key(overlay_descriptors)
 	var existing := _existing_nodes_by_key(root)
@@ -148,6 +168,8 @@ func begin_apply_overlay_node(root: Node3D, overlay_descriptors: Array) -> Dicti
 func apply_overlay_node_step(root: Node3D, state: Dictionary, max_ops: int = 64) -> bool:
 	if root == null or not is_instance_valid(root) or state.is_empty():
 		return true
+	if bool(state.get("cold_start", false)):
+		return _apply_overlay_node_cold_start_step(root, state, max_ops)
 	var ops_done := 0
 	var desired: Dictionary = state.get("desired", {})
 	var existing: Dictionary = state.get("existing", {})
@@ -203,6 +225,12 @@ func apply_overlay_node_step(root: Node3D, state: Dictionary, max_ops: int = 64)
 				piece_node.set_meta("raw_id", raw_id)
 				piece_node.set_meta("overlay_force_static", UATerrainPieceLibrary.is_force_static_terrain_overlays())
 				piece_node.set_meta("warp_sig", "")
+				piece_node.position = _piece_position_from_desc(desc)
+				UATerrainPieceLibrary._apply_optional_piece_orientation(piece_node, desc)
+				var initial_warp_sig := _warp_signature(desc)
+				if not initial_warp_sig.is_empty():
+					UATerrainPieceLibrary._apply_optional_piece_deform(piece_node, desc)
+					piece_node.set_meta("warp_sig", initial_warp_sig)
 				root.add_child(piece_node)
 				existing[key] = piece_node
 				state["rebuilt_count"] = int(state.get("rebuilt_count", 0)) + 1
@@ -212,7 +240,7 @@ func apply_overlay_node_step(root: Node3D, state: Dictionary, max_ops: int = 64)
 				existing[key] = piece_node
 				state["reused_count"] = int(state.get("reused_count", 0)) + 1
 
-		if piece_node != null:
+		if piece_node != null and not needs_rebuild:
 			piece_node.position = _piece_position_from_desc(desc)
 			UATerrainPieceLibrary._apply_optional_piece_orientation(piece_node, desc)
 			var warp_sig := _warp_signature(desc)
@@ -230,14 +258,40 @@ func apply_overlay_node_step(root: Node3D, state: Dictionary, max_ops: int = 64)
 	return remove_index >= to_remove.size() and upsert_index >= upsert_keys.size()
 
 
+func _apply_overlay_node_cold_start_step(root: Node3D, state: Dictionary, max_ops: int) -> bool:
+	var descriptors: Array = state.get("cold_start_descriptors", [])
+	var index := int(state.get("cold_start_index", 0))
+	var existing: Dictionary = state.get("existing", {})
+	var ops_done := 0
+	while index < descriptors.size() and ops_done < max_ops:
+		var desc_value = descriptors[index]
+		if typeof(desc_value) == TYPE_DICTIONARY:
+			var node := _apply_new_descriptor(root, desc_value as Dictionary)
+			if node != null and is_instance_valid(node):
+				existing[String(node.get_meta("instance_key", node.name))] = node
+				state["rebuilt_count"] = int(state.get("rebuilt_count", 0)) + 1
+		index += 1
+		ops_done += 1
+	state["cold_start_index"] = index
+	state["existing"] = existing
+	return index >= descriptors.size()
+
+
 func finalize_apply_overlay_node(root: Node3D, state: Dictionary) -> void:
 	if root == null or not is_instance_valid(root) or state.is_empty():
 		return
+	var existing = state.get("existing", {})
+	if typeof(existing) == TYPE_DICTIONARY:
+		root.set_meta(_NODE_INDEX_META, existing)
 
 
 func overlay_apply_progress(state: Dictionary) -> Dictionary:
 	if state.is_empty():
 		return {"done": 0, "total": 0}
+	if bool(state.get("cold_start", false)):
+		var descriptors: Array = state.get("cold_start_descriptors", [])
+		var done_cold := int(state.get("cold_start_index", 0))
+		return {"done": done_cold, "total": descriptors.size()}
 	var to_remove: Array = state.get("to_remove", [])
 	var upsert_keys: Array = state.get("upsert_keys", [])
 	var total := to_remove.size() + upsert_keys.size()
@@ -254,6 +308,21 @@ static func _desired_descriptors_by_key(overlay_descriptors: Array) -> Dictionar
 		var key := _descriptor_key(d)
 		desired[key] = d
 	return desired
+
+
+static func _cold_start_descriptors(overlay_descriptors: Array) -> Array:
+	var descriptors: Array = []
+	var seen := {}
+	for desc_value in overlay_descriptors:
+		if typeof(desc_value) != TYPE_DICTIONARY:
+			continue
+		var desc := desc_value as Dictionary
+		var key := _descriptor_key(desc)
+		if seen.has(key):
+			continue
+		seen[key] = true
+		descriptors.append(desc)
+	return descriptors
 
 
 static func _descriptor_key(desc: Dictionary) -> String:
@@ -323,3 +392,27 @@ static func _str_position_key(pos: Vector3) -> String:
 
 static func _piece_position_from_desc(desc: Dictionary) -> Vector3:
 	return Vector3(desc.get("origin", Vector3.ZERO)) + Vector3(0.0, UATerrainPieceLibrary.OVERLAY_Y_BIAS + float(desc.get("y_offset", 0.0)), 0.0)
+
+
+static func _apply_new_descriptor(root: Node3D, desc: Dictionary) -> Node3D:
+	var set_id := int(desc.get("set_id", 1))
+	var base_name := String(desc.get("base_name", ""))
+	var raw_id := int(desc.get("raw_id", -1))
+	var key := _descriptor_key(desc)
+	var piece_node := UATerrainPieceLibrary.build_piece_scene_root(set_id, base_name, raw_id)
+	if piece_node == null:
+		return null
+	piece_node.set_meta("instance_key", key)
+	piece_node.set_meta("set_id", set_id)
+	piece_node.set_meta("base_name", base_name)
+	piece_node.set_meta("raw_id", raw_id)
+	piece_node.set_meta("overlay_force_static", UATerrainPieceLibrary.is_force_static_terrain_overlays())
+	piece_node.set_meta("warp_sig", "")
+	piece_node.position = _piece_position_from_desc(desc)
+	UATerrainPieceLibrary._apply_optional_piece_orientation(piece_node, desc)
+	var warp_sig := _warp_signature(desc)
+	if not warp_sig.is_empty():
+		UATerrainPieceLibrary._apply_optional_piece_deform(piece_node, desc)
+		piece_node.set_meta("warp_sig", warp_sig)
+	root.add_child(piece_node)
+	return piece_node

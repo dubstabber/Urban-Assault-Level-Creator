@@ -33,7 +33,9 @@ static var _squad_visproto_base_name_cache: Dictionary = {}
 static var _vehicle_visual_entries_cache: Dictionary = {}
 static var _blg_typ_override_cache: Dictionary = {}
 static var _building_definitions_cache: Dictionary = {}
+static var _building_definition_index_cache: Dictionary = {}
 static var _building_sec_type_override_cache: Dictionary = {}
+static var _building_attachment_base_name_cache: Dictionary = {}
 
 
 static func _clear_runtime_lookup_caches_for_tests() -> void:
@@ -42,7 +44,9 @@ static func _clear_runtime_lookup_caches_for_tests() -> void:
 	_vehicle_visual_entries_cache.clear()
 	_blg_typ_override_cache.clear()
 	_building_definitions_cache.clear()
+	_building_definition_index_cache.clear()
 	_building_sec_type_override_cache.clear()
+	_building_attachment_base_name_cache.clear()
 
 
 static func _host_station_base_name_for_vehicle(vehicle_id: int) -> String:
@@ -316,8 +320,12 @@ static func _preferred_squad_visual_base_name(vehicle_visuals: Dictionary, vispr
 
 static func _building_attachment_base_name_for_vehicle(vehicle_id: int, set_id: int, game_data_type: String) -> String:
 	var normalized_game_data_type := _normalized_game_data_type(game_data_type)
+	var cache_key := "%s:%d:%d" % [normalized_game_data_type, max(set_id, 1), vehicle_id]
+	if _building_attachment_base_name_cache.has(cache_key):
+		return String(_building_attachment_base_name_cache[cache_key])
 	var vehicle_entries := _vehicle_visual_entries_for_game_data_type(set_id, normalized_game_data_type)
 	if not vehicle_entries.has(vehicle_id):
+		_building_attachment_base_name_cache[cache_key] = ""
 		return ""
 	var visproto_base_names := _visproto_base_names_for_set(set_id, normalized_game_data_type)
 	var fallback := ""
@@ -330,9 +338,11 @@ static func _building_attachment_base_name_for_vehicle(vehicle_id: int, set_id: 
 			continue
 		var model_name := String(vehicle_visuals.get("model", "")).to_lower()
 		if model_name != "plane" and model_name != "heli":
+			_building_attachment_base_name_cache[cache_key] = base_name
 			return base_name
 		if fallback.is_empty():
 			fallback = base_name
+	_building_attachment_base_name_cache[cache_key] = fallback
 	return fallback
 
 
@@ -430,35 +440,48 @@ static func _building_definitions_for_game_data_type(set_id: int, game_data_type
 	return result
 
 
+static func _building_definition_index_for_game_data_type(set_id: int, game_data_type: String) -> Dictionary:
+	var normalized_game_data_type := _normalized_game_data_type(game_data_type)
+	var cache_key := "%s:%d" % [normalized_game_data_type, max(set_id, 1)]
+	if _building_definition_index_cache.has(cache_key):
+		return _building_definition_index_cache[cache_key]
+	var index := {}
+	var definitions := _building_definitions_for_game_data_type(set_id, normalized_game_data_type)
+	for definition_value in definitions:
+		if typeof(definition_value) != TYPE_DICTIONARY:
+			continue
+		var definition := definition_value as Dictionary
+		var building_id := int(definition.get("building_id", -1))
+		var sec_type := int(definition.get("sec_type", -1))
+		if building_id < 0 or sec_type < 0:
+			continue
+		index["%d:%d" % [building_id, sec_type]] = definition.duplicate(true)
+	_building_definition_index_cache[cache_key] = index
+	return index
+
+
 static func _building_definition_for_id_and_sec_type(building_id: int, sec_type: int, set_id_or_game_data_type = 1, game_data_type: String = "original") -> Dictionary:
+	var definition := _building_definition_for_id_and_sec_type_ref(building_id, sec_type, set_id_or_game_data_type, game_data_type)
+	return definition.duplicate(true) if not definition.is_empty() else {}
+
+
+static func _building_definition_for_id_and_sec_type_ref(building_id: int, sec_type: int, set_id_or_game_data_type = 1, game_data_type: String = "original") -> Dictionary:
 	var resolved_set_id := 1
 	var resolved_game_data_type := game_data_type
 	if typeof(set_id_or_game_data_type) == TYPE_STRING:
 		resolved_game_data_type = String(set_id_or_game_data_type)
 	else:
 		resolved_set_id = int(set_id_or_game_data_type)
-	var definitions := _building_definitions_for_game_data_type(resolved_set_id, resolved_game_data_type)
-	for definition_value in definitions:
-		if typeof(definition_value) != TYPE_DICTIONARY:
-			continue
-		var definition := definition_value as Dictionary
-		if int(definition.get("building_id", -1)) != building_id:
-			continue
-		if int(definition.get("sec_type", -1)) != sec_type:
-			continue
-		return definition.duplicate(true)
+	var definition_index := _building_definition_index_for_game_data_type(resolved_set_id, resolved_game_data_type)
+	var key := "%d:%d" % [building_id, sec_type]
+	if definition_index.has(key):
+		return definition_index[key] as Dictionary
 	var normalized_game_data_type := _normalized_game_data_type(resolved_game_data_type)
 	if normalized_game_data_type == "metropolisDawn" and MD_BUILDING_DEFINITION_ALIASES.has(building_id):
 		var alias_id := int(MD_BUILDING_DEFINITION_ALIASES[building_id])
-		for definition_value in definitions:
-			if typeof(definition_value) != TYPE_DICTIONARY:
-				continue
-			var definition := definition_value as Dictionary
-			if int(definition.get("building_id", -1)) != alias_id:
-				continue
-			if int(definition.get("sec_type", -1)) != sec_type:
-				continue
-			var aliased := definition.duplicate(true)
+		var alias_key := "%d:%d" % [alias_id, sec_type]
+		if definition_index.has(alias_key):
+			var aliased := Dictionary(definition_index[alias_key]).duplicate(true)
 			aliased["building_id"] = building_id
 			return aliased
 	return {}

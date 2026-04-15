@@ -199,14 +199,6 @@ func apply_geometry_distance_culling_to_chunk_node(chunk_node: MeshInstance3D, c
 
 func apply_geometry_distance_culling_to_overlay() -> void:
 	if not _state.geometry_distance_culling_enabled:
-		if _scene.authored_overlay() != null and is_instance_valid(_scene.authored_overlay()):
-			for child in _scene.authored_overlay().get_children():
-				if child is Node3D:
-					(child as Node3D).visible = true
-		if _scene.dynamic_overlay() != null and is_instance_valid(_scene.dynamic_overlay()):
-			for child in _scene.dynamic_overlay().get_children():
-				if child is Node3D:
-					(child as Node3D).visible = true
 		return
 	var camera: Camera3D = _scene.camera()
 	if camera == null or not is_instance_valid(camera):

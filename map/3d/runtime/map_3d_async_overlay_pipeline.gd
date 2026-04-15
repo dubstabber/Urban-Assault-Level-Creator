@@ -1,6 +1,7 @@
 extends RefCounted
 
 const OverlayPlanBuilder := preload("res://map/3d/services/map_3d_overlay_plan_builder.gd")
+const OverlayProducers := preload("res://map/3d/overlays/map_3d_overlay_descriptor_producers.gd")
 
 var _driver = null
 var _renderer_node = null
@@ -78,6 +79,8 @@ func start_async_overlay_descriptor_build(dynamic_only: bool = false) -> void:
 	var payload := {
 		"generation_id": _build.coordinator().active_build_generation_id,
 		"dynamic_only": dynamic_only,
+		"fast_initial_dynamic_overlay": (not dynamic_only and _build.chunk_runtime().initial_build_in_progress),
+		"initial_static_overlay_sectors": _initial_static_overlay_sectors() if not dynamic_only and _build.chunk_runtime().initial_build_in_progress else [],
 		"support_descriptors": support_descriptors,
 		"blg": _build.async_blg(),
 		"effective_typ": _build.async_effective_typ(),
@@ -109,6 +112,7 @@ func _async_overlay_descriptor_worker(payload: Dictionary) -> void:
 		return
 	var metrics: Dictionary = _build.make_empty_build_metrics()
 	var started_usec := Time.get_ticks_usec()
+	var fast_initial_dynamic_overlay := bool(payload.get("fast_initial_dynamic_overlay", false))
 	var support_descriptors: Array = payload.get("support_descriptors", []).duplicate()
 	var static_descriptors: Array = support_descriptors.duplicate()
 	var dynamic_descriptors: Array = []
@@ -121,6 +125,7 @@ func _async_overlay_descriptor_worker(payload: Dictionary) -> void:
 	var game_data_type := String(payload.get("game_data_type", "original"))
 	var host_station_snapshot: Array = payload.get("host_station_snapshot", [])
 	var squad_snapshot: Array = payload.get("squad_snapshot", [])
+	var initial_static_overlay_sectors: Array = payload.get("initial_static_overlay_sectors", [])
 	if not dynamic_only:
 		_build.set_async_overlay_descriptor_stage("Preparing overlays: building attachments")
 	if _build.is_async_cancel_requested(generation_id):
@@ -131,27 +136,71 @@ func _async_overlay_descriptor_worker(payload: Dictionary) -> void:
 		_build.set_async_overlay_descriptor_state(true, false, {}, {})
 		return
 	_build.set_async_overlay_descriptor_stage("Preparing overlays: squads")
-	var overlay_plan := OverlayPlanBuilder.build_overlay_plan_from_snapshots(
-		host_station_snapshot,
-		squad_snapshot,
-		blg,
-		effective_typ,
-		set_id,
-		hgt,
-		w,
-		h,
-		support_descriptors,
-		game_data_type,
-		metrics,
-		dynamic_only
-	)
-	static_descriptors = overlay_plan.get("static_descriptors", [])
-	dynamic_descriptors = overlay_plan.get("dynamic_descriptors", [])
+	if fast_initial_dynamic_overlay:
+		if not dynamic_only:
+			var building_started_usec := Time.get_ticks_usec()
+			var initial_support_descriptors := OverlayPlanBuilder.filter_support_descriptors_to_sectors(support_descriptors, initial_static_overlay_sectors, w, h)
+			var building_descriptors := OverlayPlanBuilder.build_localized_static_descriptors(
+				blg,
+				effective_typ,
+				set_id,
+				hgt,
+				w,
+				h,
+				initial_static_overlay_sectors,
+				initial_support_descriptors,
+				game_data_type,
+				metrics
+			)
+			static_descriptors = building_descriptors
+			metrics["static_overlay_descriptor_generation_ms"] = _build.elapsed_ms_since(building_started_usec)
+		var dynamic_started_usec := Time.get_ticks_usec()
+		var host_started_usec := Time.get_ticks_usec()
+		dynamic_descriptors.append_array(OverlayProducers.build_host_station_descriptors_from_snapshot(
+			host_station_snapshot,
+			set_id,
+			hgt,
+			w,
+			h,
+			[]
+		))
+		metrics["host_station_descriptor_generation_ms"] = _build.elapsed_ms_since(host_started_usec)
+		var squad_started_usec := Time.get_ticks_usec()
+		dynamic_descriptors.append_array(OverlayProducers.build_squad_descriptors_from_snapshot(
+			squad_snapshot,
+			set_id,
+			hgt,
+			w,
+			h,
+			[],
+			game_data_type
+		))
+		metrics["squad_descriptor_generation_ms"] = _build.elapsed_ms_since(squad_started_usec)
+		metrics["dynamic_overlay_descriptor_generation_ms"] = _build.elapsed_ms_since(dynamic_started_usec)
+	else:
+		var overlay_plan := OverlayPlanBuilder.build_overlay_plan_from_snapshots(
+			host_station_snapshot,
+			squad_snapshot,
+			blg,
+			effective_typ,
+			set_id,
+			hgt,
+			w,
+			h,
+			support_descriptors,
+			game_data_type,
+			metrics,
+			dynamic_only
+		)
+		static_descriptors = overlay_plan.get("static_descriptors", [])
+		dynamic_descriptors = overlay_plan.get("dynamic_descriptors", [])
 	metrics["overlay_descriptor_generation_ms"] = maxf(float(metrics.get("overlay_descriptor_generation_ms", 0.0)), _build.elapsed_ms_since(started_usec))
 	_build.set_async_overlay_descriptor_stage("Preparing overlays: complete")
 	_build.set_async_overlay_descriptor_state(true, false, {
 		"static_descriptors": static_descriptors,
 		"dynamic_descriptors": dynamic_descriptors,
+		"fast_initial_dynamic_overlay": fast_initial_dynamic_overlay,
+		"defer_full_overlay_refresh": fast_initial_dynamic_overlay and not initial_static_overlay_sectors.is_empty(),
 	}, metrics)
 
 
@@ -186,6 +235,7 @@ func pump_async_overlay_descriptor_build() -> void:
 	var static_descriptors: Array = result_payload.get("static_descriptors", [])
 	var dynamic_descriptors: Array = result_payload.get("dynamic_descriptors", [])
 	var metrics: Dictionary = state.get("metrics", {})
+	metrics["defer_full_overlay_refresh"] = bool(result_payload.get("defer_full_overlay_refresh", false))
 	if _driver._async_overlay_descriptor_dynamic_only:
 		_finalize_dynamic_only_overlay_refresh(dynamic_descriptors, metrics)
 		return
@@ -215,7 +265,9 @@ func pump_async_overlay_apply() -> void:
 		if _driver._async_requested_restart:
 			_driver.request_refresh(_driver._async_requested_reframe)
 		return
-	var done: bool = _build.overlay_apply_manager().apply_overlay_node_step(_scene.authored_overlay(), _driver._async_overlay_apply_state, _renderer_node._ASYNC_OVERLAY_APPLY_OPS_PER_FRAME)
+	var descriptor_count := int(_driver._async_overlay_apply_state.get("descriptor_count", _driver._async_overlay_descriptors.size()))
+	var apply_budget := maxi(int(_renderer_node._async_overlay_apply_budget(descriptor_count)), 1)
+	var done: bool = _build.overlay_apply_manager().apply_overlay_node_step(_scene.authored_overlay(), _driver._async_overlay_apply_state, apply_budget)
 	var progress: Dictionary = _build.overlay_apply_manager().overlay_apply_progress(_driver._async_overlay_apply_state)
 	var progress_done := int(progress.get("done", 0))
 	var progress_total := int(progress.get("total", 0))
@@ -233,14 +285,16 @@ func finalize_async_overlay_apply() -> void:
 		_build.overlay_apply_manager().finalize_apply_overlay_node(_scene.authored_overlay(), _driver._async_overlay_apply_state)
 	var dynamic_apply_started_usec := Time.get_ticks_usec()
 	_scene.apply_dynamic_overlay(_driver._async_dynamic_overlay_descriptors)
-	_scene.apply_geometry_distance_culling_to_overlay()
 	var metrics: Dictionary = _driver._async_overlay_metrics
+	var defer_full_overlay_refresh := bool(metrics.get("defer_full_overlay_refresh", false))
 	var pc: Dictionary = UATerrainPieceLibrary.get_piece_overlay_build_counters()
 	metrics["piece_overlay_fast_path"] = int(pc.get("piece_overlay_fast_path", 0))
 	metrics["piece_overlay_slow_path"] = int(pc.get("piece_overlay_slow_path", 0))
 	metrics["overlay_node_creation_ms"] = _build.elapsed_ms_since(_driver._async_overlay_apply_started_usec)
 	metrics["static_overlay_apply_ms"] = metrics["overlay_node_creation_ms"]
 	metrics["dynamic_overlay_apply_ms"] = _build.elapsed_ms_since(dynamic_apply_started_usec)
+	if _build.geometry_distance_culling_enabled():
+		_scene.apply_geometry_distance_culling_to_overlay()
 	_build.finalize_build_metrics(metrics, _driver._async_build_started_usec)
 	_build.chunk_runtime().initial_build_in_progress = false
 	_build.chunk_runtime().initial_build_accumulated_authored_descriptors.clear()
@@ -255,6 +309,8 @@ func finalize_async_overlay_apply() -> void:
 	_driver.reset_async_build_state()
 	if should_restart:
 		_driver.request_refresh(restart_reframe)
+	elif defer_full_overlay_refresh and _context.preview_refresh_active():
+		_driver.request_overlay_only_refresh()
 	elif _driver._refresh_pending and _context.preview_refresh_active():
 		_driver.request_refresh(_driver._refresh_reframe_pending)
 	else:
@@ -277,6 +333,8 @@ func _finalize_dynamic_only_overlay_refresh(dynamic_descriptors: Array, metrics:
 	var dynamic_apply_started_usec := Time.get_ticks_usec()
 	_scene.apply_dynamic_overlay(dynamic_descriptors)
 	metrics["dynamic_overlay_apply_ms"] = _build.elapsed_ms_since(dynamic_apply_started_usec)
+	if _build.geometry_distance_culling_enabled():
+		_scene.apply_geometry_distance_culling_to_overlay()
 	_build.finalize_build_metrics(metrics, _driver._async_build_started_usec)
 	_driver.end_build_state(true, "3D map ready")
 	_scene.bump_3d_viewport_rendering()
@@ -290,3 +348,26 @@ func _finalize_dynamic_only_overlay_refresh(dynamic_descriptors: Array, metrics:
 		_driver.request_refresh(restart_reframe)
 		return
 	_driver.flush_pending_unit_changes()
+
+
+func _initial_static_overlay_sectors() -> Array[Vector2i]:
+	var cmd: Node = _context.current_map_data()
+	if cmd == null:
+		return []
+	var w := int(cmd.horizontal_sectors)
+	var h := int(cmd.vertical_sectors)
+	if w <= 0 or h <= 0:
+		return []
+	if _driver._async_pending_reframe_camera and _scene.is_inside_tree():
+		_build.set_camera_framed(false)
+		_build.frame_if_needed()
+	var camera: Camera3D = _scene.camera()
+	if camera == null or not is_instance_valid(camera):
+		return []
+	var center_sector := OverlayProducers.playable_sector_at_world_position(camera.global_position.x, camera.global_position.z)
+	var sector_radius := int(ceil(_renderer_node.UA_NORMAL_GEOMETRY_CULL_DISTANCE / _renderer_node.SECTOR_SIZE)) + 1
+	var sectors: Array[Vector2i] = []
+	for sy in range(maxi(center_sector.y - sector_radius, 0), mini(center_sector.y + sector_radius + 1, h)):
+		for sx in range(maxi(center_sector.x - sector_radius, 0), mini(center_sector.x + sector_radius + 1, w)):
+			sectors.append(Vector2i(sx, sy))
+	return sectors

@@ -2,6 +2,7 @@ extends RefCounted
 
 const Map3DRendererScript = preload("res://map/map_3d_renderer.gd")
 const BenchmarkRunner = preload("res://tests/run_map_3d_benchmarks.gd")
+const OverlayPlanBuilder = preload("res://map/3d/services/map_3d_overlay_plan_builder.gd")
 
 var _errors: Array[String] = []
 
@@ -29,6 +30,30 @@ class CurrentMapDataStub extends Node:
 	var host_stations: Node = null
 	var squads: Node = null
 	var level_set := 1
+
+
+class HostStationStub extends Node2D:
+	var vehicle := 56
+	var pos_y := -700.0
+	var editor_unit_id := 0
+
+	func _init(vehicle_id: int, pos_x: float, pos_z_abs: float, ua_y: float, stable_id: int) -> void:
+		vehicle = vehicle_id
+		pos_y = ua_y
+		editor_unit_id = stable_id
+		position = Vector2(pos_x, pos_z_abs)
+
+
+class SquadStub extends Node2D:
+	var vehicle := 1
+	var quantity := 1
+	var editor_unit_id := 0
+
+	func _init(vehicle_id: int, pos_x: float, pos_z_abs: float, unit_quantity: int, stable_id: int) -> void:
+		vehicle = vehicle_id
+		quantity = unit_quantity
+		editor_unit_id = stable_id
+		position = Vector2(pos_x, pos_z_abs)
 
 
 class EditorStateStub extends Node:
@@ -114,7 +139,7 @@ func _dispose_fixture(fixture: Dictionary) -> void:
 
 
 func _check_metric_keys(metrics: Dictionary) -> void:
-	for key in ["terrain_build_ms", "edge_slurp_build_ms", "overlay_descriptor_generation_ms", "overlay_node_creation_ms", "support_height_query_ms", "support_height_query_count", "build_total_ms", "refresh_end_to_end_ms"]:
+	for key in ["terrain_build_ms", "edge_slurp_build_ms", "overlay_descriptor_generation_ms", "overlay_node_creation_ms", "static_overlay_descriptor_generation_ms", "dynamic_overlay_descriptor_generation_ms", "host_station_descriptor_generation_ms", "squad_descriptor_generation_ms", "building_attachment_descriptor_generation_ms", "support_query_index_build_ms", "support_query_candidate_count", "support_query_cache_hits", "support_height_query_ms", "support_height_query_count", "build_total_ms", "refresh_end_to_end_ms"]:
 		_check(metrics.has(key), "Expected profiling metrics to include '%s'" % key)
 
 
@@ -328,6 +353,49 @@ func test_visible_refresh_records_stage_timings_with_preloads() -> bool:
 	return _errors.is_empty()
 
 
+func test_dense_unit_visible_refresh_records_support_query_metrics() -> bool:
+	_reset_errors()
+	var w := 2
+	var h := 2
+	var hgt := _make_zero_filled_packed_byte_array((w + 2) * (h + 2))
+	var support_descriptors := [{
+		"set_id": 1,
+		"raw_id": -1,
+		"base_name": "ST_EMPTY",
+		"instance_key": "terrain:1:0:0:seed",
+		"origin": Vector3(1800.0, 0.0, 1800.0),
+	}]
+	var host_station_snapshot := [
+		{"id": 1, "vehicle": 56, "x": 1800.0, "y": 1800.0, "pos_y": -700.0},
+		{"id": 2, "vehicle": 56, "x": 1800.0, "y": 1800.0, "pos_y": -700.0},
+	]
+	var squad_snapshot := [
+		{"id": 3, "vehicle": 1, "x": 1800.0, "y": 1800.0, "quantity": 3},
+		{"id": 4, "vehicle": 180, "x": 1800.0, "y": 1800.0, "quantity": 2},
+	]
+	var metrics := {}
+	var plan := OverlayPlanBuilder.build_overlay_plan_from_snapshots(
+		host_station_snapshot,
+		squad_snapshot,
+		_make_zero_filled_packed_byte_array(w * h),
+		_make_zero_filled_packed_byte_array(w * h),
+		1,
+		hgt,
+		w,
+		h,
+		support_descriptors,
+		"original",
+		metrics
+	)
+	_check(float(metrics.get("host_station_descriptor_generation_ms", 0.0)) > 0.0, "Dense-unit refresh should record host-station descriptor generation time")
+	_check(float(metrics.get("squad_descriptor_generation_ms", 0.0)) > 0.0, "Dense-unit refresh should record squad descriptor generation time")
+	_check(float(metrics.get("support_query_index_build_ms", 0.0)) > 0.0, "Dense-unit refresh should build a support query index")
+	_check(int(metrics.get("support_query_candidate_count", 0)) > 0, "Dense-unit refresh should record support-query candidate scans")
+	_check(int(metrics.get("support_query_cache_hits", 0)) > 0, "Dense-unit refresh should record support-query cache hits for overlapping unit anchors")
+	_check(int(metrics.get("overlay_descriptor_count", 0)) == Array(plan.get("static_descriptors", [])).size() + Array(plan.get("dynamic_descriptors", [])).size(), "Dense-unit profiling metrics should keep descriptor counts aligned with the generated plan")
+	return _errors.is_empty()
+
+
 func test_build_metrics_fallback_when_preloads_missing() -> bool:
 	_reset_errors()
 	var fixture := _create_fixture(false)
@@ -363,6 +431,7 @@ func run() -> int:
 	var failures := 0
 	for name in [
 		"test_visible_refresh_records_stage_timings_with_preloads",
+		"test_dense_unit_visible_refresh_records_support_query_metrics",
 		"test_build_metrics_fallback_when_preloads_missing",
 		"test_invalid_map_input_still_records_metrics",
 		"test_hgt_edit_triggers_incremental_chunk_rebuild",

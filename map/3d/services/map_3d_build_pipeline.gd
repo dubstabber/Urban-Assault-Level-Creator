@@ -225,7 +225,8 @@ func build_from_current_map() -> void:
 			h,
 			localized_overlay_sectors,
 			authored_piece_descriptors,
-			game_data_type
+			game_data_type,
+			metrics
 		)
 		metrics["static_overlay_descriptor_generation_ms"] = BuildMetrics.elapsed_ms_since(overlay_descriptor_started_usec)
 		metrics["overlay_descriptor_generation_ms"] = metrics["static_overlay_descriptor_generation_ms"]
@@ -233,11 +234,9 @@ func build_from_current_map() -> void:
 		var overlay_node_started_usec = Time.get_ticks_usec()
 		apply_localized_static_overlay_refresh(localized_static_descriptors, processed_chunks, localized_overlay_sectors, int(current_map_data.level_set), w, h)
 		metrics["static_overlay_apply_ms"] = BuildMetrics.elapsed_ms_since(overlay_node_started_usec)
-		metrics["overlay_node_creation_ms"] = metrics["static_overlay_apply_ms"]
-		var dynamic_descriptor_started_usec = Time.get_ticks_usec()
 		apply_localized_dynamic_overlay_refresh(current_map_data, int(current_map_data.level_set), hgt, w, h, support_descriptors, game_data_type, localized_dynamic_sectors, metrics)
-		metrics["dynamic_overlay_descriptor_generation_ms"] = BuildMetrics.elapsed_ms_since(dynamic_descriptor_started_usec)
-		metrics["dynamic_overlay_apply_ms"] = 0.0
+		metrics["overlay_node_creation_ms"] = float(metrics.get("static_overlay_apply_ms", 0.0)) + float(metrics.get("dynamic_overlay_apply_ms", 0.0))
+		metrics["overlay_descriptor_generation_ms"] = float(metrics.get("static_overlay_descriptor_generation_ms", 0.0)) + float(metrics.get("dynamic_overlay_descriptor_generation_ms", 0.0))
 		metrics["localized_overlay_refresh"] = true
 	else:
 		var overlay_plan := OverlayPlanBuilder.build_full_overlay_plan(
@@ -256,10 +255,16 @@ func build_from_current_map() -> void:
 		var dynamic_descriptors: Array = overlay_plan.get("dynamic_descriptors", [])
 		overlay_descriptors = static_descriptors.duplicate()
 		overlay_descriptors.append_array(dynamic_descriptors)
-		var overlay_node_started_usec = Time.get_ticks_usec()
-		_scene.set_authored_overlay(overlay_descriptors)
-		metrics["static_overlay_apply_ms"] = BuildMetrics.elapsed_ms_since(overlay_node_started_usec)
-		metrics["overlay_node_creation_ms"] = metrics["static_overlay_apply_ms"]
+		_scene.ensure_overlay_nodes()
+		UATerrainPieceLibrary.reset_piece_overlay_build_counters()
+		_static_overlay_index.replace_all(static_descriptors)
+		var static_apply_started_usec := Time.get_ticks_usec()
+		AuthoredOverlayManager.apply_overlay_node(_scene.authored_overlay(), static_descriptors)
+		metrics["static_overlay_apply_ms"] = BuildMetrics.elapsed_ms_since(static_apply_started_usec)
+		var dynamic_apply_started_usec := Time.get_ticks_usec()
+		_scene.apply_dynamic_overlay(dynamic_descriptors)
+		metrics["dynamic_overlay_apply_ms"] = BuildMetrics.elapsed_ms_since(dynamic_apply_started_usec)
+		metrics["overlay_node_creation_ms"] = float(metrics.get("static_overlay_apply_ms", 0.0)) + float(metrics.get("dynamic_overlay_apply_ms", 0.0))
 
 	var piece_counters: Dictionary = UATerrainPieceLibrary.get_piece_overlay_build_counters()
 	metrics["piece_overlay_fast_path"] = int(piece_counters.get("piece_overlay_fast_path", 0))
@@ -324,6 +329,7 @@ func apply_localized_dynamic_overlay_refresh(current_map_data: Node, set_id: int
 	if affected_sectors.is_empty():
 		return
 	_scene.ensure_overlay_nodes()
+	var descriptor_started_usec := Time.get_ticks_usec()
 	var descriptors := OverlayPlanBuilder.build_localized_dynamic_descriptors(
 		current_map_data,
 		_unit_runtime_index,
@@ -336,8 +342,12 @@ func apply_localized_dynamic_overlay_refresh(current_map_data: Node, set_id: int
 		game_data_type,
 		metrics
 	)
+	metrics["dynamic_overlay_descriptor_generation_ms"] = BuildMetrics.elapsed_ms_since(descriptor_started_usec)
 	var prefixes = StaticOverlayIndex.exact_instance_key_prefixes(descriptors)
 	if prefixes.is_empty():
+		metrics["dynamic_overlay_apply_ms"] = 0.0
 		return
+	var apply_started_usec := Time.get_ticks_usec()
 	AuthoredOverlayManager.apply_overlay_for_prefixes(_scene.dynamic_overlay(), prefixes, descriptors)
 	_scene.apply_geometry_distance_culling_to_overlay()
+	metrics["dynamic_overlay_apply_ms"] = BuildMetrics.elapsed_ms_since(apply_started_usec)

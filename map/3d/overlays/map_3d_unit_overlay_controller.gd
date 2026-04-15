@@ -1,6 +1,7 @@
 extends RefCounted
 const AuthoredOverlayManager := preload("res://map/3d/overlays/map_3d_authored_overlay_manager.gd")
 const OverlayProducers := preload("res://map/3d/overlays/map_3d_overlay_descriptor_producers.gd")
+const SupportQueryContext := preload("res://map/3d/services/map_3d_support_query_context.gd")
 
 
 static func apply_unit_changes(root: Node3D, changes: Array, map_data: Node, support_descriptors: Array, game_data_type: String, unit_runtime_index = null) -> bool:
@@ -14,6 +15,7 @@ static func apply_unit_changes(root: Node3D, changes: Array, map_data: Node, sup
 	if hgt.size() != (w + 2) * (h + 2):
 		return false
 	var set_id := int(map_data.level_set)
+	var support_query_context = SupportQueryContext.create_from_support_descriptors(support_descriptors)
 	var processed := {}
 	for change_any in changes:
 		if typeof(change_any) != TYPE_DICTIONARY:
@@ -36,9 +38,9 @@ static func apply_unit_changes(root: Node3D, changes: Array, map_data: Node, sup
 				unit_node = _find_unit_by_identity(_container_for_kind(map_data, unit_kind), unit_id)
 			if unit_node != null:
 				if unit_kind == "host":
-					descriptors = OverlayProducers.build_host_station_descriptors([unit_node], set_id, hgt, w, h, support_descriptors)
+					descriptors = OverlayProducers.build_host_station_descriptors([unit_node], set_id, hgt, w, h, support_descriptors, support_query_context)
 				elif unit_kind == "squad":
-					descriptors = OverlayProducers.build_squad_descriptors([unit_node], set_id, hgt, w, h, support_descriptors, game_data_type)
+					descriptors = OverlayProducers.build_squad_descriptors([unit_node], set_id, hgt, w, h, support_descriptors, game_data_type, support_query_context)
 		AuthoredOverlayManager.apply_overlay_for_prefixes(root, _prefixes_for_unit(unit_kind, unit_id), descriptors)
 	return true
 
