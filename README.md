@@ -64,9 +64,9 @@ Visit the [official releases page](https://github.com/dubstabber/Urban-Assault-L
 
 ### Building From Source
 
-1. Download Godot 4.5.1 from https://godotengine.org
+1. Download Godot 4.6.2 from https://godotengine.org
 2. Clone this repository or download the zip file and extract it
-3. Open Godot and import the project
+3. Launch `Godot_v4.6.2-stable_linux.x86_64` and import the project
 4. Go to Project > Export... (if you need export templates, follow Godot's setup guide)
 5. Click "Export Project..." and give it a name
 

@@ -43,5 +43,5 @@ scripts/
 docs/
 ua_source_code_prototype/
 .augmentignore
-Godot_v4.5.1-stable_linux.x86_64
+Godot_v4.6.2-stable_linux.x86_64
 debug-output.txt

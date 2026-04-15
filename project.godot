@@ -8,15 +8,19 @@
 
 config_version=5
 
+[animation]
+
+compatibility/default_parent_skeleton_in_mesh_instance_3d=true
+
 [application]
 
 config/name="Urban Assault Level Creator"
 config/version="1.0.4b"
 run/main_scene="res://main/main.tscn"
-config/features=PackedStringArray("4.5", "GL Compatibility")
+config/features=PackedStringArray("4.6", "GL Compatibility")
 run/low_processor_mode=true
 boot_splash/bg_color=Color(0.141176, 0.141176, 0.141176, 0)
-boot_splash/fullsize=false
+boot_splash/stretch_mode=0
 boot_splash/image="res://resources/img/loading.png"
 config/icon="uid://dldixbkxyll0p"
 config/windows_native_icon="res://resources/img/icons/icon.ico"

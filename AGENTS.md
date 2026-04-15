@@ -9,10 +9,10 @@
 - `tests/` contains headless GDScript tests plus a small Python suite; `scripts/` and `tools/` contain asset conversion and maintenance utilities.
 
 ## Build, Test, and Development Commands
-- `./Godot_v4.5.1-stable_linux.x86_64 --path .` opens the project in the repository-pinned Godot version.
-- `env HOME=/tmp XDG_DATA_HOME=/tmp ./Godot_v4.5.1-stable_linux.x86_64 --headless --path . --script res://tests/test_runner.gd` runs the GDScript suite in headless mode.
+- `./Godot_v4.6.2-stable_linux.x86_64 --path .` opens the project in the repository-pinned Godot version.
+- `env HOME=/tmp XDG_DATA_HOME=/tmp ./Godot_v4.6.2-stable_linux.x86_64 --headless --path . --script res://tests/test_runner.gd` runs the GDScript suite in headless mode.
 - `env PYTHONPATH=. pytest tests/test_ua_convert_sky.py -q` runs the Python sky conversion tests.
-- `./Godot_v4.5.1-stable_linux.x86_64 --headless --path . --export-release Linux` builds an export after configuring templates in Godot.
+- `./Godot_v4.6.2-stable_linux.x86_64 --headless --path . --export-release Linux` builds an export after configuring templates in Godot.
 
 ## Coding Style & Naming Conventions
 - Follow existing GDScript style: tabs for indentation, `snake_case` for functions/variables/files, and `PascalCase` for engine classes/constants only where already established.
