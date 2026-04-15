@@ -16,6 +16,8 @@ var _map_signature_level_set: int = -1
 var _map_signature_hgt_checksum: int = 0
 var _map_signature_typ_checksum: int = 0
 var _map_signature_blg_checksum: int = 0
+var _map_signature_checksums_current := false
+var _localized_signature_pending := false
 
 # ---- Async initial-build thread ----
 var _async_initial_thread: Thread = null
@@ -232,6 +234,8 @@ func is_map_signature_changed(w: int, h: int, level_set: int, hgt: PackedByteArr
 		return true
 	if _map_signature_level_set != level_set:
 		return true
+	if not _map_signature_checksums_current:
+		return true
 	if _map_signature_hgt_checksum != _checksum_packed_byte_array(hgt):
 		return true
 	if _map_signature_typ_checksum != _checksum_packed_byte_array(typ):
@@ -248,3 +252,25 @@ func record_map_signature(w: int, h: int, level_set: int, hgt: PackedByteArray, 
 	_map_signature_hgt_checksum = _checksum_packed_byte_array(hgt)
 	_map_signature_typ_checksum = _checksum_packed_byte_array(typ)
 	_map_signature_blg_checksum = _checksum_packed_byte_array(blg)
+	_map_signature_checksums_current = true
+	_localized_signature_pending = false
+
+
+func mark_localized_signature_change(w: int, h: int, level_set: int) -> void:
+	_map_signature_valid = true
+	_map_signature_dims = Vector2i(w, h)
+	_map_signature_level_set = level_set
+	_map_signature_checksums_current = false
+	_localized_signature_pending = true
+
+
+func can_skip_map_signature_check(w: int, h: int, level_set: int, has_localized_invalidation: bool) -> bool:
+	return has_localized_invalidation and _localized_signature_pending and _map_signature_dims == Vector2i(w, h) and _map_signature_level_set == level_set
+
+
+func record_map_signature_metadata_only(w: int, h: int, level_set: int) -> void:
+	_map_signature_valid = true
+	_map_signature_dims = Vector2i(w, h)
+	_map_signature_level_set = level_set
+	_map_signature_checksums_current = false
+	_localized_signature_pending = false

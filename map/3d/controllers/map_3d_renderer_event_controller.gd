@@ -3,20 +3,24 @@ extends RefCounted
 const InvalidationRouter := preload("res://map/3d/services/map_3d_invalidation_router.gd")
 
 var _renderer_node = null
+var _build = null
 var _context = null
 var _scene = null
 var _async_refresh_driver = null
+var _rebuild_policy = null
 var _chunk_runtime = null
 var _effective_typ_service = null
 var _overlay_refresh_scope = null
 var _runtime_state = null
 
 
-func bind(renderer, context_port, scene_port, async_refresh_driver, chunk_runtime, effective_typ_service, overlay_refresh_scope, runtime_state) -> void:
-	_renderer_node = renderer
+func bind(build_state_port, context_port, scene_port, async_refresh_driver, rebuild_policy, chunk_runtime, effective_typ_service, overlay_refresh_scope, runtime_state) -> void:
+	_build = build_state_port
+	_renderer_node = build_state_port.renderer_node()
 	_context = context_port
 	_scene = scene_port
 	_async_refresh_driver = async_refresh_driver
+	_rebuild_policy = rebuild_policy
 	_chunk_runtime = chunk_runtime
 	_effective_typ_service = effective_typ_service
 	_overlay_refresh_scope = overlay_refresh_scope
@@ -98,8 +102,13 @@ func on_map_changed() -> void:
 			var typ: PackedByteArray = current_map_data.typ_map
 			var blg: PackedByteArray = current_map_data.blg_map
 			var level_set = int(current_map_data.level_set)
-			var signature_changed = _renderer_node._is_map_signature_changed(w, h, level_set, hgt, typ, blg)
-			_renderer_node._record_map_signature(w, h, level_set, hgt, typ, blg)
+			var signature_changed := false
+			var skipped_signature_check: bool = _build.can_skip_map_signature_check(w, h, level_set, has_localized_invalidation)
+			if skipped_signature_check:
+				_build.record_map_signature_metadata_only(w, h, level_set)
+			else:
+				signature_changed = _build.is_map_signature_changed(w, h, level_set, hgt, typ, blg)
+				_build.record_map_signature(w, h, level_set, hgt, typ, blg)
 			if signature_changed and not has_localized_invalidation:
 				_chunk_runtime.invalidate_all_chunks(w, h)
 				_effective_typ_service.set_dirty(true)
@@ -138,9 +147,10 @@ func on_hgt_map_cells_edited(border_indices: Array) -> void:
 	var h := int(current_map_data.vertical_sectors)
 	if w <= 0 or h <= 0:
 		return
+	_build.mark_localized_signature_change(w, h, int(current_map_data.level_set))
 	_effective_typ_service.set_dirty(false)
 	var invalidation = InvalidationRouter.invalidation_for_hgt_border_indices(border_indices, w, h)
-	_renderer_node.mark_chunks_dirty(invalidation.get("dirty_chunks", []))
+	_rebuild_policy.mark_chunks_dirty(invalidation.get("dirty_chunks", []))
 	_overlay_refresh_scope.record_sectors(invalidation.get("dirty_sectors", []))
 
 
@@ -153,9 +163,10 @@ func on_typ_map_cells_edited(typ_indices: Array) -> void:
 	var h := int(current_map_data.vertical_sectors)
 	if w <= 0 or h <= 0:
 		return
+	_build.mark_localized_signature_change(w, h, int(current_map_data.level_set))
 	_effective_typ_service.set_dirty(true)
 	var invalidation = InvalidationRouter.invalidation_for_typ_indices(typ_indices, w, h)
-	_renderer_node.mark_chunks_dirty(invalidation.get("dirty_chunks", []))
+	_rebuild_policy.mark_chunks_dirty(invalidation.get("dirty_chunks", []))
 	_overlay_refresh_scope.record_sectors(invalidation.get("dirty_sectors", []))
 
 
@@ -168,7 +179,8 @@ func on_blg_map_cells_edited(blg_indices: Array) -> void:
 	var h := int(current_map_data.vertical_sectors)
 	if w <= 0 or h <= 0:
 		return
+	_build.mark_localized_signature_change(w, h, int(current_map_data.level_set))
 	_effective_typ_service.set_dirty(true)
 	var invalidation = InvalidationRouter.invalidation_for_blg_indices(blg_indices, w, h)
-	_renderer_node.mark_chunks_dirty(invalidation.get("dirty_chunks", []))
+	_rebuild_policy.mark_chunks_dirty(invalidation.get("dirty_chunks", []))
 	_overlay_refresh_scope.record_sectors(invalidation.get("dirty_sectors", []))

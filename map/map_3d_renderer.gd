@@ -28,6 +28,7 @@ const OverlayPositioning := preload("res://map/3d/overlays/map_3d_overlay_positi
 const RefreshCoordinator := preload("res://map/3d/services/map_3d_refresh_coordinator.gd")
 const ChunkRuntime := preload("res://map/3d/services/map_3d_chunk_runtime.gd")
 const EffectiveTypService := preload("res://map/3d/services/map_3d_effective_typ_service.gd")
+const RebuildPolicy := preload("res://map/3d/services/map_3d_rebuild_policy.gd")
 const OverlayProducers := preload("res://map/3d/overlays/map_3d_overlay_descriptor_producers.gd")
 const LegacyScriptParser := preload("res://map/3d/parsers/map_3d_legacy_script_parser.gd")
 const UnitOverlayController := preload("res://map/3d/overlays/map_3d_unit_overlay_controller.gd")
@@ -35,6 +36,7 @@ const InvalidationRouter := preload("res://map/3d/services/map_3d_invalidation_r
 const StaticOverlayIndex := preload("res://map/3d/services/map_3d_static_overlay_index.gd")
 const UnitRuntimeIndex := preload("res://map/3d/services/map_3d_unit_runtime_index.gd")
 const BuildPipeline := preload("res://map/3d/services/map_3d_build_pipeline.gd")
+const MaterialService := preload("res://map/3d/runtime/map_3d_material_service.gd")
 
 const SECTOR_SIZE := SharedConstants.SECTOR_SIZE
 const HEIGHT_SCALE := SharedConstants.HEIGHT_SCALE
@@ -72,21 +74,22 @@ func _init() -> void:
 	_render_context_port.bind(self)
 	_scene_port.bind(self)
 	_build_state_port.bind(self)
+	_rebuild_policy.bind(_render_context_port, _scene_port, _runtime_state, _chunk_rt, _effective_typ_service, _overlay_refresh_scope)
 	_async_refresh_driver.bind(self, _render_context_port, _scene_port, _build_state_port)
 	_camera_controller.bind(self, _render_context_port, _scene_port)
 	_scene_graph.bind(_scene_port, _render_context_port, _runtime_state, _chunk_rt, _overlay_refresh_scope)
 	_renderer_event_controller.bind(
-		self,
+		_build_state_port,
 		_render_context_port,
 		_scene_port,
 		_async_refresh_driver,
+		_rebuild_policy,
 		_chunk_rt,
 		_effective_typ_service,
 		_overlay_refresh_scope,
 		_runtime_state
 	)
 	_build_pipeline.bind(
-		self,
 		_render_context_port,
 		_scene_port,
 		_async_map_snapshot,
@@ -94,7 +97,9 @@ func _init() -> void:
 		_chunk_rt,
 		_effective_typ_service,
 		_unit_runtime_index,
-		_static_overlay_index
+		_static_overlay_index,
+		_rebuild_policy,
+		self
 	)
 	_geometry_cull_distance = UA_NORMAL_GEOMETRY_CULL_DISTANCE
 
@@ -287,6 +292,7 @@ var _coordinator := RefreshCoordinator.new()
 # Chunk-level state: dirty tracking, rebuild decisions, authored cache.
 var _chunk_rt := ChunkRuntime.new()
 var _effective_typ_service := EffectiveTypService.new()
+var _rebuild_policy := RebuildPolicy.new()
 
 var active_build_generation_id: int:
 	get:
@@ -748,19 +754,7 @@ func _sync_terrain_overlay_animation_mode_from_editor() -> void:
 	UATerrainPieceLibrary.set_force_static_terrain_overlays(not _runtime_context.terrain_overlay_animations_enabled())
 
 func _apply_debug_mode_to_existing_materials() -> void:
-	# Update cached terrain materials (shared across all chunks).
-	for surface_type in _terrain_material_cache:
-		var mat: ShaderMaterial = _terrain_material_cache[surface_type]
-		mat.set_shader_parameter("debug_mode", _debug_shader_mode)
-	# Also update any chunk-local materials not yet in cache (e.g. legacy path).
-	for chunk_coord in _terrain_chunk_nodes:
-		var node: MeshInstance3D = _terrain_chunk_nodes[chunk_coord]
-		if node == null or node.mesh == null:
-			continue
-		for si in node.mesh.get_surface_count():
-			var mat := node.mesh.surface_get_material(si)
-			if mat is ShaderMaterial:
-				(mat as ShaderMaterial).set_shader_parameter("debug_mode", _debug_shader_mode)
+	MaterialService.apply_debug_mode_to_existing_materials(_terrain_material_cache, _terrain_chunk_nodes, _debug_shader_mode)
 	_frame_if_needed()
 
 func _process(_delta: float) -> void:
@@ -845,42 +839,13 @@ func _invalidate_chunks_for_sector_edit(sx: int, sy: int, w: int, h: int, edit_t
 	_chunk_rt.invalidate_chunks_for_sector_edit(sx, sy, w, h, edit_type)
 
 func mark_chunks_dirty(chunk_coords: Array) -> void:
-	if chunk_coords.is_empty():
-		return
-	_chunk_rt.explicit_chunk_invalidation_pending = true
-	_chunk_rt.localized_chunk_invalidation_pending = true
-	for chunk_value in chunk_coords:
-		if chunk_value is Vector2i:
-			_chunk_rt.mark_chunk_dirty(Vector2i(chunk_value))
+	_rebuild_policy.mark_chunks_dirty(chunk_coords)
 
 func mark_sector_dirty(sx: int, sy: int, edit_type: String = "hgt") -> void:
-	var _cmd = _current_map_data()
-	if _cmd == null:
-		return
-	var w := int(_cmd.horizontal_sectors)
-	var h := int(_cmd.vertical_sectors)
-	if w <= 0 or h <= 0:
-		return
-	_chunk_rt.explicit_chunk_invalidation_pending = true
-	_invalidate_chunks_for_sector_edit(sx, sy, w, h, edit_type)
-	_record_localized_overlay_sectors([Vector2i(sx, sy)])
+	_rebuild_policy.mark_sector_dirty(sx, sy, edit_type)
 
 func mark_sectors_dirty(sectors: Array, edit_type: String = "hgt") -> void:
-	var _cmd = _current_map_data()
-	if _cmd == null:
-		return
-	var w := int(_cmd.horizontal_sectors)
-	var h := int(_cmd.vertical_sectors)
-	if w <= 0 or h <= 0:
-		return
-	_chunk_rt.explicit_chunk_invalidation_pending = true
-	for sector in sectors:
-		if sector is Vector2i:
-			_invalidate_chunks_for_sector_edit(sector.x, sector.y, w, h, edit_type)
-			_record_localized_overlay_sectors([Vector2i(sector)])
-		elif sector is Vector2:
-			_invalidate_chunks_for_sector_edit(int(sector.x), int(sector.y), w, h, edit_type)
-			_record_localized_overlay_sectors([Vector2i(int(sector.x), int(sector.y))])
+	_rebuild_policy.mark_sectors_dirty(sectors, edit_type)
 
 func get_dirty_chunk_count() -> int:
 	return _chunk_rt.get_dirty_chunk_count()
@@ -892,8 +857,7 @@ func set_chunked_terrain_enabled(enabled: bool) -> void:
 	_chunk_rt.chunked_terrain_enabled = enabled
 
 func _needs_full_rebuild(w: int, h: int, level_set: int) -> bool:
-	var has_chunk_nodes := not _terrain_chunk_nodes.is_empty()
-	return _chunk_rt.needs_full_rebuild(w, h, level_set, has_chunk_nodes)
+	return _rebuild_policy.needs_full_rebuild(w, h, level_set)
 
 func _get_or_create_terrain_chunk_node(chunk_coord: Vector2i) -> MeshInstance3D:
 	return _scene_graph.get_or_create_terrain_chunk_node(chunk_coord)
@@ -925,18 +889,10 @@ static func _chunk_distance_sq(a: Vector2i, b: Vector2i) -> int:
 	return dx * dx + dy * dy
 
 func _dirty_chunks_sorted_by_priority(w: int, h: int) -> Array[Vector2i]:
-	var focus_chunk := _chunk_focus_coord(w, h)
-	return _chunk_rt.dirty_chunks_sorted_by_priority(focus_chunk)
+	return _rebuild_policy.dirty_chunks_sorted_by_priority(w, h)
 
 func _chunk_focus_coord(w: int, h: int) -> Vector2i:
-	if _camera != null and is_instance_valid(_camera):
-		var world_pos := _camera.global_position if _camera.is_inside_tree() else _camera.position
-		var sx := clampi(_world_to_sector_index(world_pos.x), 0, maxi(w - 1, 0))
-		var sy := clampi(_world_to_sector_index(world_pos.z), 0, maxi(h - 1, 0))
-		return TerrainBuilder.sector_to_chunk(sx, sy)
-	var center_sx := maxi(w >> 1, 0)
-	var center_sy := maxi(h >> 1, 0)
-	return TerrainBuilder.sector_to_chunk(center_sx, center_sy)
+	return _rebuild_policy.chunk_focus_coord(w, h)
 
 func _apply_localized_static_overlay_refresh(replacement_descriptors: Array, affected_chunks: Array, affected_sectors: Array, set_id: int, w: int, h: int) -> void:
 	_build_pipeline.apply_localized_static_overlay_refresh(replacement_descriptors, affected_chunks, affected_sectors, set_id, w, h)
@@ -968,21 +924,10 @@ func _chunk_center_world_xz(chunk_coord: Vector2i) -> Vector2:
 	return _scene_graph.chunk_center_world_xz(chunk_coord)
 
 static func _make_preview_material(color: Color) -> StandardMaterial3D:
-	var mat := StandardMaterial3D.new()
-	mat.albedo_color = color
-	mat.metallic = 0.0
-	mat.roughness = 1.0
-	mat.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
-	mat.cull_mode = BaseMaterial3D.CULL_DISABLED
-	if color.a < 1.0:
-		mat.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
-	return mat
+	return MaterialService.make_preview_material(color)
 
 func _apply_untextured_materials(mesh: ArrayMesh) -> void:
-	if mesh == null:
-		return
-	for surface_idx in mesh.get_surface_count():
-		mesh.surface_set_material(surface_idx, _make_preview_material(TERRAIN_PREVIEW_COLOR))
+	MaterialService.apply_untextured_materials(mesh, TERRAIN_PREVIEW_COLOR)
 
 # Static, pure builder (useful for tests)
 # Retail constants confirmed from UA.EXE (`1200.0` sector size / `600.0` center offset).
@@ -1216,29 +1161,7 @@ func _apply_sector_top_materials(mesh: ArrayMesh, preloads, surface_to_surface_t
 
 # ---- UA edge-based strip rendering ----
 func _on_level_set_changed() -> void:
-	# A set switch can change sector pattern topology and authored overlay descriptors.
-	# Reset chunk/runtime caches so we never keep mixed old/new set chunk outputs.
-	_terrain_material_cache.clear()
-	_edge_material_cache.clear()
-	_cancel_async_initial_build()
-	_effective_typ_service.invalidate_cache()
-	_effective_typ_service.set_dirty(true)
-	var cmd := _current_map_data()
-	if cmd != null:
-		var w := int(cmd.horizontal_sectors)
-		var h := int(cmd.vertical_sectors)
-		if w > 0 and h > 0:
-			_clear_chunk_nodes()
-			_set_authored_overlay([])
-			_chunk_rt.clear_dirty_chunks()
-			_chunk_rt.clear_authored_caches()
-			_chunk_rt.last_map_dimensions = Vector2i(w, h)
-			_chunk_rt.last_level_set = int(cmd.level_set)
-			_chunk_rt.invalidate_all_chunks(w, h)
-			_chunk_rt.initial_build_in_progress = true
-			_chunk_rt.initial_build_accumulated_authored_descriptors.clear()
-	# Rebuild the current preview for the newly selected set.
-	_request_refresh(false)
+	_rebuild_policy.handle_level_set_changed(Callable(self, "_cancel_async_initial_build"), Callable(self, "_request_refresh"))
 
 func _ensure_edge_node() -> void:
 	_scene_graph.ensure_edge_node()

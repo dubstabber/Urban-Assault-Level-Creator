@@ -186,13 +186,48 @@ class AsyncRefreshDriverStub extends RefCounted:
 		return pending_refresh
 
 
+class BuildStatePortStub extends RefCounted:
+	var _renderer: Node3D = null
+	var localized_signature_marks: Array = []
+	var skip_signature_check := false
+	var is_map_signature_changed_value := false
+	var recorded_signatures: Array = []
+	var recorded_metadata_only: Array = []
+
+	func _init(renderer: Node3D = null) -> void:
+		_renderer = renderer
+
+	func renderer_node():
+		return _renderer
+
+	func mark_localized_signature_change(w: int, h: int, level_set: int) -> void:
+		localized_signature_marks.append({"w": w, "h": h, "level_set": level_set})
+
+	func can_skip_map_signature_check(_w: int, _h: int, _level_set: int, _has_localized_invalidation: bool) -> bool:
+		return skip_signature_check
+
+	func is_map_signature_changed(w: int, h: int, level_set: int, _hgt: PackedByteArray, _typ: PackedByteArray, _blg: PackedByteArray) -> bool:
+		recorded_signatures.append({"w": w, "h": h, "level_set": level_set, "checked": true})
+		return is_map_signature_changed_value
+
+	func record_map_signature(w: int, h: int, level_set: int, _hgt: PackedByteArray, _typ: PackedByteArray, _blg: PackedByteArray) -> void:
+		recorded_signatures.append({"w": w, "h": h, "level_set": level_set, "recorded": true})
+
+	func record_map_signature_metadata_only(w: int, h: int, level_set: int) -> void:
+		recorded_metadata_only.append({"w": w, "h": h, "level_set": level_set})
+
+
+class RebuildPolicyStub extends RefCounted:
+	var marked_chunks_dirty: Array = []
+
+	func mark_chunks_dirty(chunk_coords: Array) -> void:
+		marked_chunks_dirty.append(chunk_coords.duplicate())
+
+
 class RendererNodeStub extends RendererStub:
 	var apply_preview_activity_state_calls := 0
 	var apply_visibility_range_calls := 0
 	var cancel_async_initial_build_calls := 0
-	var is_map_signature_changed_value := false
-	var recorded_signatures: Array = []
-	var marked_chunks_dirty: Array = []
 
 	func _apply_preview_activity_state() -> void:
 		apply_preview_activity_state_calls += 1
@@ -202,15 +237,6 @@ class RendererNodeStub extends RendererStub:
 
 	func _cancel_async_initial_build() -> void:
 		cancel_async_initial_build_calls += 1
-
-	func _is_map_signature_changed(_w: int, _h: int, _level_set: int, _hgt: PackedByteArray, _typ: PackedByteArray, _blg: PackedByteArray) -> bool:
-		return is_map_signature_changed_value
-
-	func _record_map_signature(w: int, h: int, level_set: int, _hgt: PackedByteArray, _typ: PackedByteArray, _blg: PackedByteArray) -> void:
-		recorded_signatures.append({"w": w, "h": h, "level_set": level_set})
-
-	func mark_chunks_dirty(chunk_coords: Array) -> void:
-		marked_chunks_dirty.append(chunk_coords.duplicate())
 
 
 var _errors: Array[String] = []
@@ -226,13 +252,15 @@ func _check(cond: bool, msg: String) -> void:
 		_errors.append(msg)
 
 
-func _bind_controller(context: Variant = null, scene: Variant = null, renderer: Variant = null, async_driver: Variant = null, chunk_runtime: Variant = null, effective_typ_service: Variant = null, overlay_scope: Variant = null, runtime_state: Variant = null):
+func _bind_controller(context: Variant = null, scene: Variant = null, renderer: Variant = null, build: Variant = null, async_driver: Variant = null, rebuild_policy: Variant = null, chunk_runtime: Variant = null, effective_typ_service: Variant = null, overlay_scope: Variant = null, runtime_state: Variant = null):
+	var renderer_node = renderer if renderer != null else RendererNodeStub.new()
 	var controller = ControllerScript.new()
 	controller.bind(
-		renderer if renderer != null else RendererNodeStub.new(),
+		build if build != null else BuildStatePortStub.new(renderer_node),
 		context if context != null else ContextPortStub.new(),
 		scene if scene != null else ScenePortStub.new(),
 		async_driver if async_driver != null else AsyncRefreshDriverStub.new(),
+		rebuild_policy if rebuild_policy != null else RebuildPolicyStub.new(),
 		chunk_runtime if chunk_runtime != null else ChunkRuntimeStub.new(),
 		effective_typ_service if effective_typ_service != null else EffectiveTypServiceStub.new(),
 		overlay_scope if overlay_scope != null else OverlayScopeStub.new(),
@@ -252,8 +280,10 @@ func test_ready_connects_event_system_signals_to_renderer_handlers() -> bool:
 	var effective_typ_service := EffectiveTypServiceStub.new()
 	var overlay_scope := OverlayScopeStub.new()
 	var runtime_state := RuntimeStateStub.new()
+	var build := BuildStatePortStub.new(renderer)
+	var rebuild_policy := RebuildPolicyStub.new()
 	var controller = ControllerScript.new()
-	controller.bind(renderer, context, scene, async_driver, chunk_runtime, effective_typ_service, overlay_scope, runtime_state)
+	controller.bind(build, context, scene, async_driver, rebuild_policy, chunk_runtime, effective_typ_service, overlay_scope, runtime_state)
 	controller.ready()
 	context.event_system_ref.map_created.emit()
 	context.event_system_ref.map_updated.emit()
@@ -287,11 +317,13 @@ func test_on_map_created_resets_runtime_and_requests_refresh() -> bool:
 	context.current_map_ref = MapDataStub.new()
 	var scene := ScenePortStub.new()
 	var renderer := RendererNodeStub.new()
+	var build := BuildStatePortStub.new(renderer)
 	var async_driver := AsyncRefreshDriverStub.new()
 	var chunk_runtime := ChunkRuntimeStub.new()
 	var effective_typ_service := EffectiveTypServiceStub.new()
 	var overlay_scope := OverlayScopeStub.new()
-	var controller = _bind_controller(context, scene, renderer, async_driver, chunk_runtime, effective_typ_service, overlay_scope)
+	var rebuild_policy := RebuildPolicyStub.new()
+	var controller = _bind_controller(context, scene, renderer, build, async_driver, rebuild_policy, chunk_runtime, effective_typ_service, overlay_scope)
 	controller.on_map_created()
 	_check(renderer.cancel_async_initial_build_calls == 1, "Expected map creation to cancel any in-flight async build")
 	_check(effective_typ_service.invalidate_cache_calls == 1, "Expected map creation to invalidate the effective typ cache")
@@ -314,14 +346,17 @@ func test_on_hgt_map_cells_edited_marks_chunks_and_sectors_without_dirtying_effe
 	var context := ContextPortStub.new()
 	context.current_map_ref = MapDataStub.new()
 	var renderer := RendererNodeStub.new()
+	var build := BuildStatePortStub.new(renderer)
 	var chunk_runtime := ChunkRuntimeStub.new()
 	var effective_typ_service := EffectiveTypServiceStub.new()
 	var overlay_scope := OverlayScopeStub.new()
-	var controller = _bind_controller(context, ScenePortStub.new(), renderer, AsyncRefreshDriverStub.new(), chunk_runtime, effective_typ_service, overlay_scope)
+	var rebuild_policy := RebuildPolicyStub.new()
+	var controller = _bind_controller(context, ScenePortStub.new(), renderer, build, AsyncRefreshDriverStub.new(), rebuild_policy, chunk_runtime, effective_typ_service, overlay_scope)
 	controller.on_hgt_map_cells_edited([0])
 	_check(renderer.cancel_async_initial_build_calls == 1, "Expected HGT edits to cancel any active async build")
+	_check(build.localized_signature_marks.size() == 1, "Expected HGT edits to mark the map signature as localized")
 	_check(effective_typ_service.set_dirty_values == [false], "Expected HGT edits to keep the effective typ cache reusable")
-	_check(renderer.marked_chunks_dirty.size() == 1 and renderer.marked_chunks_dirty[0].has(Vector2i(0, 0)), "Expected HGT edits to mark the affected chunk dirty")
+	_check(rebuild_policy.marked_chunks_dirty.size() == 1 and rebuild_policy.marked_chunks_dirty[0].has(Vector2i(0, 0)), "Expected HGT edits to mark the affected chunk dirty")
 	_check(overlay_scope.recorded_dirty_sectors.size() == 1 and overlay_scope.recorded_dirty_sectors[0].has(Vector2i(0, 0)), "Expected HGT edits to record the affected sector for localized overlay refresh")
 	return _errors.is_empty()
 

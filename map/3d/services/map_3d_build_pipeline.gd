@@ -17,9 +17,10 @@ var _chunk_runtime = null
 var _effective_typ_service = null
 var _unit_runtime_index = null
 var _static_overlay_index = null
+var _rebuild_policy = null
 
 
-func bind(renderer, context_port, scene_port, async_map_snapshot, overlay_refresh_scope, chunk_runtime, effective_typ_service, unit_runtime_index, static_overlay_index) -> void:
+func bind(context_port, scene_port, async_map_snapshot, overlay_refresh_scope, chunk_runtime, effective_typ_service, unit_runtime_index, static_overlay_index, rebuild_policy, renderer = null) -> void:
 	_renderer = renderer
 	_context = context_port
 	_scene = scene_port
@@ -29,6 +30,7 @@ func bind(renderer, context_port, scene_port, async_map_snapshot, overlay_refres
 	_effective_typ_service = effective_typ_service
 	_unit_runtime_index = unit_runtime_index
 	_static_overlay_index = static_overlay_index
+	_rebuild_policy = rebuild_policy
 
 
 func build_from_current_map() -> void:
@@ -55,7 +57,6 @@ func build_from_current_map() -> void:
 		_renderer._finalize_build_metrics(metrics, build_started_usec)
 		return
 
-	_unit_runtime_index.rebuild_from_map(current_map_data)
 	var game_data_type = _context.current_game_data_type()
 	UATerrainPieceLibrary.set_piece_game_data_type(game_data_type)
 	_async_map_snapshot.blg = blg
@@ -112,8 +113,12 @@ func build_from_current_map() -> void:
 	var processed_chunks: Array = []
 	var localized_overlay_sectors = _overlay_refresh_scope.overlay_sector_list()
 	var localized_dynamic_sectors = _overlay_refresh_scope.dynamic_sector_list()
+	var rebuild_unit_index: bool = _unit_runtime_index.is_empty() or requires_full_rebuild or localized_dynamic_sectors.is_empty()
+	if rebuild_unit_index:
+		_unit_runtime_index.rebuild_from_map(current_map_data)
 	metrics["dirty_sector_count"] = localized_overlay_sectors.size()
 	metrics["dirty_chunk_count"] = chunk_runtime.get_dirty_chunk_count()
+	metrics["unit_index_rebuilt"] = rebuild_unit_index
 
 	if use_chunked:
 		if chunk_runtime.has_dirty_chunks():
@@ -260,7 +265,7 @@ func rebuild_dirty_chunks(hgt: PackedByteArray, effective_typ: PackedByteArray, 
 	var chunks_rebuilt = 0
 	var processed: Array[Vector2i] = []
 	var apply_started_usec = Time.get_ticks_usec()
-	var dirty_chunk_list = _chunk_runtime.dirty_chunks_sorted_by_priority(_renderer._chunk_focus_coord(w, h))
+	var dirty_chunk_list = _rebuild_policy.dirty_chunks_sorted_by_priority(w, h)
 
 	for chunk_coord in dirty_chunk_list:
 		if max_chunks > 0 and chunks_rebuilt >= max_chunks:

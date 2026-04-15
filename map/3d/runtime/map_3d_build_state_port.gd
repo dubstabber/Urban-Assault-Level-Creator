@@ -8,6 +8,10 @@ func bind(renderer) -> void:
 	_renderer = renderer
 
 
+func renderer_node():
+	return _renderer
+
+
 func make_empty_build_metrics() -> Dictionary:
 	return _renderer._make_empty_build_metrics()
 
@@ -283,6 +287,18 @@ func is_map_signature_changed(w: int, h: int, level_set: int, hgt: PackedByteArr
 
 func record_map_signature(w: int, h: int, level_set: int, hgt: PackedByteArray, typ: PackedByteArray, blg: PackedByteArray) -> void:
 	_renderer._record_map_signature(w, h, level_set, hgt, typ, blg)
+
+
+func mark_localized_signature_change(w: int, h: int, level_set: int) -> void:
+	_renderer._coordinator.mark_localized_signature_change(w, h, level_set)
+
+
+func can_skip_map_signature_check(w: int, h: int, level_set: int, has_localized_invalidation: bool) -> bool:
+	return _renderer._coordinator.can_skip_map_signature_check(w, h, level_set, has_localized_invalidation)
+
+
+func record_map_signature_metadata_only(w: int, h: int, level_set: int) -> void:
+	_renderer._coordinator.record_map_signature_metadata_only(w, h, level_set)
 
 
 func mark_chunks_dirty(chunk_coords: Array) -> void:

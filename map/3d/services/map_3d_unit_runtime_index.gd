@@ -23,6 +23,13 @@ func clear() -> void:
 		_unit_ids_by_sector[kind].clear()
 
 
+func is_empty() -> bool:
+	for kind in _nodes_by_kind.keys():
+		if not _nodes_by_kind[kind].is_empty():
+			return false
+	return true
+
+
 func rebuild_from_map(map_data: Node) -> void:
 	clear()
 	_index_container(_container_for_kind(map_data, "host"), "host")
