@@ -21,7 +21,7 @@ config/features=PackedStringArray("4.6", "GL Compatibility")
 run/low_processor_mode=true
 boot_splash/bg_color=Color(0.141176, 0.141176, 0.141176, 0)
 boot_splash/stretch_mode=0
-boot_splash/image="res://resources/img/loading.png"
+boot_splash/image="uid://cwqiw1rn4omww"
 config/icon="uid://dldixbkxyll0p"
 config/windows_native_icon="res://resources/img/icons/icon.ico"
 
