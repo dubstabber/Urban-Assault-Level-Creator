@@ -22,12 +22,6 @@ var edge_overlay_enabled := true
 var debug_shader_mode := 0
 
 var async_pending_reframe_camera := false
-var async_effective_typ: PackedByteArray = PackedByteArray()
-var async_blg: PackedByteArray = PackedByteArray()
-var async_w := 0
-var async_h := 0
-var async_level_set := 0
-var async_game_data_type := "original"
 var async_requested_restart := false
 var async_requested_reframe := false
 var async_overlay_apply_state: Dictionary = {}
@@ -46,7 +40,3 @@ var skip_next_map_changed_refresh := false
 var overlay_apply_manager := AuthoredOverlayManager.new()
 var static_overlay_index := StaticOverlayIndex.new()
 var unit_runtime_index := UnitRuntimeIndex.new()
-
-var localized_overlay_dirty_sectors: Dictionary = {}
-var localized_dynamic_overlay_dirty_sectors: Dictionary = {}
-

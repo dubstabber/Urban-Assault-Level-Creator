@@ -25,63 +25,23 @@ class ChunkRuntimeStub extends RefCounted:
 		clear_dirty_chunks_calls += 1
 
 
-class BuildPortStub extends RefCounted:
-	var terrain_material_cache_ref := {1: "mat"}
-	var edge_material_cache_ref := {"edge": "mat"}
-	var unit_runtime_index_ref := UnitRuntimeIndexStub.new()
-	var static_overlay_index_ref := StaticOverlayIndexStub.new()
-	var chunk_runtime_ref := ChunkRuntimeStub.new()
-	var clear_localized_overlay_scope_calls := 0
-	var geometry_culling_enabled := false
-	var geometry_cull_distance_value := 6000.0
-	var debug_shader_mode_value := 0
-	var sector_top_shader_value: Shader = null
-	var edge_blend_shader_value: Shader = null
+class RuntimeStateStub extends RefCounted:
+	var terrain_material_cache := {1: "mat"}
+	var edge_material_cache := {"edge": "mat"}
+	var unit_runtime_index := UnitRuntimeIndexStub.new()
+	var static_overlay_index := StaticOverlayIndexStub.new()
+	var geometry_distance_culling_enabled := false
+	var geometry_cull_distance := 6000.0
+	var debug_shader_mode := 0
+	var sector_top_shader: Shader = null
+	var edge_blend_shader: Shader = null
 
-	func terrain_material_cache() -> Dictionary:
-		return terrain_material_cache_ref
 
-	func edge_material_cache() -> Dictionary:
-		return edge_material_cache_ref
+class OverlayScopeStub extends RefCounted:
+	var clear_calls := 0
 
-	func unit_runtime_index():
-		return unit_runtime_index_ref
-
-	func static_overlay_index():
-		return static_overlay_index_ref
-
-	func clear_localized_overlay_scope() -> void:
-		clear_localized_overlay_scope_calls += 1
-
-	func chunk_runtime():
-		return chunk_runtime_ref
-
-	func geometry_distance_culling_enabled() -> bool:
-		return geometry_culling_enabled
-
-	func set_geometry_distance_culling_enabled(value: bool) -> void:
-		geometry_culling_enabled = value
-
-	func geometry_cull_distance() -> float:
-		return geometry_cull_distance_value
-
-	func set_geometry_cull_distance(value: float) -> void:
-		geometry_cull_distance_value = value
-
-	func debug_shader_mode() -> int:
-		return debug_shader_mode_value
-
-	func sector_top_shader() -> Shader:
-		return sector_top_shader_value
-
-	func set_sector_top_shader(shader: Shader) -> void:
-		sector_top_shader_value = shader
-
-	func edge_blend_shader() -> Shader:
-		return edge_blend_shader_value
-
-	func set_edge_blend_shader(shader: Shader) -> void:
-		edge_blend_shader_value = shader
+	func clear() -> void:
+		clear_calls += 1
 
 
 class ContextPortStub extends RefCounted:
@@ -190,9 +150,18 @@ func _bind_scene_graph():
 	var graph = SceneGraphScript.new()
 	var scene := ScenePortStub.new()
 	var context := ContextPortStub.new()
-	var build := BuildPortStub.new()
-	graph.bind(scene, context, build)
-	return {"graph": graph, "scene": scene, "context": context, "build": build}
+	var state := RuntimeStateStub.new()
+	var chunk_runtime := ChunkRuntimeStub.new()
+	var overlay_scope := OverlayScopeStub.new()
+	graph.bind(scene, context, state, chunk_runtime, overlay_scope)
+	return {
+		"graph": graph,
+		"scene": scene,
+		"context": context,
+		"state": state,
+		"chunk_runtime": chunk_runtime,
+		"overlay_scope": overlay_scope,
+	}
 
 
 func test_ensure_overlay_nodes_creates_missing_roots() -> bool:
@@ -225,24 +194,26 @@ func test_clear_resets_meshes_chunk_nodes_and_runtime_state() -> bool:
 	var bound: Dictionary = _bind_scene_graph()
 	var graph = bound["graph"]
 	var scene: ScenePortStub = bound["scene"]
-	var build: BuildPortStub = bound["build"]
+	var state: RuntimeStateStub = bound["state"]
+	var chunk_runtime: ChunkRuntimeStub = bound["chunk_runtime"]
+	var overlay_scope: OverlayScopeStub = bound["overlay_scope"]
 	scene.terrain_mesh_ref.mesh = ArrayMesh.new()
 	scene.edge_mesh_ref.mesh = ArrayMesh.new()
 	scene.terrain_chunks[Vector2i(0, 0)] = MeshInstance3D.new()
 	scene.edge_chunks[Vector2i(0, 0)] = MeshInstance3D.new()
 	scene.set_authored_overlay_node(Node3D.new())
 	scene.set_dynamic_overlay_node(Node3D.new())
-	build.static_overlay_index_ref.replace_all([{"instance_key": "terrain:1"}])
+	state.static_overlay_index.replace_all([{"instance_key": "terrain:1"}])
 	graph.clear()
 	_check(scene.terrain_mesh_ref.mesh == null, "Expected terrain mesh to be cleared")
 	_check(scene.edge_mesh_ref.mesh == null, "Expected edge mesh to be cleared")
 	_check(scene.terrain_chunks.is_empty(), "Expected terrain chunk store to be cleared")
 	_check(scene.edge_chunks.is_empty(), "Expected edge chunk store to be cleared")
-	_check(build.terrain_material_cache_ref.is_empty(), "Expected terrain material cache to be cleared")
-	_check(build.edge_material_cache_ref.is_empty(), "Expected edge material cache to be cleared")
-	_check(build.unit_runtime_index_ref.clear_calls == 1, "Expected unit runtime index to be cleared")
-	_check(build.chunk_runtime_ref.clear_dirty_chunks_calls >= 1, "Expected chunk runtime dirty state to be cleared")
-	_check(build.clear_localized_overlay_scope_calls == 1, "Expected localized overlay scope to be cleared")
+	_check(state.terrain_material_cache.is_empty(), "Expected terrain material cache to be cleared")
+	_check(state.edge_material_cache.is_empty(), "Expected edge material cache to be cleared")
+	_check(state.unit_runtime_index.clear_calls == 1, "Expected unit runtime index to be cleared")
+	_check(chunk_runtime.clear_dirty_chunks_calls >= 1, "Expected chunk runtime dirty state to be cleared")
+	_check(overlay_scope.clear_calls == 1, "Expected localized overlay scope to be cleared")
 	return _errors.is_empty()
 
 

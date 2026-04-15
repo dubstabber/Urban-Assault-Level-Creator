@@ -5,7 +5,6 @@ const ViewController := preload("res://map/3d/controllers/map_3d_view_controller
 var _renderer_node = null
 var _context = null
 var _scene = null
-var _build = null
 var _mouselook := false
 var _yaw := 0.0
 var _pitch := -0.6
@@ -15,11 +14,10 @@ var _look_sens := 0.0025
 var _framed := false
 
 
-func bind(renderer, context_port, scene_port, build_state_port) -> void:
+func bind(renderer, context_port, scene_port) -> void:
 	_renderer_node = renderer
 	_context = context_port
 	_scene = scene_port
-	_build = build_state_port
 
 
 func process_frame() -> void:
@@ -81,8 +79,8 @@ func unhandled_input(event: InputEvent) -> void:
 	elif event is InputEventKey and event.pressed and not event.echo:
 		var kev := event as InputEventKey
 		if kev.keycode == KEY_F9:
-			_build.advance_debug_shader_mode()
-			_build.apply_debug_mode_to_existing_materials()
+			_renderer_node._debug_shader_mode = (_renderer_node._debug_shader_mode + 1) % 3
+			_renderer_node._apply_debug_mode_to_existing_materials()
 			_scene.bump_3d_viewport_rendering()
 
 

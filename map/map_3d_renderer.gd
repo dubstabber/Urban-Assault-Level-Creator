@@ -16,6 +16,9 @@ const SceneGraph := preload("res://map/3d/runtime/map_3d_scene_graph.gd")
 const RenderContextPort := preload("res://map/3d/runtime/map_3d_render_context_port.gd")
 const ScenePort := preload("res://map/3d/runtime/map_3d_scene_port.gd")
 const BuildStatePort := preload("res://map/3d/runtime/map_3d_build_state_port.gd")
+const AsyncMapSnapshot := preload("res://map/3d/runtime/map_3d_async_map_snapshot.gd")
+const OverlayRefreshScope := preload("res://map/3d/runtime/map_3d_overlay_refresh_scope.gd")
+const BuildMetrics := preload("res://map/3d/runtime/map_3d_build_metrics.gd")
 const RuntimeState := preload("res://map/3d/runtime/map_3d_runtime_state.gd")
 const RuntimeContext := preload("res://map/3d/runtime/map_3d_runtime_context.gd")
 const SharedConstants := preload("res://map/3d/config/map_3d_shared_constants.gd")
@@ -70,10 +73,29 @@ func _init() -> void:
 	_scene_port.bind(self)
 	_build_state_port.bind(self)
 	_async_refresh_driver.bind(self, _render_context_port, _scene_port, _build_state_port)
-	_camera_controller.bind(self, _render_context_port, _scene_port, _build_state_port)
-	_scene_graph.bind(_scene_port, _render_context_port, _build_state_port)
-	_renderer_event_controller.bind(self, _render_context_port, _scene_port, _build_state_port, _async_refresh_driver)
-	_build_pipeline.bind(_render_context_port, _scene_port, _build_state_port)
+	_camera_controller.bind(self, _render_context_port, _scene_port)
+	_scene_graph.bind(_scene_port, _render_context_port, _runtime_state, _chunk_rt, _overlay_refresh_scope)
+	_renderer_event_controller.bind(
+		self,
+		_render_context_port,
+		_scene_port,
+		_async_refresh_driver,
+		_chunk_rt,
+		_effective_typ_service,
+		_overlay_refresh_scope,
+		_runtime_state
+	)
+	_build_pipeline.bind(
+		self,
+		_render_context_port,
+		_scene_port,
+		_async_map_snapshot,
+		_overlay_refresh_scope,
+		_chunk_rt,
+		_effective_typ_service,
+		_unit_runtime_index,
+		_static_overlay_index
+	)
 	_geometry_cull_distance = UA_NORMAL_GEOMETRY_CULL_DISTANCE
 
 
@@ -93,6 +115,8 @@ func _retain_collaborator_owned_state() -> void:
 		_sector_top_shader,
 		_edge_blend_shader,
 		_async_pending_reframe_camera,
+		_async_map_snapshot,
+		_overlay_refresh_scope,
 		_async_requested_restart,
 		_async_requested_reframe,
 		_async_overlay_apply_state,
@@ -184,6 +208,8 @@ var _runtime_context := RuntimeContext.new()
 var _render_context_port := RenderContextPort.new()
 var _scene_port := ScenePort.new()
 var _build_state_port := BuildStatePort.new()
+var _async_map_snapshot := AsyncMapSnapshot.new()
+var _overlay_refresh_scope := OverlayRefreshScope.new()
 
 var _debug_shader_mode: int:
 	get:
@@ -307,34 +333,34 @@ var _async_pending_reframe_camera:
 		_async_refresh_driver._async_pending_reframe_camera = bool(value)
 var _async_effective_typ: PackedByteArray:
 	get:
-		return _runtime_state.async_effective_typ
+		return _async_map_snapshot.effective_typ
 	set(value):
-		_runtime_state.async_effective_typ = value
+		_async_map_snapshot.effective_typ = value
 var _async_blg: PackedByteArray:
 	get:
-		return _runtime_state.async_blg
+		return _async_map_snapshot.blg
 	set(value):
-		_runtime_state.async_blg = value
+		_async_map_snapshot.blg = value
 var _async_w:
 	get:
-		return _runtime_state.async_w
+		return _async_map_snapshot.w
 	set(value):
-		_runtime_state.async_w = int(value)
+		_async_map_snapshot.w = int(value)
 var _async_h:
 	get:
-		return _runtime_state.async_h
+		return _async_map_snapshot.h
 	set(value):
-		_runtime_state.async_h = int(value)
+		_async_map_snapshot.h = int(value)
 var _async_level_set:
 	get:
-		return _runtime_state.async_level_set
+		return _async_map_snapshot.level_set
 	set(value):
-		_runtime_state.async_level_set = int(value)
+		_async_map_snapshot.level_set = int(value)
 var _async_game_data_type:
 	get:
-		return _runtime_state.async_game_data_type
+		return _async_map_snapshot.game_data_type
 	set(value):
-		_runtime_state.async_game_data_type = String(value)
+		_async_map_snapshot.game_data_type = String(value)
 var _async_requested_restart:
 	get:
 		return _async_refresh_driver._async_requested_restart
@@ -414,16 +440,6 @@ var _static_overlay_index:
 var _unit_runtime_index:
 	get:
 		return _runtime_state.unit_runtime_index
-var _localized_overlay_dirty_sectors: Dictionary:
-	get:
-		return _runtime_state.localized_overlay_dirty_sectors
-	set(value):
-		_runtime_state.localized_overlay_dirty_sectors = Dictionary(value)
-var _localized_dynamic_overlay_dirty_sectors: Dictionary:
-	get:
-		return _runtime_state.localized_dynamic_overlay_dirty_sectors
-	set(value):
-		_runtime_state.localized_dynamic_overlay_dirty_sectors = Dictionary(value)
 var _renderer_event_controller := RendererEventController.new()
 var _build_pipeline := BuildPipeline.new()
 var _async_refresh_driver := AsyncRefreshDriver.new()
@@ -454,31 +470,7 @@ func get_last_build_metrics() -> Dictionary:
 	return _last_build_metrics.duplicate(true)
 
 func _make_empty_build_metrics() -> Dictionary:
-	return {
-		"used_textured_preloads": false,
-		"invalid_input": false,
-		"terrain_build_ms": 0.0,
-		"chunk_apply_ms": 0.0,
-		"edge_slurp_build_ms": 0.0,
-		"overlay_descriptor_generation_ms": 0.0,
-		"overlay_node_creation_ms": 0.0,
-		"static_overlay_descriptor_generation_ms": 0.0,
-		"static_overlay_apply_ms": 0.0,
-		"dynamic_overlay_descriptor_generation_ms": 0.0,
-		"dynamic_overlay_apply_ms": 0.0,
-		"support_height_query_ms": 0.0,
-		"support_height_query_count": 0,
-		"terrain_authored_descriptor_count": 0,
-		"edge_authored_descriptor_count": 0,
-		"overlay_descriptor_count": 0,
-		"dirty_sector_count": 0,
-		"dirty_chunk_count": 0,
-		"localized_overlay_refresh": false,
-		"piece_overlay_fast_path": 0,
-		"piece_overlay_slow_path": 0,
-		"build_total_ms": 0.0,
-		"refresh_end_to_end_ms": 0.0,
-	}
+	return BuildMetrics.empty_metrics()
 
 func _emit_build_state(building: bool, completed: int, total: int, status: String) -> void:
 	_async_refresh_driver.emit_build_state(building, completed, total, status)
@@ -536,32 +528,19 @@ func _async_chunk_payload_count() -> int:
 
 
 func _record_localized_overlay_sectors(sectors: Array) -> void:
-	for sector_value in sectors:
-		if sector_value is Vector2i:
-			var sector := Vector2i(sector_value)
-			_localized_overlay_dirty_sectors[sector] = true
-			_localized_dynamic_overlay_dirty_sectors[sector] = true
+	_overlay_refresh_scope.record_sectors(sectors)
 
 
 func _localized_overlay_sector_list() -> Array[Vector2i]:
-	var sectors: Array[Vector2i] = []
-	for key in _localized_overlay_dirty_sectors.keys():
-		if key is Vector2i:
-			sectors.append(Vector2i(key))
-	return sectors
+	return _overlay_refresh_scope.overlay_sector_list()
 
 
 func _localized_dynamic_sector_list() -> Array[Vector2i]:
-	var sectors: Array[Vector2i] = []
-	for key in _localized_dynamic_overlay_dirty_sectors.keys():
-		if key is Vector2i:
-			sectors.append(Vector2i(key))
-	return sectors
+	return _overlay_refresh_scope.dynamic_sector_list()
 
 
 func _clear_localized_overlay_scope() -> void:
-	_localized_overlay_dirty_sectors.clear()
-	_localized_dynamic_overlay_dirty_sectors.clear()
+	_overlay_refresh_scope.clear()
 
 func _compute_effective_typ_for_map(
 	cmd: Node,
@@ -574,9 +553,7 @@ func _compute_effective_typ_for_map(
 	return _effective_typ_service.compute_effective_typ_for_map(cmd, w, h, typ, blg, game_data_type)
 
 static func _elapsed_ms_since(started_usec: int) -> float:
-	if started_usec <= 0:
-		return 0.0
-	return maxf(float(Time.get_ticks_usec() - started_usec) / 1000.0, 0.0)
+	return BuildMetrics.elapsed_ms_since(started_usec)
 
 static func _checksum_packed_byte_array(data: PackedByteArray) -> int:
 	return EffectiveTypService.checksum_packed_byte_array(data)
@@ -1158,23 +1135,10 @@ static func _visproto_base_names_for_set(set_id: int, game_data_type: String) ->
 	return VisualLookupService._visproto_base_names_for_set(set_id, game_data_type)
 
 static func _base_name_from_visproto_index(visproto_base_names: Array, visual_index: int) -> String:
-	if visual_index < 0 or visual_index >= visproto_base_names.size():
-		return ""
-	var base_name := String(visproto_base_names[visual_index])
-	if base_name.is_empty():
-		return ""
-	if base_name.to_lower().begins_with("dummy"):
-		return ""
-	return base_name
+	return VisualLookupService._base_name_from_visproto_index(visproto_base_names, visual_index)
 
 static func _preferred_squad_visual_base_name(vehicle_visuals: Dictionary, visproto_base_names: Array) -> String:
-	for slot_name in ["wait", "normal"]:
-		if not vehicle_visuals.has(slot_name):
-			continue
-		var base_name := _base_name_from_visproto_index(visproto_base_names, int(vehicle_visuals[slot_name]))
-		if not base_name.is_empty():
-			return base_name
-	return ""
+	return VisualLookupService._preferred_squad_visual_base_name(vehicle_visuals, visproto_base_names)
 
 static func _building_attachment_base_name_for_vehicle(vehicle_id: int, set_id: int, game_data_type: String) -> String:
 	return VisualLookupService._building_attachment_base_name_for_vehicle(vehicle_id, set_id, game_data_type)

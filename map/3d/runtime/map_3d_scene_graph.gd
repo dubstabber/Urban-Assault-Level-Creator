@@ -10,19 +10,23 @@ const EDGE_BLEND_SHADER_PATH := "res://resources/terrain/shaders/edge_blend.gdsh
 
 var _scene = null
 var _context = null
-var _build = null
+var _state = null
+var _chunk_runtime = null
+var _overlay_refresh_scope = null
 
 
-func bind(scene_port, context_port, build_state_port) -> void:
+func bind(scene_port, context_port, runtime_state, chunk_runtime, overlay_refresh_scope) -> void:
 	_scene = scene_port
 	_context = context_port
-	_build = build_state_port
+	_state = runtime_state
+	_chunk_runtime = chunk_runtime
+	_overlay_refresh_scope = overlay_refresh_scope
 
 
 func clear() -> void:
-	_build.terrain_material_cache().clear()
-	_build.edge_material_cache().clear()
-	_build.unit_runtime_index().clear()
+	_state.terrain_material_cache.clear()
+	_state.edge_material_cache.clear()
+	_state.unit_runtime_index.clear()
 	var terrain_mesh: MeshInstance3D = _scene.terrain_mesh()
 	if terrain_mesh != null:
 		terrain_mesh.mesh = null
@@ -31,7 +35,7 @@ func clear() -> void:
 		edge_mesh.mesh = null
 	clear_chunk_nodes()
 	set_authored_overlay([])
-	_build.clear_localized_overlay_scope()
+	_overlay_refresh_scope.clear()
 
 
 func clear_chunk_nodes() -> void:
@@ -47,7 +51,7 @@ func clear_chunk_nodes() -> void:
 		if node != null and is_instance_valid(node):
 			node.queue_free()
 	edge_chunk_nodes.clear()
-	_build.chunk_runtime().clear_dirty_chunks()
+	_chunk_runtime.clear_dirty_chunks()
 
 
 func ensure_overlay_nodes() -> void:
@@ -116,15 +120,15 @@ func set_authored_overlay(descriptors: Array) -> void:
 		else:
 			static_descriptors.append(desc)
 	UATerrainPieceLibrary.reset_piece_overlay_build_counters()
-	_build.static_overlay_index().replace_all(static_descriptors)
+	_state.static_overlay_index.replace_all(static_descriptors)
 	AuthoredOverlayManager.apply_overlay_node(_scene.authored_overlay(), static_descriptors)
 	AuthoredOverlayManager.apply_overlay_node(_scene.dynamic_overlay(), dynamic_descriptors)
 	apply_geometry_distance_culling_to_overlay()
 
 
 func apply_geometry_distance_culling_state(enabled: bool) -> void:
-	_build.set_geometry_distance_culling_enabled(enabled)
-	_build.set_geometry_cull_distance(_scene.renderer_node().UA_NORMAL_GEOMETRY_CULL_DISTANCE)
+	_state.geometry_distance_culling_enabled = enabled
+	_state.geometry_cull_distance = _scene.renderer_node().UA_NORMAL_GEOMETRY_CULL_DISTANCE
 	if not enabled:
 		set_all_distance_culled_nodes_visible(true)
 		return
@@ -151,14 +155,14 @@ func set_all_distance_culled_nodes_visible(make_visible: bool) -> void:
 
 
 func update_geometry_distance_culling_visibility() -> void:
-	if not _build.geometry_distance_culling_enabled():
+	if not _state.geometry_distance_culling_enabled:
 		return
 	var camera: Camera3D = _scene.camera()
 	if camera == null or not is_instance_valid(camera):
 		return
 	var cam_pos: Vector3 = camera.global_position
 	var cam_xz := Vector2(cam_pos.x, cam_pos.z)
-	var cull_sq: float = _build.geometry_cull_distance() * _build.geometry_cull_distance()
+	var cull_sq: float = _state.geometry_cull_distance * _state.geometry_cull_distance
 	for chunk_coord_any in _scene.terrain_chunk_nodes().keys():
 		var chunk_coord := Vector2i(chunk_coord_any)
 		var terrain_chunk := _scene.terrain_chunk_nodes()[chunk_coord] as MeshInstance3D
@@ -181,7 +185,7 @@ func update_geometry_distance_culling_visibility() -> void:
 func apply_geometry_distance_culling_to_chunk_node(chunk_node: MeshInstance3D, chunk_coord: Vector2i) -> void:
 	if chunk_node == null or not is_instance_valid(chunk_node):
 		return
-	if not _build.geometry_distance_culling_enabled():
+	if not _state.geometry_distance_culling_enabled:
 		chunk_node.visible = chunk_node.mesh != null
 		return
 	var camera: Camera3D = _scene.camera()
@@ -190,11 +194,11 @@ func apply_geometry_distance_culling_to_chunk_node(chunk_node: MeshInstance3D, c
 	var center := chunk_center_world_xz(chunk_coord)
 	var cam_pos: Vector3 = camera.global_position
 	var cam_xz := Vector2(cam_pos.x, cam_pos.z)
-	chunk_node.visible = cam_xz.distance_squared_to(center) <= (_build.geometry_cull_distance() * _build.geometry_cull_distance()) and chunk_node.mesh != null
+	chunk_node.visible = cam_xz.distance_squared_to(center) <= (_state.geometry_cull_distance * _state.geometry_cull_distance) and chunk_node.mesh != null
 
 
 func apply_geometry_distance_culling_to_overlay() -> void:
-	if not _build.geometry_distance_culling_enabled():
+	if not _state.geometry_distance_culling_enabled:
 		if _scene.authored_overlay() != null and is_instance_valid(_scene.authored_overlay()):
 			for child in _scene.authored_overlay().get_children():
 				if child is Node3D:
@@ -209,7 +213,7 @@ func apply_geometry_distance_culling_to_overlay() -> void:
 		return
 	var cam_pos: Vector3 = camera.global_position
 	var cam_xz := Vector2(cam_pos.x, cam_pos.z)
-	var cull_sq: float = _build.geometry_cull_distance() * _build.geometry_cull_distance()
+	var cull_sq: float = _state.geometry_cull_distance * _state.geometry_cull_distance
 	if _scene.authored_overlay() != null and is_instance_valid(_scene.authored_overlay()):
 		for child in _scene.authored_overlay().get_children():
 			if not (child is Node3D):
@@ -227,9 +231,8 @@ func apply_geometry_distance_culling_to_overlay() -> void:
 
 
 func chunk_center_world_xz(chunk_coord: Vector2i) -> Vector2:
-	var chunk_runtime = _build.chunk_runtime()
-	var w := maxi(chunk_runtime.last_map_dimensions.x, 0)
-	var h := maxi(chunk_runtime.last_map_dimensions.y, 0)
+	var w := maxi(_chunk_runtime.last_map_dimensions.x, 0)
+	var h := maxi(_chunk_runtime.last_map_dimensions.y, 0)
 	if w <= 0 or h <= 0:
 		return Vector2.ZERO
 	var sx_min := chunk_coord.x * TerrainBuilder.CHUNK_SIZE
@@ -247,9 +250,9 @@ func apply_sector_top_materials(mesh: ArrayMesh, preloads, surface_to_surface_ty
 	if preloads == null:
 		_scene.apply_untextured_materials(mesh)
 		return
-	if _build.sector_top_shader() == null:
-		_build.set_sector_top_shader(load("res://resources/terrain/shaders/sector_top.gdshader"))
-	if _build.sector_top_shader() == null:
+	if _state.sector_top_shader == null:
+		_state.sector_top_shader = load("res://resources/terrain/shaders/sector_top.gdshader")
+	if _state.sector_top_shader == null:
 		push_warning("[Map3D] Could not load sector_top.gdshader")
 		_scene.apply_untextured_materials(mesh)
 		return
@@ -261,11 +264,11 @@ func apply_sector_top_materials(mesh: ArrayMesh, preloads, surface_to_surface_ty
 			dbg.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
 			mesh.surface_set_material(surface_idx, dbg)
 			continue
-		if _build.terrain_material_cache().has(surface_type):
-			mesh.surface_set_material(surface_idx, _build.terrain_material_cache()[surface_type])
+		if _state.terrain_material_cache.has(surface_type):
+			mesh.surface_set_material(surface_idx, _state.terrain_material_cache[surface_type])
 			continue
 		var mat := ShaderMaterial.new()
-		mat.shader = _build.sector_top_shader()
+		mat.shader = _state.sector_top_shader
 		mat.set_shader_parameter("ground_texture", preloads.get_ground_texture(clampi(surface_type, 0, 5)))
 		for ground_idx in 6:
 			mat.set_shader_parameter("ground%d" % ground_idx, preloads.get_ground_texture(ground_idx))
@@ -275,8 +278,8 @@ func apply_sector_top_materials(mesh: ArrayMesh, preloads, surface_to_surface_ty
 		mat.set_shader_parameter("atlas_grid", Vector2(2.0, 2.0))
 		mat.set_shader_parameter("use_vertex_variant", true)
 		mat.set_shader_parameter("variant", 0)
-		mat.set_shader_parameter("debug_mode", _build.debug_shader_mode())
-		_build.terrain_material_cache()[surface_type] = mat
+		mat.set_shader_parameter("debug_mode", _state.debug_shader_mode)
+		_state.terrain_material_cache[surface_type] = mat
 		mesh.surface_set_material(surface_idx, mat)
 
 
@@ -304,16 +307,16 @@ func make_edge_blend_material(bucket_key: String, preloads, use_uv_y_for_blend: 
 	var pair := PreviewGeometry.surface_pair_from_slurp_bucket_key(bucket_key)
 	if pair.is_empty() or preloads == null:
 		return _scene.make_preview_material(_scene.renderer_node().EDGE_PREVIEW_COLOR)
-	if _build.edge_blend_shader() == null:
-		_build.set_edge_blend_shader(load(EDGE_BLEND_SHADER_PATH))
-	if _build.edge_blend_shader() == null:
+	if _state.edge_blend_shader == null:
+		_state.edge_blend_shader = load(EDGE_BLEND_SHADER_PATH)
+	if _state.edge_blend_shader == null:
 		push_warning("[Map3D] Could not load edge_blend.gdshader")
 		return _scene.make_preview_material(_scene.renderer_node().EDGE_PREVIEW_COLOR)
 	var cache_key := "%s:%s" % [bucket_key, use_uv_y_for_blend]
-	if _build.edge_material_cache().has(cache_key):
-		return _build.edge_material_cache()[cache_key]
+	if _state.edge_material_cache.has(cache_key):
+		return _state.edge_material_cache[cache_key]
 	var mat := ShaderMaterial.new()
-	mat.shader = _build.edge_blend_shader()
+	mat.shader = _state.edge_blend_shader
 	var texture_a = preloads.get_ground_texture(int(pair["surface_a"]))
 	var texture_b = preloads.get_ground_texture(int(pair["surface_b"]))
 	if texture_a == null or texture_b == null:
@@ -325,7 +328,7 @@ func make_edge_blend_material(bucket_key: String, preloads, use_uv_y_for_blend: 
 	mat.set_shader_parameter("atlas_grid", Vector2(1.0, 1.0))
 	mat.set_shader_parameter("variant_a", 0)
 	mat.set_shader_parameter("variant_b", 0)
-	_build.edge_material_cache()[cache_key] = mat
+	_state.edge_material_cache[cache_key] = mat
 	return mat
 
 
