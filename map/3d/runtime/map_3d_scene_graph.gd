@@ -8,82 +8,96 @@ const PreviewGeometry := preload("res://map/3d/terrain/map_3d_preview_geometry.g
 
 const EDGE_BLEND_SHADER_PATH := "res://resources/terrain/shaders/edge_blend.gdshader"
 
-var _renderer = null
+var _scene = null
+var _context = null
+var _build = null
 
 
-func bind(renderer) -> void:
-	_renderer = renderer
+func bind(scene_port, context_port, build_state_port) -> void:
+	_scene = scene_port
+	_context = context_port
+	_build = build_state_port
 
 
 func clear() -> void:
-	_renderer._terrain_material_cache.clear()
-	_renderer._edge_material_cache.clear()
-	_renderer._unit_runtime_index.clear()
-	if _renderer._terrain_mesh:
-		_renderer._terrain_mesh.mesh = null
-	if _renderer._edge_mesh:
-		_renderer._edge_mesh.mesh = null
+	_build.terrain_material_cache().clear()
+	_build.edge_material_cache().clear()
+	_build.unit_runtime_index().clear()
+	var terrain_mesh: MeshInstance3D = _scene.terrain_mesh()
+	if terrain_mesh != null:
+		terrain_mesh.mesh = null
+	var edge_mesh: MeshInstance3D = _scene.edge_mesh()
+	if edge_mesh != null:
+		edge_mesh.mesh = null
 	clear_chunk_nodes()
 	set_authored_overlay([])
-	_renderer._clear_localized_overlay_scope()
+	_build.clear_localized_overlay_scope()
 
 
 func clear_chunk_nodes() -> void:
-	for chunk_key in _renderer._terrain_chunk_nodes.keys():
-		var node: Node = _renderer._terrain_chunk_nodes[chunk_key]
+	var terrain_chunk_nodes: Dictionary = _scene.terrain_chunk_nodes()
+	for chunk_key in terrain_chunk_nodes.keys():
+		var node: Node = terrain_chunk_nodes[chunk_key]
 		if node != null and is_instance_valid(node):
 			node.queue_free()
-	_renderer._terrain_chunk_nodes.clear()
-	for chunk_key in _renderer._edge_chunk_nodes.keys():
-		var node: Node = _renderer._edge_chunk_nodes[chunk_key]
+	terrain_chunk_nodes.clear()
+	var edge_chunk_nodes: Dictionary = _scene.edge_chunk_nodes()
+	for chunk_key in edge_chunk_nodes.keys():
+		var node: Node = edge_chunk_nodes[chunk_key]
 		if node != null and is_instance_valid(node):
 			node.queue_free()
-	_renderer._edge_chunk_nodes.clear()
-	_renderer._chunk_rt.clear_dirty_chunks()
+	edge_chunk_nodes.clear()
+	_build.chunk_runtime().clear_dirty_chunks()
 
 
 func ensure_overlay_nodes() -> void:
-	if _renderer._authored_overlay == null or not is_instance_valid(_renderer._authored_overlay):
-		_renderer._authored_overlay = Node3D.new()
-		_renderer._authored_overlay.name = "AuthoredOverlay"
-		_renderer.add_child(_renderer._authored_overlay)
-	if _renderer._dynamic_overlay == null or not is_instance_valid(_renderer._dynamic_overlay):
-		_renderer._dynamic_overlay = Node3D.new()
-		_renderer._dynamic_overlay.name = "DynamicOverlay"
-		_renderer.add_child(_renderer._dynamic_overlay)
+	if _scene.authored_overlay() == null or not is_instance_valid(_scene.authored_overlay()):
+		var authored_overlay := Node3D.new()
+		authored_overlay.name = "AuthoredOverlay"
+		_scene.set_authored_overlay_node(authored_overlay)
+		_scene.add_child(authored_overlay)
+	if _scene.dynamic_overlay() == null or not is_instance_valid(_scene.dynamic_overlay()):
+		var dynamic_overlay := Node3D.new()
+		dynamic_overlay.name = "DynamicOverlay"
+		_scene.set_dynamic_overlay_node(dynamic_overlay)
+		_scene.add_child(dynamic_overlay)
 
 
 func apply_dynamic_overlay(dynamic_descriptors: Array) -> void:
 	ensure_overlay_nodes()
-	AuthoredOverlayManager.apply_overlay_node(_renderer._dynamic_overlay, dynamic_descriptors)
+	AuthoredOverlayManager.apply_overlay_node(_scene.dynamic_overlay(), dynamic_descriptors)
 	apply_geometry_distance_culling_to_overlay()
 
 
 func get_or_create_terrain_chunk_node(chunk_coord: Vector2i) -> MeshInstance3D:
-	if _renderer._terrain_chunk_nodes.has(chunk_coord):
-		var existing = _renderer._terrain_chunk_nodes[chunk_coord]
+	var terrain_chunk_nodes: Dictionary = _scene.terrain_chunk_nodes()
+	if terrain_chunk_nodes.has(chunk_coord):
+		var existing = terrain_chunk_nodes[chunk_coord]
 		if existing != null and is_instance_valid(existing):
 			return existing as MeshInstance3D
 	var node := MeshInstance3D.new()
 	node.name = "TerrainChunk_%d_%d" % [chunk_coord.x, chunk_coord.y]
-	if _renderer._terrain_mesh:
-		_renderer._terrain_mesh.add_child(node)
-	_renderer._terrain_chunk_nodes[chunk_coord] = node
+	var terrain_mesh: MeshInstance3D = _scene.terrain_mesh()
+	if terrain_mesh != null:
+		terrain_mesh.add_child(node)
+	terrain_chunk_nodes[chunk_coord] = node
 	apply_geometry_distance_culling_to_chunk_node(node, chunk_coord)
 	return node
 
 
 func get_or_create_edge_chunk_node(chunk_coord: Vector2i) -> MeshInstance3D:
-	if _renderer._edge_chunk_nodes.has(chunk_coord):
-		var existing = _renderer._edge_chunk_nodes[chunk_coord]
+	var edge_chunk_nodes: Dictionary = _scene.edge_chunk_nodes()
+	if edge_chunk_nodes.has(chunk_coord):
+		var existing = edge_chunk_nodes[chunk_coord]
 		if existing != null and is_instance_valid(existing):
 			return existing as MeshInstance3D
 	var node := MeshInstance3D.new()
 	node.name = "EdgeChunk_%d_%d" % [chunk_coord.x, chunk_coord.y]
 	ensure_edge_node()
-	if _renderer._edge_mesh:
-		_renderer._edge_mesh.add_child(node)
-	_renderer._edge_chunk_nodes[chunk_coord] = node
+	var edge_mesh: MeshInstance3D = _scene.edge_mesh()
+	if edge_mesh != null:
+		edge_mesh.add_child(node)
+	edge_chunk_nodes[chunk_coord] = node
 	apply_geometry_distance_culling_to_chunk_node(node, chunk_coord)
 	return node
 
@@ -102,15 +116,15 @@ func set_authored_overlay(descriptors: Array) -> void:
 		else:
 			static_descriptors.append(desc)
 	UATerrainPieceLibrary.reset_piece_overlay_build_counters()
-	_renderer._static_overlay_index.replace_all(static_descriptors)
-	AuthoredOverlayManager.apply_overlay_node(_renderer._authored_overlay, static_descriptors)
-	AuthoredOverlayManager.apply_overlay_node(_renderer._dynamic_overlay, dynamic_descriptors)
+	_build.static_overlay_index().replace_all(static_descriptors)
+	AuthoredOverlayManager.apply_overlay_node(_scene.authored_overlay(), static_descriptors)
+	AuthoredOverlayManager.apply_overlay_node(_scene.dynamic_overlay(), dynamic_descriptors)
 	apply_geometry_distance_culling_to_overlay()
 
 
 func apply_geometry_distance_culling_state(enabled: bool) -> void:
-	_renderer._geometry_distance_culling_enabled = enabled
-	_renderer._geometry_cull_distance = _renderer.UA_NORMAL_GEOMETRY_CULL_DISTANCE
+	_build.set_geometry_distance_culling_enabled(enabled)
+	_build.set_geometry_cull_distance(_scene.renderer_node().UA_NORMAL_GEOMETRY_CULL_DISTANCE)
 	if not enabled:
 		set_all_distance_culled_nodes_visible(true)
 		return
@@ -118,43 +132,44 @@ func apply_geometry_distance_culling_state(enabled: bool) -> void:
 
 
 func set_all_distance_culled_nodes_visible(make_visible: bool) -> void:
-	for chunk_coord in _renderer._terrain_chunk_nodes.keys():
-		var terrain_chunk := _renderer._terrain_chunk_nodes[chunk_coord] as MeshInstance3D
+	for chunk_coord in _scene.terrain_chunk_nodes().keys():
+		var terrain_chunk := _scene.terrain_chunk_nodes()[chunk_coord] as MeshInstance3D
 		if terrain_chunk != null and is_instance_valid(terrain_chunk):
 			terrain_chunk.visible = make_visible and terrain_chunk.mesh != null
-	for chunk_coord in _renderer._edge_chunk_nodes.keys():
-		var edge_chunk := _renderer._edge_chunk_nodes[chunk_coord] as MeshInstance3D
+	for chunk_coord in _scene.edge_chunk_nodes().keys():
+		var edge_chunk := _scene.edge_chunk_nodes()[chunk_coord] as MeshInstance3D
 		if edge_chunk != null and is_instance_valid(edge_chunk):
 			edge_chunk.visible = make_visible and edge_chunk.mesh != null
-	if _renderer._authored_overlay != null and is_instance_valid(_renderer._authored_overlay):
-		for child in _renderer._authored_overlay.get_children():
+	if _scene.authored_overlay() != null and is_instance_valid(_scene.authored_overlay()):
+		for child in _scene.authored_overlay().get_children():
 			if child is Node3D:
 				(child as Node3D).visible = make_visible
-	if _renderer._dynamic_overlay != null and is_instance_valid(_renderer._dynamic_overlay):
-		for child in _renderer._dynamic_overlay.get_children():
+	if _scene.dynamic_overlay() != null and is_instance_valid(_scene.dynamic_overlay()):
+		for child in _scene.dynamic_overlay().get_children():
 			if child is Node3D:
 				(child as Node3D).visible = make_visible
 
 
 func update_geometry_distance_culling_visibility() -> void:
-	if not _renderer._geometry_distance_culling_enabled:
+	if not _build.geometry_distance_culling_enabled():
 		return
-	if _renderer._camera == null or not is_instance_valid(_renderer._camera):
+	var camera: Camera3D = _scene.camera()
+	if camera == null or not is_instance_valid(camera):
 		return
-	var cam_pos: Vector3 = _renderer._camera.global_position
+	var cam_pos: Vector3 = camera.global_position
 	var cam_xz := Vector2(cam_pos.x, cam_pos.z)
-	var cull_sq: float = _renderer._geometry_cull_distance * _renderer._geometry_cull_distance
-	for chunk_coord_any in _renderer._terrain_chunk_nodes.keys():
+	var cull_sq: float = _build.geometry_cull_distance() * _build.geometry_cull_distance()
+	for chunk_coord_any in _scene.terrain_chunk_nodes().keys():
 		var chunk_coord := Vector2i(chunk_coord_any)
-		var terrain_chunk := _renderer._terrain_chunk_nodes[chunk_coord] as MeshInstance3D
+		var terrain_chunk := _scene.terrain_chunk_nodes()[chunk_coord] as MeshInstance3D
 		if terrain_chunk == null or not is_instance_valid(terrain_chunk):
 			continue
 		var center := chunk_center_world_xz(chunk_coord)
 		var within_range: bool = cam_xz.distance_squared_to(center) <= cull_sq
 		terrain_chunk.visible = within_range and terrain_chunk.mesh != null
-	for chunk_coord_any in _renderer._edge_chunk_nodes.keys():
+	for chunk_coord_any in _scene.edge_chunk_nodes().keys():
 		var chunk_coord := Vector2i(chunk_coord_any)
-		var edge_chunk := _renderer._edge_chunk_nodes[chunk_coord] as MeshInstance3D
+		var edge_chunk := _scene.edge_chunk_nodes()[chunk_coord] as MeshInstance3D
 		if edge_chunk == null or not is_instance_valid(edge_chunk):
 			continue
 		var center := chunk_center_world_xz(chunk_coord)
@@ -166,42 +181,44 @@ func update_geometry_distance_culling_visibility() -> void:
 func apply_geometry_distance_culling_to_chunk_node(chunk_node: MeshInstance3D, chunk_coord: Vector2i) -> void:
 	if chunk_node == null or not is_instance_valid(chunk_node):
 		return
-	if not _renderer._geometry_distance_culling_enabled:
+	if not _build.geometry_distance_culling_enabled():
 		chunk_node.visible = chunk_node.mesh != null
 		return
-	if _renderer._camera == null or not is_instance_valid(_renderer._camera):
+	var camera: Camera3D = _scene.camera()
+	if camera == null or not is_instance_valid(camera):
 		return
 	var center := chunk_center_world_xz(chunk_coord)
-	var cam_pos: Vector3 = _renderer._camera.global_position
+	var cam_pos: Vector3 = camera.global_position
 	var cam_xz := Vector2(cam_pos.x, cam_pos.z)
-	chunk_node.visible = cam_xz.distance_squared_to(center) <= (_renderer._geometry_cull_distance * _renderer._geometry_cull_distance) and chunk_node.mesh != null
+	chunk_node.visible = cam_xz.distance_squared_to(center) <= (_build.geometry_cull_distance() * _build.geometry_cull_distance()) and chunk_node.mesh != null
 
 
 func apply_geometry_distance_culling_to_overlay() -> void:
-	if not _renderer._geometry_distance_culling_enabled:
-		if _renderer._authored_overlay != null and is_instance_valid(_renderer._authored_overlay):
-			for child in _renderer._authored_overlay.get_children():
+	if not _build.geometry_distance_culling_enabled():
+		if _scene.authored_overlay() != null and is_instance_valid(_scene.authored_overlay()):
+			for child in _scene.authored_overlay().get_children():
 				if child is Node3D:
 					(child as Node3D).visible = true
-		if _renderer._dynamic_overlay != null and is_instance_valid(_renderer._dynamic_overlay):
-			for child in _renderer._dynamic_overlay.get_children():
+		if _scene.dynamic_overlay() != null and is_instance_valid(_scene.dynamic_overlay()):
+			for child in _scene.dynamic_overlay().get_children():
 				if child is Node3D:
 					(child as Node3D).visible = true
 		return
-	if _renderer._camera == null or not is_instance_valid(_renderer._camera):
+	var camera: Camera3D = _scene.camera()
+	if camera == null or not is_instance_valid(camera):
 		return
-	var cam_pos: Vector3 = _renderer._camera.global_position
+	var cam_pos: Vector3 = camera.global_position
 	var cam_xz := Vector2(cam_pos.x, cam_pos.z)
-	var cull_sq: float = _renderer._geometry_cull_distance * _renderer._geometry_cull_distance
-	if _renderer._authored_overlay != null and is_instance_valid(_renderer._authored_overlay):
-		for child in _renderer._authored_overlay.get_children():
+	var cull_sq: float = _build.geometry_cull_distance() * _build.geometry_cull_distance()
+	if _scene.authored_overlay() != null and is_instance_valid(_scene.authored_overlay()):
+		for child in _scene.authored_overlay().get_children():
 			if not (child is Node3D):
 				continue
 			var node := child as Node3D
 			var p := node.global_position
 			node.visible = cam_xz.distance_squared_to(Vector2(p.x, p.z)) <= cull_sq
-	if _renderer._dynamic_overlay != null and is_instance_valid(_renderer._dynamic_overlay):
-		for child in _renderer._dynamic_overlay.get_children():
+	if _scene.dynamic_overlay() != null and is_instance_valid(_scene.dynamic_overlay()):
+		for child in _scene.dynamic_overlay().get_children():
 			if not (child is Node3D):
 				continue
 			var node := child as Node3D
@@ -210,8 +227,9 @@ func apply_geometry_distance_culling_to_overlay() -> void:
 
 
 func chunk_center_world_xz(chunk_coord: Vector2i) -> Vector2:
-	var w := maxi(_renderer._chunk_rt.last_map_dimensions.x, 0)
-	var h := maxi(_renderer._chunk_rt.last_map_dimensions.y, 0)
+	var chunk_runtime = _build.chunk_runtime()
+	var w := maxi(chunk_runtime.last_map_dimensions.x, 0)
+	var h := maxi(chunk_runtime.last_map_dimensions.y, 0)
 	if w <= 0 or h <= 0:
 		return Vector2.ZERO
 	var sx_min := chunk_coord.x * TerrainBuilder.CHUNK_SIZE
@@ -220,20 +238,20 @@ func chunk_center_world_xz(chunk_coord: Vector2i) -> Vector2:
 	var sy_max := mini(sy_min + TerrainBuilder.CHUNK_SIZE, h)
 	var center_sector_x := (float(sx_min + sx_max) * 0.5) + 1.0
 	var center_sector_y := (float(sy_min + sy_max) * 0.5) + 1.0
-	return Vector2(center_sector_x * _renderer.SECTOR_SIZE, center_sector_y * _renderer.SECTOR_SIZE)
+	return Vector2(center_sector_x * _scene.renderer_node().SECTOR_SIZE, center_sector_y * _scene.renderer_node().SECTOR_SIZE)
 
 
 func apply_sector_top_materials(mesh: ArrayMesh, preloads, surface_to_surface_type: Dictionary) -> void:
 	if mesh == null:
 		return
 	if preloads == null:
-		_renderer._apply_untextured_materials(mesh)
+		_scene.apply_untextured_materials(mesh)
 		return
-	if _renderer._sector_top_shader == null:
-		_renderer._sector_top_shader = load("res://resources/terrain/shaders/sector_top.gdshader")
-	if _renderer._sector_top_shader == null:
+	if _build.sector_top_shader() == null:
+		_build.set_sector_top_shader(load("res://resources/terrain/shaders/sector_top.gdshader"))
+	if _build.sector_top_shader() == null:
 		push_warning("[Map3D] Could not load sector_top.gdshader")
-		_renderer._apply_untextured_materials(mesh)
+		_scene.apply_untextured_materials(mesh)
 		return
 	for surface_idx in surface_to_surface_type.keys():
 		var surface_type: int = int(surface_to_surface_type[surface_idx])
@@ -243,36 +261,36 @@ func apply_sector_top_materials(mesh: ArrayMesh, preloads, surface_to_surface_ty
 			dbg.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
 			mesh.surface_set_material(surface_idx, dbg)
 			continue
-		if _renderer._terrain_material_cache.has(surface_type):
-			mesh.surface_set_material(surface_idx, _renderer._terrain_material_cache[surface_type])
+		if _build.terrain_material_cache().has(surface_type):
+			mesh.surface_set_material(surface_idx, _build.terrain_material_cache()[surface_type])
 			continue
 		var mat := ShaderMaterial.new()
-		mat.shader = _renderer._sector_top_shader
+		mat.shader = _build.sector_top_shader()
 		mat.set_shader_parameter("ground_texture", preloads.get_ground_texture(clampi(surface_type, 0, 5)))
 		for ground_idx in 6:
 			mat.set_shader_parameter("ground%d" % ground_idx, preloads.get_ground_texture(ground_idx))
-		mat.set_shader_parameter("tile_scale", _renderer._compute_tile_scale())
+		mat.set_shader_parameter("tile_scale", _scene.compute_tile_scale())
 		mat.set_shader_parameter("use_mesh_uv", true)
 		mat.set_shader_parameter("use_multi_textures", true)
 		mat.set_shader_parameter("atlas_grid", Vector2(2.0, 2.0))
 		mat.set_shader_parameter("use_vertex_variant", true)
 		mat.set_shader_parameter("variant", 0)
-		mat.set_shader_parameter("debug_mode", _renderer._debug_shader_mode)
-		_renderer._terrain_material_cache[surface_type] = mat
+		mat.set_shader_parameter("debug_mode", _build.debug_shader_mode())
+		_build.terrain_material_cache()[surface_type] = mat
 		mesh.surface_set_material(surface_idx, mat)
 
 
 func ensure_edge_node() -> void:
-	if _renderer._edge_mesh == null:
+	if _scene.edge_mesh() == null:
 		var mi := MeshInstance3D.new()
 		mi.name = "EdgeMesh"
-		_renderer.add_child(mi)
-		_renderer._edge_mesh = mi
+		_scene.add_child(mi)
+		_scene.set_edge_mesh_node(mi)
 
 
 func build_edge_overlay_result(hgt: PackedByteArray, w: int, h: int, typ: PackedByteArray, mapping: Dictionary, set_id: int, preloads = null) -> Dictionary:
-	if preloads == null and _renderer.is_inside_tree():
-		preloads = _renderer._preloads()
+	if preloads == null and _scene.is_inside_tree():
+		preloads = _context.preloads()
 	var result := SlurpBuilder.build_edge_overlay_result(hgt, w, h, typ, mapping, set_id)
 	var mesh: ArrayMesh = result.get("mesh", null)
 	apply_edge_surface_materials(mesh, preloads, result.get("fallback_horiz_keys", []), result.get("fallback_vert_keys", []))
@@ -285,29 +303,29 @@ func build_edge_overlay_result(hgt: PackedByteArray, w: int, h: int, typ: Packed
 func make_edge_blend_material(bucket_key: String, preloads, use_uv_y_for_blend: bool) -> Material:
 	var pair := PreviewGeometry.surface_pair_from_slurp_bucket_key(bucket_key)
 	if pair.is_empty() or preloads == null:
-		return _renderer._make_preview_material(_renderer.EDGE_PREVIEW_COLOR)
-	if _renderer._edge_blend_shader == null:
-		_renderer._edge_blend_shader = load(EDGE_BLEND_SHADER_PATH)
-	if _renderer._edge_blend_shader == null:
+		return _scene.make_preview_material(_scene.renderer_node().EDGE_PREVIEW_COLOR)
+	if _build.edge_blend_shader() == null:
+		_build.set_edge_blend_shader(load(EDGE_BLEND_SHADER_PATH))
+	if _build.edge_blend_shader() == null:
 		push_warning("[Map3D] Could not load edge_blend.gdshader")
-		return _renderer._make_preview_material(_renderer.EDGE_PREVIEW_COLOR)
+		return _scene.make_preview_material(_scene.renderer_node().EDGE_PREVIEW_COLOR)
 	var cache_key := "%s:%s" % [bucket_key, use_uv_y_for_blend]
-	if _renderer._edge_material_cache.has(cache_key):
-		return _renderer._edge_material_cache[cache_key]
+	if _build.edge_material_cache().has(cache_key):
+		return _build.edge_material_cache()[cache_key]
 	var mat := ShaderMaterial.new()
-	mat.shader = _renderer._edge_blend_shader
+	mat.shader = _build.edge_blend_shader()
 	var texture_a = preloads.get_ground_texture(int(pair["surface_a"]))
 	var texture_b = preloads.get_ground_texture(int(pair["surface_b"]))
 	if texture_a == null or texture_b == null:
-		return _renderer._make_preview_material(_renderer.EDGE_PREVIEW_COLOR)
+		return _scene.make_preview_material(_scene.renderer_node().EDGE_PREVIEW_COLOR)
 	mat.set_shader_parameter("texture_a", texture_a)
 	mat.set_shader_parameter("texture_b", texture_b)
 	mat.set_shader_parameter("vertical_seam", use_uv_y_for_blend)
-	mat.set_shader_parameter("tile_scale", _renderer._compute_tile_scale())
+	mat.set_shader_parameter("tile_scale", _scene.compute_tile_scale())
 	mat.set_shader_parameter("atlas_grid", Vector2(1.0, 1.0))
 	mat.set_shader_parameter("variant_a", 0)
 	mat.set_shader_parameter("variant_b", 0)
-	_renderer._edge_material_cache[cache_key] = mat
+	_build.edge_material_cache()[cache_key] = mat
 	return mat
 
 
@@ -328,14 +346,14 @@ func apply_edge_surface_materials(mesh: ArrayMesh, preloads, fallback_horiz_keys
 
 
 func get_map_subviewport() -> SubViewport:
-	var vp: Viewport = _renderer.get_viewport()
+	var vp: Viewport = _scene.viewport()
 	if vp is SubViewport:
 		return vp as SubViewport
 	return null
 
 
 func bump_3d_viewport_rendering() -> void:
-	if not _renderer._preview_refresh_active():
+	if not _context.preview_refresh_active():
 		return
 	var vp := get_map_subviewport()
 	if vp == null:

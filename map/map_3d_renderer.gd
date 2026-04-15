@@ -13,6 +13,9 @@ const RendererEventController := preload("res://map/3d/controllers/map_3d_render
 const AsyncRefreshDriver := preload("res://map/3d/runtime/map_3d_async_refresh_driver.gd")
 const CameraController := preload("res://map/3d/runtime/map_3d_camera_controller.gd")
 const SceneGraph := preload("res://map/3d/runtime/map_3d_scene_graph.gd")
+const RenderContextPort := preload("res://map/3d/runtime/map_3d_render_context_port.gd")
+const ScenePort := preload("res://map/3d/runtime/map_3d_scene_port.gd")
+const BuildStatePort := preload("res://map/3d/runtime/map_3d_build_state_port.gd")
 const RuntimeState := preload("res://map/3d/runtime/map_3d_runtime_state.gd")
 const RuntimeContext := preload("res://map/3d/runtime/map_3d_runtime_context.gd")
 const SharedConstants := preload("res://map/3d/config/map_3d_shared_constants.gd")
@@ -63,9 +66,14 @@ const SQUAD_EXTRA_Y_OFFSET := SharedConstants.SQUAD_EXTRA_Y_OFFSET
 
 func _init() -> void:
 	_runtime_context.bind(self)
-	_async_refresh_driver.bind(self)
-	_camera_controller.bind(self)
-	_scene_graph.bind(self)
+	_render_context_port.bind(self)
+	_scene_port.bind(self)
+	_build_state_port.bind(self)
+	_async_refresh_driver.bind(self, _render_context_port, _scene_port, _build_state_port)
+	_camera_controller.bind(self, _render_context_port, _scene_port, _build_state_port)
+	_scene_graph.bind(_scene_port, _render_context_port, _build_state_port)
+	_renderer_event_controller.bind(self, _render_context_port, _scene_port, _build_state_port, _async_refresh_driver)
+	_build_pipeline.bind(_render_context_port, _scene_port, _build_state_port)
 	_geometry_cull_distance = UA_NORMAL_GEOMETRY_CULL_DISTANCE
 
 
@@ -173,6 +181,9 @@ static func facade_contract() -> Dictionary:
 
 var _runtime_state := RuntimeState.new()
 var _runtime_context := RuntimeContext.new()
+var _render_context_port := RenderContextPort.new()
+var _scene_port := ScenePort.new()
+var _build_state_port := BuildStatePort.new()
 
 var _debug_shader_mode: int:
 	get:
@@ -620,7 +631,7 @@ func _ready() -> void:
 	_retain_collaborator_owned_state()
 	_sector_top_shader = load("res://resources/terrain/shaders/sector_top.gdshader")
 	_edge_blend_shader = load(EDGE_BLEND_SHADER_PATH)
-	_renderer_event_controller.ready(self)
+	_renderer_event_controller.ready()
 
 func _apply_visibility_range_from_editor_state() -> void:
 	var enabled := _runtime_context.visibility_range_enabled()
@@ -629,10 +640,10 @@ func _apply_visibility_range_from_editor_state() -> void:
 	_apply_geometry_distance_culling_state(enabled)
 
 func _on_map_view_updated() -> void:
-	_renderer_event_controller.on_map_view_updated(self)
+	_renderer_event_controller.on_map_view_updated()
 
 func _on_map_3d_overlay_animations_changed() -> void:
-	_renderer_event_controller.on_map_overlay_animations_changed(self)
+	_renderer_event_controller.on_map_overlay_animations_changed()
 
 func _on_units_changed(changes: Array) -> void:
 	_async_refresh_driver.on_units_changed(changes)
@@ -815,25 +826,25 @@ func _on_map_3d_focus_sector_requested(sector_sx: int, sector_sy: int) -> void:
 	_camera_controller.focus_sector(sector_sx, sector_sy)
 
 func _on_map_changed() -> void:
-	_renderer_event_controller.on_map_changed(self)
+	_renderer_event_controller.on_map_changed()
 
 func _on_map_created() -> void:
-	_renderer_event_controller.on_map_created(self)
+	_renderer_event_controller.on_map_created()
 
 func _on_map_updated() -> void:
 	_on_map_changed()
 
 func _on_hgt_map_cells_edited(border_indices: Array) -> void:
-	_renderer_event_controller.on_hgt_map_cells_edited(self, border_indices)
+	_renderer_event_controller.on_hgt_map_cells_edited(border_indices)
 
 func _on_typ_map_cells_edited(typ_indices: Array) -> void:
-	_renderer_event_controller.on_typ_map_cells_edited(self, typ_indices)
+	_renderer_event_controller.on_typ_map_cells_edited(typ_indices)
 
 func _on_blg_map_cells_edited(blg_indices: Array) -> void:
-	_renderer_event_controller.on_blg_map_cells_edited(self, blg_indices)
+	_renderer_event_controller.on_blg_map_cells_edited(blg_indices)
 
 func build_from_current_map() -> void:
-	_build_pipeline.build_from_current_map(self)
+	_build_pipeline.build_from_current_map()
 
 func _current_game_data_type() -> String:
 	return _runtime_context.current_game_data_type()
@@ -929,7 +940,7 @@ func _rebuild_dirty_chunks(
 	metrics: Dictionary,
 	max_chunks: int = -1
 ) -> Dictionary:
-	return _build_pipeline.rebuild_dirty_chunks(self, hgt, effective_typ, w, h, pre, level_set, metrics, max_chunks)
+	return _build_pipeline.rebuild_dirty_chunks(hgt, effective_typ, w, h, pre, level_set, metrics, max_chunks)
 
 static func _chunk_distance_sq(a: Vector2i, b: Vector2i) -> int:
 	var dx := a.x - b.x
@@ -951,11 +962,11 @@ func _chunk_focus_coord(w: int, h: int) -> Vector2i:
 	return TerrainBuilder.sector_to_chunk(center_sx, center_sy)
 
 func _apply_localized_static_overlay_refresh(replacement_descriptors: Array, affected_chunks: Array, affected_sectors: Array, set_id: int, w: int, h: int) -> void:
-	_build_pipeline.apply_localized_static_overlay_refresh(self, replacement_descriptors, affected_chunks, affected_sectors, set_id, w, h)
+	_build_pipeline.apply_localized_static_overlay_refresh(replacement_descriptors, affected_chunks, affected_sectors, set_id, w, h)
 
 
 func _apply_localized_dynamic_overlay_refresh(cmd: Node, set_id: int, hgt: PackedByteArray, w: int, h: int, support_descriptors: Array, game_data_type: String, affected_sectors: Array, metrics: Dictionary) -> void:
-	_build_pipeline.apply_localized_dynamic_overlay_refresh(self, cmd, set_id, hgt, w, h, support_descriptors, game_data_type, affected_sectors, metrics)
+	_build_pipeline.apply_localized_dynamic_overlay_refresh(cmd, set_id, hgt, w, h, support_descriptors, game_data_type, affected_sectors, metrics)
 
 
 func _set_authored_overlay(descriptors: Array) -> void:
