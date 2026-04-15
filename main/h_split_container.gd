@@ -5,7 +5,7 @@ extends HSplitContainer
 @onready var map_3d_viewport: SubViewport = $Map3DContainer/SubViewport
 @onready var map_3d_renderer: Map3DRenderer = $Map3DContainer/SubViewport/Map3D
 @onready var map_3d_loading_overlay: Control = $Map3DContainer/LoadingOverlay
-@onready var map_3d_loading_label: Label = $Map3DContainer/LoadingOverlay/PanelContainer/MarginContainer/VBoxContainer/StatusLabel
+@onready var map_3d_loading_label: Label = $Map3DContainer/LoadingOverlay/CenterContainer/PanelContainer/MarginContainer/VBoxContainer/StatusLabel
 @onready var _build_3d_status_label: Label = %Build3DStatusLabel
 
 func _ready() -> void:
@@ -13,7 +13,10 @@ func _ready() -> void:
 	if map_3d_renderer != null and is_instance_valid(map_3d_renderer):
 		map_3d_renderer.build_state_changed.connect(_on_3d_build_state_changed)
 		map_3d_renderer.build_finished.connect(_on_3d_build_finished)
+	map_3d_container.resized.connect(_sync_map_3d_loading_overlay_layout)
+	map_3d_loading_overlay.visibility_changed.connect(_sync_map_3d_loading_overlay_layout)
 	_apply_view_mode()
+	call_deferred("_sync_map_3d_loading_overlay_layout")
 	_refresh_loading_overlay()
 
 func _apply_view_mode() -> void:
@@ -36,6 +39,7 @@ func _on_3d_build_state_changed(is_building: bool, completed: int, total: int, s
 		progress_text = "%s\nChunks ready: %d / %d" % [status, completed, total]
 	map_3d_loading_label.text = progress_text
 	map_3d_loading_overlay.visible = EditorState.view_mode_3d and is_building
+	_sync_map_3d_loading_overlay_layout()
 	_update_status_bar_3d_indicator(is_building, completed, total)
 
 
@@ -71,4 +75,15 @@ func _refresh_loading_overlay() -> void:
 		text = "%s\nChunks ready: %d / %d" % [text, completed, total]
 	map_3d_loading_label.text = text if not text.is_empty() else "Rendering map..."
 	map_3d_loading_overlay.visible = EditorState.view_mode_3d and is_building
+	_sync_map_3d_loading_overlay_layout()
 	_update_status_bar_3d_indicator(is_building, completed, total)
+
+
+func _sync_map_3d_loading_overlay_layout() -> void:
+	if map_3d_loading_overlay == null or not is_instance_valid(map_3d_loading_overlay):
+		return
+	if map_3d_container == null or not is_instance_valid(map_3d_container):
+		return
+	map_3d_loading_overlay.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+	map_3d_loading_overlay.position = Vector2.ZERO
+	map_3d_loading_overlay.size = map_3d_container.size
