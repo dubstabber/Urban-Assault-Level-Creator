@@ -1,8 +1,8 @@
 extends RefCounted
 
+const ChunkBuildExecutor := preload("res://map/3d/services/map_3d_chunk_build_executor.gd")
+const OverlayPlanBuilder := preload("res://map/3d/services/map_3d_overlay_plan_builder.gd")
 const TerrainBuilder := preload("res://map/3d/terrain/map_3d_terrain_builder.gd")
-const SlurpBuilder := preload("res://map/3d/terrain/map_3d_slurp_builder.gd")
-const OverlayProducers := preload("res://map/3d/overlays/map_3d_overlay_descriptor_producers.gd")
 const AuthoredOverlayManager := preload("res://map/3d/overlays/map_3d_authored_overlay_manager.gd")
 const StaticOverlayIndex := preload("res://map/3d/services/map_3d_static_overlay_index.gd")
 const EffectiveTypService := preload("res://map/3d/services/map_3d_effective_typ_service.gd")
@@ -216,8 +216,7 @@ func build_from_current_map() -> void:
 	var can_use_localized_overlay_refresh = use_chunked and not chunk_runtime.initial_build_in_progress and not processed_chunks.is_empty() and not localized_overlay_sectors.is_empty()
 	var overlay_descriptor_started_usec = Time.get_ticks_usec()
 	if can_use_localized_overlay_refresh:
-		var localized_static_descriptors: Array = authored_piece_descriptors.duplicate()
-		localized_static_descriptors.append_array(OverlayProducers.build_blg_attachment_descriptors_for_sectors(
+		var localized_static_descriptors := OverlayPlanBuilder.build_localized_static_descriptors(
 			blg,
 			effective_typ,
 			int(current_map_data.level_set),
@@ -225,8 +224,9 @@ func build_from_current_map() -> void:
 			w,
 			h,
 			localized_overlay_sectors,
+			authored_piece_descriptors,
 			game_data_type
-		))
+		)
 		metrics["static_overlay_descriptor_generation_ms"] = BuildMetrics.elapsed_ms_since(overlay_descriptor_started_usec)
 		metrics["overlay_descriptor_generation_ms"] = metrics["static_overlay_descriptor_generation_ms"]
 		metrics["overlay_descriptor_count"] = localized_static_descriptors.size()
@@ -240,14 +240,22 @@ func build_from_current_map() -> void:
 		metrics["dynamic_overlay_apply_ms"] = 0.0
 		metrics["localized_overlay_refresh"] = true
 	else:
-		overlay_descriptors.append_array(OverlayProducers.build_blg_attachment_descriptors(blg, effective_typ, int(current_map_data.level_set), hgt, w, h, support_descriptors, game_data_type))
-		if current_map_data.host_stations != null and is_instance_valid(current_map_data.host_stations):
-			overlay_descriptors.append_array(OverlayProducers.build_host_station_descriptors(current_map_data.host_stations.get_children(), int(current_map_data.level_set), hgt, w, h, support_descriptors, metrics))
-		if current_map_data.squads != null and is_instance_valid(current_map_data.squads):
-			overlay_descriptors.append_array(OverlayProducers.build_squad_descriptors(current_map_data.squads.get_children(), int(current_map_data.level_set), hgt, w, h, support_descriptors, game_data_type, metrics))
-		metrics["overlay_descriptor_generation_ms"] = BuildMetrics.elapsed_ms_since(overlay_descriptor_started_usec)
-		metrics["static_overlay_descriptor_generation_ms"] = metrics["overlay_descriptor_generation_ms"]
-		metrics["overlay_descriptor_count"] = overlay_descriptors.size()
+		var overlay_plan := OverlayPlanBuilder.build_full_overlay_plan(
+			current_map_data,
+			blg,
+			effective_typ,
+			int(current_map_data.level_set),
+			hgt,
+			w,
+			h,
+			support_descriptors,
+			game_data_type,
+			metrics
+		)
+		var static_descriptors: Array = overlay_plan.get("static_descriptors", [])
+		var dynamic_descriptors: Array = overlay_plan.get("dynamic_descriptors", [])
+		overlay_descriptors = static_descriptors.duplicate()
+		overlay_descriptors.append_array(dynamic_descriptors)
 		var overlay_node_started_usec = Time.get_ticks_usec()
 		_scene.set_authored_overlay(overlay_descriptors)
 		metrics["static_overlay_apply_ms"] = BuildMetrics.elapsed_ms_since(overlay_node_started_usec)
@@ -270,7 +278,7 @@ func rebuild_dirty_chunks(hgt: PackedByteArray, effective_typ: PackedByteArray, 
 	for chunk_coord in dirty_chunk_list:
 		if max_chunks > 0 and chunks_rebuilt >= max_chunks:
 			break
-		var terrain_result = TerrainBuilder.build_chunk_mesh_with_textures(
+		var chunk_result := ChunkBuildExecutor.build_chunk_result(
 			chunk_coord,
 			hgt,
 			effective_typ,
@@ -283,38 +291,11 @@ func rebuild_dirty_chunks(hgt: PackedByteArray, effective_typ: PackedByteArray, 
 			pre.subsector_idx_remap,
 			pre.lego_defs,
 			level_set,
-			true
+			_renderer._edge_overlay_enabled
 		)
-		var chunk_node = _scene.get_or_create_terrain_chunk_node(chunk_coord)
-		chunk_node.mesh = terrain_result["mesh"]
-		_scene.apply_sector_top_materials(terrain_result["mesh"], pre, terrain_result["surface_to_surface_type"])
-
-		var terrain_descriptors: Array = terrain_result.get("authored_piece_descriptors", [])
-		var chunk_authored_descriptors: Array = terrain_descriptors.duplicate()
-
-		if _renderer._edge_overlay_enabled:
-			var edge_result = SlurpBuilder.build_chunk_edge_overlay_result(
-				chunk_coord,
-				hgt,
-				w,
-				h,
-				effective_typ,
-				pre.surface_type_map,
-				level_set
-			)
-			var edge_chunk_node = _scene.get_or_create_edge_chunk_node(chunk_coord)
-			edge_chunk_node.mesh = edge_result.get("mesh", null)
-			_scene.apply_edge_surface_materials(
-				edge_chunk_node.mesh,
-				pre,
-				edge_result.get("fallback_horiz_keys", []),
-				edge_result.get("fallback_vert_keys", [])
-			)
-			var edge_descriptors: Array = edge_result.get("authored_piece_descriptors", [])
-			chunk_authored_descriptors.append_array(edge_descriptors)
-
+		var apply_result := ChunkBuildExecutor.apply_chunk_result(_scene, _chunk_runtime, chunk_result, pre)
+		var chunk_authored_descriptors: Array = apply_result.get("descriptors", [])
 		all_authored_descriptors.append_array(chunk_authored_descriptors)
-		_chunk_runtime.update_terrain_authored_cache_for_chunk(chunk_coord, chunk_authored_descriptors)
 		chunks_rebuilt += 1
 		processed.append(chunk_coord)
 
@@ -343,32 +324,18 @@ func apply_localized_dynamic_overlay_refresh(current_map_data: Node, set_id: int
 	if affected_sectors.is_empty():
 		return
 	_scene.ensure_overlay_nodes()
-	var descriptors: Array = []
-	if current_map_data.host_stations != null and is_instance_valid(current_map_data.host_stations):
-		var host_nodes = _unit_runtime_index.units_for_sectors(current_map_data, "host", affected_sectors)
-		descriptors.append_array(OverlayProducers.build_host_station_descriptors_for_sectors(
-			host_nodes,
-			set_id,
-			hgt,
-			w,
-			h,
-			affected_sectors,
-			support_descriptors,
-			metrics
-		))
-	if current_map_data.squads != null and is_instance_valid(current_map_data.squads):
-		var squad_nodes = _unit_runtime_index.units_for_sectors(current_map_data, "squad", affected_sectors)
-		descriptors.append_array(OverlayProducers.build_squad_descriptors_for_sectors(
-			squad_nodes,
-			set_id,
-			hgt,
-			w,
-			h,
-			affected_sectors,
-			support_descriptors,
-			game_data_type,
-			metrics
-		))
+	var descriptors := OverlayPlanBuilder.build_localized_dynamic_descriptors(
+		current_map_data,
+		_unit_runtime_index,
+		set_id,
+		hgt,
+		w,
+		h,
+		affected_sectors,
+		support_descriptors,
+		game_data_type,
+		metrics
+	)
 	var prefixes = StaticOverlayIndex.exact_instance_key_prefixes(descriptors)
 	if prefixes.is_empty():
 		return

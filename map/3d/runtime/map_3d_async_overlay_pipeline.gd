@@ -1,5 +1,6 @@
 extends RefCounted
 
+const OverlayPlanBuilder := preload("res://map/3d/services/map_3d_overlay_plan_builder.gd")
 
 var _driver = null
 var _renderer_node = null
@@ -73,12 +74,7 @@ func start_async_overlay_descriptor_build(dynamic_only: bool = false) -> void:
 	if cmd == null:
 		start_async_overlay_apply(support_descriptors, [], _build.make_empty_build_metrics())
 		return
-	var host_station_snapshot: Array = []
-	var squad_snapshot: Array = []
-	if cmd.host_stations != null and is_instance_valid(cmd.host_stations):
-		host_station_snapshot = _build.snapshot_host_station_nodes(cmd.host_stations.get_children())
-	if cmd.squads != null and is_instance_valid(cmd.squads):
-		squad_snapshot = _build.snapshot_squad_nodes(cmd.squads.get_children())
+	var snapshots := OverlayPlanBuilder.capture_dynamic_snapshots(cmd)
 	var payload := {
 		"generation_id": _build.coordinator().active_build_generation_id,
 		"dynamic_only": dynamic_only,
@@ -90,8 +86,8 @@ func start_async_overlay_descriptor_build(dynamic_only: bool = false) -> void:
 		"w": _build.async_w(),
 		"h": _build.async_h(),
 		"game_data_type": _build.async_game_data_type(),
-		"host_station_snapshot": host_station_snapshot,
-		"squad_snapshot": squad_snapshot,
+		"host_station_snapshot": snapshots.get("host_station_snapshot", []),
+		"squad_snapshot": snapshots.get("squad_snapshot", []),
 	}
 	_driver._async_overlay_descriptor_dynamic_only = dynamic_only
 	_build.set_async_overlay_descriptor_stage("Preparing overlays: queued")
@@ -125,25 +121,33 @@ func _async_overlay_descriptor_worker(payload: Dictionary) -> void:
 	var game_data_type := String(payload.get("game_data_type", "original"))
 	var host_station_snapshot: Array = payload.get("host_station_snapshot", [])
 	var squad_snapshot: Array = payload.get("squad_snapshot", [])
-	var static_started_usec := Time.get_ticks_usec()
 	if not dynamic_only:
 		_build.set_async_overlay_descriptor_stage("Preparing overlays: building attachments")
-		static_descriptors.append_array(_build.build_blg_attachment_descriptors(blg, effective_typ, set_id, hgt, w, h, support_descriptors, game_data_type))
-	metrics["static_overlay_descriptor_generation_ms"] = _build.elapsed_ms_since(static_started_usec)
 	if _build.is_async_cancel_requested(generation_id):
 		_build.set_async_overlay_descriptor_state(true, false, {}, {})
 		return
 	_build.set_async_overlay_descriptor_stage("Preparing overlays: host stations")
-	var dynamic_started_usec := Time.get_ticks_usec()
-	dynamic_descriptors.append_array(_build.build_host_station_descriptors_from_snapshot(host_station_snapshot, set_id, hgt, w, h, support_descriptors, metrics))
 	if _build.is_async_cancel_requested(generation_id):
 		_build.set_async_overlay_descriptor_state(true, false, {}, {})
 		return
 	_build.set_async_overlay_descriptor_stage("Preparing overlays: squads")
-	dynamic_descriptors.append_array(_build.build_squad_descriptors_from_snapshot(squad_snapshot, set_id, hgt, w, h, support_descriptors, game_data_type, metrics))
-	metrics["dynamic_overlay_descriptor_generation_ms"] = _build.elapsed_ms_since(dynamic_started_usec)
-	metrics["overlay_descriptor_generation_ms"] = _build.elapsed_ms_since(started_usec)
-	metrics["overlay_descriptor_count"] = static_descriptors.size() + dynamic_descriptors.size()
+	var overlay_plan := OverlayPlanBuilder.build_overlay_plan_from_snapshots(
+		host_station_snapshot,
+		squad_snapshot,
+		blg,
+		effective_typ,
+		set_id,
+		hgt,
+		w,
+		h,
+		support_descriptors,
+		game_data_type,
+		metrics,
+		dynamic_only
+	)
+	static_descriptors = overlay_plan.get("static_descriptors", [])
+	dynamic_descriptors = overlay_plan.get("dynamic_descriptors", [])
+	metrics["overlay_descriptor_generation_ms"] = maxf(float(metrics.get("overlay_descriptor_generation_ms", 0.0)), _build.elapsed_ms_since(started_usec))
 	_build.set_async_overlay_descriptor_stage("Preparing overlays: complete")
 	_build.set_async_overlay_descriptor_state(true, false, {
 		"static_descriptors": static_descriptors,
