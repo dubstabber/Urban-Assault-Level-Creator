@@ -193,6 +193,66 @@ static func build_edge_overlay_result(hgt: PackedByteArray, w: int, h: int, typ:
 	}
 
 
+static func build_preview_edge_mesh_result(hgt: PackedByteArray, w: int, h: int, typ: PackedByteArray, mapping: Dictionary) -> Dictionary:
+	var fallback_horiz := {}
+	var fallback_vert := {}
+
+	for y in range(-1, h + 1):
+		for x in range(-1, w):
+			var a := TerrainBuilder._typ_value_with_implicit_border(typ, w, h, x, y)
+			var b := TerrainBuilder._typ_value_with_implicit_border(typ, w, h, x + 1, y)
+			if not mapping.has(a) or not mapping.has(b):
+				continue
+			var sa := int(mapping.get(a, 0))
+			var sb := int(mapping.get(b, 0))
+			var yL := TerrainBuilder._center_h(hgt, w, h, x, y)
+			var yR := TerrainBuilder._center_h(hgt, w, h, x + 1, y)
+			var yTopAvg := TerrainBuilder._corner_average_h(hgt, w, h, x + 1, y)
+			var yBottomAvg := TerrainBuilder._corner_average_h(hgt, w, h, x + 1, y + 1)
+			if not _should_emit_seam_strip(sa, sb, yL, yR, yTopAvg, yBottomAvg):
+				continue
+			if sa == sb:
+				continue
+			_append_vertical_fallback_group(fallback_horiz, _retail_slurp_bucket_key(sa, sb, 1, 0), float(x + 2) * SECTOR_SIZE, float(y + 1) * SECTOR_SIZE, float(y + 2) * SECTOR_SIZE, yL, yR, yTopAvg, yBottomAvg)
+
+	for y2 in range(-1, h):
+		for x2 in range(-1, w + 1):
+			var a2 := TerrainBuilder._typ_value_with_implicit_border(typ, w, h, x2, y2)
+			var b2 := TerrainBuilder._typ_value_with_implicit_border(typ, w, h, x2, y2 + 1)
+			if not mapping.has(a2) or not mapping.has(b2):
+				continue
+			var sa2 := int(mapping.get(a2, 0))
+			var sb2 := int(mapping.get(b2, 0))
+			var yT := TerrainBuilder._center_h(hgt, w, h, x2, y2)
+			var yB := TerrainBuilder._center_h(hgt, w, h, x2, y2 + 1)
+			var yLeftAvg := TerrainBuilder._corner_average_h(hgt, w, h, x2, y2 + 1)
+			var yRightAvg := TerrainBuilder._corner_average_h(hgt, w, h, x2 + 1, y2 + 1)
+			if not _should_emit_seam_strip(sa2, sb2, yT, yB, yLeftAvg, yRightAvg):
+				continue
+			if sa2 == sb2:
+				continue
+			_append_horizontal_fallback_group(fallback_vert, _retail_slurp_bucket_key(sa2, sb2, 0, 1), float(x2 + 1) * SECTOR_SIZE, float(x2 + 2) * SECTOR_SIZE, float(y2 + 2) * SECTOR_SIZE, yT, yB, yLeftAvg, yRightAvg)
+
+	var mesh := ArrayMesh.new()
+	var fallback_horiz_keys: Array = fallback_horiz.keys()
+	var fallback_vert_keys: Array = fallback_vert.keys()
+	for key_h in fallback_horiz_keys:
+		var st_h: SurfaceTool = fallback_horiz[key_h]
+		st_h.index()
+		st_h.generate_normals()
+		st_h.commit(mesh)
+	for key_v in fallback_vert_keys:
+		var st_v: SurfaceTool = fallback_vert[key_v]
+		st_v.index()
+		st_v.generate_normals()
+		st_v.commit(mesh)
+	return {
+		"mesh": mesh,
+		"fallback_horiz_keys": fallback_horiz_keys,
+		"fallback_vert_keys": fallback_vert_keys,
+	}
+
+
 static func _append_vertical_fallback_group(groups: Dictionary, bucket_key: String, seam_x: float, z0: float, z1: float, left_height: float, right_height: float, top_avg: float, bottom_avg: float) -> void:
 	if bucket_key.is_empty():
 		return
