@@ -13,6 +13,33 @@ class RendererStub extends Node3D:
 	func _apply_pending_refresh() -> void:
 		pass
 
+	func emit_build_state_changed(is_building: bool, completed: int, total: int, status: String) -> void:
+		build_state_changed.emit(is_building, completed, total, status)
+
+	func emit_build_finished(success: bool) -> void:
+		build_finished.emit(success)
+
+	func defer_apply_pending_refresh() -> void:
+		_apply_pending_refresh()
+
+	func max_incremental_unit_batch() -> int:
+		return _MAX_INCREMENTAL_UNIT_BATCH
+
+	func async_chunk_apply_budget() -> int:
+		return _ASYNC_APPLY_RESULTS_PER_FRAME
+
+	func async_overlay_apply_budget(_descriptor_count: int = 0) -> int:
+		return _ASYNC_OVERLAY_APPLY_OPS_PER_FRAME
+
+	func sector_size() -> float:
+		return 1.0
+
+	func height_scale() -> float:
+		return 1.0
+
+	func normal_geometry_cull_distance() -> float:
+		return 5.5
+
 
 class MapDataStub extends Node:
 	var horizontal_sectors := 8

@@ -4,15 +4,15 @@ const OverlayPlanBuilder := preload("res://map/3d/services/map_3d_overlay_plan_b
 const OverlayProducers := preload("res://map/3d/overlays/map_3d_overlay_descriptor_producers.gd")
 
 var _driver = null
-var _renderer_node = null
+var _host = null
 var _context = null
 var _scene = null
 var _build = null
 
 
-func bind(driver, renderer, context_port, scene_port, build_state_port) -> void:
+func bind(driver, host_port, context_port, scene_port, build_state_port) -> void:
 	_driver = driver
-	_renderer_node = renderer
+	_host = host_port
 	_context = context_port
 	_scene = scene_port
 	_build = build_state_port
@@ -266,7 +266,7 @@ func pump_async_overlay_apply() -> void:
 			_driver.request_refresh(_driver._async_requested_reframe)
 		return
 	var descriptor_count := int(_driver._async_overlay_apply_state.get("descriptor_count", _driver._async_overlay_descriptors.size()))
-	var apply_budget := maxi(int(_renderer_node._async_overlay_apply_budget(descriptor_count)), 1)
+	var apply_budget := maxi(int(_host.async_overlay_apply_budget(descriptor_count)), 1)
 	var done: bool = _build.overlay_apply_manager().apply_overlay_node_step(_scene.authored_overlay(), _driver._async_overlay_apply_state, apply_budget)
 	var progress: Dictionary = _build.overlay_apply_manager().overlay_apply_progress(_driver._async_overlay_apply_state)
 	var progress_done := int(progress.get("done", 0))
@@ -365,7 +365,7 @@ func _initial_static_overlay_sectors() -> Array[Vector2i]:
 	if camera == null or not is_instance_valid(camera):
 		return []
 	var center_sector := OverlayProducers.playable_sector_at_world_position(camera.global_position.x, camera.global_position.z)
-	var sector_radius := int(ceil(_renderer_node.UA_NORMAL_GEOMETRY_CULL_DISTANCE / _renderer_node.SECTOR_SIZE)) + 1
+	var sector_radius := int(ceil(_host.normal_geometry_cull_distance() / _host.sector_size())) + 1
 	var sectors: Array[Vector2i] = []
 	for sy in range(maxi(center_sector.y - sector_radius, 0), mini(center_sector.y + sector_radius + 1, h)):
 		for sx in range(maxi(center_sector.x - sector_radius, 0), mini(center_sector.x + sector_radius + 1, w)):

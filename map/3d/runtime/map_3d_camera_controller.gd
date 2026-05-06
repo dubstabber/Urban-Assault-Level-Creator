@@ -2,7 +2,7 @@ extends RefCounted
 
 const ViewController := preload("res://map/3d/controllers/map_3d_view_controller.gd")
 
-var _renderer_node = null
+var _host = null
 var _context = null
 var _scene = null
 var _mouselook := false
@@ -14,8 +14,8 @@ var _look_sens := 0.0025
 var _framed := false
 
 
-func bind(renderer, context_port, scene_port) -> void:
-	_renderer_node = renderer
+func bind(host_port, context_port, scene_port) -> void:
+	_host = host_port
 	_context = context_port
 	_scene = scene_port
 
@@ -79,13 +79,13 @@ func unhandled_input(event: InputEvent) -> void:
 	elif event is InputEventKey and event.pressed and not event.echo:
 		var kev := event as InputEventKey
 		if kev.keycode == KEY_F9:
-			_renderer_node._debug_shader_mode = (_renderer_node._debug_shader_mode + 1) % 3
-			_renderer_node._apply_debug_mode_to_existing_materials()
+			_host.advance_debug_shader_mode()
+			_host.apply_debug_mode_to_existing_materials()
 			_scene.bump_3d_viewport_rendering()
 
 
 func wheel_step() -> float:
-	return ViewController.wheel_step(_context.current_map_data(), _renderer_node.SECTOR_SIZE)
+	return ViewController.wheel_step(_context.current_map_data(), _host.sector_size())
 
 
 func update_camera_rotation() -> void:
@@ -101,7 +101,7 @@ func frame_if_needed() -> void:
 	var camera: Camera3D = _scene.camera()
 	if camera == null or not is_instance_valid(camera):
 		return
-	var frame_result := ViewController.frame_camera_to_map(camera, _context.current_map_data(), _renderer_node.SECTOR_SIZE, _renderer_node.HEIGHT_SCALE)
+	var frame_result := ViewController.frame_camera_to_map(camera, _context.current_map_data(), _host.sector_size(), _host.height_scale())
 	if frame_result.is_empty():
 		return
 	_pitch = float(frame_result.get("pitch", _pitch))
@@ -121,7 +121,7 @@ func focus_sector(sector_sx: int, sector_sy: int) -> void:
 	var h := int(cmd.vertical_sectors)
 	if w <= 0 or h <= 0:
 		return
-	var frame_result := ViewController.frame_camera_to_sector(camera, cmd, sector_sx, sector_sy, _renderer_node.SECTOR_SIZE, _renderer_node.HEIGHT_SCALE)
+	var frame_result := ViewController.frame_camera_to_sector(camera, cmd, sector_sx, sector_sy, _host.sector_size(), _host.height_scale())
 	if frame_result.is_empty():
 		return
 	_pitch = float(frame_result.get("pitch", _pitch))

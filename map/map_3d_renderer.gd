@@ -13,6 +13,7 @@ const RendererEventController := preload("res://map/3d/controllers/map_3d_render
 const AsyncRefreshDriver := preload("res://map/3d/runtime/map_3d_async_refresh_driver.gd")
 const CameraController := preload("res://map/3d/runtime/map_3d_camera_controller.gd")
 const SceneGraph := preload("res://map/3d/runtime/map_3d_scene_graph.gd")
+const RendererHostPort := preload("res://map/3d/runtime/map_3d_renderer_host_port.gd")
 const RenderContextPort := preload("res://map/3d/runtime/map_3d_render_context_port.gd")
 const ScenePort := preload("res://map/3d/runtime/map_3d_scene_port.gd")
 const BuildStatePort := preload("res://map/3d/runtime/map_3d_build_state_port.gd")
@@ -73,12 +74,28 @@ const SQUAD_EXTRA_Y_OFFSET := SharedConstants.SQUAD_EXTRA_Y_OFFSET
 
 func _init() -> void:
 	_runtime_context.bind(self)
+	_host_port.bind(self)
 	_render_context_port.bind(self)
 	_scene_port.bind(self)
-	_build_state_port.bind(self)
+	_build_state_port.bind(
+		self,
+		_coordinator,
+		_chunk_rt,
+		_effective_typ_service,
+		_unit_runtime_index,
+		_static_overlay_index,
+		_overlay_refresh_scope,
+		_async_map_snapshot,
+		_runtime_state,
+		_camera_controller,
+		_async_refresh_driver,
+		_build_pipeline,
+		_scene_graph,
+		_rebuild_policy
+	)
 	_rebuild_policy.bind(_render_context_port, _scene_port, _runtime_state, _chunk_rt, _effective_typ_service, _overlay_refresh_scope)
-	_async_refresh_driver.bind(self, _render_context_port, _scene_port, _build_state_port)
-	_camera_controller.bind(self, _render_context_port, _scene_port)
+	_async_refresh_driver.bind(_host_port, _render_context_port, _scene_port, _build_state_port)
+	_camera_controller.bind(_host_port, _render_context_port, _scene_port)
 	_scene_graph.bind(_scene_port, _render_context_port, _runtime_state, _chunk_rt, _overlay_refresh_scope)
 	_renderer_event_controller.bind(
 		_build_state_port,
@@ -89,7 +106,8 @@ func _init() -> void:
 		_chunk_rt,
 		_effective_typ_service,
 		_overlay_refresh_scope,
-		_runtime_state
+		_runtime_state,
+		_camera_controller
 	)
 	_build_pipeline.bind(
 		_render_context_port,
@@ -212,6 +230,7 @@ static func facade_contract() -> Dictionary:
 
 var _runtime_state := RuntimeState.new()
 var _runtime_context := RuntimeContext.new()
+var _host_port := RendererHostPort.new()
 var _render_context_port := RenderContextPort.new()
 var _scene_port := ScenePort.new()
 var _build_state_port := BuildStatePort.new()

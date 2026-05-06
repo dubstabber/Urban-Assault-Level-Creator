@@ -5,7 +5,7 @@ const ChunkBuildExecutor := preload("res://map/3d/services/map_3d_chunk_build_ex
 const OverlayPlanBuilder := preload("res://map/3d/services/map_3d_overlay_plan_builder.gd")
 const UnitOverlayController := preload("res://map/3d/overlays/map_3d_unit_overlay_controller.gd")
 
-var _renderer_node = null
+var _host = null
 var _context = null
 var _scene = null
 var _build = null
@@ -39,12 +39,12 @@ var _async_chunk_authored_descriptors: Array = []
 var _overlay_pipeline := AsyncOverlayPipeline.new()
 
 
-func bind(renderer, context_port, scene_port, build_state_port) -> void:
-	_renderer_node = renderer
+func bind(host_port, context_port, scene_port, build_state_port) -> void:
+	_host = host_port
 	_context = context_port
 	_scene = scene_port
 	_build = build_state_port
-	_overlay_pipeline.bind(self, renderer, context_port, scene_port, build_state_port)
+	_overlay_pipeline.bind(self, host_port, context_port, scene_port, build_state_port)
 
 
 func get_build_state_snapshot() -> Dictionary:
@@ -77,7 +77,7 @@ func emit_build_state(building: bool, completed: int, total: int, status: String
 	completed_chunks = maxi(completed, 0)
 	total_chunks = maxi(total, 0)
 	status_text = status
-	_renderer_node.build_state_changed.emit(is_building_3d, completed_chunks, total_chunks, status_text)
+	_host.emit_build_state_changed(is_building_3d, completed_chunks, total_chunks, status_text)
 
 
 func begin_build_state(total_chunk_count: int, status: String) -> void:
@@ -91,7 +91,7 @@ func update_build_progress(completed: int, total: int, status: String = "") -> v
 
 func end_build_state(success: bool, status: String = "") -> void:
 	emit_build_state(false, completed_chunks, total_chunks, status)
-	_renderer_node.build_finished.emit(success)
+	_host.emit_build_finished(success)
 
 
 func request_refresh(reframe_camera: bool) -> void:
@@ -104,7 +104,7 @@ func request_refresh(reframe_camera: bool) -> void:
 	if _refresh_deferred:
 		return
 	_refresh_deferred = true
-	_renderer_node.call_deferred("_apply_pending_refresh")
+	_host.defer_apply_pending_refresh()
 
 
 func apply_pending_refresh() -> void:
@@ -150,7 +150,7 @@ func on_units_changed(changes: Array) -> void:
 	if _build.is_async_pipeline_active():
 		enqueue_pending_unit_changes(normalized)
 		return
-	if normalized.size() > _renderer_node._MAX_INCREMENTAL_UNIT_BATCH:
+	if normalized.size() > _host.max_incremental_unit_batch():
 		request_dynamic_overlay_refresh()
 		return
 	if apply_unit_change_batch(normalized):
@@ -177,7 +177,7 @@ func flush_pending_unit_changes() -> bool:
 	_pending_unit_changes.clear()
 	if pending.is_empty():
 		return false
-	if pending.size() > _renderer_node._MAX_INCREMENTAL_UNIT_BATCH:
+	if pending.size() > _host.max_incremental_unit_batch():
 		request_dynamic_overlay_refresh()
 		return true
 	if apply_unit_change_batch(pending):
@@ -334,7 +334,7 @@ func _async_initial_build_worker(snapshot: Dictionary, generation_id: int) -> vo
 func pump_async_initial_build() -> void:
 	if not _build.is_async_build_active():
 		return
-	var apply_budget := maxi(int(_renderer_node._async_chunk_apply_budget()), 1)
+	var apply_budget := maxi(int(_host.async_chunk_apply_budget()), 1)
 	for _i in range(apply_budget):
 		var payload: Dictionary = _build.pop_async_chunk_payload()
 		if payload.is_empty():
