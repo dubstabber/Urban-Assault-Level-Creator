@@ -1,11 +1,13 @@
 extends RefCounted
 
 const SharedConstants := preload("res://map/3d/config/map_3d_shared_constants.gd")
-const TerrainBuilder := preload("res://map/3d/terrain/map_3d_terrain_builder.gd")
+const PreviewGeometry := preload("res://map/3d/terrain/map_3d_preview_geometry.gd")
+const ChunkGrid := preload("res://map/3d/terrain/map_3d_chunk_grid.gd")
 
 const SECTOR_SIZE := SharedConstants.SECTOR_SIZE
 const HEIGHT_SCALE := SharedConstants.HEIGHT_SCALE
 const EDGE_SLOPE := SharedConstants.EDGE_SLOPE
+const TERRAIN_AUTHORED_Y_OFFSET := SharedConstants.TERRAIN_AUTHORED_Y_OFFSET
 
 
 static func _retail_slurp_bucket_key(surface_a: int, surface_b: int, neighbor_dx: int, neighbor_dy: int) -> String:
@@ -104,16 +106,16 @@ static func build_edge_overlay_result(hgt: PackedByteArray, w: int, h: int, typ:
 
 	for y in range(-1, h + 1):
 		for x in range(-1, w):
-			var a := TerrainBuilder._typ_value_with_implicit_border(typ, w, h, x, y)
-			var b := TerrainBuilder._typ_value_with_implicit_border(typ, w, h, x + 1, y)
+			var a := PreviewGeometry.typ_value_with_implicit_border(typ, w, h, x, y)
+			var b := PreviewGeometry.typ_value_with_implicit_border(typ, w, h, x + 1, y)
 			if not mapping.has(a) or not mapping.has(b):
 				continue
 			var sa := int(mapping.get(a, 0))
 			var sb := int(mapping.get(b, 0))
-			var yL := TerrainBuilder._center_h(hgt, w, h, x, y)
-			var yR := TerrainBuilder._center_h(hgt, w, h, x + 1, y)
-			var yTopAvg := TerrainBuilder._corner_average_h(hgt, w, h, x + 1, y)
-			var yBottomAvg := TerrainBuilder._corner_average_h(hgt, w, h, x + 1, y + 1)
+			var yL := PreviewGeometry.center_h(hgt, w, h, x, y)
+			var yR := PreviewGeometry.center_h(hgt, w, h, x + 1, y)
+			var yTopAvg := PreviewGeometry.corner_average_h(hgt, w, h, x + 1, y)
+			var yBottomAvg := PreviewGeometry.corner_average_h(hgt, w, h, x + 1, y + 1)
 			if not _should_emit_seam_strip(sa, sb, yL, yR, yTopAvg, yBottomAvg):
 				continue
 			var base_name := _authored_slurp_base_name(sa, sb, true)
@@ -124,7 +126,7 @@ static func build_edge_overlay_result(hgt: PackedByteArray, w: int, h: int, typ:
 					"base_name": base_name,
 					"instance_key": "slurp:v:%d:%d:%d:%d:%d" % [set_id, x, y, sa, sb],
 					"origin": _sector_center_origin(x + 1, y, yR),
-					"y_offset": TerrainBuilder.TERRAIN_AUTHORED_Y_OFFSET,
+					"y_offset": TERRAIN_AUTHORED_Y_OFFSET,
 					"warp_mode": "vside",
 					"anchor_height": yR,
 					"left_height": yL,
@@ -139,16 +141,16 @@ static func build_edge_overlay_result(hgt: PackedByteArray, w: int, h: int, typ:
 
 	for y2 in range(-1, h):
 		for x2 in range(-1, w + 1):
-			var a2 := TerrainBuilder._typ_value_with_implicit_border(typ, w, h, x2, y2)
-			var b2 := TerrainBuilder._typ_value_with_implicit_border(typ, w, h, x2, y2 + 1)
+			var a2 := PreviewGeometry.typ_value_with_implicit_border(typ, w, h, x2, y2)
+			var b2 := PreviewGeometry.typ_value_with_implicit_border(typ, w, h, x2, y2 + 1)
 			if not mapping.has(a2) or not mapping.has(b2):
 				continue
 			var sa2 := int(mapping.get(a2, 0))
 			var sb2 := int(mapping.get(b2, 0))
-			var yT := TerrainBuilder._center_h(hgt, w, h, x2, y2)
-			var yB := TerrainBuilder._center_h(hgt, w, h, x2, y2 + 1)
-			var yLeftAvg := TerrainBuilder._corner_average_h(hgt, w, h, x2, y2 + 1)
-			var yRightAvg := TerrainBuilder._corner_average_h(hgt, w, h, x2 + 1, y2 + 1)
+			var yT := PreviewGeometry.center_h(hgt, w, h, x2, y2)
+			var yB := PreviewGeometry.center_h(hgt, w, h, x2, y2 + 1)
+			var yLeftAvg := PreviewGeometry.corner_average_h(hgt, w, h, x2, y2 + 1)
+			var yRightAvg := PreviewGeometry.corner_average_h(hgt, w, h, x2 + 1, y2 + 1)
 			if not _should_emit_seam_strip(sa2, sb2, yT, yB, yLeftAvg, yRightAvg):
 				continue
 			var base_name_h := _authored_slurp_base_name(sa2, sb2, false)
@@ -159,7 +161,7 @@ static func build_edge_overlay_result(hgt: PackedByteArray, w: int, h: int, typ:
 					"base_name": base_name_h,
 					"instance_key": "slurp:h:%d:%d:%d:%d:%d" % [set_id, x2, y2, sa2, sb2],
 					"origin": _sector_center_origin(x2, y2 + 1, yB),
-					"y_offset": TerrainBuilder.TERRAIN_AUTHORED_Y_OFFSET,
+					"y_offset": TERRAIN_AUTHORED_Y_OFFSET,
 					"warp_mode": "hside",
 					"anchor_height": yB,
 					"top_height": yT,
@@ -199,16 +201,16 @@ static func build_preview_edge_mesh_result(hgt: PackedByteArray, w: int, h: int,
 
 	for y in range(-1, h + 1):
 		for x in range(-1, w):
-			var a := TerrainBuilder._typ_value_with_implicit_border(typ, w, h, x, y)
-			var b := TerrainBuilder._typ_value_with_implicit_border(typ, w, h, x + 1, y)
+			var a := PreviewGeometry.typ_value_with_implicit_border(typ, w, h, x, y)
+			var b := PreviewGeometry.typ_value_with_implicit_border(typ, w, h, x + 1, y)
 			if not mapping.has(a) or not mapping.has(b):
 				continue
 			var sa := int(mapping.get(a, 0))
 			var sb := int(mapping.get(b, 0))
-			var yL := TerrainBuilder._center_h(hgt, w, h, x, y)
-			var yR := TerrainBuilder._center_h(hgt, w, h, x + 1, y)
-			var yTopAvg := TerrainBuilder._corner_average_h(hgt, w, h, x + 1, y)
-			var yBottomAvg := TerrainBuilder._corner_average_h(hgt, w, h, x + 1, y + 1)
+			var yL := PreviewGeometry.center_h(hgt, w, h, x, y)
+			var yR := PreviewGeometry.center_h(hgt, w, h, x + 1, y)
+			var yTopAvg := PreviewGeometry.corner_average_h(hgt, w, h, x + 1, y)
+			var yBottomAvg := PreviewGeometry.corner_average_h(hgt, w, h, x + 1, y + 1)
 			if not _should_emit_seam_strip(sa, sb, yL, yR, yTopAvg, yBottomAvg):
 				continue
 			if sa == sb:
@@ -217,16 +219,16 @@ static func build_preview_edge_mesh_result(hgt: PackedByteArray, w: int, h: int,
 
 	for y2 in range(-1, h):
 		for x2 in range(-1, w + 1):
-			var a2 := TerrainBuilder._typ_value_with_implicit_border(typ, w, h, x2, y2)
-			var b2 := TerrainBuilder._typ_value_with_implicit_border(typ, w, h, x2, y2 + 1)
+			var a2 := PreviewGeometry.typ_value_with_implicit_border(typ, w, h, x2, y2)
+			var b2 := PreviewGeometry.typ_value_with_implicit_border(typ, w, h, x2, y2 + 1)
 			if not mapping.has(a2) or not mapping.has(b2):
 				continue
 			var sa2 := int(mapping.get(a2, 0))
 			var sb2 := int(mapping.get(b2, 0))
-			var yT := TerrainBuilder._center_h(hgt, w, h, x2, y2)
-			var yB := TerrainBuilder._center_h(hgt, w, h, x2, y2 + 1)
-			var yLeftAvg := TerrainBuilder._corner_average_h(hgt, w, h, x2, y2 + 1)
-			var yRightAvg := TerrainBuilder._corner_average_h(hgt, w, h, x2 + 1, y2 + 1)
+			var yT := PreviewGeometry.center_h(hgt, w, h, x2, y2)
+			var yB := PreviewGeometry.center_h(hgt, w, h, x2, y2 + 1)
+			var yLeftAvg := PreviewGeometry.corner_average_h(hgt, w, h, x2, y2 + 1)
+			var yRightAvg := PreviewGeometry.corner_average_h(hgt, w, h, x2 + 1, y2 + 1)
 			if not _should_emit_seam_strip(sa2, sb2, yT, yB, yLeftAvg, yRightAvg):
 				continue
 			if sa2 == sb2:
@@ -288,11 +290,11 @@ static func build_chunk_edge_overlay_result(
 	var fallback_horiz := {}
 	var fallback_vert := {}
 
-	var chunk_range := TerrainBuilder.chunk_sector_range(_chunk_coord.x, _chunk_coord.y)
+	var chunk_range := ChunkGrid.chunk_sector_range(_chunk_coord.x, _chunk_coord.y)
 	var sx_min := chunk_range.position.x
 	var sy_min := chunk_range.position.y
-	var sx_max := mini(sx_min + TerrainBuilder.CHUNK_SIZE, w)
-	var sy_max := mini(sy_min + TerrainBuilder.CHUNK_SIZE, h)
+	var sx_max := mini(sx_min + ChunkGrid.CHUNK_SIZE, w)
+	var sy_max := mini(sy_min + ChunkGrid.CHUNK_SIZE, h)
 
 	for y in range(sy_min - 1, sy_max + 1):
 		for x in range(sx_min - 1, sx_max):
@@ -300,16 +302,16 @@ static func build_chunk_edge_overlay_result(
 				continue
 			if not _chunk_owns_vertical_seam(x, y, sx_min, sx_max, sy_min, sy_max, h):
 				continue
-			var a := TerrainBuilder._typ_value_with_implicit_border(typ, w, h, x, y)
-			var b := TerrainBuilder._typ_value_with_implicit_border(typ, w, h, x + 1, y)
+			var a := PreviewGeometry.typ_value_with_implicit_border(typ, w, h, x, y)
+			var b := PreviewGeometry.typ_value_with_implicit_border(typ, w, h, x + 1, y)
 			if not mapping.has(a) or not mapping.has(b):
 				continue
 			var sa := int(mapping.get(a, 0))
 			var sb := int(mapping.get(b, 0))
-			var yL := TerrainBuilder._center_h(hgt, w, h, x, y)
-			var yR := TerrainBuilder._center_h(hgt, w, h, x + 1, y)
-			var yTopAvg := TerrainBuilder._corner_average_h(hgt, w, h, x + 1, y)
-			var yBottomAvg := TerrainBuilder._corner_average_h(hgt, w, h, x + 1, y + 1)
+			var yL := PreviewGeometry.center_h(hgt, w, h, x, y)
+			var yR := PreviewGeometry.center_h(hgt, w, h, x + 1, y)
+			var yTopAvg := PreviewGeometry.corner_average_h(hgt, w, h, x + 1, y)
+			var yBottomAvg := PreviewGeometry.corner_average_h(hgt, w, h, x + 1, y + 1)
 			if not _should_emit_seam_strip(sa, sb, yL, yR, yTopAvg, yBottomAvg):
 				continue
 			var base_name := _authored_slurp_base_name(sa, sb, true)
@@ -320,7 +322,7 @@ static func build_chunk_edge_overlay_result(
 					"base_name": base_name,
 					"instance_key": "slurp:v:%d:%d:%d:%d:%d" % [_set_id, x, y, sa, sb],
 					"origin": _sector_center_origin(x + 1, y, yR),
-					"y_offset": TerrainBuilder.TERRAIN_AUTHORED_Y_OFFSET,
+					"y_offset": TERRAIN_AUTHORED_Y_OFFSET,
 					"warp_mode": "vside",
 					"anchor_height": yR,
 					"left_height": yL,
@@ -339,16 +341,16 @@ static func build_chunk_edge_overlay_result(
 				continue
 			if not _chunk_owns_horizontal_seam(x2, y2, sx_min, sx_max, sy_min, sy_max, w):
 				continue
-			var a2 := TerrainBuilder._typ_value_with_implicit_border(typ, w, h, x2, y2)
-			var b2 := TerrainBuilder._typ_value_with_implicit_border(typ, w, h, x2, y2 + 1)
+			var a2 := PreviewGeometry.typ_value_with_implicit_border(typ, w, h, x2, y2)
+			var b2 := PreviewGeometry.typ_value_with_implicit_border(typ, w, h, x2, y2 + 1)
 			if not mapping.has(a2) or not mapping.has(b2):
 				continue
 			var sa2 := int(mapping.get(a2, 0))
 			var sb2 := int(mapping.get(b2, 0))
-			var yT := TerrainBuilder._center_h(hgt, w, h, x2, y2)
-			var yB := TerrainBuilder._center_h(hgt, w, h, x2, y2 + 1)
-			var yLeftAvg := TerrainBuilder._corner_average_h(hgt, w, h, x2, y2 + 1)
-			var yRightAvg := TerrainBuilder._corner_average_h(hgt, w, h, x2 + 1, y2 + 1)
+			var yT := PreviewGeometry.center_h(hgt, w, h, x2, y2)
+			var yB := PreviewGeometry.center_h(hgt, w, h, x2, y2 + 1)
+			var yLeftAvg := PreviewGeometry.corner_average_h(hgt, w, h, x2, y2 + 1)
+			var yRightAvg := PreviewGeometry.corner_average_h(hgt, w, h, x2 + 1, y2 + 1)
 			if not _should_emit_seam_strip(sa2, sb2, yT, yB, yLeftAvg, yRightAvg):
 				continue
 			var base_name_h := _authored_slurp_base_name(sa2, sb2, false)
@@ -359,7 +361,7 @@ static func build_chunk_edge_overlay_result(
 					"base_name": base_name_h,
 					"instance_key": "slurp:h:%d:%d:%d:%d:%d" % [_set_id, x2, y2, sa2, sb2],
 					"origin": _sector_center_origin(x2, y2 + 1, yB),
-					"y_offset": TerrainBuilder.TERRAIN_AUTHORED_Y_OFFSET,
+					"y_offset": TERRAIN_AUTHORED_Y_OFFSET,
 					"warp_mode": "hside",
 					"anchor_height": yB,
 					"top_height": yT,

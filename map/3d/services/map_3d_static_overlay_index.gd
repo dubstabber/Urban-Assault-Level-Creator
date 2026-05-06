@@ -1,5 +1,5 @@
 extends RefCounted
-const TerrainBuilder := preload("res://map/3d/terrain/map_3d_terrain_builder.gd")
+const ChunkGrid := preload("res://map/3d/terrain/map_3d_chunk_grid.gd")
 
 var _descriptors_by_key: Dictionary = {}
 
@@ -46,11 +46,11 @@ static func terrain_prefixes_for_chunks(set_id: int, chunks: Array, w: int, h: i
 		if not (chunk_value is Vector2i):
 			continue
 		var chunk_coord := Vector2i(chunk_value)
-		var chunk_range := TerrainBuilder.chunk_sector_range(chunk_coord.x, chunk_coord.y)
+		var chunk_range := ChunkGrid.chunk_sector_range(chunk_coord.x, chunk_coord.y)
 		var main_sx_min := chunk_range.position.x
 		var main_sy_min := chunk_range.position.y
-		var main_sx_max := mini(main_sx_min + TerrainBuilder.CHUNK_SIZE, w)
-		var main_sy_max := mini(main_sy_min + TerrainBuilder.CHUNK_SIZE, h)
+		var main_sx_max := mini(main_sx_min + ChunkGrid.CHUNK_SIZE, w)
+		var main_sy_max := mini(main_sy_min + ChunkGrid.CHUNK_SIZE, h)
 		var sx_min := maxi(main_sx_min - 1, -1)
 		var sy_min := maxi(main_sy_min - 1, -1)
 		var sx_max := mini(main_sx_max + 1, w + 1)

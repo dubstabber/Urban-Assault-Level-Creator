@@ -1,7 +1,10 @@
 extends RefCounted
 
 const Map3DRendererScript = preload("res://map/map_3d_renderer.gd")
+const TerrainBuilder = preload("res://map/3d/terrain/map_3d_terrain_builder.gd")
 const SlurpBuilder = preload("res://map/3d/terrain/map_3d_slurp_builder.gd")
+const PreviewGeometry = preload("res://map/3d/terrain/map_3d_preview_geometry.gd")
+const TileResolver = preload("res://map/3d/terrain/map_3d_tile_resolver.gd")
 const AuthoredPieceLibrary = preload("res://map/terrain/ua_authored_piece_library.gd")
 const AnimatedSurfaceMeshInstanceScript = preload("res://map/terrain/ua_animated_surface_mesh_instance.gd")
 const ParticleEmitterScript = preload("res://map/terrain/ua_authored_particle_emitter.gd")
@@ -505,11 +508,11 @@ static func _edge_shader_material_matches(
 func test_retail_slurp_bucket_key_uses_vside_for_left_right_pairs() -> bool:
 	_reset_errors()
 	_check(
-		Map3DRendererScript._retail_slurp_bucket_key(2, 5, 1, 0) == "vside_2_5",
+		PreviewGeometry.retail_slurp_bucket_key(2, 5, 1, 0) == "vside_2_5",
 		"Left/right neighboring sectors should map to the retail vside slurp family"
 	)
 	_check(
-		Map3DRendererScript._retail_slurp_bucket_key(5, 2, 1, 0) == "vside_5_2",
+		PreviewGeometry.retail_slurp_bucket_key(5, 2, 1, 0) == "vside_5_2",
 		"Retail vside slurp selection should preserve ordered surface_type pairs"
 	)
 	return _errors.is_empty()
@@ -517,11 +520,11 @@ func test_retail_slurp_bucket_key_uses_vside_for_left_right_pairs() -> bool:
 func test_retail_slurp_bucket_key_uses_hside_for_top_bottom_pairs() -> bool:
 	_reset_errors()
 	_check(
-		Map3DRendererScript._retail_slurp_bucket_key(1, 4, 0, 1) == "hside_1_4",
+		PreviewGeometry.retail_slurp_bucket_key(1, 4, 0, 1) == "hside_1_4",
 		"Top/bottom neighboring sectors should map to the retail hside slurp family"
 	)
 	_check(
-		Map3DRendererScript._retail_slurp_bucket_key(1, 4, 1, 1) == "",
+		PreviewGeometry.retail_slurp_bucket_key(1, 4, 1, 1) == "",
 		"Only axis-aligned neighboring sector pairs should produce a retail slurp bucket key"
 	)
 	return _errors.is_empty()
@@ -531,7 +534,7 @@ func test_build_mesh_with_textures_groups_same_surface_type_into_one_top_family(
 	var w := 2
 	var h := 1
 	var data := _make_typ_and_hgt(w, h, [12, 34])
-	var result: Dictionary = Map3DRendererScript.build_mesh_with_textures(
+	var result: Dictionary = TerrainBuilder.build_mesh_with_textures(
 		data["hgt"],
 		data["typ"],
 		w,
@@ -751,11 +754,11 @@ func test_build_edges_mesh_includes_implicit_border_ring_pairs() -> bool:
 func test_surface_pair_from_slurp_bucket_key_rejects_invalid_keys() -> bool:
 	_reset_errors()
 	_check(
-		Map3DRendererScript._surface_pair_from_slurp_bucket_key("broken") == {},
+		PreviewGeometry.surface_pair_from_slurp_bucket_key("broken") == {},
 		"Malformed slurp bucket keys should not decode into a surface pair"
 	)
 	_check(
-		Map3DRendererScript._surface_pair_from_slurp_bucket_key("diag_1_2") == {},
+		PreviewGeometry.surface_pair_from_slurp_bucket_key("diag_1_2") == {},
 		"Only retail vside/hside bucket families should decode into a surface pair"
 	)
 	return _errors.is_empty()
@@ -1569,7 +1572,7 @@ func test_build_mesh_with_textures_compact_sector_uses_surface_type_texture_fami
 	var tile_mapping := {
 		10: {"val0": 2, "val1": 0, "val2": 6, "val3": 5, "flag": 255}
 	}
-	var result: Dictionary = Map3DRendererScript.build_mesh_with_textures(
+	var result: Dictionary = TerrainBuilder.build_mesh_with_textures(
 		data["hgt"],
 		data["typ"],
 		w,
@@ -1600,28 +1603,28 @@ func test_build_mesh_with_textures_compact_sector_uses_surface_type_texture_fami
 func test_selected_raw_id_for_tile_desc_uses_startup_raw_stage_slot() -> bool:
 	_reset_errors()
 	var tile_desc := {"val0": 40, "val1": 30, "val2": 20, "val3": 10, "flag": 255}
-	_check(Map3DRendererScript._selected_raw_id_for_tile_desc(tile_desc) == 40, "startup raw 255 should use stage slot 0 / val0")
+	_check(TileResolver.selected_raw_id_for_tile_desc(tile_desc) == 40, "startup raw 255 should use stage slot 0 / val0")
 	tile_desc["flag"] = 0
-	_check(Map3DRendererScript._selected_raw_id_for_tile_desc(tile_desc) == 10, "startup raw 0 should use stage slot 3 / val3")
+	_check(TileResolver.selected_raw_id_for_tile_desc(tile_desc) == 10, "startup raw 0 should use stage slot 3 / val3")
 	tile_desc["flag"] = 1
-	_check(Map3DRendererScript._selected_raw_id_for_tile_desc(tile_desc) == 20, "raw_to_stage bands should still map raw 1 to stage slot 2 when passed directly")
+	_check(TileResolver.selected_raw_id_for_tile_desc(tile_desc) == 20, "raw_to_stage bands should still map raw 1 to stage slot 2 when passed directly")
 	var fixed_piece_tile_desc := {"val0": 129, "val1": 0, "val2": 0, "val3": 0, "flag": 0}
-	_check(Map3DRendererScript._selected_raw_id_for_tile_desc(fixed_piece_tile_desc) == 129, "Single-prototype tile entries should keep their only authored piece even when the selected startup-state slot is 0")
+	_check(TileResolver.selected_raw_id_for_tile_desc(fixed_piece_tile_desc) == 129, "Single-prototype tile entries should keep their only authored piece even when the selected startup-state slot is 0")
 	var multi_piece_zero_slot_tile_desc := {"val0": 129, "val1": 128, "val2": 0, "val3": 0, "flag": 0}
-	_check(Map3DRendererScript._selected_raw_id_for_tile_desc(multi_piece_zero_slot_tile_desc) == 0, "Zero-slot fallback should not override multi-prototype tile entries")
+	_check(TileResolver.selected_raw_id_for_tile_desc(multi_piece_zero_slot_tile_desc) == 0, "Zero-slot fallback should not override multi-prototype tile entries")
 	var repeated_steady_state_tile_desc := {"val0": 203, "val1": 203, "val2": 203, "val3": 35, "flag": 0}
-	_check(Map3DRendererScript._selected_raw_id_for_tile_desc(repeated_steady_state_tile_desc) == 203, "The unique typ155-style repeated steady-state payload should keep its repeated authored piece instead of dropping to the divergent val3")
+	_check(TileResolver.selected_raw_id_for_tile_desc(repeated_steady_state_tile_desc) == 203, "The unique typ155-style repeated steady-state payload should keep its repeated authored piece instead of dropping to the divergent val3")
 	return _errors.is_empty()
 
 func test_authored_origin_for_subsector_uses_300_unit_lattice() -> bool:
 	_reset_errors()
-	var origin := Map3DRendererScript._authored_origin_for_subsector(SECTOR_SIZE, SECTOR_SIZE, 0.0, 1, 2)
+	var origin := TileResolver.authored_origin_for_subsector(SECTOR_SIZE, SECTOR_SIZE, 0.0, 1, 2)
 	_check(origin.is_equal_approx(Vector3(SECTOR_SIZE * 1.5, 0.0, SECTOR_SIZE * 1.75)), "3x3 authored subpieces should use the source-backed 300-unit lattice inside a 1200-unit sector")
 	return _errors.is_empty()
 
 func test_default_piece_selection_for_subsector_missing_tile_desc_falls_back_to_surface_family() -> bool:
 	_reset_errors()
-	var selection := Map3DRendererScript._default_piece_selection_for_subsector(4, 107, {}, {}, {})
+	var selection := TileResolver.default_piece_selection_for_subsector(4, 107, {}, {}, {})
 	var piece: Array = selection.get("piece", [])
 	_check(int(selection.get("raw_id", -2)) == -1, "Missing tile metadata should not resolve an authored/raw tile id")
 	_check(piece.size() == 3, "Fallback surface-family selection should still return an FCV triple")
@@ -1652,7 +1655,7 @@ func test_build_mesh_with_textures_complex_sector_uses_3x3_subsector_grid() -> b
 		7: {"val0": 37, "val1": 0, "val2": 37, "val3": 0, "flag": 1},
 		8: {"val0": 38, "val1": 0, "val2": 38, "val3": 0, "flag": 1}
 	}
-	var result: Dictionary = Map3DRendererScript.build_mesh_with_textures(
+	var result: Dictionary = TerrainBuilder.build_mesh_with_textures(
 		data["hgt"],
 		data["typ"],
 		1,
@@ -1685,7 +1688,7 @@ func test_apply_sector_top_materials_enables_multi_texture_shader_mode() -> bool
 	var renderer = Map3DRendererScript.new()
 	var preloads := MockPreloads.new()
 	var data := _make_typ_and_hgt(1, 1, [12])
-	var result: Dictionary = Map3DRendererScript.build_mesh_with_textures(data["hgt"], data["typ"], 1, 1, {12: 3})
+	var result: Dictionary = TerrainBuilder.build_mesh_with_textures(data["hgt"], data["typ"], 1, 1, {12: 3})
 	var mesh: ArrayMesh = result.get("mesh", null)
 	var surface_map: Dictionary = result.get("surface_to_surface_type", {})
 	_check(mesh != null, "Material application test should produce a mesh")
@@ -1731,15 +1734,15 @@ func test_edge_blend_shader_pins_sampling_to_lod0() -> bool:
 func test_typ_value_with_implicit_border_restores_fixed_border_ring() -> bool:
 	_reset_errors()
 	var typ := PackedByteArray([77])
-	_check(Map3DRendererScript._typ_value_with_implicit_border(typ, 1, 1, -1, -1) == 248, "Top-left implicit border typ should be 248")
-	_check(Map3DRendererScript._typ_value_with_implicit_border(typ, 1, 1, 0, -1) == 252, "Top edge implicit border typ should be 252")
-	_check(Map3DRendererScript._typ_value_with_implicit_border(typ, 1, 1, 1, -1) == 249, "Top-right implicit border typ should be 249")
-	_check(Map3DRendererScript._typ_value_with_implicit_border(typ, 1, 1, -1, 0) == 255, "Left edge implicit border typ should be 255")
-	_check(Map3DRendererScript._typ_value_with_implicit_border(typ, 1, 1, 0, 0) == 77, "Playable cell should keep its real typ_map value")
-	_check(Map3DRendererScript._typ_value_with_implicit_border(typ, 1, 1, 1, 0) == 253, "Right edge implicit border typ should be 253")
-	_check(Map3DRendererScript._typ_value_with_implicit_border(typ, 1, 1, -1, 1) == 251, "Bottom-left implicit border typ should be 251")
-	_check(Map3DRendererScript._typ_value_with_implicit_border(typ, 1, 1, 0, 1) == 254, "Bottom edge implicit border typ should be 254")
-	_check(Map3DRendererScript._typ_value_with_implicit_border(typ, 1, 1, 1, 1) == 250, "Bottom-right implicit border typ should be 250")
+	_check(PreviewGeometry.typ_value_with_implicit_border(typ, 1, 1, -1, -1) == 248, "Top-left implicit border typ should be 248")
+	_check(PreviewGeometry.typ_value_with_implicit_border(typ, 1, 1, 0, -1) == 252, "Top edge implicit border typ should be 252")
+	_check(PreviewGeometry.typ_value_with_implicit_border(typ, 1, 1, 1, -1) == 249, "Top-right implicit border typ should be 249")
+	_check(PreviewGeometry.typ_value_with_implicit_border(typ, 1, 1, -1, 0) == 255, "Left edge implicit border typ should be 255")
+	_check(PreviewGeometry.typ_value_with_implicit_border(typ, 1, 1, 0, 0) == 77, "Playable cell should keep its real typ_map value")
+	_check(PreviewGeometry.typ_value_with_implicit_border(typ, 1, 1, 1, 0) == 253, "Right edge implicit border typ should be 253")
+	_check(PreviewGeometry.typ_value_with_implicit_border(typ, 1, 1, -1, 1) == 251, "Bottom-left implicit border typ should be 251")
+	_check(PreviewGeometry.typ_value_with_implicit_border(typ, 1, 1, 0, 1) == 254, "Bottom edge implicit border typ should be 254")
+	_check(PreviewGeometry.typ_value_with_implicit_border(typ, 1, 1, 1, 1) == 250, "Bottom-right implicit border typ should be 250")
 	return _errors.is_empty()
 
 func test_build_mesh_with_textures_renders_full_implicit_border_ring() -> bool:
@@ -1756,7 +1759,7 @@ func test_build_mesh_with_textures_renders_full_implicit_border_ring() -> bool:
 		254: 0,
 		255: 0,
 	}
-	var result: Dictionary = Map3DRendererScript.build_mesh_with_textures(data["hgt"], data["typ"], 1, 1, mapping)
+	var result: Dictionary = TerrainBuilder.build_mesh_with_textures(data["hgt"], data["typ"], 1, 1, mapping)
 	_check(result.has("mesh"), "Border-ring textured build should return a mesh entry")
 	_check(result.has("surface_to_surface_type"), "Border-ring textured build should return a surface mapping entry")
 	if result.has("mesh") and result.has("surface_to_surface_type"):
@@ -1787,7 +1790,7 @@ func test_set1_typ3_uses_gate_authored_piece() -> bool:
 	var parser = load("res://map/terrain/set_sdf_parser.gd")
 	var full_data: Dictionary = parser.parse_full_typ_data(1)
 	var data := _make_typ_and_hgt(1, 1, [3])
-	var result: Dictionary = Map3DRendererScript.build_mesh_with_textures(
+	var result: Dictionary = TerrainBuilder.build_mesh_with_textures(
 		data["hgt"],
 		data["typ"],
 		1,
@@ -1816,7 +1819,7 @@ func test_set1_typ185_uses_authored_piece_descriptors() -> bool:
 	var parser = load("res://map/terrain/set_sdf_parser.gd")
 	var full_data: Dictionary = parser.parse_full_typ_data(1)
 	var data := _make_typ_and_hgt(1, 1, [185])
-	var result: Dictionary = Map3DRendererScript.build_mesh_with_textures(
+	var result: Dictionary = TerrainBuilder.build_mesh_with_textures(
 		data["hgt"],
 		data["typ"],
 		1,
@@ -1845,7 +1848,7 @@ func test_set1_typ40_uses_normal_startup_state_variants() -> bool:
 	var parser = load("res://map/terrain/set_sdf_parser.gd")
 	var full_data: Dictionary = parser.parse_full_typ_data(1)
 	var data := _make_typ_and_hgt(1, 1, [40])
-	var result: Dictionary = Map3DRendererScript.build_mesh_with_textures(
+	var result: Dictionary = TerrainBuilder.build_mesh_with_textures(
 		data["hgt"],
 		data["typ"],
 		1,
@@ -1872,7 +1875,7 @@ func test_set1_typ239_uses_startup_outer_gems_instead_of_empty_damaged_slots() -
 	var parser = load("res://map/terrain/set_sdf_parser.gd")
 	var full_data: Dictionary = parser.parse_full_typ_data(1)
 	var data := _make_typ_and_hgt(1, 1, [239])
-	var result: Dictionary = Map3DRendererScript.build_mesh_with_textures(
+	var result: Dictionary = TerrainBuilder.build_mesh_with_textures(
 		data["hgt"],
 		data["typ"],
 		1,
@@ -1903,7 +1906,7 @@ func test_set6_typ234_uses_authored_static_animation_overlay() -> bool:
 	var parser = load("res://map/terrain/set_sdf_parser.gd")
 	var full_data: Dictionary = parser.parse_full_typ_data(6)
 	var data := _make_typ_and_hgt(1, 1, [234])
-	var result: Dictionary = Map3DRendererScript.build_mesh_with_textures(
+	var result: Dictionary = TerrainBuilder.build_mesh_with_textures(
 		data["hgt"],
 		data["typ"],
 		1,
@@ -1932,7 +1935,7 @@ func test_set6_typ235_uses_authored_static_animation_overlay() -> bool:
 	var parser = load("res://map/terrain/set_sdf_parser.gd")
 	var full_data: Dictionary = parser.parse_full_typ_data(6)
 	var data := _make_typ_and_hgt(1, 1, [235])
-	var result: Dictionary = Map3DRendererScript.build_mesh_with_textures(
+	var result: Dictionary = TerrainBuilder.build_mesh_with_textures(
 		data["hgt"],
 		data["typ"],
 		1,
@@ -2288,7 +2291,7 @@ func test_set4_typ155_uses_repeated_steady_state_piece_for_bottom_left() -> bool
 	var parser = load("res://map/terrain/set_sdf_parser.gd")
 	var full_data: Dictionary = parser.parse_full_typ_data(4)
 	var data := _make_typ_and_hgt(1, 1, [155])
-	var result: Dictionary = Map3DRendererScript.build_mesh_with_textures(
+	var result: Dictionary = TerrainBuilder.build_mesh_with_textures(
 		data["hgt"],
 		data["typ"],
 		1,
@@ -2310,7 +2313,7 @@ func test_set4_typ155_uses_repeated_steady_state_piece_for_bottom_left() -> bool
 func test_build_mesh_with_textures_unknown_typ_uses_debug_surface() -> bool:
 	_reset_errors()
 	var data := _make_typ_and_hgt(1, 1, [222])
-	var result: Dictionary = Map3DRendererScript.build_mesh_with_textures(data["hgt"], data["typ"], 1, 1, {})
+	var result: Dictionary = TerrainBuilder.build_mesh_with_textures(data["hgt"], data["typ"], 1, 1, {})
 	_check(result.has("mesh"), "Unknown-typ result should still include mesh key")
 	_check(result.has("surface_to_surface_type"), "Unknown-typ result should still include surface mapping")
 	if result.has("mesh") and result.has("surface_to_surface_type"):
@@ -2326,7 +2329,7 @@ func test_build_mesh_with_textures_unknown_typ_uses_debug_surface() -> bool:
 
 func test_build_mesh_with_textures_invalid_input_returns_empty_mesh() -> bool:
 	_reset_errors()
-	var result: Dictionary = Map3DRendererScript.build_mesh_with_textures(PackedByteArray([0, 0, 0, 0]), PackedByteArray([12]), 1, 1, {12: 0})
+	var result: Dictionary = TerrainBuilder.build_mesh_with_textures(PackedByteArray([0, 0, 0, 0]), PackedByteArray([12]), 1, 1, {12: 0})
 	_check(result.has("mesh"), "Invalid-input result should still include mesh key")
 	if result.has("mesh"):
 		var mesh: ArrayMesh = result["mesh"]

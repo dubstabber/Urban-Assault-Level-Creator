@@ -1,6 +1,7 @@
 extends RefCounted
 
 const TerrainBuilder := preload("res://map/3d/terrain/map_3d_terrain_builder.gd")
+const ChunkGrid := preload("res://map/3d/terrain/map_3d_chunk_grid.gd")
 const RendererScript := preload("res://map/map_3d_renderer.gd")
 # Use scaled SECTOR_SIZE from renderer (WORLD_SCALE = 1/1200)
 const SECTOR_SIZE := RendererScript.SECTOR_SIZE
@@ -45,34 +46,34 @@ func _check_has(arr: Array, item, msg: String) -> void:
 
 func test_chunk_constants() -> bool:
 	_reset_errors()
-	_check_eq(TerrainBuilder.CHUNK_SIZE, 4, "Chunk size should be 4 sectors")
-	_check_eq(TerrainBuilder.CHUNK_SHIFT, 2, "Chunk shift should be log2(4) = 2")
+	_check_eq(ChunkGrid.CHUNK_SIZE, 4, "Chunk size should be 4 sectors")
+	_check_eq(ChunkGrid.CHUNK_SHIFT, 2, "Chunk shift should be log2(4) = 2")
 	return _errors.is_empty()
 
 
 func test_sector_to_chunk_basic() -> bool:
 	_reset_errors()
-	_check_eq(TerrainBuilder.sector_to_chunk(0, 0), Vector2i(0, 0), "sector (0,0)")
-	_check_eq(TerrainBuilder.sector_to_chunk(1, 1), Vector2i(0, 0), "sector (1,1)")
-	_check_eq(TerrainBuilder.sector_to_chunk(3, 3), Vector2i(0, 0), "sector (3,3)")
-	_check_eq(TerrainBuilder.sector_to_chunk(4, 0), Vector2i(1, 0), "sector (4,0)")
-	_check_eq(TerrainBuilder.sector_to_chunk(0, 4), Vector2i(0, 1), "sector (0,4)")
-	_check_eq(TerrainBuilder.sector_to_chunk(7, 7), Vector2i(1, 1), "sector (7,7)")
-	_check_eq(TerrainBuilder.sector_to_chunk(8, 8), Vector2i(2, 2), "sector (8,8)")
+	_check_eq(ChunkGrid.sector_to_chunk(0, 0), Vector2i(0, 0), "sector (0,0)")
+	_check_eq(ChunkGrid.sector_to_chunk(1, 1), Vector2i(0, 0), "sector (1,1)")
+	_check_eq(ChunkGrid.sector_to_chunk(3, 3), Vector2i(0, 0), "sector (3,3)")
+	_check_eq(ChunkGrid.sector_to_chunk(4, 0), Vector2i(1, 0), "sector (4,0)")
+	_check_eq(ChunkGrid.sector_to_chunk(0, 4), Vector2i(0, 1), "sector (0,4)")
+	_check_eq(ChunkGrid.sector_to_chunk(7, 7), Vector2i(1, 1), "sector (7,7)")
+	_check_eq(ChunkGrid.sector_to_chunk(8, 8), Vector2i(2, 2), "sector (8,8)")
 	return _errors.is_empty()
 
 
 func test_chunk_sector_range() -> bool:
 	_reset_errors()
-	var range_0_0 := TerrainBuilder.chunk_sector_range(0, 0)
+	var range_0_0 := ChunkGrid.chunk_sector_range(0, 0)
 	_check_eq(range_0_0.position, Vector2i(0, 0), "chunk (0,0) position")
 	_check_eq(range_0_0.size, Vector2i(4, 4), "chunk (0,0) size")
 	
-	var range_1_0 := TerrainBuilder.chunk_sector_range(1, 0)
+	var range_1_0 := ChunkGrid.chunk_sector_range(1, 0)
 	_check_eq(range_1_0.position, Vector2i(4, 0), "chunk (1,0) position")
 	_check_eq(range_1_0.size, Vector2i(4, 4), "chunk (1,0) size")
 	
-	var range_2_3 := TerrainBuilder.chunk_sector_range(2, 3)
+	var range_2_3 := ChunkGrid.chunk_sector_range(2, 3)
 	_check_eq(range_2_3.position, Vector2i(8, 12), "chunk (2,3) position")
 	_check_eq(range_2_3.size, Vector2i(4, 4), "chunk (2,3) size")
 	return _errors.is_empty()
@@ -80,19 +81,19 @@ func test_chunk_sector_range() -> bool:
 
 func test_chunk_count_for_map() -> bool:
 	_reset_errors()
-	_check_eq(TerrainBuilder.chunk_count_for_map(0, 0), Vector2i.ZERO, "0x0 map")
-	_check_eq(TerrainBuilder.chunk_count_for_map(4, 4), Vector2i(1, 1), "4x4 map")
-	_check_eq(TerrainBuilder.chunk_count_for_map(8, 8), Vector2i(2, 2), "8x8 map")
-	_check_eq(TerrainBuilder.chunk_count_for_map(5, 5), Vector2i(2, 2), "5x5 map")
-	_check_eq(TerrainBuilder.chunk_count_for_map(16, 16), Vector2i(4, 4), "16x16 map")
-	_check_eq(TerrainBuilder.chunk_count_for_map(64, 64), Vector2i(16, 16), "64x64 map")
-	_check_eq(TerrainBuilder.chunk_count_for_map(17, 9), Vector2i(5, 3), "17x9 map")
+	_check_eq(ChunkGrid.chunk_count_for_map(0, 0), Vector2i.ZERO, "0x0 map")
+	_check_eq(ChunkGrid.chunk_count_for_map(4, 4), Vector2i(1, 1), "4x4 map")
+	_check_eq(ChunkGrid.chunk_count_for_map(8, 8), Vector2i(2, 2), "8x8 map")
+	_check_eq(ChunkGrid.chunk_count_for_map(5, 5), Vector2i(2, 2), "5x5 map")
+	_check_eq(ChunkGrid.chunk_count_for_map(16, 16), Vector2i(4, 4), "16x16 map")
+	_check_eq(ChunkGrid.chunk_count_for_map(64, 64), Vector2i(16, 16), "64x64 map")
+	_check_eq(ChunkGrid.chunk_count_for_map(17, 9), Vector2i(5, 3), "17x9 map")
 	return _errors.is_empty()
 
 
 func test_chunks_for_hgt_edit_interior_sector() -> bool:
 	_reset_errors()
-	var chunks := TerrainBuilder.chunks_for_hgt_edit(1, 1, 16, 16)
+	var chunks := ChunkGrid.chunks_for_hgt_edit(1, 1, 16, 16)
 	_check_eq(chunks.size(), 1, "interior sector dirty count")
 	_check_has(chunks, Vector2i(0, 0), "primary chunk")
 	return _errors.is_empty()
@@ -100,7 +101,7 @@ func test_chunks_for_hgt_edit_interior_sector() -> bool:
 
 func test_chunks_for_hgt_edit_left_edge() -> bool:
 	_reset_errors()
-	var chunks := TerrainBuilder.chunks_for_hgt_edit(4, 2, 16, 16)
+	var chunks := ChunkGrid.chunks_for_hgt_edit(4, 2, 16, 16)
 	_check_eq(chunks.size(), 2, "left edge dirty count")
 	_check_has(chunks, Vector2i(1, 0), "primary chunk")
 	_check_has(chunks, Vector2i(0, 0), "left neighbor")
@@ -109,7 +110,7 @@ func test_chunks_for_hgt_edit_left_edge() -> bool:
 
 func test_chunks_for_hgt_edit_right_edge() -> bool:
 	_reset_errors()
-	var chunks := TerrainBuilder.chunks_for_hgt_edit(3, 2, 16, 16)
+	var chunks := ChunkGrid.chunks_for_hgt_edit(3, 2, 16, 16)
 	_check_eq(chunks.size(), 2, "right edge dirty count")
 	_check_has(chunks, Vector2i(0, 0), "primary chunk")
 	_check_has(chunks, Vector2i(1, 0), "right neighbor")
@@ -118,7 +119,7 @@ func test_chunks_for_hgt_edit_right_edge() -> bool:
 
 func test_chunks_for_hgt_edit_top_edge() -> bool:
 	_reset_errors()
-	var chunks := TerrainBuilder.chunks_for_hgt_edit(2, 4, 16, 16)
+	var chunks := ChunkGrid.chunks_for_hgt_edit(2, 4, 16, 16)
 	_check_eq(chunks.size(), 2, "top edge dirty count")
 	_check_has(chunks, Vector2i(0, 1), "primary chunk")
 	_check_has(chunks, Vector2i(0, 0), "top neighbor")
@@ -127,7 +128,7 @@ func test_chunks_for_hgt_edit_top_edge() -> bool:
 
 func test_chunks_for_hgt_edit_bottom_edge() -> bool:
 	_reset_errors()
-	var chunks := TerrainBuilder.chunks_for_hgt_edit(2, 3, 16, 16)
+	var chunks := ChunkGrid.chunks_for_hgt_edit(2, 3, 16, 16)
 	_check_eq(chunks.size(), 2, "bottom edge dirty count")
 	_check_has(chunks, Vector2i(0, 0), "primary chunk")
 	_check_has(chunks, Vector2i(0, 1), "bottom neighbor")
@@ -136,7 +137,7 @@ func test_chunks_for_hgt_edit_bottom_edge() -> bool:
 
 func test_chunks_for_hgt_edit_corner() -> bool:
 	_reset_errors()
-	var chunks := TerrainBuilder.chunks_for_hgt_edit(3, 3, 16, 16)
+	var chunks := ChunkGrid.chunks_for_hgt_edit(3, 3, 16, 16)
 	_check_eq(chunks.size(), 4, "corner dirty count")
 	_check_has(chunks, Vector2i(0, 0), "primary chunk")
 	_check_has(chunks, Vector2i(1, 0), "right neighbor")
@@ -147,7 +148,7 @@ func test_chunks_for_hgt_edit_corner() -> bool:
 
 func test_chunks_for_hgt_edit_map_edge_no_neighbor() -> bool:
 	_reset_errors()
-	var chunks := TerrainBuilder.chunks_for_hgt_edit(0, 2, 16, 16)
+	var chunks := ChunkGrid.chunks_for_hgt_edit(0, 2, 16, 16)
 	_check_eq(chunks.size(), 1, "map left edge dirty count")
 	_check_has(chunks, Vector2i(0, 0), "primary chunk only")
 	return _errors.is_empty()
@@ -155,7 +156,7 @@ func test_chunks_for_hgt_edit_map_edge_no_neighbor() -> bool:
 
 func test_chunks_for_hgt_edit_map_corner_no_neighbors() -> bool:
 	_reset_errors()
-	var chunks := TerrainBuilder.chunks_for_hgt_edit(0, 0, 16, 16)
+	var chunks := ChunkGrid.chunks_for_hgt_edit(0, 0, 16, 16)
 	_check_eq(chunks.size(), 1, "map corner dirty count")
 	_check_has(chunks, Vector2i(0, 0), "primary chunk only")
 	return _errors.is_empty()
@@ -163,7 +164,7 @@ func test_chunks_for_hgt_edit_map_corner_no_neighbors() -> bool:
 
 func test_chunks_for_hgt_edit_last_chunk_right_edge() -> bool:
 	_reset_errors()
-	var chunks := TerrainBuilder.chunks_for_hgt_edit(15, 2, 16, 16)
+	var chunks := ChunkGrid.chunks_for_hgt_edit(15, 2, 16, 16)
 	_check_eq(chunks.size(), 1, "last chunk right edge dirty count")
 	_check_has(chunks, Vector2i(3, 0), "primary chunk only")
 	return _errors.is_empty()
@@ -171,24 +172,24 @@ func test_chunks_for_hgt_edit_last_chunk_right_edge() -> bool:
 
 func test_chunks_for_hgt_edit_out_of_bounds() -> bool:
 	_reset_errors()
-	var chunks := TerrainBuilder.chunks_for_hgt_edit(-1, 0, 16, 16)
+	var chunks := ChunkGrid.chunks_for_hgt_edit(-1, 0, 16, 16)
 	_check_eq(chunks.size(), 0, "out of bounds x<0")
 	
-	chunks = TerrainBuilder.chunks_for_hgt_edit(16, 0, 16, 16)
+	chunks = ChunkGrid.chunks_for_hgt_edit(16, 0, 16, 16)
 	_check_eq(chunks.size(), 0, "out of bounds x>=w")
 	
-	chunks = TerrainBuilder.chunks_for_hgt_edit(0, -1, 16, 16)
+	chunks = ChunkGrid.chunks_for_hgt_edit(0, -1, 16, 16)
 	_check_eq(chunks.size(), 0, "out of bounds y<0")
 	
-	chunks = TerrainBuilder.chunks_for_hgt_edit(0, 16, 16, 16)
+	chunks = ChunkGrid.chunks_for_hgt_edit(0, 16, 16, 16)
 	_check_eq(chunks.size(), 0, "out of bounds y>=h")
 	return _errors.is_empty()
 
 
 func test_chunks_for_typ_edit_same_as_hgt() -> bool:
 	_reset_errors()
-	var hgt_chunks := TerrainBuilder.chunks_for_hgt_edit(3, 3, 16, 16)
-	var typ_chunks := TerrainBuilder.chunks_for_typ_edit(3, 3, 16, 16)
+	var hgt_chunks := ChunkGrid.chunks_for_hgt_edit(3, 3, 16, 16)
+	var typ_chunks := ChunkGrid.chunks_for_typ_edit(3, 3, 16, 16)
 	_check_eq(hgt_chunks.size(), typ_chunks.size(), "typ same size as hgt")
 	for chunk in hgt_chunks:
 		_check_has(typ_chunks, chunk, "typ contains hgt chunk")
@@ -197,11 +198,11 @@ func test_chunks_for_typ_edit_same_as_hgt() -> bool:
 
 func test_chunks_for_blg_edit_primary_only() -> bool:
 	_reset_errors()
-	var chunks := TerrainBuilder.chunks_for_blg_edit(3, 3, 16, 16)
+	var chunks := ChunkGrid.chunks_for_blg_edit(3, 3, 16, 16)
 	_check_eq(chunks.size(), 1, "blg interior dirty count")
 	_check_has(chunks, Vector2i(0, 0), "primary chunk")
 	
-	chunks = TerrainBuilder.chunks_for_blg_edit(4, 4, 16, 16)
+	chunks = ChunkGrid.chunks_for_blg_edit(4, 4, 16, 16)
 	_check_eq(chunks.size(), 1, "blg boundary dirty count")
 	_check_has(chunks, Vector2i(1, 1), "primary chunk only")
 	return _errors.is_empty()
@@ -209,29 +210,29 @@ func test_chunks_for_blg_edit_primary_only() -> bool:
 
 func test_all_chunks_for_map() -> bool:
 	_reset_errors()
-	var chunks := TerrainBuilder.all_chunks_for_map(8, 8)
+	var chunks := ChunkGrid.all_chunks_for_map(8, 8)
 	_check_eq(chunks.size(), 4, "8x8 map chunk count")
 	_check_has(chunks, Vector2i(0, 0), "chunk (0,0)")
 	_check_has(chunks, Vector2i(1, 0), "chunk (1,0)")
 	_check_has(chunks, Vector2i(0, 1), "chunk (0,1)")
 	_check_has(chunks, Vector2i(1, 1), "chunk (1,1)")
 	
-	chunks = TerrainBuilder.all_chunks_for_map(16, 16)
+	chunks = ChunkGrid.all_chunks_for_map(16, 16)
 	_check_eq(chunks.size(), 16, "16x16 map chunk count")
 	
-	chunks = TerrainBuilder.all_chunks_for_map(0, 0)
+	chunks = ChunkGrid.all_chunks_for_map(0, 0)
 	_check_eq(chunks.size(), 0, "0x0 map chunk count")
 	return _errors.is_empty()
 
 
 func test_small_map_chunk_coverage() -> bool:
 	_reset_errors()
-	var chunk_count := TerrainBuilder.chunk_count_for_map(8, 8)
+	var chunk_count := ChunkGrid.chunk_count_for_map(8, 8)
 	_check_eq(chunk_count, Vector2i(2, 2), "8x8 chunk count")
 	
 	for sy in 8:
 		for sx in 8:
-			var chunk := TerrainBuilder.sector_to_chunk(sx, sy)
+			var chunk := ChunkGrid.sector_to_chunk(sx, sy)
 			_check(chunk.x >= 0 and chunk.x < chunk_count.x, "Chunk X in bounds for sector (%d, %d)" % [sx, sy])
 			_check(chunk.y >= 0 and chunk.y < chunk_count.y, "Chunk Y in bounds for sector (%d, %d)" % [sx, sy])
 	return _errors.is_empty()
@@ -239,21 +240,21 @@ func test_small_map_chunk_coverage() -> bool:
 
 func test_large_map_chunk_coverage() -> bool:
 	_reset_errors()
-	var chunk_count := TerrainBuilder.chunk_count_for_map(64, 64)
+	var chunk_count := ChunkGrid.chunk_count_for_map(64, 64)
 	_check_eq(chunk_count, Vector2i(16, 16), "64x64 chunk count")
 	
-	_check_eq(TerrainBuilder.sector_to_chunk(0, 0), Vector2i(0, 0), "corner (0,0)")
-	_check_eq(TerrainBuilder.sector_to_chunk(63, 0), Vector2i(15, 0), "corner (63,0)")
-	_check_eq(TerrainBuilder.sector_to_chunk(0, 63), Vector2i(0, 15), "corner (0,63)")
-	_check_eq(TerrainBuilder.sector_to_chunk(63, 63), Vector2i(15, 15), "corner (63,63)")
+	_check_eq(ChunkGrid.sector_to_chunk(0, 0), Vector2i(0, 0), "corner (0,0)")
+	_check_eq(ChunkGrid.sector_to_chunk(63, 0), Vector2i(15, 0), "corner (63,0)")
+	_check_eq(ChunkGrid.sector_to_chunk(0, 63), Vector2i(0, 15), "corner (0,63)")
+	_check_eq(ChunkGrid.sector_to_chunk(63, 63), Vector2i(15, 15), "corner (63,63)")
 	return _errors.is_empty()
 
 
 func test_non_power_of_two_map() -> bool:
 	_reset_errors()
-	var chunk_count := TerrainBuilder.chunk_count_for_map(17, 9)
+	var chunk_count := ChunkGrid.chunk_count_for_map(17, 9)
 	_check_eq(chunk_count, Vector2i(5, 3), "17x9 chunk count")
-	_check_eq(TerrainBuilder.sector_to_chunk(16, 8), Vector2i(4, 2), "sector (16,8)")
+	_check_eq(ChunkGrid.sector_to_chunk(16, 8), Vector2i(4, 2), "sector (16,8)")
 	return _errors.is_empty()
 
 
@@ -421,7 +422,7 @@ func test_map_signature_change_invalidates_all_chunks_without_explicit_sector_si
 
 	renderer._on_map_changed()
 
-	var expected_chunks := TerrainBuilder.all_chunks_for_map(6, 6).size()
+	var expected_chunks := ChunkGrid.all_chunks_for_map(6, 6).size()
 	_check_eq(renderer._chunk_rt.get_dirty_chunk_count(), expected_chunks, "Checksum-signature map changes should invalidate all chunks even without explicit sector edit signals")
 	_check(renderer._effective_typ_service.dirty, "Checksum-signature map changes should mark effective typ cache dirty")
 	renderer.free()

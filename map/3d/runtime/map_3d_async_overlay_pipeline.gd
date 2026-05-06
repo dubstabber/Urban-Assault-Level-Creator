@@ -313,7 +313,7 @@ func finalize_async_overlay_apply() -> void:
 	_driver.reset_async_build_state()
 	if should_restart:
 		_driver.request_refresh(restart_reframe)
-	elif defer_full_overlay_refresh and _context.preview_refresh_active():
+	elif defer_full_overlay_refresh:
 		_driver.request_overlay_only_refresh()
 	elif _driver._refresh_pending and _context.preview_refresh_active():
 		_driver.request_refresh(_driver._refresh_reframe_pending)

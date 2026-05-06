@@ -8,7 +8,7 @@ extends RefCounted
 ## Scene-tree operations (node creation, material application, queue_free)
 ## remain in the renderer; this service is pure data.
 
-const TerrainBuilder = preload("res://map/3d/terrain/map_3d_terrain_builder.gd")
+const ChunkGrid := preload("res://map/3d/terrain/map_3d_chunk_grid.gd")
 
 
 # ---- Feature flag ----
@@ -53,7 +53,7 @@ func take_localized_chunk_invalidation_pending() -> bool:
 
 func invalidate_all_chunks(w: int, h: int) -> void:
 	_dirty_chunks.clear()
-	var all_chunks: Array[Vector2i] = TerrainBuilder.all_chunks_for_map(w, h)
+	var all_chunks: Array[Vector2i] = ChunkGrid.all_chunks_for_map(w, h)
 	for chunk_coord in all_chunks:
 		_dirty_chunks[chunk_coord] = true
 	explicit_chunk_invalidation_pending = true
@@ -63,9 +63,9 @@ func invalidate_all_chunks(w: int, h: int) -> void:
 func invalidate_chunks_for_sector_edit(sx: int, sy: int, w: int, h: int, edit_type: String) -> void:
 	var affected: Array[Vector2i]
 	if edit_type == "hgt" or edit_type == "typ":
-		affected = TerrainBuilder.chunks_for_hgt_edit(sx, sy, w, h)
+		affected = ChunkGrid.chunks_for_hgt_edit(sx, sy, w, h)
 	else:
-		affected = TerrainBuilder.chunks_for_blg_edit(sx, sy, w, h)
+		affected = ChunkGrid.chunks_for_blg_edit(sx, sy, w, h)
 	for chunk_coord in affected:
 		_dirty_chunks[chunk_coord] = true
 	explicit_chunk_invalidation_pending = true
@@ -179,7 +179,7 @@ func reset_terrain_authored_cache_from_descriptors(support_descriptors: Array, w
 	if w <= 0 or h <= 0:
 		return
 
-	var chunk_count: Vector2i = TerrainBuilder.chunk_count_for_map(w, h)
+	var chunk_count: Vector2i = ChunkGrid.chunk_count_for_map(w, h)
 
 	for desc in support_descriptors:
 		if typeof(desc) != TYPE_DICTIONARY:
@@ -229,8 +229,8 @@ func reset_terrain_authored_cache_from_descriptors(support_descriptors: Array, w
 		# Determine conservatively which chunk coords are eligible to include this raw
 		# cell coordinate based on border-expanded chunk ranges.
 		var candidate_chunks: Array[Vector2i] = []
-		var cx_center: int = int(cell_x) >> TerrainBuilder.CHUNK_SHIFT
-		var cy_center: int = int(cell_y) >> TerrainBuilder.CHUNK_SHIFT
+		var cx_center: int = int(cell_x) >> ChunkGrid.CHUNK_SHIFT
+		var cy_center: int = int(cell_y) >> ChunkGrid.CHUNK_SHIFT
 		for dy in range(-1, 2):
 			for dx in range(-1, 2):
 				var cx: int = cx_center + dx
@@ -238,10 +238,10 @@ func reset_terrain_authored_cache_from_descriptors(support_descriptors: Array, w
 				if cx < 0 or cy < 0 or cx >= chunk_count.x or cy >= chunk_count.y:
 					continue
 
-				var main_sx_min: int = cx * TerrainBuilder.CHUNK_SIZE
-				var main_sy_min: int = cy * TerrainBuilder.CHUNK_SIZE
-				var main_sx_max: int = mini(main_sx_min + TerrainBuilder.CHUNK_SIZE, w)
-				var main_sy_max: int = mini(main_sy_min + TerrainBuilder.CHUNK_SIZE, h)
+				var main_sx_min: int = cx * ChunkGrid.CHUNK_SIZE
+				var main_sy_min: int = cy * ChunkGrid.CHUNK_SIZE
+				var main_sx_max: int = mini(main_sx_min + ChunkGrid.CHUNK_SIZE, w)
+				var main_sy_max: int = mini(main_sy_min + ChunkGrid.CHUNK_SIZE, h)
 
 				# Match the loop extents used by the generators for the given instance key type.
 				# This ensures refcounts for shared seam descriptors don't underflow when
@@ -285,7 +285,7 @@ func reset_terrain_authored_cache_from_descriptors(support_descriptors: Array, w
 		if candidate_chunks.is_empty():
 			var playable_x := clampi(cell_x, 0, w - 1)
 			var playable_y := clampi(cell_y, 0, h - 1)
-			candidate_chunks.append(TerrainBuilder.sector_to_chunk(playable_x, playable_y))
+			candidate_chunks.append(ChunkGrid.sector_to_chunk(playable_x, playable_y))
 
 		# Deduplicate candidates.
 		var seen_chunks: Dictionary = {}

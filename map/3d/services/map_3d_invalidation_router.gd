@@ -1,5 +1,5 @@
 extends RefCounted
-const TerrainBuilder := preload("res://map/3d/terrain/map_3d_terrain_builder.gd")
+const ChunkGrid := preload("res://map/3d/terrain/map_3d_chunk_grid.gd")
 
 
 static func invalidation_for_hgt_border_indices(border_indices: Array, w: int, h: int) -> Dictionary:
@@ -97,9 +97,9 @@ static func dirty_chunks_for_sectors(sectors: Array, w: int, h: int, edit_type: 
 		var sector := Vector2i(sector_value)
 		var affected: Array[Vector2i] = []
 		if edit_type == "blg":
-			affected = TerrainBuilder.chunks_for_blg_edit(sector.x, sector.y, w, h)
+			affected = ChunkGrid.chunks_for_blg_edit(sector.x, sector.y, w, h)
 		else:
-			affected = TerrainBuilder.chunks_for_hgt_edit(sector.x, sector.y, w, h)
+			affected = ChunkGrid.chunks_for_hgt_edit(sector.x, sector.y, w, h)
 		for chunk_coord in affected:
 			if seen.has(chunk_coord):
 				continue

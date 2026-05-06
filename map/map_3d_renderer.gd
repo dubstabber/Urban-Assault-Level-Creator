@@ -5,7 +5,6 @@ signal build_state_changed(is_building: bool, completed: int, total: int, status
 signal build_finished(success: bool)
 
 const VisualLookupService := preload("res://map/3d/services/map_3d_visual_lookup_service.gd")
-const TerrainBuilder := preload("res://map/3d/terrain/map_3d_terrain_builder.gd")
 const SlurpBuilder := preload("res://map/3d/terrain/map_3d_slurp_builder.gd")
 const AuthoredOverlayManager := preload("res://map/3d/overlays/map_3d_authored_overlay_manager.gd")
 const ViewController := preload("res://map/3d/controllers/map_3d_view_controller.gd")
@@ -27,7 +26,6 @@ const RuntimeState := preload("res://map/3d/runtime/map_3d_runtime_state.gd")
 const RuntimeContext := preload("res://map/3d/runtime/map_3d_runtime_context.gd")
 const SharedConstants := preload("res://map/3d/config/map_3d_shared_constants.gd")
 const VisualCatalog := preload("res://map/3d/config/map_3d_visual_catalog.gd")
-const PreviewGeometry := preload("res://map/3d/terrain/map_3d_preview_geometry.gd")
 const OverlayPositioning := preload("res://map/3d/overlays/map_3d_overlay_positioning.gd")
 const RefreshCoordinator := preload("res://map/3d/services/map_3d_refresh_coordinator.gd")
 const ChunkRuntime := preload("res://map/3d/services/map_3d_chunk_runtime.gd")
@@ -203,8 +201,6 @@ static func facade_contract() -> Dictionary:
 			"visibility_range_fade_start",
 			"visibility_range_config",
 			"apply_visibility_range_to_environment",
-			"build_mesh",
-			"build_mesh_with_textures",
 		],
 		"compatibility_instance_api": [
 			"_apply_pending_refresh",
@@ -964,40 +960,6 @@ static func _make_preview_material(color: Color) -> StandardMaterial3D:
 func _apply_untextured_materials(mesh: ArrayMesh) -> void:
 	MaterialService.apply_untextured_materials(mesh, TERRAIN_PREVIEW_COLOR)
 
-# Static, pure builder (useful for tests)
-# Retail constants confirmed from UA.EXE (`1200.0` sector size / `600.0` center offset).
-# The strongest current retail evidence shows one raw height per playable cell, with
-# flat cell-top placement and separate filler/slurp geometry bridging neighboring cells.
-static func build_mesh(hgt: PackedByteArray, w: int, h: int) -> ArrayMesh:
-	return TerrainBuilder.build_mesh(hgt, w, h)
-
-static func _sample_hgt_height(hgt: PackedByteArray, w: int, h: int, sx: int, sy: int) -> float:
-	return PreviewGeometry.sample_hgt_height(hgt, w, h, sx, sy)
-
-static func _implicit_border_typ_value(w: int, h: int, sx: int, sy: int) -> int:
-	return PreviewGeometry.implicit_border_typ_value(w, h, sx, sy)
-
-static func _typ_value_with_implicit_border(typ: PackedByteArray, w: int, h: int, sx: int, sy: int) -> int:
-	return PreviewGeometry.typ_value_with_implicit_border(typ, w, h, sx, sy)
-
-static func _corner_average_h(hgt: PackedByteArray, w: int, h: int, corner_x: int, corner_y: int) -> float:
-	return PreviewGeometry.corner_average_h(hgt, w, h, corner_x, corner_y)
-
-static func _draw_flat_sector_geometry(st: SurfaceTool, x0: float, x1: float, z0: float, z1: float, y: float) -> void:
-	PreviewGeometry.draw_flat_sector_geometry(st, x0, x1, z0, z1, y)
-
-static func _preview_surface_type_for_typ(mapping: Dictionary, typ_value: int) -> int:
-	return PreviewGeometry.preview_surface_type_for_typ(mapping, typ_value)
-
-static func _retail_slurp_bucket_key(surface_a: int, surface_b: int, neighbor_dx: int, neighbor_dy: int) -> String:
-	return PreviewGeometry.retail_slurp_bucket_key(surface_a, surface_b, neighbor_dx, neighbor_dy)
-
-static func _surface_pair_from_slurp_bucket_key(bucket_key: String) -> Dictionary:
-	return PreviewGeometry.surface_pair_from_slurp_bucket_key(bucket_key)
-
-static func _authored_slurp_base_name(surface_a: int, surface_b: int, vertical: bool) -> String:
-	return PreviewGeometry.authored_slurp_base_name(surface_a, surface_b, vertical)
-
 static func _sector_center_origin(sx: int, sy: int, sector_y: float) -> Vector3:
 	return OverlayPositioning.sector_center_origin(sx, sy, sector_y)
 
@@ -1145,51 +1107,6 @@ static func _build_squad_descriptors_from_snapshot(squads: Array, set_id: int, h
 
 static func _build_squad_descriptors(squads: Array, set_id: int, hgt: PackedByteArray, w: int, h: int, support_descriptors: Array, game_data_type: String, profile = null) -> Array:
 	return OverlayProducers.build_squad_descriptors(squads, set_id, hgt, w, h, support_descriptors, game_data_type, profile)
-
-static func _draw_quad(st: SurfaceTool, xl: float, xr: float, zt: float, zb: float, y: float, f: int, cells: int, v: int, rot_deg: int = 0, u0: float = 0.0, vv0: float = 0.0, u1: float = 1.0, vv1: float = 1.0) -> void:
-	PreviewGeometry.draw_quad(st, xl, xr, zt, zb, y, f, cells, v, rot_deg, u0, vv0, u1, vv1)
-
-static func _decode_raw_to_fcv(raw_val: int, default_file: int) -> Array:
-	return PreviewGeometry.decode_raw_to_fcv(raw_val, default_file)
-
-static func _decode_raw_to_fcv_with_remap(raw_val: int, default_file: int, tile_remap: Dictionary) -> Array:
-	return PreviewGeometry.decode_raw_to_fcv_with_remap(raw_val, default_file, tile_remap)
-
-static func _remap_subsector_idx(subsector_idx: int, remap_table: Dictionary) -> int:
-	return PreviewGeometry.remap_subsector_idx(subsector_idx, remap_table)
-
-static func _tile_desc_for_subsector(tile_mapping: Dictionary, subsector_idx: int) -> Dictionary:
-	return PreviewGeometry.tile_desc_for_subsector(tile_mapping, subsector_idx)
-
-static func _sector_pattern_for_typ(subsector_patterns: Dictionary, typ_value: int, fallback_surface_type: int) -> Dictionary:
-	return PreviewGeometry.sector_pattern_for_typ(subsector_patterns, typ_value, fallback_surface_type)
-
-static func _default_file_variant_for_subsector(surface_type: int, subsector_idx: int, tile_mapping: Dictionary, tile_remap: Dictionary, subsector_idx_remap: Dictionary) -> Array:
-	return PreviewGeometry.default_file_variant_for_subsector(surface_type, subsector_idx, tile_mapping, tile_remap, subsector_idx_remap)
-
-static func _default_stage_slot_for_raw(raw_value: int) -> int:
-	return PreviewGeometry.default_stage_slot_for_raw(raw_value)
-
-static func _selected_raw_id_for_tile_desc(tile_desc: Dictionary) -> int:
-	return PreviewGeometry.selected_raw_id_for_tile_desc(tile_desc)
-
-static func _default_piece_selection_for_subsector(surface_type: int, subsector_idx: int, tile_mapping: Dictionary, tile_remap: Dictionary, subsector_idx_remap: Dictionary) -> Dictionary:
-	return PreviewGeometry.default_piece_selection_for_subsector(surface_type, subsector_idx, tile_mapping, tile_remap, subsector_idx_remap)
-
-static func _authored_origin_for_subsector(x0: float, z0: float, sector_y: float, sub_x: int, sub_y: int) -> Vector3:
-	return PreviewGeometry.authored_origin_for_subsector(x0, z0, sector_y, sub_x, sub_y)
-
-static func _append_vertical_seam_strip(st: SurfaceTool, x0: float, seam_x: float, x1: float, z0: float, z1: float, y_left: float, y_right: float, y_top_avg: float, y_bottom_avg: float) -> void:
-	PreviewGeometry.append_vertical_seam_strip(st, x0, seam_x, x1, z0, z1, y_left, y_right, y_top_avg, y_bottom_avg)
-
-static func _append_horizontal_seam_strip(st: SurfaceTool, x0: float, x1: float, z0: float, seam_z: float, z1: float, y_top: float, y_bottom: float, y_left_avg: float, y_right_avg: float) -> void:
-	PreviewGeometry.append_horizontal_seam_strip(st, x0, x1, z0, seam_z, z1, y_top, y_bottom, y_left_avg, y_right_avg)
-
-static func _should_emit_seam_strip(_surface_a: int, _surface_b: int, _outer_a: float, _outer_b: float, _seam_mid_a: float, _seam_mid_b: float) -> bool:
-	return PreviewGeometry.should_emit_seam_strip(_surface_a, _surface_b, _outer_a, _outer_b, _seam_mid_a, _seam_mid_b)
-
-static func build_mesh_with_textures(hgt: PackedByteArray, typ: PackedByteArray, w: int, h: int, mapping: Dictionary, subsector_patterns: Dictionary = {}, tile_mapping: Dictionary = {}, tile_remap: Dictionary = {}, subsector_idx_remap: Dictionary = {}, lego_defs: Dictionary = {}, set_id: int = 1) -> Dictionary:
-	return TerrainBuilder.build_mesh_with_textures(hgt, typ, w, h, mapping, subsector_patterns, tile_mapping, tile_remap, subsector_idx_remap, lego_defs, set_id)
 
 func _apply_sector_top_materials(mesh: ArrayMesh, preloads, surface_to_surface_type: Dictionary) -> void:
 	_scene_graph.apply_sector_top_materials(mesh, preloads, surface_to_surface_type)

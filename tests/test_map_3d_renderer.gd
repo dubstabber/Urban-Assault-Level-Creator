@@ -1,9 +1,10 @@
 extends RefCounted
 
-# Lightweight unit tests for Map3DRenderer.build_mesh()
+# Lightweight unit tests for Map3DRenderer and terrain facade separation.
 # Run via: godot4 --headless -s res://tests/test_runner.gd
 
 const Map3DRendererScript = preload("res://map/map_3d_renderer.gd")
+const TerrainBuilder := preload("res://map/3d/terrain/map_3d_terrain_builder.gd")
 const SECTOR_SIZE := 1200.0
 const HEIGHT_SCALE := 100.0
 
@@ -34,7 +35,7 @@ func test_build_mesh_2x2_flat() -> bool:
 	var w := 2
 	var h := 2
 	var hgt := _make_hgt(w, h, 0)
-	var mesh: ArrayMesh = Map3DRendererScript.build_mesh(hgt, w, h)
+	var mesh: ArrayMesh = TerrainBuilder.build_mesh(hgt, w, h)
 	_check(mesh != null, "Mesh is null")
 	if mesh:
 		_check(mesh.get_surface_count() == 1, "Surface count should be 1")
@@ -59,7 +60,7 @@ func test_build_mesh_1x1_uses_cell_height_not_border_corners() -> bool:
 	_set_hgt_value(hgt, w, 0, -1, 9)
 	_set_hgt_value(hgt, w, -1, 0, 7)
 	_set_hgt_value(hgt, w, 0, 0, 5)
-	var mesh: ArrayMesh = Map3DRendererScript.build_mesh(hgt, w, h)
+	var mesh: ArrayMesh = TerrainBuilder.build_mesh(hgt, w, h)
 	_check(mesh != null, "Mesh is null")
 	if mesh:
 		_check(mesh.get_surface_count() == 1, "Surface count should be 1")
@@ -90,7 +91,7 @@ func test_build_mesh_1x1_uses_cell_height_not_border_corners() -> bool:
 
 func test_invalid_input_returns_empty_mesh() -> bool:
 	_reset_errors()
-	var mesh: ArrayMesh = Map3DRendererScript.build_mesh(PackedByteArray(), 0, 0)
+	var mesh: ArrayMesh = TerrainBuilder.build_mesh(PackedByteArray(), 0, 0)
 	_check(mesh is ArrayMesh, "Did not return ArrayMesh instance")
 	if mesh is ArrayMesh:
 		_check(mesh.get_surface_count() == 0, "Expected 0 surfaces for invalid input")
@@ -139,10 +140,10 @@ func test_facade_contract_exposes_expected_runtime_surface() -> bool:
 		"visibility_range_fade_start",
 		"visibility_range_config",
 		"apply_visibility_range_to_environment",
-		"build_mesh",
-		"build_mesh_with_textures",
 	]:
 		_check(static_api.has(method_name), "Facade contract should list static API %s" % method_name)
+	for removed_method_name in ["build_mesh", "build_mesh_with_textures"]:
+		_check(not static_api.has(removed_method_name), "Terrain builder API should not remain on renderer facade contract: %s" % removed_method_name)
 	for method_name in ["_apply_pending_refresh", "_build_edge_overlay_result"]:
 		_check(compatibility_instance_api.has(method_name), "Facade contract should list compatibility instance API %s" % method_name)
 		_check(renderer.has_method(method_name), "Renderer should expose compatibility instance API %s" % method_name)

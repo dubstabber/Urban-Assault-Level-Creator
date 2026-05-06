@@ -10,11 +10,13 @@ class ScenePortStub extends RefCounted:
 	var edge_chunks := {}
 	var sector_material_calls := 0
 	var edge_material_calls := 0
+	var visibility_refresh_calls := 0
 
 	func get_or_create_terrain_chunk_node(chunk_coord: Vector2i) -> MeshInstance3D:
 		if terrain_chunks.has(chunk_coord):
 			return terrain_chunks[chunk_coord]
 		var node := MeshInstance3D.new()
+		node.visible = false
 		terrain_chunks[chunk_coord] = node
 		return node
 
@@ -22,6 +24,7 @@ class ScenePortStub extends RefCounted:
 		if edge_chunks.has(chunk_coord):
 			return edge_chunks[chunk_coord]
 		var node := MeshInstance3D.new()
+		node.visible = false
 		edge_chunks[chunk_coord] = node
 		return node
 
@@ -30,6 +33,11 @@ class ScenePortStub extends RefCounted:
 
 	func apply_edge_surface_materials(_mesh: ArrayMesh, _preloads, _fallback_horiz_keys: Array, _fallback_vert_keys: Array) -> void:
 		edge_material_calls += 1
+
+	func apply_geometry_distance_culling_to_chunk_node(chunk_node: MeshInstance3D, _chunk_coord: Vector2i) -> void:
+		visibility_refresh_calls += 1
+		if chunk_node != null:
+			chunk_node.visible = chunk_node.mesh != null
 
 
 class ChunkRuntimeStub extends RefCounted:
@@ -163,8 +171,11 @@ func test_apply_chunk_result_assigns_chunk_nodes_and_updates_cache() -> bool:
 	var descriptors: Array = apply_result.get("descriptors", [])
 	_check(terrain_node != null and terrain_node.mesh != null, "Applying a chunk result should assign the terrain chunk mesh")
 	_check(edge_node != null and edge_node.mesh != null, "Applying a chunk result with edge overlay should assign the edge chunk mesh")
+	_check(terrain_node.visible, "Applying a chunk result should refresh terrain chunk visibility after assigning the mesh")
+	_check(edge_node.visible, "Applying a chunk result should refresh edge chunk visibility after assigning the mesh")
 	_check_eq(scene.sector_material_calls, 1, "Applying a chunk result should apply terrain materials once")
 	_check_eq(scene.edge_material_calls, 1, "Applying a chunk result should apply edge materials once")
+	_check_eq(scene.visibility_refresh_calls, 2, "Applying terrain and edge chunks should refresh visibility after both meshes are assigned")
 	_check_eq(chunk_runtime.updated_chunk, chunk_coord, "Applying a chunk result should update the authored cache for the same chunk")
 	_check_eq(chunk_runtime.updated_descriptors.size(), descriptors.size(), "Applying a chunk result should store the returned authored descriptors in the chunk cache")
 	return _errors.is_empty()

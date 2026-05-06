@@ -4,7 +4,7 @@ extends RefCounted
 # Run via: godot4 --headless -s res://tests/test_runner.gd
 
 const ChunkRuntimeScript = preload("res://map/3d/services/map_3d_chunk_runtime.gd")
-const TerrainBuilder = preload("res://map/3d/terrain/map_3d_terrain_builder.gd")
+const ChunkGrid = preload("res://map/3d/terrain/map_3d_chunk_grid.gd")
 
 var _errors: Array[String] = []
 
@@ -128,7 +128,7 @@ func test_prepare_chunked_full_rebuild_seeds_dirty_chunks_and_dimensions() -> bo
 	rt.prepare_chunked_full_rebuild(8, 8, 3)
 	_check_eq(rt.last_map_dimensions, Vector2i(8, 8), "Chunked full rebuild should seed map dimensions")
 	_check_eq(rt.last_level_set, 3, "Chunked full rebuild should seed level set")
-	_check_eq(rt.get_dirty_chunk_count(), TerrainBuilder.all_chunks_for_map(8, 8).size(), "Chunked full rebuild should dirty all chunks for seeding")
+	_check_eq(rt.get_dirty_chunk_count(), ChunkGrid.all_chunks_for_map(8, 8).size(), "Chunked full rebuild should dirty all chunks for seeding")
 	_check_eq(rt.explicit_chunk_invalidation_pending, true, "Chunked full rebuild should mark explicit invalidation pending")
 	_check_eq(rt.localized_chunk_invalidation_pending, false, "Chunked full rebuild should not mark localized invalidation")
 	return _errors.is_empty()

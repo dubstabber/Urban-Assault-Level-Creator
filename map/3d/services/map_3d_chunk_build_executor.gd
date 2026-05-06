@@ -60,6 +60,7 @@ static func apply_chunk_result(scene_port, chunk_runtime, chunk_result: Dictiona
 	chunk_node.mesh = terrain_result.get("mesh", null)
 	if preloads != null and chunk_node.mesh != null:
 		scene_port.apply_sector_top_materials(chunk_node.mesh, preloads, terrain_result.get("surface_to_surface_type", {}))
+	scene_port.apply_geometry_distance_culling_to_chunk_node(chunk_node, chunk_coord)
 
 	var chunk_authored_descriptors: Array = terrain_result.get("authored_piece_descriptors", []).duplicate()
 	if bool(chunk_result.get("has_edge_result", false)):
@@ -73,6 +74,7 @@ static func apply_chunk_result(scene_port, chunk_runtime, chunk_result: Dictiona
 				edge_result.get("fallback_horiz_keys", []),
 				edge_result.get("fallback_vert_keys", [])
 			)
+		scene_port.apply_geometry_distance_culling_to_chunk_node(edge_chunk_node, chunk_coord)
 		chunk_authored_descriptors.append_array(edge_result.get("authored_piece_descriptors", []))
 
 	chunk_runtime.update_terrain_authored_cache_for_chunk(chunk_coord, chunk_authored_descriptors)

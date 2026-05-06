@@ -3,6 +3,7 @@ extends RefCounted
 const Map3DRendererScript = preload("res://map/map_3d_renderer.gd")
 const BenchmarkRunner = preload("res://tests/run_map_3d_benchmarks.gd")
 const OverlayPlanBuilder = preload("res://map/3d/services/map_3d_overlay_plan_builder.gd")
+const ChunkGrid = preload("res://map/3d/terrain/map_3d_chunk_grid.gd")
 
 var _errors: Array[String] = []
 
@@ -258,7 +259,7 @@ func test_first_local_edit_after_full_build_stays_local() -> bool:
 	renderer.build_from_current_map()
 
 	var terrain_mesh := renderer.get_node_or_null("TerrainMesh")
-	var expected_chunk_count := Map3DRendererScript.TerrainBuilder.all_chunks_for_map(w, h).size()
+	var expected_chunk_count := ChunkGrid.all_chunks_for_map(w, h).size()
 	_check_eq(_count_named_children(terrain_mesh, "TerrainChunk_"), expected_chunk_count, "Expected full build to seed terrain chunk nodes directly")
 
 	var sx := 1

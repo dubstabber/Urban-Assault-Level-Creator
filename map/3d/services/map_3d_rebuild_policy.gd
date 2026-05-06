@@ -1,6 +1,6 @@
 extends RefCounted
 
-const TerrainBuilder := preload("res://map/3d/terrain/map_3d_terrain_builder.gd")
+const ChunkGrid := preload("res://map/3d/terrain/map_3d_chunk_grid.gd")
 const OverlayPositioning := preload("res://map/3d/overlays/map_3d_overlay_positioning.gd")
 
 var _context = null
@@ -83,10 +83,10 @@ func chunk_focus_coord(w: int, h: int) -> Vector2i:
 		var world_pos := camera.global_position if camera.is_inside_tree() else camera.position
 		var sx := clampi(OverlayPositioning.world_to_sector_index(world_pos.x), 0, maxi(w - 1, 0))
 		var sy := clampi(OverlayPositioning.world_to_sector_index(world_pos.z), 0, maxi(h - 1, 0))
-		return TerrainBuilder.sector_to_chunk(sx, sy)
+		return ChunkGrid.sector_to_chunk(sx, sy)
 	var center_sx := maxi(w >> 1, 0)
 	var center_sy := maxi(h >> 1, 0)
-	return TerrainBuilder.sector_to_chunk(center_sx, center_sy)
+	return ChunkGrid.sector_to_chunk(center_sx, center_sy)
 
 
 func dirty_chunks_sorted_by_priority(w: int, h: int) -> Array[Vector2i]:

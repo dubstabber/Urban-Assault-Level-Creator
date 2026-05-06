@@ -1,6 +1,7 @@
 extends RefCounted
 
 const Map3DRendererScript = preload("res://map/map_3d_renderer.gd")
+const TerrainBuilder := preload("res://map/3d/terrain/map_3d_terrain_builder.gd")
 const SetSdfParserScript = preload("res://map/terrain/set_sdf_parser.gd")
 
 var _errors: Array[String] = []
@@ -27,7 +28,7 @@ func test_surface_type_selection_does_not_depend_on_removed_tile_metadata() -> b
 	var typ := PackedByteArray([12])
 	# The active preview path intentionally ignores the removed tile/subsector metadata flow.
 	# It should derive the textured top family only from typ -> surface_type.
-	var result: Dictionary = Map3DRendererScript.build_mesh_with_textures(
+	var result: Dictionary = TerrainBuilder.build_mesh_with_textures(
 		hgt,
 		typ,
 		w,
@@ -66,7 +67,7 @@ func test_set1_typ0_surface_type_drives_top_texture_family() -> bool:
 
 	var hgt := PackedByteArray([0, 0, 0, 0, 0, 0, 0, 0, 0])
 	var typ := PackedByteArray([0])
-	var result: Dictionary = Map3DRendererScript.build_mesh_with_textures(
+	var result: Dictionary = TerrainBuilder.build_mesh_with_textures(
 		hgt,
 		typ,
 		1,
@@ -100,7 +101,7 @@ func test_plain_geometry_builder_preserves_basic_geometry_output() -> bool:
 		0, 15, 20, 0,
 		0, 0, 0, 0,
 	])
-	var mesh: ArrayMesh = Map3DRendererScript.build_mesh(hgt, 2, 2)
+	var mesh: ArrayMesh = TerrainBuilder.build_mesh(hgt, 2, 2)
 	_check(mesh.get_surface_count() == 1, "Plain geometry builder should still return one terrain surface")
 	if mesh.get_surface_count() > 0:
 		var arrays := mesh.surface_get_arrays(0)

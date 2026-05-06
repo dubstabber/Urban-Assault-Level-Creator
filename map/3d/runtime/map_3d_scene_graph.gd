@@ -3,7 +3,7 @@ extends RefCounted
 const AuthoredOverlayManager := preload("res://map/3d/overlays/map_3d_authored_overlay_manager.gd")
 const SlurpBuilder := preload("res://map/3d/terrain/map_3d_slurp_builder.gd")
 const StaticOverlayIndex := preload("res://map/3d/services/map_3d_static_overlay_index.gd")
-const TerrainBuilder := preload("res://map/3d/terrain/map_3d_terrain_builder.gd")
+const ChunkGrid := preload("res://map/3d/terrain/map_3d_chunk_grid.gd")
 const PreviewGeometry := preload("res://map/3d/terrain/map_3d_preview_geometry.gd")
 
 const EDGE_BLEND_SHADER_PATH := "res://resources/terrain/shaders/edge_blend.gdshader"
@@ -227,10 +227,10 @@ func chunk_center_world_xz(chunk_coord: Vector2i) -> Vector2:
 	var h := maxi(_chunk_runtime.last_map_dimensions.y, 0)
 	if w <= 0 or h <= 0:
 		return Vector2.ZERO
-	var sx_min := chunk_coord.x * TerrainBuilder.CHUNK_SIZE
-	var sy_min := chunk_coord.y * TerrainBuilder.CHUNK_SIZE
-	var sx_max := mini(sx_min + TerrainBuilder.CHUNK_SIZE, w)
-	var sy_max := mini(sy_min + TerrainBuilder.CHUNK_SIZE, h)
+	var sx_min := chunk_coord.x * ChunkGrid.CHUNK_SIZE
+	var sy_min := chunk_coord.y * ChunkGrid.CHUNK_SIZE
+	var sx_max := mini(sx_min + ChunkGrid.CHUNK_SIZE, w)
+	var sy_max := mini(sy_min + ChunkGrid.CHUNK_SIZE, h)
 	var center_sector_x := (float(sx_min + sx_max) * 0.5) + 1.0
 	var center_sector_y := (float(sy_min + sy_max) * 0.5) + 1.0
 	return Vector2(center_sector_x * _scene.renderer_node().SECTOR_SIZE, center_sector_y * _scene.renderer_node().SECTOR_SIZE)
