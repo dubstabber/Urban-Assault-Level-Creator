@@ -200,7 +200,7 @@ class AsyncRefreshDriverStub extends RefCounted:
 		units_changed_values.append(changes.duplicate(true))
 
 
-class BuildStatePortStub extends RefCounted:
+class EventActionPortStub extends RefCounted:
 	var _renderer: Node3D = null
 	var localized_signature_marks: Array = []
 	var skip_signature_check := false
@@ -280,11 +280,11 @@ func _check(cond: bool, msg: String) -> void:
 		_errors.append(msg)
 
 
-func _bind_controller(context: Variant = null, scene: Variant = null, renderer: Variant = null, build: Variant = null, async_driver: Variant = null, rebuild_policy: Variant = null, chunk_runtime: Variant = null, effective_typ_service: Variant = null, overlay_scope: Variant = null, runtime_state: Variant = null, camera_controller: Variant = null):
+func _bind_controller(context: Variant = null, scene: Variant = null, renderer: Variant = null, event_actions: Variant = null, async_driver: Variant = null, rebuild_policy: Variant = null, chunk_runtime: Variant = null, effective_typ_service: Variant = null, overlay_scope: Variant = null, runtime_state: Variant = null, camera_controller: Variant = null):
 	var renderer_node = renderer if renderer != null else RendererNodeStub.new()
 	var controller = ControllerScript.new()
 	controller.bind(
-		build if build != null else BuildStatePortStub.new(renderer_node),
+		event_actions if event_actions != null else EventActionPortStub.new(renderer_node),
 		context if context != null else ContextPortStub.new(),
 		scene if scene != null else ScenePortStub.new(),
 		async_driver if async_driver != null else AsyncRefreshDriverStub.new(),
@@ -309,11 +309,11 @@ func test_ready_connects_event_system_signals_to_renderer_handlers() -> bool:
 	var effective_typ_service := EffectiveTypServiceStub.new()
 	var overlay_scope := OverlayScopeStub.new()
 	var runtime_state := RuntimeStateStub.new()
-	var build := BuildStatePortStub.new(renderer)
+	var event_actions := EventActionPortStub.new(renderer)
 	var rebuild_policy := RebuildPolicyStub.new()
 	var camera_controller := CameraControllerStub.new()
 	var controller = ControllerScript.new()
-	controller.bind(build, context, scene, async_driver, rebuild_policy, chunk_runtime, effective_typ_service, overlay_scope, runtime_state, camera_controller)
+	controller.bind(event_actions, context, scene, async_driver, rebuild_policy, chunk_runtime, effective_typ_service, overlay_scope, runtime_state, camera_controller)
 	controller.ready()
 	context.event_system_ref.map_created.emit()
 	context.event_system_ref.map_updated.emit()
@@ -327,9 +327,9 @@ func test_ready_connects_event_system_signals_to_renderer_handlers() -> bool:
 	context.event_system_ref.units_changed.emit([])
 	context.event_system_ref.unit_position_committed.emit("host", 1)
 	context.event_system_ref.unit_overlay_refresh_requested.emit("host", 1)
-	_check(build.apply_preview_activity_state_calls == 2, "Expected ready() and map-view update to apply preview activity through the build port")
-	_check(build.apply_visibility_range_calls == 2, "Expected ready() and map-view update to apply visibility range through the build port")
-	_check(build.cancel_async_initial_build_calls >= 6, "Expected map, level, and cell edit signals to cancel in-flight async work through the build port")
+	_check(event_actions.apply_preview_activity_state_calls == 2, "Expected ready() and map-view update to apply preview activity through the event action port")
+	_check(event_actions.apply_visibility_range_calls == 2, "Expected ready() and map-view update to apply visibility range through the event action port")
+	_check(event_actions.cancel_async_initial_build_calls >= 6, "Expected map, level, and cell edit signals to cancel in-flight async work through the event action port")
 	_check(rebuild_policy.level_set_change_calls == 1, "Expected level-set changes to route through the rebuild policy")
 	_check(rebuild_policy.marked_chunks_dirty.size() >= 3, "Expected HGT/TYP/BLG edit signals to mark chunks dirty directly through the controller")
 	_check(camera_controller.focus_values == [Vector2i(1, 2)], "Expected focus-sector signal to reach the camera controller")
@@ -345,15 +345,15 @@ func test_on_map_created_resets_runtime_and_requests_refresh() -> bool:
 	context.current_map_ref = MapDataStub.new()
 	var scene := ScenePortStub.new()
 	var renderer := RendererNodeStub.new()
-	var build := BuildStatePortStub.new(renderer)
+	var event_actions := EventActionPortStub.new(renderer)
 	var async_driver := AsyncRefreshDriverStub.new()
 	var chunk_runtime := ChunkRuntimeStub.new()
 	var effective_typ_service := EffectiveTypServiceStub.new()
 	var overlay_scope := OverlayScopeStub.new()
 	var rebuild_policy := RebuildPolicyStub.new()
-	var controller = _bind_controller(context, scene, renderer, build, async_driver, rebuild_policy, chunk_runtime, effective_typ_service, overlay_scope)
+	var controller = _bind_controller(context, scene, renderer, event_actions, async_driver, rebuild_policy, chunk_runtime, effective_typ_service, overlay_scope)
 	controller.on_map_created()
-	_check(build.cancel_async_initial_build_calls == 1, "Expected map creation to cancel any in-flight async build")
+	_check(event_actions.cancel_async_initial_build_calls == 1, "Expected map creation to cancel any in-flight async build")
 	_check(effective_typ_service.invalidate_cache_calls == 1, "Expected map creation to invalidate the effective typ cache")
 	_check(effective_typ_service.set_dirty_values == [true], "Expected map creation to mark the effective typ cache dirty")
 	_check(chunk_runtime.last_map_dimensions == Vector2i(8, 8), "Expected map creation to seed the last map dimensions")
@@ -374,15 +374,15 @@ func test_on_hgt_map_cells_edited_marks_chunks_and_sectors_without_dirtying_effe
 	var context := ContextPortStub.new()
 	context.current_map_ref = MapDataStub.new()
 	var renderer := RendererNodeStub.new()
-	var build := BuildStatePortStub.new(renderer)
+	var event_actions := EventActionPortStub.new(renderer)
 	var chunk_runtime := ChunkRuntimeStub.new()
 	var effective_typ_service := EffectiveTypServiceStub.new()
 	var overlay_scope := OverlayScopeStub.new()
 	var rebuild_policy := RebuildPolicyStub.new()
-	var controller = _bind_controller(context, ScenePortStub.new(), renderer, build, AsyncRefreshDriverStub.new(), rebuild_policy, chunk_runtime, effective_typ_service, overlay_scope)
+	var controller = _bind_controller(context, ScenePortStub.new(), renderer, event_actions, AsyncRefreshDriverStub.new(), rebuild_policy, chunk_runtime, effective_typ_service, overlay_scope)
 	controller.on_hgt_map_cells_edited([0])
-	_check(build.cancel_async_initial_build_calls == 1, "Expected HGT edits to cancel any active async build")
-	_check(build.localized_signature_marks.size() == 1, "Expected HGT edits to mark the map signature as localized")
+	_check(event_actions.cancel_async_initial_build_calls == 1, "Expected HGT edits to cancel any active async build")
+	_check(event_actions.localized_signature_marks.size() == 1, "Expected HGT edits to mark the map signature as localized")
 	_check(effective_typ_service.set_dirty_values == [false], "Expected HGT edits to keep the effective typ cache reusable")
 	_check(rebuild_policy.marked_chunks_dirty.size() == 1 and rebuild_policy.marked_chunks_dirty[0].has(Vector2i(0, 0)), "Expected HGT edits to mark the affected chunk dirty")
 	_check(overlay_scope.recorded_dirty_sectors.size() == 1 and overlay_scope.recorded_dirty_sectors[0].has(Vector2i(0, 0)), "Expected HGT edits to record the affected sector for localized overlay refresh")

@@ -16,7 +16,7 @@ const SceneGraph := preload("res://map/3d/runtime/map_3d_scene_graph.gd")
 const RendererHostPort := preload("res://map/3d/runtime/map_3d_renderer_host_port.gd")
 const RenderContextPort := preload("res://map/3d/runtime/map_3d_render_context_port.gd")
 const ScenePort := preload("res://map/3d/runtime/map_3d_scene_port.gd")
-const BuildStatePort := preload("res://map/3d/runtime/map_3d_build_state_port.gd")
+const EventActionPort := preload("res://map/3d/runtime/map_3d_event_action_port.gd")
 const AsyncStatePort := preload("res://map/3d/runtime/map_3d_async_state_port.gd")
 const BuildRuntimePort := preload("res://map/3d/runtime/map_3d_build_runtime_port.gd")
 const ViewActionPort := preload("res://map/3d/runtime/map_3d_view_action_port.gd")
@@ -93,31 +93,13 @@ func _init() -> void:
 		_rebuild_policy
 	)
 	_view_action_port.bind(self, _camera_controller)
-	_build_state_port.bind(
-		self,
-		_coordinator,
-		_chunk_rt,
-		_effective_typ_service,
-		_unit_runtime_index,
-		_static_overlay_index,
-		_overlay_refresh_scope,
-		_async_map_snapshot,
-		_runtime_state,
-		_camera_controller,
-		_async_refresh_driver,
-		_build_pipeline,
-		_scene_graph,
-		_rebuild_policy,
-		_async_state_port,
-		_build_runtime_port,
-		_view_action_port
-	)
+	_event_action_port.bind(_view_action_port, _async_state_port)
 	_rebuild_policy.bind(_render_context_port, _scene_port, _runtime_state, _chunk_rt, _effective_typ_service, _overlay_refresh_scope)
 	_async_refresh_driver.bind(_host_port, _render_context_port, _scene_port, _async_state_port, _build_runtime_port, _view_action_port)
 	_camera_controller.bind(_host_port, _render_context_port, _scene_port)
 	_scene_graph.bind(_scene_port, _render_context_port, _runtime_state, _chunk_rt, _overlay_refresh_scope)
 	_renderer_event_controller.bind(
-		_build_state_port,
+		_event_action_port,
 		_render_context_port,
 		_scene_port,
 		_async_refresh_driver,
@@ -252,7 +234,7 @@ var _runtime_context := RuntimeContext.new()
 var _host_port := RendererHostPort.new()
 var _render_context_port := RenderContextPort.new()
 var _scene_port := ScenePort.new()
-var _build_state_port := BuildStatePort.new()
+var _event_action_port := EventActionPort.new()
 var _async_state_port := AsyncStatePort.new()
 var _build_runtime_port := BuildRuntimePort.new()
 var _view_action_port := ViewActionPort.new()

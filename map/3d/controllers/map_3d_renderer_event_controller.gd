@@ -2,7 +2,7 @@ extends RefCounted
 
 const InvalidationRouter := preload("res://map/3d/services/map_3d_invalidation_router.gd")
 
-var _build = null
+var _event_actions = null
 var _context = null
 var _scene = null
 var _async_refresh_driver = null
@@ -14,8 +14,8 @@ var _runtime_state = null
 var _camera_controller = null
 
 
-func bind(build_state_port, context_port, scene_port, async_refresh_driver, rebuild_policy, chunk_runtime, effective_typ_service, overlay_refresh_scope, runtime_state, camera_controller = null) -> void:
-	_build = build_state_port
+func bind(event_action_port, context_port, scene_port, async_refresh_driver, rebuild_policy, chunk_runtime, effective_typ_service, overlay_refresh_scope, runtime_state, camera_controller = null) -> void:
+	_event_actions = event_action_port
 	_context = context_port
 	_scene = scene_port
 	_async_refresh_driver = async_refresh_driver
@@ -56,8 +56,8 @@ func ready() -> void:
 		if event_system.has_signal("blg_map_cells_edited"):
 			event_system.blg_map_cells_edited.connect(Callable(self, "on_blg_map_cells_edited"))
 
-	_build.apply_preview_activity_state()
-	_build.apply_visibility_range_from_editor_state()
+	_event_actions.apply_preview_activity_state()
+	_event_actions.apply_visibility_range_from_editor_state()
 	var current_map_data = _context.current_map_data()
 	if current_map_data and current_map_data.horizontal_sectors > 0 and current_map_data.vertical_sectors > 0 and not current_map_data.hgt_map.is_empty():
 		_async_refresh_driver.request_refresh(true)
@@ -72,8 +72,8 @@ func apply_pending_refresh() -> void:
 
 
 func on_map_view_updated() -> void:
-	_build.apply_preview_activity_state()
-	_build.apply_visibility_range_from_editor_state()
+	_event_actions.apply_preview_activity_state()
+	_event_actions.apply_visibility_range_from_editor_state()
 	if _context.preview_refresh_active():
 		_scene.bump_3d_viewport_rendering()
 	if _async_refresh_driver.has_pending_refresh():
@@ -91,7 +91,7 @@ func on_map_changed() -> void:
 	if _runtime_state.skip_next_map_changed_refresh:
 		_runtime_state.skip_next_map_changed_refresh = false
 		return
-	_build.cancel_async_initial_build()
+	_event_actions.cancel_async_initial_build()
 	var has_localized_invalidation = _chunk_runtime.take_localized_chunk_invalidation_pending()
 	var current_map_data = _context.current_map_data()
 	if current_map_data:
@@ -103,12 +103,12 @@ func on_map_changed() -> void:
 			var blg: PackedByteArray = current_map_data.blg_map
 			var level_set = int(current_map_data.level_set)
 			var signature_changed := false
-			var skipped_signature_check: bool = _build.can_skip_map_signature_check(w, h, level_set, has_localized_invalidation)
+			var skipped_signature_check: bool = _event_actions.can_skip_map_signature_check(w, h, level_set, has_localized_invalidation)
 			if skipped_signature_check:
-				_build.record_map_signature_metadata_only(w, h, level_set)
+				_event_actions.record_map_signature_metadata_only(w, h, level_set)
 			else:
-				signature_changed = _build.is_map_signature_changed(w, h, level_set, hgt, typ, blg)
-				_build.record_map_signature(w, h, level_set, hgt, typ, blg)
+				signature_changed = _event_actions.is_map_signature_changed(w, h, level_set, hgt, typ, blg)
+				_event_actions.record_map_signature(w, h, level_set, hgt, typ, blg)
 			if signature_changed and not has_localized_invalidation:
 				_chunk_runtime.invalidate_all_chunks(w, h)
 				_effective_typ_service.set_dirty(true)
@@ -117,7 +117,7 @@ func on_map_changed() -> void:
 
 
 func on_map_created() -> void:
-	_build.cancel_async_initial_build()
+	_event_actions.cancel_async_initial_build()
 	var current_map_data = _context.current_map_data()
 	if current_map_data:
 		_effective_typ_service.invalidate_cache()
@@ -139,7 +139,7 @@ func on_map_created() -> void:
 
 
 func on_hgt_map_cells_edited(border_indices: Array) -> void:
-	_build.cancel_async_initial_build()
+	_event_actions.cancel_async_initial_build()
 	var current_map_data = _context.current_map_data()
 	if current_map_data == null:
 		return
@@ -147,7 +147,7 @@ func on_hgt_map_cells_edited(border_indices: Array) -> void:
 	var h := int(current_map_data.vertical_sectors)
 	if w <= 0 or h <= 0:
 		return
-	_build.mark_localized_signature_change(w, h, int(current_map_data.level_set))
+	_event_actions.mark_localized_signature_change(w, h, int(current_map_data.level_set))
 	_effective_typ_service.set_dirty(false)
 	var invalidation = InvalidationRouter.invalidation_for_hgt_border_indices(border_indices, w, h)
 	_rebuild_policy.mark_chunks_dirty(invalidation.get("dirty_chunks", []))
@@ -155,7 +155,7 @@ func on_hgt_map_cells_edited(border_indices: Array) -> void:
 
 
 func on_typ_map_cells_edited(typ_indices: Array) -> void:
-	_build.cancel_async_initial_build()
+	_event_actions.cancel_async_initial_build()
 	var current_map_data = _context.current_map_data()
 	if current_map_data == null:
 		return
@@ -163,7 +163,7 @@ func on_typ_map_cells_edited(typ_indices: Array) -> void:
 	var h := int(current_map_data.vertical_sectors)
 	if w <= 0 or h <= 0:
 		return
-	_build.mark_localized_signature_change(w, h, int(current_map_data.level_set))
+	_event_actions.mark_localized_signature_change(w, h, int(current_map_data.level_set))
 	_effective_typ_service.set_dirty(true)
 	var invalidation = InvalidationRouter.invalidation_for_typ_indices(typ_indices, w, h)
 	_rebuild_policy.mark_chunks_dirty(invalidation.get("dirty_chunks", []))
@@ -171,7 +171,7 @@ func on_typ_map_cells_edited(typ_indices: Array) -> void:
 
 
 func on_blg_map_cells_edited(blg_indices: Array) -> void:
-	_build.cancel_async_initial_build()
+	_event_actions.cancel_async_initial_build()
 	var current_map_data = _context.current_map_data()
 	if current_map_data == null:
 		return
@@ -179,7 +179,7 @@ func on_blg_map_cells_edited(blg_indices: Array) -> void:
 	var h := int(current_map_data.vertical_sectors)
 	if w <= 0 or h <= 0:
 		return
-	_build.mark_localized_signature_change(w, h, int(current_map_data.level_set))
+	_event_actions.mark_localized_signature_change(w, h, int(current_map_data.level_set))
 	_effective_typ_service.set_dirty(true)
 	var invalidation = InvalidationRouter.invalidation_for_blg_indices(blg_indices, w, h)
 	_rebuild_policy.mark_chunks_dirty(invalidation.get("dirty_chunks", []))
@@ -187,7 +187,7 @@ func on_blg_map_cells_edited(blg_indices: Array) -> void:
 
 
 func on_level_set_changed() -> void:
-	_rebuild_policy.handle_level_set_changed(Callable(_build, "cancel_async_initial_build"), Callable(_async_refresh_driver, "request_refresh"))
+	_rebuild_policy.handle_level_set_changed(Callable(_event_actions, "cancel_async_initial_build"), Callable(_async_refresh_driver, "request_refresh"))
 
 
 func on_map_3d_focus_sector_requested(sector_sx: int, sector_sy: int) -> void:
