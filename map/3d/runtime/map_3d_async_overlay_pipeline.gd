@@ -7,15 +7,19 @@ var _driver = null
 var _host = null
 var _context = null
 var _scene = null
+var _async_state = null
 var _build = null
+var _view_actions = null
 
 
-func bind(driver, host_port, context_port, scene_port, build_state_port) -> void:
+func bind(driver, host_port, context_port, scene_port, async_state_port, build_runtime_port = null, view_action_port = null) -> void:
 	_driver = driver
 	_host = host_port
 	_context = context_port
 	_scene = scene_port
-	_build = build_state_port
+	_async_state = async_state_port
+	_build = build_runtime_port if build_runtime_port != null else async_state_port
+	_view_actions = view_action_port if view_action_port != null else async_state_port
 
 
 func start_async_overlay_only_refresh(reframe_camera: bool) -> bool:
@@ -25,7 +29,7 @@ func start_async_overlay_only_refresh(reframe_camera: bool) -> bool:
 	if not sync_async_overlay_state_from_current_map():
 		_driver._overlay_only_refresh_requested = false
 		return false
-	_build.sync_terrain_overlay_animation_mode_from_editor()
+	_view_actions.sync_terrain_overlay_animation_mode_from_editor()
 	_driver._overlay_only_refresh_requested = false
 	_prepare_overlay_refresh(reframe_camera)
 	_driver.begin_build_state(1, "Preparing overlays...")
@@ -40,7 +44,7 @@ func start_async_dynamic_overlay_refresh(reframe_camera: bool) -> bool:
 	if not sync_async_overlay_state_from_current_map():
 		_driver._dynamic_overlay_refresh_requested = false
 		return false
-	_build.sync_terrain_overlay_animation_mode_from_editor()
+	_view_actions.sync_terrain_overlay_animation_mode_from_editor()
 	_driver._dynamic_overlay_refresh_requested = false
 	_driver._overlay_only_refresh_requested = false
 	_prepare_overlay_refresh(reframe_camera)
@@ -64,7 +68,7 @@ func sync_async_overlay_state_from_current_map() -> bool:
 	var game_data_type: String = _context.current_game_data_type()
 	UATerrainPieceLibrary.set_piece_game_data_type(game_data_type)
 	var effective_typ = _build.compute_effective_typ_for_map(cmd, w, h, typ, blg, game_data_type)
-	_build.set_async_map_snapshot(effective_typ, blg, w, h, int(cmd.level_set), game_data_type)
+	_async_state.set_async_map_snapshot(effective_typ, blg, w, h, int(cmd.level_set), game_data_type)
 	return true
 
 
@@ -77,38 +81,38 @@ func start_async_overlay_descriptor_build(dynamic_only: bool = false) -> void:
 		return
 	var snapshots := OverlayPlanBuilder.capture_dynamic_snapshots(cmd)
 	var payload := {
-		"generation_id": _build.coordinator().active_build_generation_id,
+		"generation_id": _async_state.coordinator().active_build_generation_id,
 		"dynamic_only": dynamic_only,
 		"fast_initial_dynamic_overlay": (not dynamic_only and _build.chunk_runtime().initial_build_in_progress),
 		"initial_static_overlay_sectors": _initial_static_overlay_sectors() if not dynamic_only and _build.chunk_runtime().initial_build_in_progress else [],
 		"support_descriptors": support_descriptors,
-		"blg": _build.async_blg(),
-		"effective_typ": _build.async_effective_typ(),
-		"set_id": _build.async_level_set(),
+		"blg": _async_state.async_blg(),
+		"effective_typ": _async_state.async_effective_typ(),
+		"set_id": _async_state.async_level_set(),
 		"hgt": cmd.hgt_map,
-		"w": _build.async_w(),
-		"h": _build.async_h(),
-		"game_data_type": _build.async_game_data_type(),
+		"w": _async_state.async_w(),
+		"h": _async_state.async_h(),
+		"game_data_type": _async_state.async_game_data_type(),
 		"host_station_snapshot": snapshots.get("host_station_snapshot", []),
 		"squad_snapshot": snapshots.get("squad_snapshot", []),
 	}
 	_driver._async_overlay_descriptor_dynamic_only = dynamic_only
-	_build.set_async_overlay_descriptor_stage("Preparing overlays: queued")
-	_build.set_async_overlay_descriptor_state(false, false, {}, {})
+	_async_state.set_async_overlay_descriptor_stage("Preparing overlays: queued")
+	_async_state.set_async_overlay_descriptor_state(false, false, {}, {})
 	var thread := Thread.new()
 	var err := thread.start(Callable(self, "_async_overlay_descriptor_worker").bind(payload))
 	if err != OK:
 		start_async_overlay_apply(support_descriptors, [], _build.make_empty_build_metrics())
 		return
-	_build.coordinator().set_async_overlay_descriptor_thread(thread)
+	_async_state.coordinator().set_async_overlay_descriptor_thread(thread)
 
 
 func _async_overlay_descriptor_worker(payload: Dictionary) -> void:
 	var generation_id := int(payload.get("generation_id", -1))
 	var dynamic_only := bool(payload.get("dynamic_only", false))
-	_build.set_async_overlay_descriptor_stage("Preparing overlays: starting")
-	if _build.is_async_cancel_requested(generation_id):
-		_build.set_async_overlay_descriptor_state(true, false, {}, {})
+	_async_state.set_async_overlay_descriptor_stage("Preparing overlays: starting")
+	if _async_state.is_async_cancel_requested(generation_id):
+		_async_state.set_async_overlay_descriptor_state(true, false, {}, {})
 		return
 	var metrics: Dictionary = _build.make_empty_build_metrics()
 	var started_usec := Time.get_ticks_usec()
@@ -127,15 +131,15 @@ func _async_overlay_descriptor_worker(payload: Dictionary) -> void:
 	var squad_snapshot: Array = payload.get("squad_snapshot", [])
 	var initial_static_overlay_sectors: Array = payload.get("initial_static_overlay_sectors", [])
 	if not dynamic_only:
-		_build.set_async_overlay_descriptor_stage("Preparing overlays: building attachments")
-	if _build.is_async_cancel_requested(generation_id):
-		_build.set_async_overlay_descriptor_state(true, false, {}, {})
+		_async_state.set_async_overlay_descriptor_stage("Preparing overlays: building attachments")
+	if _async_state.is_async_cancel_requested(generation_id):
+		_async_state.set_async_overlay_descriptor_state(true, false, {}, {})
 		return
-	_build.set_async_overlay_descriptor_stage("Preparing overlays: host stations")
-	if _build.is_async_cancel_requested(generation_id):
-		_build.set_async_overlay_descriptor_state(true, false, {}, {})
+	_async_state.set_async_overlay_descriptor_stage("Preparing overlays: host stations")
+	if _async_state.is_async_cancel_requested(generation_id):
+		_async_state.set_async_overlay_descriptor_state(true, false, {}, {})
 		return
-	_build.set_async_overlay_descriptor_stage("Preparing overlays: squads")
+	_async_state.set_async_overlay_descriptor_stage("Preparing overlays: squads")
 	if fast_initial_dynamic_overlay:
 		if not dynamic_only:
 			var building_started_usec := Time.get_ticks_usec()
@@ -195,8 +199,8 @@ func _async_overlay_descriptor_worker(payload: Dictionary) -> void:
 		static_descriptors = overlay_plan.get("static_descriptors", [])
 		dynamic_descriptors = overlay_plan.get("dynamic_descriptors", [])
 	metrics["overlay_descriptor_generation_ms"] = maxf(float(metrics.get("overlay_descriptor_generation_ms", 0.0)), _build.elapsed_ms_since(started_usec))
-	_build.set_async_overlay_descriptor_stage("Preparing overlays: complete")
-	_build.set_async_overlay_descriptor_state(true, false, {
+	_async_state.set_async_overlay_descriptor_stage("Preparing overlays: complete")
+	_async_state.set_async_overlay_descriptor_state(true, false, {
 		"static_descriptors": static_descriptors,
 		"dynamic_descriptors": dynamic_descriptors,
 		"fast_initial_dynamic_overlay": fast_initial_dynamic_overlay,
@@ -205,13 +209,13 @@ func _async_overlay_descriptor_worker(payload: Dictionary) -> void:
 
 
 func pump_async_overlay_descriptor_build() -> void:
-	if not _build.is_async_overlay_descriptor_active():
+	if not _async_state.is_async_overlay_descriptor_active():
 		return
-	var stage: String = _build.get_async_overlay_descriptor_stage()
+	var stage: String = _async_state.get_async_overlay_descriptor_stage()
 	if not stage.is_empty():
 		_driver.update_build_progress(_driver.total_chunks, _driver.total_chunks, stage)
-	if _build.coordinator()._async_cancel_requested:
-		_build.join_async_overlay_descriptor_thread()
+	if _async_state.coordinator()._async_cancel_requested:
+		_async_state.join_async_overlay_descriptor_thread()
 		var should_restart: bool = _driver._async_requested_restart
 		var restart_reframe: bool = _driver._async_requested_reframe
 		_driver.end_build_state(false, "3D render cancelled")
@@ -219,11 +223,11 @@ func pump_async_overlay_descriptor_build() -> void:
 		if should_restart:
 			_driver.request_refresh(restart_reframe)
 		return
-	var state: Dictionary = _build.get_async_overlay_descriptor_state()
+	var state: Dictionary = _async_state.get_async_overlay_descriptor_state()
 	if not bool(state.get("done", false)):
 		return
-	_build.join_async_overlay_descriptor_thread()
-	if _build.coordinator()._async_cancel_requested:
+	_async_state.join_async_overlay_descriptor_thread()
+	if _async_state.coordinator()._async_cancel_requested:
 		return
 	if bool(state.get("failed", false)):
 		_driver.end_build_state(false, "Overlay descriptor generation failed")
@@ -258,7 +262,7 @@ func start_async_overlay_apply(static_descriptors: Array, dynamic_descriptors: A
 func pump_async_overlay_apply() -> void:
 	if not _driver._async_overlay_apply_active:
 		return
-	if _build.coordinator()._async_cancel_requested:
+	if _async_state.coordinator()._async_cancel_requested:
 		_driver._async_overlay_apply_active = false
 		_driver.end_build_state(false, "3D render cancelled")
 		_driver.reset_async_build_state()
@@ -302,8 +306,8 @@ func finalize_async_overlay_apply() -> void:
 	_driver.end_build_state(true, "3D map ready")
 	_scene.bump_3d_viewport_rendering()
 	if _driver._async_pending_reframe_camera and _scene.is_inside_tree():
-		_build.set_camera_framed(false)
-		_build.frame_if_needed()
+		_view_actions.set_camera_framed(false)
+		_view_actions.frame_if_needed()
 	var should_restart: bool = _driver._async_requested_restart
 	var restart_reframe: bool = _driver._async_requested_reframe
 	_driver.reset_async_build_state()
@@ -318,7 +322,7 @@ func finalize_async_overlay_apply() -> void:
 
 
 func _prepare_overlay_refresh(reframe_camera: bool) -> void:
-	var coordinator = _build.coordinator()
+	var coordinator = _async_state.coordinator()
 	coordinator.build_generation_id += 1
 	coordinator.active_build_generation_id = coordinator.build_generation_id
 	coordinator.cancel_requested_generation_id = 0
@@ -339,8 +343,8 @@ func _finalize_dynamic_only_overlay_refresh(dynamic_descriptors: Array, metrics:
 	_driver.end_build_state(true, "3D map ready")
 	_scene.bump_3d_viewport_rendering()
 	if _driver._async_pending_reframe_camera and _scene.is_inside_tree():
-		_build.set_camera_framed(false)
-		_build.frame_if_needed()
+		_view_actions.set_camera_framed(false)
+		_view_actions.frame_if_needed()
 	var should_restart: bool = _driver._async_requested_restart
 	var restart_reframe: bool = _driver._async_requested_reframe
 	_driver.reset_async_build_state()
@@ -359,8 +363,8 @@ func _initial_static_overlay_sectors() -> Array[Vector2i]:
 	if w <= 0 or h <= 0:
 		return []
 	if _driver._async_pending_reframe_camera and _scene.is_inside_tree():
-		_build.set_camera_framed(false)
-		_build.frame_if_needed()
+		_view_actions.set_camera_framed(false)
+		_view_actions.frame_if_needed()
 	var camera: Camera3D = _scene.camera()
 	if camera == null or not is_instance_valid(camera):
 		return []

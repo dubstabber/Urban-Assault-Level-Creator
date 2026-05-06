@@ -8,7 +8,10 @@ const UnitOverlayController := preload("res://map/3d/overlays/map_3d_unit_overla
 var _host = null
 var _context = null
 var _scene = null
+var _async_state = null
 var _build = null
+var _view_actions = null
+var _legacy_combined_port := false
 
 var is_building_3d := false
 var total_chunks := 0
@@ -39,12 +42,28 @@ var _async_chunk_authored_descriptors: Array = []
 var _overlay_pipeline := AsyncOverlayPipeline.new()
 
 
-func bind(host_port, context_port, scene_port, build_state_port) -> void:
+func bind(host_port, context_port, scene_port, async_state_port, build_runtime_port = null, view_action_port = null) -> void:
 	_host = host_port
 	_context = context_port
 	_scene = scene_port
-	_build = build_state_port
-	_overlay_pipeline.bind(self, host_port, context_port, scene_port, build_state_port)
+	_async_state = async_state_port
+	_build = build_runtime_port if build_runtime_port != null else async_state_port
+	_view_actions = view_action_port if view_action_port != null else async_state_port
+	_legacy_combined_port = build_runtime_port == null and view_action_port == null
+	_overlay_pipeline.bind(self, host_port, context_port, scene_port, _async_state, _build, _view_actions)
+
+
+func _is_async_pipeline_active() -> bool:
+	if _legacy_combined_port:
+		return _async_state.is_async_pipeline_active()
+	return _async_state.is_async_pipeline_active(_async_overlay_apply_active)
+
+
+func _cancel_async_pipeline() -> void:
+	if _legacy_combined_port:
+		_async_state.cancel_async_initial_build()
+	else:
+		_async_state.cancel_async_build(_async_overlay_apply_active)
 
 
 func get_build_state_snapshot() -> Dictionary:
@@ -114,10 +133,10 @@ func apply_pending_refresh() -> void:
 	var reframe_camera = _refresh_reframe_pending
 	_refresh_pending = false
 	_refresh_reframe_pending = false
-	if _build.is_async_pipeline_active():
+	if _is_async_pipeline_active():
 		_async_requested_restart = true
 		_async_requested_reframe = _async_requested_reframe or reframe_camera
-		_build.cancel_async_initial_build()
+		_cancel_async_pipeline()
 		return
 	if _dynamic_overlay_refresh_requested:
 		if start_async_dynamic_overlay_refresh(reframe_camera):
@@ -127,11 +146,11 @@ func apply_pending_refresh() -> void:
 			return
 	if try_start_async_initial_build(reframe_camera):
 		return
-	_build.build_from_current_map()
+	_view_actions.build_from_current_map()
 	_scene.bump_3d_viewport_rendering()
 	if reframe_camera and _scene.is_inside_tree():
-		_build.set_camera_framed(false)
-		_build.frame_if_needed()
+		_view_actions.set_camera_framed(false)
+		_view_actions.frame_if_needed()
 
 
 func process_frame() -> void:
@@ -147,7 +166,7 @@ func on_units_changed(changes: Array) -> void:
 	if not _context.preview_refresh_active():
 		enqueue_pending_unit_changes(normalized)
 		return
-	if _build.is_async_pipeline_active():
+	if _is_async_pipeline_active():
 		enqueue_pending_unit_changes(normalized)
 		return
 	if normalized.size() > _host.max_incremental_unit_batch():
@@ -171,7 +190,7 @@ func request_dynamic_overlay_refresh() -> void:
 func flush_pending_unit_changes() -> bool:
 	if _pending_unit_changes.is_empty():
 		return false
-	if not _context.preview_refresh_active() or _build.is_async_pipeline_active():
+	if not _context.preview_refresh_active() or _is_async_pipeline_active():
 		return false
 	var pending := normalize_unit_changes(_pending_unit_changes)
 	_pending_unit_changes.clear()
@@ -268,18 +287,18 @@ func try_start_async_initial_build(reframe_camera: bool) -> bool:
 		"subsector_idx_remap": pre.subsector_idx_remap,
 		"lego_defs": pre.lego_defs,
 	}
-	var coordinator = _build.coordinator()
+	var coordinator = _async_state.coordinator()
 	coordinator.build_generation_id += 1
 	coordinator.active_build_generation_id = coordinator.build_generation_id
 	coordinator.cancel_requested_generation_id = 0
 	_async_pending_reframe_camera = reframe_camera
 	_async_build_started_usec = Time.get_ticks_usec()
-	_build.set_async_map_snapshot(effective_typ, blg, w, h, level_set, game_data_type)
+	_async_state.set_async_map_snapshot(effective_typ, blg, w, h, level_set, game_data_type)
 	coordinator._async_cancel_requested = false
 	_async_requested_restart = false
 	_async_requested_reframe = false
-	_build.clear_async_chunk_payloads()
-	_build.set_async_worker_state(false, false, "")
+	_async_state.clear_async_chunk_payloads()
+	_async_state.set_async_worker_state(false, false, "")
 	_async_processed_chunks.clear()
 	_async_chunk_authored_descriptors.clear()
 	var total: int = chunk_list.size()
@@ -308,7 +327,7 @@ func _async_initial_build_worker(snapshot: Dictionary, generation_id: int) -> vo
 	var lego_defs = snapshot.get("lego_defs", {})
 	var chunk_list: Array = snapshot.get("chunk_list", [])
 	for chunk_entry in chunk_list:
-		if _build.is_async_cancel_requested(generation_id):
+		if _async_state.is_async_cancel_requested(generation_id):
 			break
 		var chunk_coord := Vector2i(chunk_entry)
 		var chunk_result := ChunkBuildExecutor.build_chunk_result(
@@ -327,25 +346,25 @@ func _async_initial_build_worker(snapshot: Dictionary, generation_id: int) -> vo
 			edge_overlay_enabled
 		)
 		chunk_result["generation_id"] = generation_id
-		_build.push_async_chunk_payload(chunk_result)
-	_build.set_async_worker_state(true, false, "")
+		_async_state.push_async_chunk_payload(chunk_result)
+	_async_state.set_async_worker_state(true, false, "")
 
 
 func pump_async_initial_build() -> void:
-	if not _build.is_async_build_active():
+	if not _async_state.is_async_build_active():
 		return
 	var apply_budget := maxi(int(_host.async_chunk_apply_budget()), 1)
 	for _i in range(apply_budget):
-		var payload: Dictionary = _build.pop_async_chunk_payload()
+		var payload: Dictionary = _async_state.pop_async_chunk_payload()
 		if payload.is_empty():
 			break
-		if int(payload.get("generation_id", -1)) != _build.coordinator().active_build_generation_id:
+		if int(payload.get("generation_id", -1)) != _async_state.coordinator().active_build_generation_id:
 			continue
-		if _build.coordinator()._async_cancel_requested:
+		if _async_state.coordinator()._async_cancel_requested:
 			continue
 		apply_async_chunk_payload(payload)
-	var state: Dictionary = _build.get_async_worker_state()
-	if bool(state.get("done", false)) and _build.async_chunk_payload_count() == 0:
+	var state: Dictionary = _async_state.get_async_worker_state()
+	if bool(state.get("done", false)) and _async_state.async_chunk_payload_count() == 0:
 		finish_async_initial_build()
 
 
@@ -362,9 +381,9 @@ func apply_async_chunk_payload(payload: Dictionary) -> void:
 
 
 func finish_async_initial_build() -> void:
-	_build.join_async_thread()
-	var cancelled: bool = _build.coordinator()._async_cancel_requested
-	var failed := bool(_build.get_async_worker_state().get("failed", false))
+	_async_state.join_async_thread()
+	var cancelled: bool = _async_state.coordinator()._async_cancel_requested
+	var failed := bool(_async_state.get_async_worker_state().get("failed", false))
 	var should_restart := _async_requested_restart
 	var restart_reframe := _async_requested_reframe
 	if cancelled:
@@ -408,7 +427,7 @@ func try_finalize_async_localized_overlay_refresh() -> bool:
 	var game_data_type: String = _context.current_game_data_type()
 	UATerrainPieceLibrary.set_piece_game_data_type(game_data_type)
 	var effective_typ: PackedByteArray = _build.compute_effective_typ_for_map(cmd, w, h, typ, blg, game_data_type)
-	_build.set_async_map_snapshot(effective_typ, blg, w, h, level_set, game_data_type)
+	_async_state.set_async_map_snapshot(effective_typ, blg, w, h, level_set, game_data_type)
 	var metrics: Dictionary = _build.make_empty_build_metrics()
 	metrics["incremental_rebuild"] = true
 	metrics["chunks_rebuilt"] = _async_processed_chunks.size()
@@ -452,8 +471,8 @@ func try_finalize_async_localized_overlay_refresh() -> bool:
 	end_build_state(true, "3D map ready")
 	_scene.bump_3d_viewport_rendering()
 	if _async_pending_reframe_camera and _scene.is_inside_tree():
-		_build.set_camera_framed(false)
-		_build.frame_if_needed()
+		_view_actions.set_camera_framed(false)
+		_view_actions.frame_if_needed()
 	var should_restart: bool = _async_requested_restart
 	var restart_reframe: bool = _async_requested_reframe
 	reset_async_build_state()
@@ -489,7 +508,7 @@ func finalize_async_overlay_apply() -> void:
 
 
 func reset_async_build_state() -> void:
-	_build.coordinator().reset_async_state()
+	_async_state.reset_async_state()
 	_async_pending_reframe_camera = false
 	_async_build_started_usec = 0
 	_async_requested_restart = false
