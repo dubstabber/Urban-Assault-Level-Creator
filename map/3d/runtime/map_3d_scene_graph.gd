@@ -5,7 +5,10 @@ const SlurpBuilder := preload("res://map/3d/terrain/map_3d_slurp_builder.gd")
 const StaticOverlayIndex := preload("res://map/3d/services/map_3d_static_overlay_index.gd")
 const ChunkGrid := preload("res://map/3d/terrain/map_3d_chunk_grid.gd")
 const PreviewGeometry := preload("res://map/3d/terrain/map_3d_preview_geometry.gd")
+const SharedConstants := preload("res://map/3d/config/map_3d_shared_constants.gd")
 
+const SECTOR_SIZE := SharedConstants.SECTOR_SIZE
+const EDGE_PREVIEW_COLOR := Color(0.82, 0.48, 0.24, 0.55)
 const EDGE_BLEND_SHADER_PATH := "res://resources/terrain/shaders/edge_blend.gdshader"
 
 var _scene = null
@@ -233,7 +236,7 @@ func chunk_center_world_xz(chunk_coord: Vector2i) -> Vector2:
 	var sy_max := mini(sy_min + ChunkGrid.CHUNK_SIZE, h)
 	var center_sector_x := (float(sx_min + sx_max) * 0.5) + 1.0
 	var center_sector_y := (float(sy_min + sy_max) * 0.5) + 1.0
-	return Vector2(center_sector_x * _scene.renderer_node().SECTOR_SIZE, center_sector_y * _scene.renderer_node().SECTOR_SIZE)
+	return Vector2(center_sector_x * SECTOR_SIZE, center_sector_y * SECTOR_SIZE)
 
 
 func apply_sector_top_materials(mesh: ArrayMesh, preloads, surface_to_surface_type: Dictionary) -> void:
@@ -298,12 +301,12 @@ func build_edge_overlay_result(hgt: PackedByteArray, w: int, h: int, typ: Packed
 func make_edge_blend_material(bucket_key: String, preloads, use_uv_y_for_blend: bool) -> Material:
 	var pair := PreviewGeometry.surface_pair_from_slurp_bucket_key(bucket_key)
 	if pair.is_empty() or preloads == null:
-		return _scene.make_preview_material(_scene.renderer_node().EDGE_PREVIEW_COLOR)
+		return _scene.make_preview_material(EDGE_PREVIEW_COLOR)
 	if _state.edge_blend_shader == null:
 		_state.edge_blend_shader = load(EDGE_BLEND_SHADER_PATH)
 	if _state.edge_blend_shader == null:
 		push_warning("[Map3D] Could not load edge_blend.gdshader")
-		return _scene.make_preview_material(_scene.renderer_node().EDGE_PREVIEW_COLOR)
+		return _scene.make_preview_material(EDGE_PREVIEW_COLOR)
 	var cache_key := "%s:%s" % [bucket_key, use_uv_y_for_blend]
 	if _state.edge_material_cache.has(cache_key):
 		return _state.edge_material_cache[cache_key]
@@ -312,7 +315,7 @@ func make_edge_blend_material(bucket_key: String, preloads, use_uv_y_for_blend: 
 	var texture_a = preloads.get_ground_texture(int(pair["surface_a"]))
 	var texture_b = preloads.get_ground_texture(int(pair["surface_b"]))
 	if texture_a == null or texture_b == null:
-		return _scene.make_preview_material(_scene.renderer_node().EDGE_PREVIEW_COLOR)
+		return _scene.make_preview_material(EDGE_PREVIEW_COLOR)
 	mat.set_shader_parameter("texture_a", texture_a)
 	mat.set_shader_parameter("texture_b", texture_b)
 	mat.set_shader_parameter("vertical_seam", use_uv_y_for_blend)

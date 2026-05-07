@@ -1,12 +1,11 @@
 extends SceneTree
 
-const Map3DRendererScript = preload("res://map/map_3d_renderer.gd")
 const VisualLookupService = preload("res://map/3d/services/map_3d_visual_lookup_service.gd")
 
 const LOOKUP_TEST_SET_ID := 178
 
 func _init() -> void:
-	var base_name := Map3DRendererScript._building_attachment_base_name_for_vehicle(96, LOOKUP_TEST_SET_ID, "original")
+	var base_name := VisualLookupService._building_attachment_base_name_for_vehicle(96, LOOKUP_TEST_SET_ID, "original")
 	print("base_name=", base_name)
 
 	var visproto_path := VisualLookupService._visproto_path_for_set(LOOKUP_TEST_SET_ID, "original")

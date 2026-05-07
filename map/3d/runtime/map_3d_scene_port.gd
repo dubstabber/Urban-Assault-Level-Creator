@@ -1,5 +1,10 @@
 extends RefCounted
 
+const MaterialService := preload("res://map/3d/runtime/map_3d_material_service.gd")
+const SharedConstants := preload("res://map/3d/config/map_3d_shared_constants.gd")
+
+const TERRAIN_PREVIEW_COLOR := Color(0.62, 0.66, 0.58, 1.0)
+
 
 var _renderer = null
 
@@ -154,12 +159,12 @@ func bump_3d_viewport_rendering() -> void:
 
 
 func apply_untextured_materials(mesh: ArrayMesh) -> void:
-	_renderer._apply_untextured_materials(mesh)
+	MaterialService.apply_untextured_materials(mesh, TERRAIN_PREVIEW_COLOR)
 
 
 func make_preview_material(color: Color) -> StandardMaterial3D:
-	return _renderer._make_preview_material(color)
+	return MaterialService.make_preview_material(color)
 
 
 func compute_tile_scale() -> float:
-	return _renderer._compute_tile_scale()
+	return 1.0 / SharedConstants.SECTOR_SIZE

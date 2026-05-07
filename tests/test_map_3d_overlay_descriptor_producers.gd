@@ -4,13 +4,20 @@ extends RefCounted
 # Run via: godot4 --headless -s res://tests/_selected_test_runner.gd
 
 const Producers = preload("res://map/3d/overlays/map_3d_overlay_descriptor_producers.gd")
-const Map3DRendererScript = preload("res://map/map_3d_renderer.gd")
+const SharedConstants = preload("res://map/3d/config/map_3d_shared_constants.gd")
+const VisualCatalog = preload("res://map/3d/config/map_3d_visual_catalog.gd")
+const AuthoredPieceLibrary = preload("res://map/terrain/ua_authored_piece_library.gd")
+
+const LEGACY_SET_ROOT := "res://resources/ua/bundled/sets"
 
 var _errors: Array[String] = []
 
 
 func _reset_errors() -> void:
 	_errors.clear()
+	AuthoredPieceLibrary._clear_runtime_caches_for_tests()
+	AuthoredPieceLibrary.set_external_source_loading_enabled(true)
+	AuthoredPieceLibrary.set_external_source_root(LEGACY_SET_ROOT)
 
 
 func _check(cond: bool, msg: String) -> void:
@@ -61,12 +68,12 @@ func _make_squad_snapshot(vehicle: int, x: float, y: float, quantity: int = 1, i
 
 func test_constants_match_renderer() -> bool:
 	_reset_errors()
-	_check_eq(Producers.SECTOR_SIZE, Map3DRendererScript.SECTOR_SIZE, "SECTOR_SIZE should match renderer")
-	_check_eq(Producers.HEIGHT_SCALE, Map3DRendererScript.HEIGHT_SCALE, "HEIGHT_SCALE should match renderer")
-	_check_eq(Producers.SQUAD_FORMATION_SPACING, Map3DRendererScript.SQUAD_FORMATION_SPACING, "SQUAD_FORMATION_SPACING should match renderer")
-	_check_eq(Producers.SQUAD_EXTRA_Y_OFFSET, Map3DRendererScript.SQUAD_EXTRA_Y_OFFSET, "SQUAD_EXTRA_Y_OFFSET should match renderer")
-	_check_eq(Producers.HOST_STATION_BASE_NAMES, Map3DRendererScript.HOST_STATION_BASE_NAMES, "HOST_STATION_BASE_NAMES should match renderer")
-	_check_eq(Producers.HOST_STATION_VISIBLE_GUN_BASE_NAMES, Map3DRendererScript.HOST_STATION_VISIBLE_GUN_BASE_NAMES, "HOST_STATION_VISIBLE_GUN_BASE_NAMES should match renderer")
+	_check_eq(Producers.SECTOR_SIZE, SharedConstants.SECTOR_SIZE, "SECTOR_SIZE should match shared config")
+	_check_eq(Producers.HEIGHT_SCALE, SharedConstants.HEIGHT_SCALE, "HEIGHT_SCALE should match shared config")
+	_check_eq(Producers.SQUAD_FORMATION_SPACING, SharedConstants.SQUAD_FORMATION_SPACING, "SQUAD_FORMATION_SPACING should match shared config")
+	_check_eq(Producers.SQUAD_EXTRA_Y_OFFSET, SharedConstants.SQUAD_EXTRA_Y_OFFSET, "SQUAD_EXTRA_Y_OFFSET should match shared config")
+	_check_eq(Producers.HOST_STATION_BASE_NAMES, VisualCatalog.HOST_STATION_BASE_NAMES, "HOST_STATION_BASE_NAMES should match visual catalog")
+	_check_eq(Producers.HOST_STATION_VISIBLE_GUN_BASE_NAMES, VisualCatalog.HOST_STATION_VISIBLE_GUN_BASE_NAMES, "HOST_STATION_VISIBLE_GUN_BASE_NAMES should match visual catalog")
 	return _errors.is_empty()
 
 
@@ -78,9 +85,7 @@ func test_ground_height_at_world_position_matches_renderer() -> bool:
 	var world_x := 2700.0
 	var world_z := 2700.0
 	var producer_h := Producers.ground_height_at_world_position(hgt, w, h, world_x, world_z)
-	var renderer_h := Map3DRendererScript._ground_height_at_world_position(hgt, w, h, world_x, world_z)
-	_check_eq(producer_h, renderer_h, "Producer ground height should match renderer")
-	_check(producer_h > 0.0, "Ground height should be positive for non-zero hgt")
+	_check_eq(producer_h, 20.0 * Producers.HEIGHT_SCALE, "Ground height should sample the matching hgt byte")
 	return _errors.is_empty()
 
 
@@ -92,16 +97,14 @@ func test_support_height_at_world_position_matches_renderer() -> bool:
 	var world_x := 2700.0
 	var world_z := 2700.0
 	var producer_h := Producers.support_height_at_world_position(hgt, w, h, [], world_x, world_z)
-	var renderer_h := Map3DRendererScript._support_height_at_world_position(hgt, w, h, [], world_x, world_z)
-	_check_eq(producer_h, renderer_h, "Producer support height should match renderer (no support descriptors)")
+	_check_eq(producer_h, 15.0 * Producers.HEIGHT_SCALE, "Support height should fall back to terrain when no support descriptors exist")
 	return _errors.is_empty()
 
 
 func test_sector_center_origin_matches_renderer() -> bool:
 	_reset_errors()
 	var producer_origin := Producers.sector_center_origin(2, 3, 500.0)
-	var renderer_origin := Map3DRendererScript._sector_center_origin(2, 3, 500.0)
-	_check_eq(producer_origin, renderer_origin, "Producer sector_center_origin should match renderer")
+	_check_eq(producer_origin, Vector3(3.5 * Producers.SECTOR_SIZE, 500.0, 4.5 * Producers.SECTOR_SIZE), "Producer sector_center_origin should use bordered UA world coordinates")
 	return _errors.is_empty()
 
 
@@ -153,8 +156,7 @@ func test_squad_formation_offsets_single_unit() -> bool:
 	_reset_errors()
 	var offsets := Producers.squad_formation_offsets(1)
 	_check_eq(offsets.size(), 1, "Single unit should produce 1 offset")
-	var renderer_offsets := Map3DRendererScript._squad_formation_offsets(1)
-	_check_eq(offsets[0], renderer_offsets[0], "Single unit offset should match renderer")
+	_check_eq(offsets[0], Vector3(-150.0, 0.0, 0.0), "Single unit offset should occupy the left slot of the first row")
 	return _errors.is_empty()
 
 
@@ -162,9 +164,14 @@ func test_squad_formation_offsets_multiple_units() -> bool:
 	_reset_errors()
 	var offsets := Producers.squad_formation_offsets(4)
 	_check_eq(offsets.size(), 4, "4 units should produce 4 offsets")
-	var renderer_offsets := Map3DRendererScript._squad_formation_offsets(4)
-	for i in 4:
-		_check_eq(offsets[i], renderer_offsets[i], "Offset %d should match renderer" % i)
+	var expected := [
+		Vector3(-200.0, 0.0, 0.0),
+		Vector3(-100.0, 0.0, 0.0),
+		Vector3(0.0, 0.0, 0.0),
+		Vector3(100.0, 0.0, 0.0),
+	]
+	for i in expected.size():
+		_check_eq(offsets[i], expected[i], "Offset %d should match the left-to-right row layout" % i)
 	return _errors.is_empty()
 
 
@@ -175,13 +182,10 @@ func test_build_host_station_descriptors_from_snapshot_produces_correct_keys() -
 	var hgt := _make_flat_hgt(w, h, 10)
 	var snapshot := [_make_host_station_snapshot(56, 1800.0, -1800.0, 0.0, 42)]
 	var descriptors := Producers.build_host_station_descriptors_from_snapshot(snapshot, 1, hgt, w, h)
-	# VP_ROBO may or may not have piece source; check consistency with renderer
-	var renderer_descriptors := Map3DRendererScript._build_host_station_descriptors_from_snapshot(snapshot, 1, hgt, w, h)
-	_check_eq(descriptors.size(), renderer_descriptors.size(), "Producer and renderer descriptor counts should match")
-	for i in descriptors.size():
-		_check_eq(descriptors[i]["instance_key"], renderer_descriptors[i]["instance_key"], "Instance key %d should match" % i)
-		_check_eq(descriptors[i]["origin"], renderer_descriptors[i]["origin"], "Origin %d should match" % i)
-		_check_eq(descriptors[i]["base_name"], renderer_descriptors[i]["base_name"], "Base name %d should match" % i)
+	_check(not descriptors.is_empty(), "Known host station vehicle should produce at least one descriptor")
+	if not descriptors.is_empty():
+		_check_eq(String(descriptors[0].get("instance_key", "")), "host:1:42:VP_ROBO", "Known host station should produce a stable body instance key")
+		_check_eq(String(descriptors[0].get("base_name", "")), "VP_ROBO", "Known host station vehicle 56 should resolve to VP_ROBO")
 	return _errors.is_empty()
 
 
@@ -192,11 +196,7 @@ func test_build_squad_descriptors_from_snapshot_produces_correct_keys() -> bool:
 	var hgt := _make_flat_hgt(w, h, 10)
 	var snapshot := [_make_squad_snapshot(143, 2400.0, -2400.0, 2, 77)]
 	var descriptors := Producers.build_squad_descriptors_from_snapshot(snapshot, 1, hgt, w, h, [], "original")
-	var renderer_descriptors := Map3DRendererScript._build_squad_descriptors_from_snapshot(snapshot, 1, hgt, w, h, [], "original")
-	_check_eq(descriptors.size(), renderer_descriptors.size(), "Producer and renderer squad descriptor counts should match")
-	for i in descriptors.size():
-		_check_eq(descriptors[i]["instance_key"], renderer_descriptors[i]["instance_key"], "Squad instance key %d should match" % i)
-		_check_eq(descriptors[i]["origin"], renderer_descriptors[i]["origin"], "Squad origin %d should match" % i)
+	_check_eq(descriptors.size(), 0, "Unknown original-game squad vehicle should not produce descriptors")
 	return _errors.is_empty()
 
 
@@ -208,8 +208,7 @@ func test_build_blg_attachment_descriptors_matches_renderer() -> bool:
 	var blg := PackedByteArray([0, 0, 0, 0])
 	var typ := PackedByteArray([12, 12, 12, 12])
 	var producer_descs := Producers.build_blg_attachment_descriptors(blg, typ, 1, hgt, w, h, [], "original")
-	var renderer_descs := Map3DRendererScript._build_blg_attachment_descriptors(blg, typ, 1, hgt, w, h, [], "original")
-	_check_eq(producer_descs.size(), renderer_descs.size(), "BLG attachment descriptor counts should match")
+	_check_eq(producer_descs.size(), 0, "Empty blg map should not produce attachment descriptors")
 	return _errors.is_empty()
 
 

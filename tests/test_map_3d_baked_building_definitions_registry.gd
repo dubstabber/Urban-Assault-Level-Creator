@@ -1,5 +1,7 @@
 extends RefCounted
 
+const VisualLookupService = preload("res://map/3d/services/map_3d_visual_lookup_service.gd")
+
 var _errors: Array[String] = []
 
 func _check(cond: bool, msg: String) -> void:
@@ -10,7 +12,7 @@ func _check(cond: bool, msg: String) -> void:
 func run() -> int:
 	_errors.clear()
 
-	# Prove the renderer prefers baked building definitions (building_definitions.json)
+	# Prove the visual lookup service prefers baked building definitions (building_definitions.json)
 	# rather than parsing `.SCR` scripts at runtime.
 	var set_id := 78
 	var game_data_type := "original"
@@ -40,16 +42,11 @@ func run() -> int:
 		]
 	})
 
-	var renderer_script = load("res://map/map_3d_renderer.gd")
-	_check(renderer_script != null, "[BakedBuildingDefinitionsTest] Failed to load renderer script.")
-	if renderer_script == null:
-		return _errors.size()
-
-	var building: Dictionary = renderer_script._building_definition_for_id_and_sec_type(building_id, sec_type, set_id, game_data_type)
+	var building: Dictionary = VisualLookupService._building_definition_for_id_and_sec_type(building_id, sec_type, set_id, game_data_type)
 	if building.is_empty():
 		# Current repo implementation loads building definitions from scripts; if baked JSON
 		# support isn't wired yet, treat this as a skip instead of a failure.
-		print("[BakedBuildingDefinitionsTest] SKIP renderer does not resolve baked building_definitions.json for this repo version")
+		print("[BakedBuildingDefinitionsTest] SKIP visual lookup does not resolve baked building_definitions.json for this repo version")
 		return 0
 
 	var attachments_value = building.get("attachments", [])
@@ -87,4 +84,3 @@ func _save_json(path: String, payload: Dictionary) -> void:
 	f.store_string(JSON.stringify(payload, "\t", false))
 	f.store_string("\n")
 	f.close()
-

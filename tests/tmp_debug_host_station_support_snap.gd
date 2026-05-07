@@ -1,6 +1,6 @@
 extends SceneTree
 
-const Map3DRendererScript = preload("res://map/map_3d_renderer.gd")
+const OverlayProducers = preload("res://map/3d/overlays/map_3d_overlay_descriptor_producers.gd")
 const AuthoredPieceLibrary = preload("res://map/terrain/ua_authored_piece_library.gd")
 
 const LEGACY_SET_ROOT := "res://resources/ua/bundled/sets"
@@ -38,7 +38,7 @@ func _init() -> void:
 		{"set_id": 1, "base_name": "ST_EMPTY", "raw_id": 101, "origin": _ua_vec3(0.0, 2000.0, 0.0)}
 	]
 
-	var descriptors := Map3DRendererScript._build_host_station_descriptors(
+	var descriptors := OverlayProducers.build_host_station_descriptors(
 		[HostStationStub.new(56, 150.0, 150.0, -500)],
 		1,
 		data["hgt"],
@@ -49,14 +49,14 @@ func _init() -> void:
 
 	var world_x: float = 150.0 * (1.0 / 1200.0)
 	var world_z: float = 150.0 * (1.0 / 1200.0)
-	var terrain_y: float = Map3DRendererScript._ground_height_at_world_position(data["hgt"], w, h, world_x, world_z)
+	var terrain_y: float = OverlayProducers.ground_height_at_world_position(data["hgt"], w, h, world_x, world_z)
 	var authored_y: Variant = AuthoredPieceLibrary.support_height_at_world_position(support, world_x, world_z)
-	var support_y_via_renderer: float = Map3DRendererScript._support_height_at_world_position(data["hgt"], w, h, support, world_x, world_z)
+	var support_y_via_producers: float = OverlayProducers.support_height_at_world_position(data["hgt"], w, h, support, world_x, world_z)
 	print("--- support sampler debug ---")
 	print("world_x/world_z=", world_x, ",", world_z)
 	print("terrain_y(unscaled)=", terrain_y)
 	print("authored_y=", authored_y)
-	print("support_y_via_renderer(unscaled UA)=", support_y_via_renderer)
+	print("support_y_via_producers(unscaled UA)=", support_y_via_producers)
 
 	print("--- support snap (host station 56) ---")
 	print("count=", descriptors.size())
@@ -69,4 +69,3 @@ func _init() -> void:
 	print("Expected body VP_ROBO:", _ua_vec3(150.0, 2508.0, 150.0))
 
 	quit()
-

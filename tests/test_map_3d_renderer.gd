@@ -144,10 +144,11 @@ func test_facade_contract_exposes_expected_runtime_surface() -> bool:
 		_check(static_api.has(method_name), "Facade contract should list static API %s" % method_name)
 	for removed_method_name in ["build_mesh", "build_mesh_with_textures"]:
 		_check(not static_api.has(removed_method_name), "Terrain builder API should not remain on renderer facade contract: %s" % removed_method_name)
-	for method_name in ["_apply_pending_refresh", "_build_edge_overlay_result"]:
+	for method_name in ["_apply_pending_refresh"]:
 		_check(compatibility_instance_api.has(method_name), "Facade contract should list compatibility instance API %s" % method_name)
 		_check(renderer.has_method(method_name), "Renderer should expose compatibility instance API %s" % method_name)
 	for method_name in [
+		"_build_edge_overlay_result",
 		"_building_definition_for_id_and_sec_type",
 		"_visproto_base_names_for_set",
 		"_base_name_from_visproto_index",
@@ -156,7 +157,9 @@ func test_facade_contract_exposes_expected_runtime_surface() -> bool:
 		"_build_host_station_descriptors",
 		"_build_squad_descriptors",
 	]:
-		_check(compatibility_static_api.has(method_name), "Facade contract should list compatibility static API %s" % method_name)
+		_check(not compatibility_instance_api.has(method_name), "Facade contract should not list removed compatibility instance API %s" % method_name)
+		_check(not compatibility_static_api.has(method_name), "Facade contract should not list removed compatibility static API %s" % method_name)
+		_check(not renderer.has_method(method_name), "Renderer should not expose removed compatibility API %s" % method_name)
 	return _errors.is_empty()
 
 func test_get_build_state_snapshot_reflects_emitted_build_state() -> bool:

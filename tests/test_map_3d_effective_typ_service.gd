@@ -1,7 +1,6 @@
 extends RefCounted
 
 const EffectiveTypServiceScript = preload("res://map/3d/services/map_3d_effective_typ_service.gd")
-const RendererScript = preload("res://map/map_3d_renderer.gd")
 
 const LOOKUP_TEST_SET_ID := 178
 
@@ -101,8 +100,8 @@ func test_compute_effective_typ_for_map_cache_tracks_checksums_and_dirty_state()
 	cmd.tech_upgrades = [ {"sec_x": 2, "sec_y": 1, "building": 50}]
 	var typ := PackedByteArray([12, 12, 12, 12])
 	var blg := PackedByteArray([0, 0, 0, 0])
-	var typ_checksum := RendererScript._checksum_packed_byte_array(typ)
-	var blg_checksum := RendererScript._checksum_packed_byte_array(blg)
+	var typ_checksum := EffectiveTypServiceScript.checksum_packed_byte_array(typ)
+	var blg_checksum := EffectiveTypServiceScript.checksum_packed_byte_array(blg)
 	_check(not service.is_valid_cache(2, 2, "original", typ_checksum, blg_checksum), "Cache should start invalid")
 	var effective := service.compute_effective_typ_for_map(cmd, 2, 2, typ, blg, "original")
 	_check_eq(effective, PackedByteArray([12, 102, 12, 12]), "Computed effective typ should include the expected tech-upgrade override")
@@ -114,7 +113,7 @@ func test_compute_effective_typ_for_map_cache_tracks_checksums_and_dirty_state()
 	_check_eq(recomputed, effective, "Recomputing after dirty should preserve output")
 	_check(service.is_valid_cache(2, 2, "original", typ_checksum, blg_checksum), "Cache should become valid again after recompute")
 	var changed_typ := PackedByteArray([12, 11, 12, 12])
-	var changed_typ_checksum := RendererScript._checksum_packed_byte_array(changed_typ)
+	var changed_typ_checksum := EffectiveTypServiceScript.checksum_packed_byte_array(changed_typ)
 	_check(not service.is_valid_cache(2, 2, "original", changed_typ_checksum, blg_checksum), "A typ checksum change should invalidate the previous cache entry")
 	service.invalidate_cache()
 	_check(not service.is_valid_cache(2, 2, "original", typ_checksum, blg_checksum), "Explicit cache invalidation should clear reuse state")

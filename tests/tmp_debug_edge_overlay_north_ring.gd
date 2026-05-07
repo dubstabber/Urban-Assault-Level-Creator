@@ -1,6 +1,6 @@
 extends SceneTree
 
-const Map3DRendererScript = preload("res://map/map_3d_renderer.gd")
+const SlurpBuilder = preload("res://map/3d/terrain/map_3d_slurp_builder.gd")
 const AuthoredPieceLibrary = preload("res://map/terrain/ua_authored_piece_library.gd")
 
 const LEGACY_SET_ROOT := "res://resources/ua/bundled/sets"
@@ -30,9 +30,8 @@ func _init() -> void:
 	for i in hgt.size():
 		hgt[i] = 5
 
-	var renderer = Map3DRendererScript.new()
 	var mapping := {12: 1, 248: 0, 249: 0, 250: 0, 251: 0, 252: 0, 253: 0, 254: 0, 255: 0}
-	var result: Dictionary = renderer._build_edge_overlay_result(hgt, w, h, typ, mapping, 1, MockPreloads.new())
+	var result: Dictionary = SlurpBuilder.build_edge_overlay_result(hgt, w, h, typ, mapping, 1)
 
 	var descriptors: Array = result.get("authored_piece_descriptors", [])
 	print("authored desc count=", descriptors.size())
@@ -52,4 +51,3 @@ func _init() -> void:
 		print("NO S00V descriptor emitted")
 
 	quit()
-

@@ -1,5 +1,7 @@
 extends RefCounted
 
+const BuildMetrics := preload("res://map/3d/runtime/map_3d_build_metrics.gd")
+
 
 var _renderer = null
 var _chunk_runtime = null
@@ -35,11 +37,11 @@ func bind(
 
 
 func make_empty_build_metrics() -> Dictionary:
-	return _renderer._make_empty_build_metrics()
+	return BuildMetrics.empty_metrics()
 
 
 func elapsed_ms_since(started_usec: int) -> float:
-	return _renderer._elapsed_ms_since(started_usec)
+	return BuildMetrics.elapsed_ms_since(started_usec)
 
 
 func finalize_build_metrics(metrics: Dictionary, build_started_usec: int) -> void:

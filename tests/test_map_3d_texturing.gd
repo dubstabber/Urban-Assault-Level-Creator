@@ -1,17 +1,23 @@
 extends RefCounted
 
 const Map3DRendererScript = preload("res://map/map_3d_renderer.gd")
+const SharedConstants = preload("res://map/3d/config/map_3d_shared_constants.gd")
+const RuntimeStateScript = preload("res://map/3d/runtime/map_3d_runtime_state.gd")
+const SceneGraphScript = preload("res://map/3d/runtime/map_3d_scene_graph.gd")
 const TerrainBuilder = preload("res://map/3d/terrain/map_3d_terrain_builder.gd")
 const SlurpBuilder = preload("res://map/3d/terrain/map_3d_slurp_builder.gd")
 const PreviewGeometry = preload("res://map/3d/terrain/map_3d_preview_geometry.gd")
 const TileResolver = preload("res://map/3d/terrain/map_3d_tile_resolver.gd")
+const OverlayProducers = preload("res://map/3d/overlays/map_3d_overlay_descriptor_producers.gd")
+const EffectiveTypService = preload("res://map/3d/services/map_3d_effective_typ_service.gd")
+const VisualLookupService = preload("res://map/3d/services/map_3d_visual_lookup_service.gd")
 const AuthoredPieceLibrary = preload("res://map/terrain/ua_authored_piece_library.gd")
 const AnimatedSurfaceMeshInstanceScript = preload("res://map/terrain/ua_animated_surface_mesh_instance.gd")
 const ParticleEmitterScript = preload("res://map/terrain/ua_authored_particle_emitter.gd")
-# Use scaled constants from the renderer (WORLD_SCALE = 1/1200)
-const SECTOR_SIZE := Map3DRendererScript.SECTOR_SIZE
-const HEIGHT_SCALE := Map3DRendererScript.HEIGHT_SCALE
-const EDGE_SLOPE := Map3DRendererScript.EDGE_SLOPE
+const SECTOR_SIZE := SharedConstants.SECTOR_SIZE
+const HEIGHT_SCALE := SharedConstants.HEIGHT_SCALE
+const EDGE_SLOPE := SharedConstants.EDGE_SLOPE
+const SQUAD_EXTRA_Y_OFFSET := SharedConstants.SQUAD_EXTRA_Y_OFFSET
 const LOOKUP_TEST_SET_ID := 178
 # In this repo checkout, retail/BAS/SKLT source data (and the `objects/` folders)
 # live under the decompiled-master asset tree rather than `resources/ua/bundled/`.
@@ -84,6 +90,23 @@ class EditorStateStub:
 	var view_mode_3d := false
 	var map_3d_visibility_range_enabled := false
 	var game_data_type := "original"
+
+class SceneGraphPortStub:
+	extends RefCounted
+
+	const MaterialServiceLocal = preload("res://map/3d/runtime/map_3d_material_service.gd")
+
+	func is_inside_tree() -> bool:
+		return false
+
+	func make_preview_material(color: Color) -> StandardMaterial3D:
+		return MaterialServiceLocal.make_preview_material(color)
+
+	func apply_untextured_materials(mesh: ArrayMesh) -> void:
+		MaterialServiceLocal.apply_untextured_materials(mesh, Color(0.62, 0.66, 0.58, 1.0))
+
+	func compute_tile_scale() -> float:
+		return 1.0 / 1200.0
 
 
 var _errors: Array[String] = []
@@ -198,7 +221,24 @@ func _ensure_baked_renderer_lookup_registries() -> void:
 			"63": {"slots": {"wait": 0}, "model": "tank"}
 		}
 	})
-	Map3DRendererScript._clear_runtime_lookup_caches_for_tests()
+	EffectiveTypService.clear_runtime_lookup_caches_for_tests()
+
+func _make_scene_graph() -> RefCounted:
+	var graph := SceneGraphScript.new()
+	graph.bind(SceneGraphPortStub.new(), null, RuntimeStateScript.new(), null, null)
+	return graph
+
+func _build_edges_mesh(hgt: PackedByteArray, w: int, h: int, typ: PackedByteArray, mapping: Dictionary, preloads = null) -> ArrayMesh:
+	var result := SlurpBuilder.build_preview_edge_mesh_result(hgt, w, h, typ, mapping)
+	var mesh: ArrayMesh = result.get("mesh", ArrayMesh.new())
+	_make_scene_graph().apply_edge_surface_materials(mesh, preloads, result.get("fallback_horiz_keys", []), result.get("fallback_vert_keys", []))
+	return mesh
+
+func _build_edge_overlay_result(hgt: PackedByteArray, w: int, h: int, typ: PackedByteArray, mapping: Dictionary, set_id: int, preloads = null) -> Dictionary:
+	return _make_scene_graph().build_edge_overlay_result(hgt, w, h, typ, mapping, set_id, preloads)
+
+func _apply_sector_top_materials(mesh: ArrayMesh, preloads, surface_to_surface_type: Dictionary) -> void:
+	_make_scene_graph().apply_sector_top_materials(mesh, preloads, surface_to_surface_type)
 
 func _ensure_dir(path: String) -> void:
 	var da := DirAccess.open("res://")
@@ -565,9 +605,8 @@ func test_build_edges_mesh_uses_shader_materials() -> bool:
 	var w := 2
 	var h := 1
 	var data := _make_typ_and_hgt(w, h, [12, 34])
-	var renderer = Map3DRendererScript.new()
 	var preloads := MockPreloads.new()
-	var edges_mesh: ArrayMesh = renderer._build_edges_mesh(data["hgt"], w, h, data["typ"], {12: 0, 34: 1}, preloads)
+	var edges_mesh: ArrayMesh = _build_edges_mesh(data["hgt"], w, h, data["typ"], {12: 0, 34: 1}, preloads)
 	_check(edges_mesh != null, "_build_edges_mesh returned null")
 	if edges_mesh != null:
 		_check(edges_mesh.get_surface_count() > 0, "_build_edges_mesh should still produce seam geometry")
@@ -582,9 +621,8 @@ func test_build_edges_mesh_uses_shader_materials() -> bool:
 func test_build_edges_mesh_left_right_seams_keep_ordered_pair_and_horizontal_blend_flag() -> bool:
 	_reset_errors()
 	var data := _make_typ_and_hgt(2, 1, [12, 34])
-	var renderer = Map3DRendererScript.new()
 	var preloads := MockPreloads.new()
-	var edges_mesh: ArrayMesh = renderer._build_edges_mesh(data["hgt"], 2, 1, data["typ"], {12: 0, 34: 1}, preloads)
+	var edges_mesh: ArrayMesh = _build_edges_mesh(data["hgt"], 2, 1, data["typ"], {12: 0, 34: 1}, preloads)
 	_check(edges_mesh != null, "Left/right seam build returned null")
 	if edges_mesh != null:
 		_check(edges_mesh.get_surface_count() > 0, "Left/right seam build should produce seam surfaces")
@@ -601,9 +639,8 @@ func test_build_edges_mesh_left_right_seams_keep_ordered_pair_and_horizontal_ble
 func test_build_edges_mesh_left_right_seam_geometry_uses_playable_bounds() -> bool:
 	_reset_errors()
 	var data := _make_typ_and_hgt(2, 1, [12, 34])
-	var renderer = Map3DRendererScript.new()
 	var preloads := MockPreloads.new()
-	var edges_mesh: ArrayMesh = renderer._build_edges_mesh(data["hgt"], 2, 1, data["typ"], {12: 0, 34: 1}, preloads)
+	var edges_mesh: ArrayMesh = _build_edges_mesh(data["hgt"], 2, 1, data["typ"], {12: 0, 34: 1}, preloads)
 	_check(edges_mesh != null, "Left/right seam geometry build returned null")
 	if edges_mesh != null:
 		var found := false
@@ -639,9 +676,8 @@ func test_build_edges_mesh_left_right_seam_geometry_uses_corner_averages() -> bo
 	_set_hgt_value(data["hgt"], 2, 1, 0, 6)
 	_set_hgt_value(data["hgt"], 2, 0, 1, 8)
 	_set_hgt_value(data["hgt"], 2, 1, 1, 10)
-	var renderer = Map3DRendererScript.new()
 	var preloads := MockPreloads.new()
-	var edges_mesh: ArrayMesh = renderer._build_edges_mesh(data["hgt"], 2, 1, data["typ"], {12: 0, 34: 1}, preloads)
+	var edges_mesh: ArrayMesh = _build_edges_mesh(data["hgt"], 2, 1, data["typ"], {12: 0, 34: 1}, preloads)
 	_check(edges_mesh != null, "Left/right seam geometry build returned null")
 	if edges_mesh != null:
 		var found := false
@@ -674,9 +710,8 @@ func test_build_edges_mesh_left_right_seam_geometry_uses_corner_averages() -> bo
 func test_build_edges_mesh_top_bottom_seams_keep_ordered_pair_and_vertical_blend_flag() -> bool:
 	_reset_errors()
 	var data := _make_typ_and_hgt(1, 2, [12, 34])
-	var renderer = Map3DRendererScript.new()
 	var preloads := MockPreloads.new()
-	var edges_mesh: ArrayMesh = renderer._build_edges_mesh(data["hgt"], 1, 2, data["typ"], {12: 0, 34: 1}, preloads)
+	var edges_mesh: ArrayMesh = _build_edges_mesh(data["hgt"], 1, 2, data["typ"], {12: 0, 34: 1}, preloads)
 	_check(edges_mesh != null, "Top/bottom seam build returned null")
 	if edges_mesh != null:
 		_check(edges_mesh.get_surface_count() > 0, "Top/bottom seam build should produce seam surfaces")
@@ -693,8 +728,7 @@ func test_build_edges_mesh_top_bottom_seams_keep_ordered_pair_and_vertical_blend
 func test_build_edges_mesh_without_preloads_falls_back_to_preview_material() -> bool:
 	_reset_errors()
 	var data := _make_typ_and_hgt(2, 1, [12, 34])
-	var renderer = Map3DRendererScript.new()
-	var edges_mesh: ArrayMesh = renderer._build_edges_mesh(data["hgt"], 2, 1, data["typ"], {12: 0, 34: 1})
+	var edges_mesh: ArrayMesh = _build_edges_mesh(data["hgt"], 2, 1, data["typ"], {12: 0, 34: 1})
 	_check(edges_mesh != null, "_build_edges_mesh returned null without preloads")
 	if edges_mesh != null and edges_mesh.get_surface_count() > 0:
 		var material := edges_mesh.surface_get_material(0)
@@ -710,9 +744,8 @@ func test_edge_overlay_is_enabled_by_default_in_live_3d_renderer() -> bool:
 func test_build_edges_mesh_keeps_flat_same_surface_seams() -> bool:
 	_reset_errors()
 	var data := _make_typ_and_hgt(2, 1, [12, 34], 5)
-	var renderer = Map3DRendererScript.new()
 	var preloads := MockPreloads.new()
-	var edges_mesh: ArrayMesh = renderer._build_edges_mesh(data["hgt"], 2, 1, data["typ"], {12: 0, 34: 0}, preloads)
+	var edges_mesh: ArrayMesh = _build_edges_mesh(data["hgt"], 2, 1, data["typ"], {12: 0, 34: 0}, preloads)
 	_check(edges_mesh != null, "Flat same-surface seam build returned null")
 	if edges_mesh != null:
 		_check(edges_mesh.get_surface_count() == 0, "Flat same-surface neighboring sectors should not emit redundant seam strips")
@@ -725,10 +758,9 @@ func test_build_edges_mesh_includes_implicit_border_ring_pairs() -> bool:
 	_set_hgt_value(data["hgt"], 1, -1, 0, 4)
 	_set_hgt_value(data["hgt"], 1, 1, 0, 7)
 	_set_hgt_value(data["hgt"], 1, 0, 1, 8)
-	var renderer = Map3DRendererScript.new()
 	var preloads := MockPreloads.new()
 	var mapping := {12: 1, 248: 0, 249: 0, 250: 0, 251: 0, 252: 0, 253: 0, 254: 0, 255: 0}
-	var edges_mesh: ArrayMesh = renderer._build_edges_mesh(data["hgt"], 1, 1, data["typ"], mapping, preloads)
+	var edges_mesh: ArrayMesh = _build_edges_mesh(data["hgt"], 1, 1, data["typ"], mapping, preloads)
 	_check(edges_mesh != null, "Implicit-border seam build returned null")
 	if edges_mesh != null:
 		var found_north := false
@@ -766,8 +798,7 @@ func test_surface_pair_from_slurp_bucket_key_rejects_invalid_keys() -> bool:
 func test_build_edge_overlay_result_uses_pair_based_vertical_seam_for_interior_pair() -> bool:
 	_reset_errors()
 	var data := _make_typ_and_hgt(2, 1, [12, 34])
-	var renderer = Map3DRendererScript.new()
-	var result: Dictionary = renderer._build_edge_overlay_result(data["hgt"], 2, 1, data["typ"], {12: 0, 34: 1}, 1, MockPreloads.new())
+	var result: Dictionary = _build_edge_overlay_result(data["hgt"], 2, 1, data["typ"], {12: 0, 34: 1}, 1, MockPreloads.new())
 	var descriptors: Array = result.get("authored_piece_descriptors", [])
 	_check(_has_descriptor(descriptors, "S01V", Vector3(2.5 * SECTOR_SIZE, 0.0, 1.5 * SECTOR_SIZE)), "Interior left/right seam should prefer authored S01V slurp anchored to the right sector center")
 	_check(result.get("mesh", null) == null, "When the authored interior slurp exists, the live overlay should not fall back to the old strip mesh for that seam")
@@ -778,8 +809,7 @@ func test_build_edge_overlay_result_keeps_authored_vertical_slurp_for_height_ste
 	_reset_errors()
 	var data := _make_typ_and_hgt(2, 1, [12, 34], 5)
 	_set_hgt_value(data["hgt"], 2, 1, 0, 10)
-	var renderer = Map3DRendererScript.new()
-	var result: Dictionary = renderer._build_edge_overlay_result(data["hgt"], 2, 1, data["typ"], {12: 0, 34: 1}, 1, MockPreloads.new())
+	var result: Dictionary = _build_edge_overlay_result(data["hgt"], 2, 1, data["typ"], {12: 0, 34: 1}, 1, MockPreloads.new())
 	var descriptors: Array = result.get("authored_piece_descriptors", [])
 	_check(_has_descriptor(descriptors, "S01V", Vector3(2.5 * SECTOR_SIZE, 10.0 * HEIGHT_SCALE, 1.5 * SECTOR_SIZE)), "Height-step interior left/right neighbors should still keep authored S01V slurps anchored to the right sector center")
 	_check(result.get("mesh", null) == null, "Height-step authored vertical seams should not fall back to strip mesh because fallback causes protruding artifacts")
@@ -788,8 +818,7 @@ func test_build_edge_overlay_result_keeps_authored_vertical_slurp_for_height_ste
 func test_build_edge_overlay_result_keeps_authored_vertical_slurp_for_flat_same_surface_pair() -> bool:
 	_reset_errors()
 	var data := _make_typ_and_hgt(2, 1, [12, 34], 5)
-	var renderer = Map3DRendererScript.new()
-	var result: Dictionary = renderer._build_edge_overlay_result(data["hgt"], 2, 1, data["typ"], {12: 0, 34: 0}, 1, MockPreloads.new())
+	var result: Dictionary = _build_edge_overlay_result(data["hgt"], 2, 1, data["typ"], {12: 0, 34: 0}, 1, MockPreloads.new())
 	var descriptors: Array = result.get("authored_piece_descriptors", [])
 	_check(_has_descriptor(descriptors, "S00V", Vector3(2.5 * SECTOR_SIZE, 5.0 * HEIGHT_SCALE, 1.5 * SECTOR_SIZE)), "Flat same-height same-surface interior neighbors should still emit authored S00V slurps")
 	return _errors.is_empty()
@@ -802,8 +831,7 @@ func test_build_edge_overlay_result_adds_micro_underlay_for_flat_same_surface_ve
 func test_build_edge_overlay_result_uses_pair_based_horizontal_seam_for_interior_pair() -> bool:
 	_reset_errors()
 	var data := _make_typ_and_hgt(1, 2, [12, 34])
-	var renderer = Map3DRendererScript.new()
-	var result := renderer._build_edge_overlay_result(data["hgt"], 1, 2, data["typ"], {12: 0, 34: 1}, 1, MockPreloads.new())
+	var result := _build_edge_overlay_result(data["hgt"], 1, 2, data["typ"], {12: 0, 34: 1}, 1, MockPreloads.new())
 	var descriptors: Array = result.get("authored_piece_descriptors", [])
 	_check(_has_descriptor(descriptors, "S01H", Vector3(1.5 * SECTOR_SIZE, 0.0, 2.5 * SECTOR_SIZE)), "Interior top/bottom seam should prefer authored S01H slurp anchored to the bottom sector center")
 	_check(result.get("mesh", null) == null, "When the authored interior hside slurp exists, the live overlay should not fall back to the old strip mesh for that seam")
@@ -841,7 +869,7 @@ func test_chunk_edge_overlay_assigns_vertical_seam_to_single_chunk_owner() -> bo
 func test_build_host_station_overlay_node_keeps_visible_body_when_gun_visuals_are_invisible() -> bool:
 	_reset_errors()
 	var data := _make_typ_and_hgt(1, 1, [12], 0)
-	var descriptors := Map3DRendererScript._build_host_station_descriptors([
+	var descriptors := OverlayProducers.build_host_station_descriptors([
 		HostStationStub.new(57, 1200.0, 1200.0, -500)
 	], 1, data["hgt"], 1, 1)
 	var overlay := AuthoredPieceLibrary.build_overlay_node(descriptors)
@@ -860,7 +888,7 @@ func test_build_host_station_descriptors_emits_source_backed_turret_forward_vect
 	_reset_errors()
 	var data := _make_typ_and_hgt(2, 2, [12, 12, 12, 12], 0)
 	_set_hgt_value(data["hgt"], 2, 0, 0, 8)
-	var descriptors := Map3DRendererScript._build_host_station_descriptors([
+	var descriptors := OverlayProducers.build_host_station_descriptors([
 		HostStationStub.new(56, 1800.0, 1800.0, -700)
 	], 1, data["hgt"], 2, 2)
 	var front_gun := _find_descriptor(descriptors, "VP_MFLAK", _ua_vec3(1800.0, 1700.0, 1745.0))
@@ -876,7 +904,7 @@ func test_build_host_station_descriptors_emits_source_backed_turret_forward_vect
 func test_build_host_station_descriptors_snaps_y_to_authored_support_mesh_when_present() -> bool:
 	_reset_errors()
 	var data := _make_typ_and_hgt(1, 1, [12], 12)
-	var descriptors := Map3DRendererScript._build_host_station_descriptors([
+	var descriptors := OverlayProducers.build_host_station_descriptors([
 		HostStationStub.new(56, 150.0, 150.0, -500)
 	], 1, data["hgt"], 1, 1, [
 		{"set_id": 1, "base_name": "ST_EMPTY", "raw_id": 101, "origin": _ua_vec3(0.0, 2000.0, 0.0)}
@@ -888,7 +916,7 @@ func test_build_host_station_descriptors_snaps_y_to_authored_support_mesh_when_p
 func test_build_host_station_descriptors_keeps_terrain_height_when_support_is_lower() -> bool:
 	_reset_errors()
 	var data := _make_typ_and_hgt(1, 1, [12], 12)
-	var descriptors := Map3DRendererScript._build_host_station_descriptors([
+	var descriptors := OverlayProducers.build_host_station_descriptors([
 		HostStationStub.new(176, 150.0, 150.0, -500)
 	], 1, data["hgt"], 1, 1, [
 		{"set_id": 1, "base_name": "ST_EMPTY", "raw_id": 100, "origin": Vector3.ZERO}
@@ -902,7 +930,7 @@ func test_build_host_station_descriptors_ignores_remote_higher_support_meshes() 
 	_reset_errors()
 	var data := _make_typ_and_hgt(1, 1, [12], 12)
 	# Use coordinates clearly inside the support mesh footprint (ST_EMPTY is 300x300 centered at origin)
-	var descriptors := Map3DRendererScript._build_host_station_descriptors([
+	var descriptors := OverlayProducers.build_host_station_descriptors([
 		HostStationStub.new(56, 50.0, 50.0, -500)
 	], 1, data["hgt"], 1, 1, [
 		{"set_id": 1, "base_name": "ST_EMPTY", "raw_id": 101, "origin": _ua_vec3(0.0, 2000.0, 0.0)},
@@ -914,7 +942,7 @@ func test_build_host_station_descriptors_ignores_remote_higher_support_meshes() 
 func test_build_host_station_descriptors_snaps_to_rotated_authored_support_mesh() -> bool:
 	_reset_errors()
 	var data := _make_typ_and_hgt(1, 1, [12], 12)
-	var descriptors := Map3DRendererScript._build_host_station_descriptors([
+	var descriptors := OverlayProducers.build_host_station_descriptors([
 		HostStationStub.new(56, 900.0, 300.0, -500)
 	], 1, data["hgt"], 1, 1, [
 		{
@@ -932,7 +960,7 @@ func test_build_host_station_descriptors_snaps_to_rotated_authored_support_mesh(
 func test_build_host_station_descriptors_skips_unknown_vehicle_ids() -> bool:
 	_reset_errors()
 	var data := _make_typ_and_hgt(1, 1, [12], 0)
-	var descriptors := Map3DRendererScript._build_host_station_descriptors([
+	var descriptors := OverlayProducers.build_host_station_descriptors([
 		HostStationStub.new(999, 1200.0, 1200.0, -500)
 	], 1, data["hgt"], 1, 1)
 	_check(descriptors.is_empty(), "Unknown host-station vehicle ids should be ignored instead of producing broken overlay descriptors")
@@ -941,7 +969,7 @@ func test_build_host_station_descriptors_skips_unknown_vehicle_ids() -> bool:
 func test_host_station_descriptor_positions_stay_in_ua_world_units() -> bool:
 	_reset_errors()
 	var data := _make_typ_and_hgt(2, 2, [12, 12, 12, 12], 8)
-	var descriptors := Map3DRendererScript._build_host_station_descriptors([
+	var descriptors := OverlayProducers.build_host_station_descriptors([
 		HostStationStub.new(56, 1800.0, 1800.0, -700)
 	], 1, data["hgt"], 2, 2)
 	var body := {}
@@ -962,7 +990,7 @@ func test_host_station_descriptor_positions_stay_in_ua_world_units() -> bool:
 
 func test_effective_typ_map_for_3d_applies_known_blg_overrides_only() -> bool:
 	_reset_errors()
-	var effective := Map3DRendererScript._effective_typ_map_for_3d(
+	var effective := EffectiveTypService.effective_typ_map_for_3d(
 		PackedByteArray([12, 12, 12, 12]),
 		PackedByteArray([0, 28, 20, 255]),
 		"original",
@@ -978,7 +1006,7 @@ func test_effective_typ_map_for_3d_applies_known_blg_overrides_only() -> bool:
 
 func test_effective_typ_map_for_3d_applies_beam_gate_closed_bp_override() -> bool:
 	_reset_errors()
-	var effective := Map3DRendererScript._effective_typ_map_for_3d(
+	var effective := EffectiveTypService.effective_typ_map_for_3d(
 		PackedByteArray([12, 12, 12, 12]),
 		PackedByteArray([0, 0, 0, 0]),
 		"original",
@@ -994,7 +1022,7 @@ func test_effective_typ_map_for_3d_applies_beam_gate_closed_bp_override() -> boo
 
 func test_effective_typ_map_for_3d_applies_tech_upgrade_building_override() -> bool:
 	_reset_errors()
-	var effective := Map3DRendererScript._effective_typ_map_for_3d(
+	var effective := EffectiveTypService.effective_typ_map_for_3d(
 		PackedByteArray([12, 12, 12, 12]),
 		PackedByteArray([0, 0, 0, 0]),
 		"original",
@@ -1010,7 +1038,7 @@ func test_effective_typ_map_for_3d_applies_tech_upgrade_building_override() -> b
 
 func test_effective_typ_map_for_3d_applies_editor_aligned_tech_upgrade_override_variants() -> bool:
 	_reset_errors()
-	var effective := Map3DRendererScript._effective_typ_map_for_3d(
+	var effective := EffectiveTypService.effective_typ_map_for_3d(
 		PackedByteArray([12, 12, 12, 12]),
 		PackedByteArray([0, 0, 0, 0]),
 		"original",
@@ -1030,7 +1058,7 @@ func test_effective_typ_map_for_3d_applies_editor_aligned_tech_upgrade_override_
 
 func test_effective_typ_map_for_3d_applies_stoudson_bomb_inactive_bp_override() -> bool:
 	_reset_errors()
-	var effective := Map3DRendererScript._effective_typ_map_for_3d(
+	var effective := EffectiveTypService.effective_typ_map_for_3d(
 		PackedByteArray([12, 12, 12, 12]),
 		PackedByteArray([0, 0, 0, 0]),
 		"original",
@@ -1046,7 +1074,7 @@ func test_effective_typ_map_for_3d_applies_stoudson_bomb_inactive_bp_override() 
 
 func test_effective_typ_map_for_3d_ignores_unknown_or_out_of_bounds_secondary_building_overrides() -> bool:
 	_reset_errors()
-	var effective := Map3DRendererScript._effective_typ_map_for_3d(
+	var effective := EffectiveTypService.effective_typ_map_for_3d(
 		PackedByteArray([12, 12, 12, 12]),
 		PackedByteArray([0, 0, 0, 0]),
 		"original",
@@ -1065,8 +1093,8 @@ func test_effective_typ_map_for_3d_ignores_unknown_or_out_of_bounds_secondary_bu
 
 func test_building_definition_for_id_and_sec_type_distinguishes_duplicate_original_ids() -> bool:
 	_reset_errors()
-	var small_aa := Map3DRendererScript._building_definition_for_id_and_sec_type(28, 205, LOOKUP_TEST_SET_ID, "original")
-	var radar := Map3DRendererScript._building_definition_for_id_and_sec_type(28, 240, LOOKUP_TEST_SET_ID, "original")
+	var small_aa := VisualLookupService._building_definition_for_id_and_sec_type(28, 205, LOOKUP_TEST_SET_ID, "original")
+	var radar := VisualLookupService._building_definition_for_id_and_sec_type(28, 240, LOOKUP_TEST_SET_ID, "original")
 	_check(not small_aa.is_empty(), "Original building id 28 should resolve when the effective sec_type is the Resistance flak typ 205")
 	_check(not radar.is_empty(), "Original building id 28 should also resolve the separate radar definition when the effective sec_type is 240")
 	if not small_aa.is_empty():
@@ -1081,15 +1109,15 @@ func test_building_definition_for_id_and_sec_type_distinguishes_duplicate_origin
 
 func test_building_attachment_base_name_for_vehicle_prefers_non_effect_vehicle_definition() -> bool:
 	_reset_errors()
-	var base_name := Map3DRendererScript._building_attachment_base_name_for_vehicle(96, LOOKUP_TEST_SET_ID, "original")
+	var base_name := VisualLookupService._building_attachment_base_name_for_vehicle(96, LOOKUP_TEST_SET_ID, "original")
 	_check(base_name == "VP_DFLAK", "Building attachments should prefer the non-effect vehicle definition for id 96 instead of the later bruch.scr particle/effect reuse")
 	return _errors.is_empty()
 
 
 func test_md_building_alias_74_reuses_taerflak_definition() -> bool:
 	_reset_errors()
-	var d74 := Map3DRendererScript._building_definition_for_id_and_sec_type(74, 208, 1, "metropolisDawn")
-	var d31 := Map3DRendererScript._building_definition_for_id_and_sec_type(31, 208, 1, "metropolisDawn")
+	var d74 := VisualLookupService._building_definition_for_id_and_sec_type(74, 208, 1, "metropolisDawn")
+	var d31 := VisualLookupService._building_definition_for_id_and_sec_type(31, 208, 1, "metropolisDawn")
 	_check(not d74.is_empty(), "MD building id 74 should resolve a definition through the 74->31 alias path")
 	_check(not d31.is_empty(), "MD building id 31 should resolve the source TAERFLAK definition")
 	if not d74.is_empty() and not d31.is_empty():
@@ -1104,7 +1132,7 @@ func test_build_blg_attachment_descriptors_emits_small_aa_overlay_for_blg28() ->
 	_reset_errors()
 	var data := _make_typ_and_hgt(1, 1, [12], 0)
 	_set_hgt_value(data["hgt"], 1, 0, 0, 8)
-	var descriptors := Map3DRendererScript._build_blg_attachment_descriptors(
+	var descriptors := OverlayProducers.build_blg_attachment_descriptors(
 		PackedByteArray([28]),
 		PackedByteArray([205]),
 		1,
@@ -1126,7 +1154,7 @@ func test_build_blg_attachment_descriptors_keeps_sector_ground_height_when_autho
 	_reset_errors()
 	var data := _make_typ_and_hgt(1, 1, [12], 0)
 	_set_hgt_value(data["hgt"], 1, 0, 0, 8)
-	var descriptors := Map3DRendererScript._build_blg_attachment_descriptors(
+	var descriptors := OverlayProducers.build_blg_attachment_descriptors(
 		PackedByteArray([28]), PackedByteArray([205]), 1, data["hgt"], 1, 1,
 		[ {"set_id": 1, "base_name": "ST_EMPTY", "raw_id": 101, "origin": Vector3(0.0, 2000.0, 0.0)}], "original"
 	)
@@ -1138,7 +1166,7 @@ func test_build_blg_attachment_descriptors_keeps_sector_ground_height_when_autho
 func test_build_blg_attachment_descriptors_skips_dummy_gflak_visuals() -> bool:
 	_reset_errors()
 	var data := _make_typ_and_hgt(1, 1, [12], 0)
-	var descriptors := Map3DRendererScript._build_blg_attachment_descriptors(
+	var descriptors := OverlayProducers.build_blg_attachment_descriptors(
 		PackedByteArray([20]),
 		PackedByteArray([199]),
 		1,
@@ -1155,7 +1183,7 @@ func test_build_blg_attachment_descriptors_emits_radar_nozzle_overlay() -> bool:
 	_reset_errors()
 	var data := _make_typ_and_hgt(1, 1, [12], 0)
 	_set_hgt_value(data["hgt"], 1, 0, 0, 7)
-	var descriptors := Map3DRendererScript._build_blg_attachment_descriptors(
+	var descriptors := OverlayProducers.build_blg_attachment_descriptors(
 		PackedByteArray([3]),
 		PackedByteArray([204]),
 		1,
@@ -1177,7 +1205,7 @@ func test_build_blg_attachment_overlay_applies_positive_x_forward_orientation() 
 	_reset_errors()
 	var data := _make_typ_and_hgt(1, 1, [12], 0)
 	_set_hgt_value(data["hgt"], 1, 0, 0, 8)
-	var descriptors := Map3DRendererScript._build_blg_attachment_descriptors(
+	var descriptors := OverlayProducers.build_blg_attachment_descriptors(
 		PackedByteArray([28]), PackedByteArray([205]), 1, data["hgt"], 1, 1, [], "original"
 	)
 	var overlay := AuthoredPieceLibrary.build_overlay_node(descriptors)
@@ -1195,7 +1223,7 @@ func test_build_blg_attachment_overlay_applies_negative_x_forward_orientation() 
 	_reset_errors()
 	var data := _make_typ_and_hgt(1, 1, [12], 0)
 	_set_hgt_value(data["hgt"], 1, 0, 0, 7)
-	var descriptors := Map3DRendererScript._build_blg_attachment_descriptors(
+	var descriptors := OverlayProducers.build_blg_attachment_descriptors(
 		PackedByteArray([3]), PackedByteArray([204]), 1, data["hgt"], 1, 1, [], "original"
 	)
 	var overlay := AuthoredPieceLibrary.build_overlay_node(descriptors)
@@ -1211,7 +1239,7 @@ func test_build_blg_attachment_overlay_applies_negative_x_forward_orientation() 
 
 func test_squad_formation_offsets_fill_left_to_right_and_rows_advance_upward() -> bool:
 	_reset_errors()
-	var offsets := Map3DRendererScript._squad_formation_offsets(5)
+	var offsets := OverlayProducers.squad_formation_offsets(5)
 	var expected := [
 		_ua_vec3(-200.0, 0.0, 0.0),
 		_ua_vec3(-100.0, 0.0, 0.0),
@@ -1226,7 +1254,7 @@ func test_squad_formation_offsets_fill_left_to_right_and_rows_advance_upward() -
 
 func test_squad_formation_offsets_for_32_restart_each_row_from_left_and_move_upward() -> bool:
 	_reset_errors()
-	var offsets := Map3DRendererScript._squad_formation_offsets(32)
+	var offsets := OverlayProducers.squad_formation_offsets(32)
 	var expected_prefix := [
 		_ua_vec3(-350.0, 0.0, 0.0),
 		_ua_vec3(-250.0, 0.0, 0.0),
@@ -1247,7 +1275,7 @@ func test_build_squad_descriptors_resolves_original_vehicle_visuals_and_uses_lef
 	_reset_errors()
 	var data := _make_typ_and_hgt(2, 2, [12, 12, 12, 12], 0)
 	_set_hgt_value(data["hgt"], 2, 0, 0, 9)
-	var descriptors := Map3DRendererScript._build_squad_descriptors([
+	var descriptors := OverlayProducers.build_squad_descriptors([
 		SquadStub.new(1, 1200.0, 1200.0)
 	], 1, data["hgt"], 2, 2, [], "original")
 	_check(descriptors.size() == 1, "Original squad vehicle ids should emit exactly one vehicle overlay descriptor when a source-backed visual exists")
@@ -1255,14 +1283,14 @@ func test_build_squad_descriptors_resolves_original_vehicle_visuals_and_uses_lef
 		var descriptor: Dictionary = descriptors[0]
 		_check(String(descriptor.get("base_name", "")) == "VPwSIMPL", "Original squad vehicle id 1 should prefer the source-backed vp_wait idle visual through user.scr and visproto.lst")
 		_check(Vector3(descriptor.get("origin", Vector3.INF)).is_equal_approx(_ua_vec3(1050.0, 900.0, 1200.0)), "Single-unit squads should use the leftmost slot of the first row while keeping the shared snapped anchor Y")
-		_check(is_equal_approx(float(descriptor.get("y_offset", -1.0)), Map3DRendererScript.SQUAD_EXTRA_Y_OFFSET), "Squad overlays should carry a small extra vertical lift so vehicle hulls do not sit too deep in support surfaces")
+		_check(is_equal_approx(float(descriptor.get("y_offset", -1.0)), SQUAD_EXTRA_Y_OFFSET), "Squad overlays should carry a small extra vertical lift so vehicle hulls do not sit too deep in support surfaces")
 	return _errors.is_empty()
 
 func test_build_squad_overlay_node_instantiates_visible_original_vehicle() -> bool:
 	_reset_errors()
 	var data := _make_typ_and_hgt(2, 2, [12, 12, 12, 12], 0)
 	_set_hgt_value(data["hgt"], 2, 0, 0, 9)
-	var descriptors := Map3DRendererScript._build_squad_descriptors([
+	var descriptors := OverlayProducers.build_squad_descriptors([
 		SquadStub.new(1, 1200.0, 1200.0)
 	], 1, data["hgt"], 2, 2, [], "original")
 	var overlay := AuthoredPieceLibrary.build_overlay_node(descriptors)
@@ -1276,7 +1304,7 @@ func test_build_squad_descriptors_expands_quantity_into_left_to_right_upward_for
 	_reset_errors()
 	var data := _make_typ_and_hgt(2, 2, [12, 12, 12, 12], 0)
 	_set_hgt_value(data["hgt"], 2, 0, 0, 9)
-	var descriptors := Map3DRendererScript._build_squad_descriptors([
+	var descriptors := OverlayProducers.build_squad_descriptors([
 		SquadStub.new(1, 1200.0, 1200.0, 5)
 	], 1, data["hgt"], 2, 2, [], "original")
 	var expected_origins := [
@@ -1294,7 +1322,7 @@ func test_build_squad_descriptors_expands_quantity_into_left_to_right_upward_for
 func test_build_squad_descriptors_clamps_invalid_quantity_to_single_unit() -> bool:
 	_reset_errors()
 	var data := _make_typ_and_hgt(1, 1, [12], 0)
-	var descriptors := Map3DRendererScript._build_squad_descriptors([
+	var descriptors := OverlayProducers.build_squad_descriptors([
 		SquadStub.new(1, 1200.0, 1200.0, 0)
 	], 1, data["hgt"], 1, 1, [], "original")
 	_check(descriptors.size() == 1, "Invalid squad quantities should clamp to a single rendered squad unit instead of producing no preview")
@@ -1305,20 +1333,20 @@ func test_build_squad_descriptors_clamps_invalid_quantity_to_single_unit() -> bo
 func test_build_squad_descriptors_resolves_metropolis_dawn_vehicle_visuals() -> bool:
 	_reset_errors()
 	var data := _make_typ_and_hgt(1, 1, [12], 0)
-	var descriptors := Map3DRendererScript._build_squad_descriptors([
+	var descriptors := OverlayProducers.build_squad_descriptors([
 		SquadStub.new(63, 1200.0, 1200.0)
 	], 1, data["hgt"], 1, 1, [], "metropolisDawn")
 	_check(descriptors.size() == 1, "Metropolis Dawn squad vehicle ids should resolve through the XP script set when a source-backed visual exists")
 	if descriptors.size() == 1:
 		_check(String(descriptors[0].get("base_name", "")) == "VP_MYKO4", "XP squad vehicle id 63 should resolve through Myk.scr and set1_xp visproto.lst to VP_MYKO4")
-		_check(is_equal_approx(float(descriptors[0].get("y_offset", -1.0)), Map3DRendererScript.SQUAD_EXTRA_Y_OFFSET), "XP squad overlays should receive the same conservative extra lift as original-game squads")
+		_check(is_equal_approx(float(descriptors[0].get("y_offset", -1.0)), SQUAD_EXTRA_Y_OFFSET), "XP squad overlays should receive the same conservative extra lift as original-game squads")
 	return _errors.is_empty()
 
 
 func test_md_direct_squad_base_mappings_resolve_xpack_models() -> bool:
 	_reset_errors()
 	AuthoredPieceLibrary.set_piece_game_data_type("metropolisDawn")
-	Map3DRendererScript._clear_runtime_lookup_caches_for_tests()
+	EffectiveTypService.clear_runtime_lookup_caches_for_tests()
 	var expected := {
 		143: "VP_TODIN",
 		144: "VP_TKATJ",
@@ -1330,7 +1358,7 @@ func test_md_direct_squad_base_mappings_resolve_xpack_models() -> bool:
 		"VP_BRGR4": true,
 	}
 	for vehicle_id in expected.keys():
-		var base_name := Map3DRendererScript._squad_base_name_for_vehicle(int(vehicle_id), 1, "metropolisDawn")
+		var base_name := VisualLookupService._squad_base_name_for_vehicle(int(vehicle_id), 1, "metropolisDawn")
 		_check(not base_name.is_empty(), "MD squad vehicle %d should resolve to a non-empty visual base name" % int(vehicle_id))
 		_check(base_name == String(expected[vehicle_id]), "MD squad vehicle %d should resolve to the expected direct XPACK base name" % int(vehicle_id))
 		_check(not known_bad.has(base_name), "MD squad vehicle %d should not regress to known bad projectile/effect bases" % int(vehicle_id))
@@ -1339,7 +1367,7 @@ func test_md_direct_squad_base_mappings_resolve_xpack_models() -> bool:
 
 func test_preferred_squad_visual_base_name_prefers_wait_over_normal() -> bool:
 	_reset_errors()
-	var base_name := Map3DRendererScript._preferred_squad_visual_base_name({
+	var base_name := VisualLookupService._preferred_squad_visual_base_name({
 		"wait": 1,
 		"normal": 0,
 	}, ["VP_NORMAL", "VP_WAIT"])
@@ -1348,7 +1376,7 @@ func test_preferred_squad_visual_base_name_prefers_wait_over_normal() -> bool:
 
 func test_preferred_squad_visual_base_name_falls_back_from_dummy_wait_to_normal() -> bool:
 	_reset_errors()
-	var base_name := Map3DRendererScript._preferred_squad_visual_base_name({
+	var base_name := VisualLookupService._preferred_squad_visual_base_name({
 		"wait": 1,
 		"normal": 0,
 	}, ["VP_NORMAL", "dummy"])
@@ -1361,14 +1389,14 @@ func test_build_squad_descriptors_snaps_y_to_authored_support_mesh_when_present(
 	var support_descriptors := [
 		{"set_id": 1, "base_name": "ST_EMPTY", "raw_id": 100, "origin": Vector3.ZERO}
 	]
-	var descriptors := Map3DRendererScript._build_squad_descriptors([
+	var descriptors := OverlayProducers.build_squad_descriptors([
 		SquadStub.new(1, 150.0, 150.0)
 	], 1, data["hgt"], 1, 1, support_descriptors, "original")
 	_check(descriptors.size() == 1, "Squad descriptor building should still emit the squad body when an authored support mesh is available beneath it")
 	if descriptors.size() == 1:
 		var origin := Vector3(descriptors[0].get("origin", Vector3.INF))
 		_check(origin.is_equal_approx(_ua_vec3(0.0, 1200.0, 150.0)), "Squad Y snapping should choose the highest supporting mesh at the shared anchor before the leftmost X formation offset is applied")
-	var rooftop_descriptors := Map3DRendererScript._build_squad_descriptors([
+	var rooftop_descriptors := OverlayProducers.build_squad_descriptors([
 		SquadStub.new(1, 150.0, 150.0)
 	], 1, data["hgt"], 1, 1, [
 		{"set_id": 1, "base_name": "ST_EMPTY", "raw_id": 101, "origin": _ua_vec3(0.0, 2000.0, 0.0)}
@@ -1381,7 +1409,7 @@ func test_build_squad_descriptors_snaps_y_to_authored_support_mesh_when_present(
 func test_build_squad_descriptors_skips_unknown_vehicle_ids() -> bool:
 	_reset_errors()
 	var data := _make_typ_and_hgt(1, 1, [12], 0)
-	var descriptors := Map3DRendererScript._build_squad_descriptors([
+	var descriptors := OverlayProducers.build_squad_descriptors([
 		SquadStub.new(999, 1200.0, 1200.0)
 	], 1, data["hgt"], 1, 1, [], "original")
 	_check(descriptors.is_empty(), "Unknown squad vehicle ids should be ignored instead of emitting broken 3D overlay descriptors")
@@ -1693,7 +1721,7 @@ func test_apply_sector_top_materials_enables_multi_texture_shader_mode() -> bool
 	var surface_map: Dictionary = result.get("surface_to_surface_type", {})
 	_check(mesh != null, "Material application test should produce a mesh")
 	if mesh != null:
-		renderer._apply_sector_top_materials(mesh, preloads, surface_map)
+		_apply_sector_top_materials(mesh, preloads, surface_map)
 		var textured_surface_idx := _surface_index_for_type(surface_map, 3)
 		_check(textured_surface_idx >= 0, "Expected a terrain surface for shader-material test")
 		if textured_surface_idx >= 0:
@@ -2412,7 +2440,7 @@ func test_build_from_current_map_wires_host_stations_into_authored_overlay() -> 
 			if not key.is_empty():
 				found_keys[key] = true
 
-	var expected_descriptors: Array = Map3DRendererScript._build_host_station_descriptors(
+	var expected_descriptors: Array = OverlayProducers.build_host_station_descriptors(
 		host_stations.get_children(),
 		map_data.level_set,
 		data["hgt"],
@@ -2475,7 +2503,7 @@ func test_dynamic_overlay_keeps_md_squads_after_mixed_pool_refresh_events() -> b
 		"h": h,
 		"game_data_type": renderer._async_game_data_type,
 		"host_station_snapshot": [],
-		"squad_snapshot": Map3DRendererScript._snapshot_squad_nodes([md_squad]),
+		"squad_snapshot": OverlayProducers.snapshot_squad_nodes([md_squad]),
 	}
 	renderer._async_overlay_descriptor_worker(initial_payload)
 	var initial_state := renderer._get_async_overlay_descriptor_state()
@@ -2483,7 +2511,7 @@ func test_dynamic_overlay_keeps_md_squads_after_mixed_pool_refresh_events() -> b
 	var initial_dynamic: Array = initial_result.get("dynamic_descriptors", [])
 	_check(initial_dynamic.size() > 0, "Initial descriptor pass should include MD squad overlays")
 	var initial_keys := _instance_keys_from_descriptors(initial_dynamic)
-	var expected_md_descriptors: Array = Map3DRendererScript._build_squad_descriptors([md_squad], map_data.level_set, data["hgt"], w, h, [], editor_state.game_data_type)
+	var expected_md_descriptors: Array = OverlayProducers.build_squad_descriptors([md_squad], map_data.level_set, data["hgt"], w, h, [], editor_state.game_data_type)
 	for desc in expected_md_descriptors:
 		var md_key := String(desc.get("instance_key", ""))
 		_check(initial_keys.has(md_key), "Initial dynamic descriptor set should contain MD squad key: %s" % md_key)
@@ -2506,14 +2534,14 @@ func test_dynamic_overlay_keeps_md_squads_after_mixed_pool_refresh_events() -> b
 		"h": h,
 		"game_data_type": renderer._async_game_data_type,
 		"host_station_snapshot": [],
-		"squad_snapshot": Map3DRendererScript._snapshot_squad_nodes(squads.get_children()),
+		"squad_snapshot": OverlayProducers.snapshot_squad_nodes(squads.get_children()),
 	}
 	renderer._async_overlay_descriptor_worker(refreshed_payload)
 	var refreshed_state := renderer._get_async_overlay_descriptor_state()
 	var refreshed_result: Dictionary = refreshed_state.get("result", {})
 	var refreshed_dynamic: Array = refreshed_result.get("dynamic_descriptors", [])
 	var refreshed_keys := _instance_keys_from_descriptors(refreshed_dynamic)
-	var expected_all: Array = Map3DRendererScript._build_squad_descriptors(squads.get_children(), map_data.level_set, data["hgt"], w, h, [], editor_state.game_data_type)
+	var expected_all: Array = OverlayProducers.build_squad_descriptors(squads.get_children(), map_data.level_set, data["hgt"], w, h, [], editor_state.game_data_type)
 	_check(expected_all.size() >= 2, "Mixed MD/original squad setup should emit both MD and original descriptors")
 	for desc in expected_all:
 		var expected_key := String(desc.get("instance_key", ""))
@@ -2567,7 +2595,7 @@ func test_md_squad_incremental_refresh_uses_current_game_data_type() -> bool:
 
 	var dynamic_overlay := renderer.get_node_or_null("DynamicOverlay") as Node3D
 	_check(dynamic_overlay != null, "Expected targeted MD squad creation refresh to create a DynamicOverlay node")
-	var expected_created: Array = Map3DRendererScript._build_squad_descriptors([md_squad], map_data.level_set, data["hgt"], w, h, [], editor_state.game_data_type)
+	var expected_created: Array = OverlayProducers.build_squad_descriptors([md_squad], map_data.level_set, data["hgt"], w, h, [], editor_state.game_data_type)
 	_check(expected_created.size() > 0, "Expected MD squad creation refresh to emit descriptors")
 	var found_created := _instance_keys_from_overlay(dynamic_overlay)
 	for desc in expected_created:
@@ -2583,7 +2611,7 @@ func test_md_squad_incremental_refresh_uses_current_game_data_type() -> bool:
 	}])
 
 	dynamic_overlay = renderer.get_node_or_null("DynamicOverlay") as Node3D
-	var expected_visual: Array = Map3DRendererScript._build_squad_descriptors([md_squad], map_data.level_set, data["hgt"], w, h, [], editor_state.game_data_type)
+	var expected_visual: Array = OverlayProducers.build_squad_descriptors([md_squad], map_data.level_set, data["hgt"], w, h, [], editor_state.game_data_type)
 	_check(expected_visual.size() == 3, "Expected MD squad quantity refresh to rebuild all formation descriptors")
 	var found_visual := _instance_keys_from_overlay(dynamic_overlay)
 	for desc in expected_visual:
@@ -2599,7 +2627,7 @@ func test_md_squad_incremental_refresh_uses_current_game_data_type() -> bool:
 	}])
 
 	dynamic_overlay = renderer.get_node_or_null("DynamicOverlay") as Node3D
-	var expected_moved: Array = Map3DRendererScript._build_squad_descriptors([md_squad], map_data.level_set, data["hgt"], w, h, [], editor_state.game_data_type)
+	var expected_moved: Array = OverlayProducers.build_squad_descriptors([md_squad], map_data.level_set, data["hgt"], w, h, [], editor_state.game_data_type)
 	var found_moved := _instance_keys_from_overlay(dynamic_overlay)
 	for desc in expected_moved:
 		var expected_key := String(desc.get("instance_key", ""))
@@ -2651,7 +2679,7 @@ func test_unit_position_committed_uses_single_unit_dynamic_refresh_for_squads() 
 	var dynamic_overlay := renderer.get_node_or_null("DynamicOverlay") as Node3D
 	_check(dynamic_overlay != null, "Single-unit movement refresh should create a DynamicOverlay node")
 	var found_keys := _instance_keys_from_overlay(dynamic_overlay)
-	var expected_descriptors: Array = Map3DRendererScript._build_squad_descriptors([squad], map_data.level_set, data["hgt"], w, h, [], editor_state.game_data_type)
+	var expected_descriptors: Array = OverlayProducers.build_squad_descriptors([squad], map_data.level_set, data["hgt"], w, h, [], editor_state.game_data_type)
 	_check(expected_descriptors.size() > 0, "Expected at least one squad descriptor for single-unit movement refresh")
 	for desc in expected_descriptors:
 		var expected_key := String(desc.get("instance_key", ""))
@@ -2703,10 +2731,10 @@ func test_units_changed_removed_squad_updates_only_dynamic_overlay() -> bool:
 	var initial_overlay := renderer.get_node_or_null("DynamicOverlay") as Node3D
 	_check(initial_overlay != null, "Expected initial dynamic overlay for squad removal test")
 	var removed_keys_before: Array = []
-	for desc in Map3DRendererScript._build_squad_descriptors([removed_squad], map_data.level_set, data["hgt"], w, h, [], editor_state.game_data_type):
+	for desc in OverlayProducers.build_squad_descriptors([removed_squad], map_data.level_set, data["hgt"], w, h, [], editor_state.game_data_type):
 		removed_keys_before.append(String(desc.get("instance_key", "")))
 	var kept_keys: Array = []
-	for desc in Map3DRendererScript._build_squad_descriptors([kept_squad], map_data.level_set, data["hgt"], w, h, [], editor_state.game_data_type):
+	for desc in OverlayProducers.build_squad_descriptors([kept_squad], map_data.level_set, data["hgt"], w, h, [], editor_state.game_data_type):
 		kept_keys.append(String(desc.get("instance_key", "")))
 
 	squads.remove_child(removed_squad)
@@ -2768,7 +2796,7 @@ func test_units_changed_host_move_queues_targeted_refresh_during_async_pipeline(
 	renderer.build_from_current_map()
 	var initial_overlay := renderer.get_node_or_null("DynamicOverlay") as Node3D
 	_check(initial_overlay != null, "Expected initial dynamic overlay for async host move test")
-	var expected_before: Array = Map3DRendererScript._build_host_station_descriptors([moved_host], map_data.level_set, data["hgt"], w, h, [], null)
+	var expected_before: Array = OverlayProducers.build_host_station_descriptors([moved_host], map_data.level_set, data["hgt"], w, h, [], null)
 	_check(expected_before.size() > 0, "Expected at least one host station descriptor before moving the unit")
 	var instance_key := String(expected_before[0].get("instance_key", ""))
 	var initial_piece := _overlay_child_by_instance_key(initial_overlay, instance_key)
@@ -2848,7 +2876,7 @@ func test_build_from_current_map_wires_squads_into_authored_overlay() -> bool:
 			if not key.is_empty():
 				found_keys[key] = true
 
-	var expected_descriptors: Array = Map3DRendererScript._build_squad_descriptors(
+	var expected_descriptors: Array = OverlayProducers.build_squad_descriptors(
 		squads.get_children(),
 		map_data.level_set,
 		data["hgt"],

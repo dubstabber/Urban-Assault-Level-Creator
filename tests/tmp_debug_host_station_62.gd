@@ -1,6 +1,6 @@
 extends SceneTree
 
-const Map3DRendererScript = preload("res://map/map_3d_renderer.gd")
+const OverlayProducers = preload("res://map/3d/overlays/map_3d_overlay_descriptor_producers.gd")
 const AuthoredPieceLibrary = preload("res://map/terrain/ua_authored_piece_library.gd")
 
 const LEGACY_SET_ROOT := "res://resources/ua/bundled/sets"
@@ -34,7 +34,7 @@ func _init() -> void:
 	var h := 1
 	var data := _init_map(w, h, 0, [12])
 
-	var descriptors := Map3DRendererScript._build_host_station_descriptors(
+	var descriptors := OverlayProducers.build_host_station_descriptors(
 		[HostStationStub.new(62, 1200.0, 1200.0, -500)],
 		1,
 		data["hgt"],
@@ -54,4 +54,3 @@ func _init() -> void:
 	print("Expected front gun:", _ua_vec3(1200.0, 650.0, 825.0))
 	print("Expected rear gun:", _ua_vec3(1200.0, 620.0, 1580.0))
 	quit()
-

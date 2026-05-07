@@ -1,5 +1,7 @@
 extends RefCounted
 
+const VisualLookupService = preload("res://map/3d/services/map_3d_visual_lookup_service.gd")
+
 var _errors: Array[String] = []
 
 func _check(cond: bool, msg: String) -> void:
@@ -10,7 +12,7 @@ func _check(cond: bool, msg: String) -> void:
 func run() -> int:
 	_errors.clear()
 
-	# Prove the renderer prefers baked visproto registries even if the legacy
+	# Prove the visual lookup service prefers baked visproto registries even if the legacy
 	# visproto.lst path does not exist.
 	var set_id := 77
 	var game_data_type := "original"
@@ -26,15 +28,10 @@ func run() -> int:
 	}
 	_save_json(registry_path, registry)
 
-	var renderer_script = load("res://map/map_3d_renderer.gd")
-	_check(renderer_script != null, "[BakedVisprotoTest] Failed to load renderer script.")
-	if renderer_script == null:
-		return _errors.size()
-
 	# This call should resolve baked base names and already filter dummy entries.
-	var base_names: Array = renderer_script._visproto_base_names_for_set(set_id, game_data_type)
+	var base_names: Array = VisualLookupService._visproto_base_names_for_set(set_id, game_data_type)
 	if base_names.size() != 4:
-		print("[BakedVisprotoTest] SKIP renderer does not resolve baked visproto_base_names.json for this repo version")
+		print("[BakedVisprotoTest] SKIP visual lookup does not resolve baked visproto_base_names.json for this repo version")
 		return 0
 
 	if base_names.size() == 4:
@@ -42,7 +39,7 @@ func run() -> int:
 		# Ensure empty baked entries remain empty and don't produce dummy names.
 		_check(String(base_names[0]) == "" and String(base_names[2]) == "", "[BakedVisprotoTest] Expected empty dummy slots at indices 0 and 2.")
 
-		var resolved: String = String(renderer_script._base_name_from_visproto_index(base_names, 3))
+		var resolved: String = String(VisualLookupService._base_name_from_visproto_index(base_names, 3))
 		_check(resolved.to_lower() == "vp_flak2", "[BakedVisprotoTest] Expected VP_FLAK2 at index 3, got %s." % resolved)
 
 	if _errors.is_empty():
@@ -69,4 +66,3 @@ func _save_json(path: String, payload: Dictionary) -> void:
 	f.store_string(JSON.stringify(payload, "\t", false))
 	f.store_string("\n")
 	f.close()
-

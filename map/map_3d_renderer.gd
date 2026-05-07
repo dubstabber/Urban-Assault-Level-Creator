@@ -4,9 +4,6 @@ class_name Map3DRenderer
 signal build_state_changed(is_building: bool, completed: int, total: int, status: String)
 signal build_finished(success: bool)
 
-const VisualLookupService := preload("res://map/3d/services/map_3d_visual_lookup_service.gd")
-const SlurpBuilder := preload("res://map/3d/terrain/map_3d_slurp_builder.gd")
-const AuthoredOverlayManager := preload("res://map/3d/overlays/map_3d_authored_overlay_manager.gd")
 const ViewController := preload("res://map/3d/controllers/map_3d_view_controller.gd")
 const RendererEventController := preload("res://map/3d/controllers/map_3d_renderer_event_controller.gd")
 const AsyncRefreshDriver := preload("res://map/3d/runtime/map_3d_async_refresh_driver.gd")
@@ -25,14 +22,10 @@ const BuildMetrics := preload("res://map/3d/runtime/map_3d_build_metrics.gd")
 const RuntimeState := preload("res://map/3d/runtime/map_3d_runtime_state.gd")
 const RuntimeContext := preload("res://map/3d/runtime/map_3d_runtime_context.gd")
 const SharedConstants := preload("res://map/3d/config/map_3d_shared_constants.gd")
-const VisualCatalog := preload("res://map/3d/config/map_3d_visual_catalog.gd")
-const OverlayPositioning := preload("res://map/3d/overlays/map_3d_overlay_positioning.gd")
 const RefreshCoordinator := preload("res://map/3d/services/map_3d_refresh_coordinator.gd")
 const ChunkRuntime := preload("res://map/3d/services/map_3d_chunk_runtime.gd")
 const EffectiveTypService := preload("res://map/3d/services/map_3d_effective_typ_service.gd")
 const RebuildPolicy := preload("res://map/3d/services/map_3d_rebuild_policy.gd")
-const OverlayProducers := preload("res://map/3d/overlays/map_3d_overlay_descriptor_producers.gd")
-const LegacyScriptParser := preload("res://map/3d/parsers/map_3d_legacy_script_parser.gd")
 const UnitOverlayController := preload("res://map/3d/overlays/map_3d_unit_overlay_controller.gd")
 const InvalidationRouter := preload("res://map/3d/services/map_3d_invalidation_router.gd")
 const StaticOverlayIndex := preload("res://map/3d/services/map_3d_static_overlay_index.gd")
@@ -47,18 +40,6 @@ const HEIGHT_SCALE := SharedConstants.HEIGHT_SCALE
 # where that span is 1.0. This constant is used to convert UA->scaled.
 const WORLD_SCALE := SharedConstants.WORLD_SCALE
 const EDGE_SLOPE := SharedConstants.EDGE_SLOPE # Per-side width; UA fillers span ~300 across seam (~150 into each sector)
-const BORDER_TYP_TOP_LEFT := SharedConstants.BORDER_TYP_TOP_LEFT
-const BORDER_TYP_TOP := SharedConstants.BORDER_TYP_TOP
-const BORDER_TYP_TOP_RIGHT := SharedConstants.BORDER_TYP_TOP_RIGHT
-const BORDER_TYP_LEFT := SharedConstants.BORDER_TYP_LEFT
-const BORDER_TYP_RIGHT := SharedConstants.BORDER_TYP_RIGHT
-const BORDER_TYP_BOTTOM_LEFT := SharedConstants.BORDER_TYP_BOTTOM_LEFT
-const BORDER_TYP_BOTTOM := SharedConstants.BORDER_TYP_BOTTOM
-const BORDER_TYP_BOTTOM_RIGHT := SharedConstants.BORDER_TYP_BOTTOM_RIGHT
-const TERRAIN_PREVIEW_COLOR := Color(0.62, 0.66, 0.58, 1.0)
-const EDGE_PREVIEW_COLOR := Color(0.82, 0.48, 0.24, 0.55)
-const EDGE_BLEND_SHADER_PATH := "res://resources/terrain/shaders/edge_blend.gdshader"
-const SUBQUAD_UV_INSET := 0.002 # Prevent internal 1/3 and 2/3 seam sampling bleed
 const UA_NORMAL_RENDER_SECTORS := 5
 const UA_NORMAL_GEOMETRY_CULL_DISTANCE := float(UA_NORMAL_RENDER_SECTORS) * SECTOR_SIZE + SECTOR_SIZE * 0.5
 const _ASYNC_APPLY_RESULTS_PER_FRAME := 4
@@ -66,12 +47,6 @@ const _ASYNC_OVERLAY_APPLY_OPS_PER_FRAME := 48
 const _INITIAL_LOAD_ASYNC_APPLY_RESULTS_PER_FRAME := 16
 const _INITIAL_LOAD_ASYNC_OVERLAY_APPLY_OPS_PER_FRAME := 384
 const _MAX_INCREMENTAL_UNIT_BATCH := 64
-const HOST_STATION_BASE_NAMES := VisualCatalog.HOST_STATION_BASE_NAMES
-const HOST_STATION_VISIBLE_GUN_BASE_NAMES := VisualCatalog.HOST_STATION_VISIBLE_GUN_BASE_NAMES
-const HOST_STATION_GUN_ATTACHMENTS := VisualCatalog.HOST_STATION_GUN_ATTACHMENTS
-const TECH_UPGRADE_EDITOR_TYP_OVERRIDES := VisualCatalog.TECH_UPGRADE_EDITOR_TYP_OVERRIDES
-const SQUAD_FORMATION_SPACING := SharedConstants.SQUAD_FORMATION_SPACING
-const SQUAD_EXTRA_Y_OFFSET := SharedConstants.SQUAD_EXTRA_Y_OFFSET
 
 func _init() -> void:
 	_runtime_context.bind(self)
@@ -159,10 +134,6 @@ func _retain_collaborator_owned_state() -> void:
 	if retained_state.size() < 0:
 		push_error("unreachable collaborator state marker")
 
-# Preview top surfaces use world-space tiling with one repeat per sector.
-func _compute_tile_scale() -> float:
-	return 1.0 / SECTOR_SIZE
-
 static func visibility_range_fade_start(viz_limit: float = ViewController.UA_NORMAL_VIZ_LIMIT, fade_length: float = ViewController.UA_NORMAL_FADE_LENGTH) -> float:
 	return ViewController.visibility_range_fade_start(viz_limit, fade_length)
 
@@ -204,17 +175,8 @@ static func facade_contract() -> Dictionary:
 		],
 		"compatibility_instance_api": [
 			"_apply_pending_refresh",
-			"_build_edge_overlay_result",
 		],
-		"compatibility_static_api": [
-			"_building_definition_for_id_and_sec_type",
-			"_visproto_base_names_for_set",
-			"_base_name_from_visproto_index",
-			"_building_attachment_base_name_for_vehicle",
-			"_squad_base_name_for_vehicle",
-			"_build_host_station_descriptors",
-			"_build_squad_descriptors",
-		],
+		"compatibility_static_api": [],
 	}
 
 @onready var _terrain_mesh: MeshInstance3D = $TerrainMesh
@@ -579,26 +541,10 @@ func _compute_effective_typ_for_map(
 ) -> PackedByteArray:
 	return _effective_typ_service.compute_effective_typ_for_map(cmd, w, h, typ, blg, game_data_type)
 
-static func _elapsed_ms_since(started_usec: int) -> float:
-	return BuildMetrics.elapsed_ms_since(started_usec)
-
-static func _checksum_packed_byte_array(data: PackedByteArray) -> int:
-	return EffectiveTypService.checksum_packed_byte_array(data)
-
-static func _profile_add_duration(profile, key: String, duration_ms: float) -> void:
-	if typeof(profile) != TYPE_DICTIONARY:
-		return
-	profile[key] = float(profile.get(key, 0.0)) + maxf(duration_ms, 0.0)
-
-static func _profile_increment(profile, key: String, amount: int = 1) -> void:
-	if typeof(profile) != TYPE_DICTIONARY:
-		return
-	profile[key] = int(profile.get(key, 0)) + amount
-
 func _finalize_build_metrics(metrics: Dictionary, build_started_usec: int) -> void:
-	metrics["build_total_ms"] = _elapsed_ms_since(build_started_usec)
+	metrics["build_total_ms"] = BuildMetrics.elapsed_ms_since(build_started_usec)
 	if _async_refresh_driver.get_refresh_requested_at_usec() > 0:
-		metrics["refresh_end_to_end_ms"] = _elapsed_ms_since(_async_refresh_driver.get_refresh_requested_at_usec())
+		metrics["refresh_end_to_end_ms"] = BuildMetrics.elapsed_ms_since(_async_refresh_driver.get_refresh_requested_at_usec())
 		_async_refresh_driver.clear_refresh_requested_at_usec()
 	_last_build_metrics = metrics.duplicate(true)
 
@@ -634,7 +580,6 @@ func _apply_pending_refresh() -> void:
 func _ready() -> void:
 	_retain_collaborator_owned_state()
 	_sector_top_shader = load("res://resources/terrain/shaders/sector_top.gdshader")
-	_edge_blend_shader = load(EDGE_BLEND_SHADER_PATH)
 	_renderer_event_controller.ready()
 
 func _apply_visibility_range_from_editor_state() -> void:
@@ -914,11 +859,6 @@ func _rebuild_dirty_chunks(
 ) -> Dictionary:
 	return _build_pipeline.rebuild_dirty_chunks(hgt, effective_typ, w, h, pre, level_set, metrics, max_chunks)
 
-static func _chunk_distance_sq(a: Vector2i, b: Vector2i) -> int:
-	var dx := a.x - b.x
-	var dy := a.y - b.y
-	return dx * dx + dy * dy
-
 func _dirty_chunks_sorted_by_priority(w: int, h: int) -> Array[Vector2i]:
 	return _rebuild_policy.dirty_chunks_sorted_by_priority(w, h)
 
@@ -953,206 +893,3 @@ func _apply_geometry_distance_culling_to_overlay() -> void:
 
 func _chunk_center_world_xz(chunk_coord: Vector2i) -> Vector2:
 	return _scene_graph.chunk_center_world_xz(chunk_coord)
-
-static func _make_preview_material(color: Color) -> StandardMaterial3D:
-	return MaterialService.make_preview_material(color)
-
-func _apply_untextured_materials(mesh: ArrayMesh) -> void:
-	MaterialService.apply_untextured_materials(mesh, TERRAIN_PREVIEW_COLOR)
-
-static func _sector_center_origin(sx: int, sy: int, sector_y: float) -> Vector3:
-	return OverlayPositioning.sector_center_origin(sx, sy, sector_y)
-
-static func _sector_center_origin_scaled(sx: int, sy: int, sector_y: float) -> Vector3:
-	return OverlayPositioning.sector_center_origin_scaled(sx, sy, sector_y)
-
-static func _host_station_base_name_for_vehicle(vehicle_id: int) -> String:
-	return OverlayPositioning.host_station_base_name_for_vehicle(vehicle_id)
-
-static func _host_station_gun_base_name_for_type(gun_type: int) -> String:
-	return OverlayPositioning.host_station_gun_base_name_for_type(gun_type)
-
-static func _vector3_from_variant(value) -> Vector3:
-	return OverlayPositioning.vector3_from_variant(value)
-
-static func _host_station_godot_offset_from_ua(ua_offset: Vector3) -> Vector3:
-	return OverlayPositioning.host_station_godot_offset_from_ua(ua_offset)
-
-static func _host_station_godot_direction_from_ua(ua_direction: Vector3) -> Vector3:
-	return OverlayPositioning.host_station_godot_direction_from_ua(ua_direction)
-
-static func _world_to_sector_index(world_coord: float) -> int:
-	return OverlayPositioning.world_to_sector_index(world_coord)
-
-static func _ground_height_at_world_position(hgt: PackedByteArray, w: int, h: int, world_x: float, world_z: float) -> float:
-	return OverlayPositioning.ground_height_at_world_position(hgt, w, h, world_x, world_z)
-
-static func _support_height_at_world_position(hgt: PackedByteArray, w: int, h: int, support_descriptors: Array, world_x: float, world_z: float, profile = null) -> float:
-	return OverlayPositioning.support_height_at_world_position(hgt, w, h, support_descriptors, world_x, world_z, profile)
-
-static func _host_station_origin(host_station: Node2D, hgt: PackedByteArray, w: int, h: int, support_descriptors: Array, profile = null) -> Vector3:
-	return OverlayPositioning.host_station_origin(host_station, hgt, w, h, support_descriptors, profile)
-
-static func _snapshot_host_station_nodes(host_stations: Array) -> Array:
-	return OverlayProducers.snapshot_host_station_nodes(host_stations)
-
-static func _build_host_station_descriptors_from_snapshot(host_stations: Array, set_id: int, hgt: PackedByteArray, w: int, h: int, support_descriptors: Array = [], profile = null) -> Array:
-	return OverlayProducers.build_host_station_descriptors_from_snapshot(host_stations, set_id, hgt, w, h, support_descriptors, profile)
-
-static func _build_host_station_descriptors(host_stations: Array, set_id: int, hgt: PackedByteArray, w: int, h: int, support_descriptors: Array = [], profile = null) -> Array:
-	return OverlayProducers.build_host_station_descriptors(host_stations, set_id, hgt, w, h, support_descriptors, profile)
-
-static func _clear_runtime_lookup_caches_for_tests() -> void:
-	EffectiveTypService.clear_runtime_lookup_caches_for_tests()
-
-static func _blg_typ_overrides_for_game_data_type(game_data_type: String) -> Dictionary:
-	return EffectiveTypService.blg_typ_overrides_for_game_data_type(game_data_type)
-
-static func _building_sec_type_overrides_for_script_names(set_id: int, game_data_type: String, script_names: Array[String]) -> Dictionary:
-	return EffectiveTypService.building_sec_type_overrides_for_script_names(set_id, game_data_type, script_names)
-
-static func _tech_upgrade_typ_overrides_for_3d(set_id: int, game_data_type: String) -> Dictionary:
-	return EffectiveTypService.tech_upgrade_typ_overrides_for_3d(set_id, game_data_type)
-
-static func _entity_property(entity: Variant, property_names: Array[String], default_value: Variant = null) -> Variant:
-	return EffectiveTypService.entity_property(entity, property_names, default_value)
-
-static func _entity_int_property(entity: Variant, property_names: Array[String], default_value := -1) -> int:
-	return EffectiveTypService.entity_int_property(entity, property_names, default_value)
-
-static func _apply_sector_building_overrides_from_entities(
-		effective: PackedByteArray,
-		w: int,
-		h: int,
-		entities: Array,
-		building_property_names: Array[String],
-		building_sec_type_overrides: Dictionary
-	) -> void:
-	EffectiveTypService.apply_sector_building_overrides_from_entities(effective, w, h, entities, building_property_names, building_sec_type_overrides)
-
-static func _effective_typ_map_for_3d(
-		typ: PackedByteArray,
-		blg: PackedByteArray,
-		game_data_type: String,
-		w: int = -1,
-		h: int = -1,
-		beam_gates: Array = [],
-		tech_upgrades: Array = [],
-		stoudson_bombs: Array = [],
-		set_id: int = 1
-	) -> PackedByteArray:
-	return EffectiveTypService.effective_typ_map_for_3d(typ, blg, game_data_type, w, h, beam_gates, tech_upgrades, stoudson_bombs, set_id)
-
-static func _parse_building_definitions(script_path: String) -> Array:
-	return LegacyScriptParser.parse_building_definitions(script_path)
-
-static func _building_definitions_for_game_data_type(set_id: int, game_data_type: String) -> Array:
-	return VisualLookupService._building_definitions_for_game_data_type(set_id, game_data_type)
-
-static func _building_definition_for_id_and_sec_type(building_id: int, sec_type: int, set_id_or_game_data_type = 1, game_data_type: String = "original") -> Dictionary:
-	var resolved_set_id := 1
-	var resolved_game_data_type := game_data_type
-	if typeof(set_id_or_game_data_type) == TYPE_STRING:
-		resolved_game_data_type = String(set_id_or_game_data_type)
-	else:
-		resolved_set_id = max(int(set_id_or_game_data_type), 1)
-	return VisualLookupService._building_definition_for_id_and_sec_type(building_id, sec_type, resolved_set_id, resolved_game_data_type)
-
-static func _build_blg_attachment_descriptors(blg: PackedByteArray, effective_typ: PackedByteArray, set_id: int, hgt: PackedByteArray, w: int, h: int, _support_descriptors: Array, game_data_type: String) -> Array:
-	return OverlayProducers.build_blg_attachment_descriptors(blg, effective_typ, set_id, hgt, w, h, _support_descriptors, game_data_type)
-
-static func _parse_vehicle_visual_entries(script_path: String) -> Dictionary:
-	return LegacyScriptParser.parse_vehicle_visual_entries(script_path)
-
-static func _vehicle_visual_entries_for_game_data_type(set_id: int, game_data_type: String) -> Dictionary:
-	return VisualLookupService._vehicle_visual_entries_for_game_data_type(set_id, game_data_type)
-
-static func _parse_vehicle_visual_pairs(script_path: String) -> Dictionary:
-	return LegacyScriptParser.parse_vehicle_visual_pairs(script_path)
-
-static func _squad_vehicle_visuals_for_game_data_type(set_id: int, game_data_type: String) -> Dictionary:
-	return VisualLookupService._squad_vehicle_visuals_for_game_data_type(set_id, game_data_type)
-
-static func _visproto_base_names_for_set(set_id: int, game_data_type: String) -> Array:
-	return VisualLookupService._visproto_base_names_for_set(set_id, game_data_type)
-
-static func _base_name_from_visproto_index(visproto_base_names: Array, visual_index: int) -> String:
-	return VisualLookupService._base_name_from_visproto_index(visproto_base_names, visual_index)
-
-static func _preferred_squad_visual_base_name(vehicle_visuals: Dictionary, visproto_base_names: Array) -> String:
-	return VisualLookupService._preferred_squad_visual_base_name(vehicle_visuals, visproto_base_names)
-
-static func _building_attachment_base_name_for_vehicle(vehicle_id: int, set_id: int, game_data_type: String) -> String:
-	return VisualLookupService._building_attachment_base_name_for_vehicle(vehicle_id, set_id, game_data_type)
-
-static func _squad_base_name_for_vehicle(vehicle_id: int, set_id: int, game_data_type: String) -> String:
-	return VisualLookupService._squad_base_name_for_vehicle(vehicle_id, set_id, game_data_type)
-
-static func _squad_quantity(squad: Object) -> int:
-	return OverlayPositioning.squad_quantity(squad)
-
-static func _squad_anchor_origin(squad: Node2D, hgt: PackedByteArray, w: int, h: int, support_descriptors: Array, profile = null) -> Vector3:
-	return OverlayPositioning.squad_anchor_origin(squad, hgt, w, h, support_descriptors, profile)
-
-static func _squad_formation_offsets(quantity: int) -> Array:
-	return OverlayProducers.squad_formation_offsets(quantity)
-
-static func _snapshot_squad_nodes(squads: Array) -> Array:
-	return OverlayProducers.snapshot_squad_nodes(squads)
-
-
-static func _build_squad_descriptors_from_snapshot(squads: Array, set_id: int, hgt: PackedByteArray, w: int, h: int, support_descriptors: Array, game_data_type: String, profile = null) -> Array:
-	return OverlayProducers.build_squad_descriptors_from_snapshot(squads, set_id, hgt, w, h, support_descriptors, game_data_type, profile)
-
-
-static func _build_squad_descriptors(squads: Array, set_id: int, hgt: PackedByteArray, w: int, h: int, support_descriptors: Array, game_data_type: String, profile = null) -> Array:
-	return OverlayProducers.build_squad_descriptors(squads, set_id, hgt, w, h, support_descriptors, game_data_type, profile)
-
-func _apply_sector_top_materials(mesh: ArrayMesh, preloads, surface_to_surface_type: Dictionary) -> void:
-	_scene_graph.apply_sector_top_materials(mesh, preloads, surface_to_surface_type)
-
-# ---- UA edge-based strip rendering ----
-func _on_level_set_changed() -> void:
-	_rebuild_policy.handle_level_set_changed(Callable(self, "_cancel_async_initial_build"), Callable(self, "_request_refresh"))
-
-func _ensure_edge_node() -> void:
-	_scene_graph.ensure_edge_node()
-
-func _build_edges_from_current_map() -> void:
-	var cmd = _current_map_data()
-	if cmd == null:
-		return
-	var w: int = int(cmd.horizontal_sectors)
-	var h: int = int(cmd.vertical_sectors)
-	var hgt: PackedByteArray = cmd.hgt_map
-	var typ: PackedByteArray = cmd.typ_map
-	var blg: PackedByteArray = cmd.blg_map
-	if w <= 0 or h <= 0 or hgt.size() != (w + 2) * (h + 2) or typ.size() != w * h:
-		if _edge_mesh: _edge_mesh.mesh = null
-		return
-	var pre = _preloads()
-	var mapping: Dictionary = pre.surface_type_map if pre else {}
-	var effective_typ := _effective_typ_map_for_3d(
-		typ,
-		blg,
-		_current_game_data_type(),
-		w,
-		h,
-		cmd.beam_gates,
-		cmd.tech_upgrades,
-		cmd.stoudson_bombs
-	)
-	var result := _build_edge_overlay_result(hgt, w, h, effective_typ, mapping, int(cmd.level_set), pre)
-	_ensure_edge_node()
-	_edge_mesh.mesh = result.get("mesh", null)
-
-func _build_edge_overlay_result(hgt: PackedByteArray, w: int, h: int, typ: PackedByteArray, mapping: Dictionary, set_id: int, preloads = null) -> Dictionary:
-	return _scene_graph.build_edge_overlay_result(hgt, w, h, typ, mapping, set_id, preloads)
-
-func _build_edges_mesh(hgt: PackedByteArray, w: int, h: int, typ: PackedByteArray, mapping: Dictionary, preloads = null) -> ArrayMesh:
-	if preloads == null and is_inside_tree():
-		preloads = _preloads()
-	var result := SlurpBuilder.build_preview_edge_mesh_result(hgt, w, h, typ, mapping)
-	var mesh: ArrayMesh = result.get("mesh", ArrayMesh.new())
-	_scene_graph.apply_edge_surface_materials(mesh, preloads, result.get("fallback_horiz_keys", []), result.get("fallback_vert_keys", []))
-	return mesh
