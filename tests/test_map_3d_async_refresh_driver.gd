@@ -128,8 +128,11 @@ class BuildPortStub extends RefCounted:
 	var overlay_stage := ""
 	var chunk_runtime_ref := ChunkRuntimeStub.new()
 
-	func is_async_pipeline_active() -> bool:
+	func is_async_pipeline_active(_overlay_apply_active: bool = false) -> bool:
 		return pipeline_active
+
+	func cancel_async_build(_overlay_apply_active: bool = false) -> void:
+		cancel_calls += 1
 
 	func cancel_async_initial_build() -> void:
 		cancel_calls += 1
@@ -145,6 +148,21 @@ class BuildPortStub extends RefCounted:
 
 	func chunk_runtime():
 		return chunk_runtime_ref
+
+	func compute_effective_typ_for_map(_cmd: Node, _w: int, _h: int, typ: PackedByteArray, _blg: PackedByteArray, _game_data_type: String) -> PackedByteArray:
+		return typ
+
+	func edge_overlay_enabled() -> bool:
+		return true
+
+	func needs_full_rebuild(_w: int, _h: int, _level_set: int) -> bool:
+		return false
+
+	func invalidate_all_chunks(_w: int, _h: int) -> void:
+		pass
+
+	func dirty_chunks_sorted_by_priority(_w: int, _h: int) -> Array[Vector2i]:
+		return []
 
 	func coordinator():
 		return self
@@ -190,6 +208,33 @@ class BuildPortStub extends RefCounted:
 	func unit_runtime_index():
 		return self
 
+	func static_overlay_index():
+		return self
+
+	func replace_all(_descriptors: Array) -> void:
+		pass
+
+	func overlay_apply_manager():
+		return self
+
+	func localized_overlay_sector_list() -> Array[Vector2i]:
+		return []
+
+	func localized_dynamic_sector_list() -> Array[Vector2i]:
+		return []
+
+	func geometry_distance_culling_enabled() -> bool:
+		return false
+
+	func make_empty_build_metrics() -> Dictionary:
+		return {}
+
+	func elapsed_ms_since(_started_usec: int) -> float:
+		return 0.0
+
+	func finalize_build_metrics(_metrics: Dictionary, _build_started_usec: int) -> void:
+		pass
+
 	func apply_changes(_cmd: Node, _changes: Array) -> void:
 		pass
 
@@ -209,11 +254,16 @@ func _check(cond: bool, msg: String) -> void:
 
 func _bind_driver(context: Variant = null, scene: Variant = null, build: Variant = null):
 	var driver = DriverScript.new()
+	var port = build if build != null else BuildPortStub.new()
 	driver.bind(
 		RendererStub.new(),
 		context if context != null else ContextPortStub.new(),
 		scene if scene != null else ScenePortStub.new(),
-		build if build != null else BuildPortStub.new()
+		port,
+		port,
+		port,
+		port,
+		port
 	)
 	return driver
 

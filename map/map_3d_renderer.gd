@@ -14,7 +14,9 @@ const RenderContextPort := preload("res://map/3d/runtime/map_3d_render_context_p
 const ScenePort := preload("res://map/3d/runtime/map_3d_scene_port.gd")
 const EventActionPort := preload("res://map/3d/runtime/map_3d_event_action_port.gd")
 const AsyncStatePort := preload("res://map/3d/runtime/map_3d_async_state_port.gd")
-const BuildRuntimePort := preload("res://map/3d/runtime/map_3d_build_runtime_port.gd")
+const ChunkBuildPort := preload("res://map/3d/runtime/map_3d_chunk_build_port.gd")
+const OverlayRuntimePort := preload("res://map/3d/runtime/map_3d_overlay_runtime_port.gd")
+const BuildMetricsPort := preload("res://map/3d/runtime/map_3d_build_metrics_port.gd")
 const ViewActionPort := preload("res://map/3d/runtime/map_3d_view_action_port.gd")
 const AsyncMapSnapshot := preload("res://map/3d/runtime/map_3d_async_map_snapshot.gd")
 const OverlayRefreshScope := preload("res://map/3d/runtime/map_3d_overlay_refresh_scope.gd")
@@ -54,21 +56,33 @@ func _init() -> void:
 	_render_context_port.bind(self)
 	_scene_port.bind(self)
 	_async_state_port.bind(_coordinator, _async_map_snapshot, _async_refresh_driver)
-	_build_runtime_port.bind(
-		self,
+	_chunk_build_port.bind(
 		_chunk_rt,
 		_effective_typ_service,
+		_rebuild_policy,
+		_runtime_state
+	)
+	_overlay_runtime_port.bind(
 		_unit_runtime_index,
 		_static_overlay_index,
 		_overlay_refresh_scope,
 		_runtime_state,
-		_build_pipeline,
-		_rebuild_policy
+		_build_pipeline
 	)
+	_build_metrics_port.bind(_runtime_state, _async_refresh_driver)
 	_view_action_port.bind(self, _camera_controller)
 	_event_action_port.bind(_view_action_port, _async_state_port)
 	_rebuild_policy.bind(_render_context_port, _scene_port, _runtime_state, _chunk_rt, _effective_typ_service, _overlay_refresh_scope)
-	_async_refresh_driver.bind(_host_port, _render_context_port, _scene_port, _async_state_port, _build_runtime_port, _view_action_port)
+	_async_refresh_driver.bind(
+		_host_port,
+		_render_context_port,
+		_scene_port,
+		_async_state_port,
+		_chunk_build_port,
+		_overlay_runtime_port,
+		_build_metrics_port,
+		_view_action_port
+	)
 	_camera_controller.bind(_host_port, _render_context_port, _scene_port)
 	_scene_graph.bind(_scene_port, _render_context_port, _runtime_state, _chunk_rt, _overlay_refresh_scope)
 	_renderer_event_controller.bind(
@@ -93,7 +107,9 @@ func _init() -> void:
 		_unit_runtime_index,
 		_static_overlay_index,
 		_rebuild_policy,
-		self
+		_build_metrics_port,
+		_view_action_port,
+		_chunk_build_port
 	)
 	_geometry_cull_distance = UA_NORMAL_GEOMETRY_CULL_DISTANCE
 
@@ -194,7 +210,9 @@ var _render_context_port := RenderContextPort.new()
 var _scene_port := ScenePort.new()
 var _event_action_port := EventActionPort.new()
 var _async_state_port := AsyncStatePort.new()
-var _build_runtime_port := BuildRuntimePort.new()
+var _chunk_build_port := ChunkBuildPort.new()
+var _overlay_runtime_port := OverlayRuntimePort.new()
+var _build_metrics_port := BuildMetricsPort.new()
 var _view_action_port := ViewActionPort.new()
 var _async_map_snapshot := AsyncMapSnapshot.new()
 var _overlay_refresh_scope := OverlayRefreshScope.new()
@@ -542,11 +560,7 @@ func _compute_effective_typ_for_map(
 	return _effective_typ_service.compute_effective_typ_for_map(cmd, w, h, typ, blg, game_data_type)
 
 func _finalize_build_metrics(metrics: Dictionary, build_started_usec: int) -> void:
-	metrics["build_total_ms"] = BuildMetrics.elapsed_ms_since(build_started_usec)
-	if _async_refresh_driver.get_refresh_requested_at_usec() > 0:
-		metrics["refresh_end_to_end_ms"] = BuildMetrics.elapsed_ms_since(_async_refresh_driver.get_refresh_requested_at_usec())
-		_async_refresh_driver.clear_refresh_requested_at_usec()
-	_last_build_metrics = metrics.duplicate(true)
+	_build_metrics_port.finalize_build_metrics(metrics, build_started_usec)
 
 func _event_system() -> Node:
 	return _runtime_context.event_system()

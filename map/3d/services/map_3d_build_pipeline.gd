@@ -6,9 +6,7 @@ const TerrainBuilder := preload("res://map/3d/terrain/map_3d_terrain_builder.gd"
 const AuthoredOverlayManager := preload("res://map/3d/overlays/map_3d_authored_overlay_manager.gd")
 const StaticOverlayIndex := preload("res://map/3d/services/map_3d_static_overlay_index.gd")
 const EffectiveTypService := preload("res://map/3d/services/map_3d_effective_typ_service.gd")
-const BuildMetrics := preload("res://map/3d/runtime/map_3d_build_metrics.gd")
 
-var _renderer = null
 var _context = null
 var _scene = null
 var _async_map_snapshot = null
@@ -18,10 +16,12 @@ var _effective_typ_service = null
 var _unit_runtime_index = null
 var _static_overlay_index = null
 var _rebuild_policy = null
+var _metrics = null
+var _view_actions = null
+var _chunk_build = null
 
 
-func bind(context_port, scene_port, async_map_snapshot, overlay_refresh_scope, chunk_runtime, effective_typ_service, unit_runtime_index, static_overlay_index, rebuild_policy, renderer = null) -> void:
-	_renderer = renderer
+func bind(context_port, scene_port, async_map_snapshot, overlay_refresh_scope, chunk_runtime, effective_typ_service, unit_runtime_index, static_overlay_index, rebuild_policy, metrics_port, view_action_port, chunk_build_port) -> void:
 	_context = context_port
 	_scene = scene_port
 	_async_map_snapshot = async_map_snapshot
@@ -31,16 +31,19 @@ func bind(context_port, scene_port, async_map_snapshot, overlay_refresh_scope, c
 	_unit_runtime_index = unit_runtime_index
 	_static_overlay_index = static_overlay_index
 	_rebuild_policy = rebuild_policy
+	_metrics = metrics_port
+	_view_actions = view_action_port
+	_chunk_build = chunk_build_port
 
 
 func build_from_current_map() -> void:
 	var build_started_usec = Time.get_ticks_usec()
-	var metrics = BuildMetrics.empty_metrics()
-	_renderer._sync_terrain_overlay_animation_mode_from_editor()
+	var metrics = _metrics.make_empty_build_metrics()
+	_view_actions.sync_terrain_overlay_animation_mode_from_editor()
 	var current_map_data = _context.current_map_data()
 	if current_map_data == null:
 		_scene.clear()
-		_renderer._finalize_build_metrics(metrics, build_started_usec)
+		_metrics.finalize_build_metrics(metrics, build_started_usec)
 		return
 
 	var w: int = int(current_map_data.horizontal_sectors)
@@ -53,8 +56,8 @@ func build_from_current_map() -> void:
 		metrics["invalid_input"] = true
 		var clear_started_usec = Time.get_ticks_usec()
 		_scene.clear()
-		metrics["overlay_node_creation_ms"] = BuildMetrics.elapsed_ms_since(clear_started_usec)
-		_renderer._finalize_build_metrics(metrics, build_started_usec)
+		metrics["overlay_node_creation_ms"] = _metrics.elapsed_ms_since(clear_started_usec)
+		_metrics.finalize_build_metrics(metrics, build_started_usec)
 		return
 
 	var game_data_type = _context.current_game_data_type()
@@ -79,7 +82,7 @@ func build_from_current_map() -> void:
 	if pre == null:
 		var fallback_started_usec = Time.get_ticks_usec()
 		var fallback_mesh = TerrainBuilder.build_mesh(hgt, w, h)
-		metrics["terrain_build_ms"] = BuildMetrics.elapsed_ms_since(fallback_started_usec)
+		metrics["terrain_build_ms"] = _metrics.elapsed_ms_since(fallback_started_usec)
 		if _scene.terrain_mesh() != null:
 			_scene.terrain_mesh().mesh = fallback_mesh
 			_scene.apply_untextured_materials(fallback_mesh)
@@ -88,10 +91,10 @@ func build_from_current_map() -> void:
 		var fallback_counters: Dictionary = UATerrainPieceLibrary.get_piece_overlay_build_counters()
 		metrics["piece_overlay_fast_path"] = int(fallback_counters.get("piece_overlay_fast_path", 0))
 		metrics["piece_overlay_slow_path"] = int(fallback_counters.get("piece_overlay_slow_path", 0))
-		metrics["overlay_node_creation_ms"] = BuildMetrics.elapsed_ms_since(fallback_overlay_started_usec)
+		metrics["overlay_node_creation_ms"] = _metrics.elapsed_ms_since(fallback_overlay_started_usec)
 		if _scene.edge_mesh() != null:
 			_scene.edge_mesh().mesh = null
-		_renderer._finalize_build_metrics(metrics, build_started_usec)
+		_metrics.finalize_build_metrics(metrics, build_started_usec)
 		return
 
 	metrics["used_textured_preloads"] = true
@@ -134,15 +137,15 @@ func build_from_current_map() -> void:
 			var rebuild_result = rebuild_dirty_chunks(hgt, effective_typ, w, h, pre, level_set, metrics, max_chunks)
 			var batch_authored_descriptors: Array = rebuild_result.get("descriptors", [])
 			processed_chunks = rebuild_result.get("processed_chunks", [])
-			metrics["terrain_build_ms"] = BuildMetrics.elapsed_ms_since(terrain_started_usec)
+			metrics["terrain_build_ms"] = _metrics.elapsed_ms_since(terrain_started_usec)
 			metrics["incremental_rebuild"] = true
 
 			if is_initial_batch:
 				chunk_runtime.initial_build_accumulated_authored_descriptors.append_array(batch_authored_descriptors)
 				metrics["terrain_authored_descriptor_count"] = chunk_runtime.initial_build_accumulated_authored_descriptors.size()
 				if chunk_runtime.has_dirty_chunks():
-					_renderer._finalize_build_metrics(metrics, build_started_usec)
-					_renderer._request_refresh(false)
+					_metrics.finalize_build_metrics(metrics, build_started_usec)
+					_view_actions.request_refresh(false)
 					return
 				authored_piece_descriptors = chunk_runtime.initial_build_accumulated_authored_descriptors
 				chunk_runtime.initial_build_in_progress = false
@@ -185,7 +188,7 @@ func build_from_current_map() -> void:
 			pre.lego_defs,
 			level_set
 		)
-		metrics["terrain_build_ms"] = BuildMetrics.elapsed_ms_since(terrain_started_usec)
+		metrics["terrain_build_ms"] = _metrics.elapsed_ms_since(terrain_started_usec)
 		var mesh: ArrayMesh = result["mesh"]
 		var surface_to_surface_type: Dictionary = result["surface_to_surface_type"]
 		authored_piece_descriptors = result.get("authored_piece_descriptors", [])
@@ -198,7 +201,7 @@ func build_from_current_map() -> void:
 			_scene.apply_sector_top_materials(mesh, pre, surface_to_surface_type)
 
 		var edge_started_usec = Time.get_ticks_usec()
-		if _renderer._edge_overlay_enabled and effective_typ.size() == w * h:
+		if _chunk_build.edge_overlay_enabled() and effective_typ.size() == w * h:
 			var edge_result = _scene.build_edge_overlay_result(hgt, w, h, effective_typ, pre.surface_type_map, level_set, pre)
 			var edge_authored_descriptors: Array = edge_result.get("authored_piece_descriptors", [])
 			metrics["edge_authored_descriptor_count"] = edge_authored_descriptors.size()
@@ -209,7 +212,7 @@ func build_from_current_map() -> void:
 		else:
 			if _scene.edge_mesh() != null:
 				_scene.edge_mesh().mesh = null
-		metrics["edge_slurp_build_ms"] = BuildMetrics.elapsed_ms_since(edge_started_usec)
+		metrics["edge_slurp_build_ms"] = _metrics.elapsed_ms_since(edge_started_usec)
 		chunk_runtime.clear_dirty_chunks()
 		_chunk_runtime.reset_terrain_authored_cache_from_descriptors(support_descriptors, w, h)
 
@@ -228,12 +231,12 @@ func build_from_current_map() -> void:
 			game_data_type,
 			metrics
 		)
-		metrics["static_overlay_descriptor_generation_ms"] = BuildMetrics.elapsed_ms_since(overlay_descriptor_started_usec)
+		metrics["static_overlay_descriptor_generation_ms"] = _metrics.elapsed_ms_since(overlay_descriptor_started_usec)
 		metrics["overlay_descriptor_generation_ms"] = metrics["static_overlay_descriptor_generation_ms"]
 		metrics["overlay_descriptor_count"] = localized_static_descriptors.size()
 		var overlay_node_started_usec = Time.get_ticks_usec()
 		apply_localized_static_overlay_refresh(localized_static_descriptors, processed_chunks, localized_overlay_sectors, int(current_map_data.level_set), w, h)
-		metrics["static_overlay_apply_ms"] = BuildMetrics.elapsed_ms_since(overlay_node_started_usec)
+		metrics["static_overlay_apply_ms"] = _metrics.elapsed_ms_since(overlay_node_started_usec)
 		apply_localized_dynamic_overlay_refresh(current_map_data, int(current_map_data.level_set), hgt, w, h, support_descriptors, game_data_type, localized_dynamic_sectors, metrics)
 		metrics["overlay_node_creation_ms"] = float(metrics.get("static_overlay_apply_ms", 0.0)) + float(metrics.get("dynamic_overlay_apply_ms", 0.0))
 		metrics["overlay_descriptor_generation_ms"] = float(metrics.get("static_overlay_descriptor_generation_ms", 0.0)) + float(metrics.get("dynamic_overlay_descriptor_generation_ms", 0.0))
@@ -260,17 +263,17 @@ func build_from_current_map() -> void:
 		_static_overlay_index.replace_all(static_descriptors)
 		var static_apply_started_usec := Time.get_ticks_usec()
 		AuthoredOverlayManager.apply_overlay_node(_scene.authored_overlay(), static_descriptors)
-		metrics["static_overlay_apply_ms"] = BuildMetrics.elapsed_ms_since(static_apply_started_usec)
+		metrics["static_overlay_apply_ms"] = _metrics.elapsed_ms_since(static_apply_started_usec)
 		var dynamic_apply_started_usec := Time.get_ticks_usec()
 		_scene.apply_dynamic_overlay(dynamic_descriptors)
-		metrics["dynamic_overlay_apply_ms"] = BuildMetrics.elapsed_ms_since(dynamic_apply_started_usec)
+		metrics["dynamic_overlay_apply_ms"] = _metrics.elapsed_ms_since(dynamic_apply_started_usec)
 		metrics["overlay_node_creation_ms"] = float(metrics.get("static_overlay_apply_ms", 0.0)) + float(metrics.get("dynamic_overlay_apply_ms", 0.0))
 
 	var piece_counters: Dictionary = UATerrainPieceLibrary.get_piece_overlay_build_counters()
 	metrics["piece_overlay_fast_path"] = int(piece_counters.get("piece_overlay_fast_path", 0))
 	metrics["piece_overlay_slow_path"] = int(piece_counters.get("piece_overlay_slow_path", 0))
 	_overlay_refresh_scope.clear()
-	_renderer._finalize_build_metrics(metrics, build_started_usec)
+	_metrics.finalize_build_metrics(metrics, build_started_usec)
 
 
 func rebuild_dirty_chunks(hgt: PackedByteArray, effective_typ: PackedByteArray, w: int, h: int, pre: Node, level_set: int, metrics: Dictionary, max_chunks: int = -1) -> Dictionary:
@@ -296,7 +299,7 @@ func rebuild_dirty_chunks(hgt: PackedByteArray, effective_typ: PackedByteArray, 
 			pre.subsector_idx_remap,
 			pre.lego_defs,
 			level_set,
-			_renderer._edge_overlay_enabled
+			_chunk_build.edge_overlay_enabled()
 		)
 		var apply_result := ChunkBuildExecutor.apply_chunk_result(_scene, _chunk_runtime, chunk_result, pre)
 		var chunk_authored_descriptors: Array = apply_result.get("descriptors", [])
@@ -307,7 +310,7 @@ func rebuild_dirty_chunks(hgt: PackedByteArray, effective_typ: PackedByteArray, 
 	for chunk_coord in processed:
 		_chunk_runtime.erase_dirty_chunk(chunk_coord)
 	metrics["chunks_rebuilt"] = chunks_rebuilt
-	metrics["chunk_apply_ms"] = BuildMetrics.elapsed_ms_since(apply_started_usec)
+	metrics["chunk_apply_ms"] = _metrics.elapsed_ms_since(apply_started_usec)
 	return {
 		"descriptors": all_authored_descriptors,
 		"processed_chunks": processed,
@@ -342,7 +345,7 @@ func apply_localized_dynamic_overlay_refresh(current_map_data: Node, set_id: int
 		game_data_type,
 		metrics
 	)
-	metrics["dynamic_overlay_descriptor_generation_ms"] = BuildMetrics.elapsed_ms_since(descriptor_started_usec)
+	metrics["dynamic_overlay_descriptor_generation_ms"] = _metrics.elapsed_ms_since(descriptor_started_usec)
 	var prefixes = StaticOverlayIndex.exact_instance_key_prefixes(descriptors)
 	if prefixes.is_empty():
 		metrics["dynamic_overlay_apply_ms"] = 0.0
@@ -350,4 +353,4 @@ func apply_localized_dynamic_overlay_refresh(current_map_data: Node, set_id: int
 	var apply_started_usec := Time.get_ticks_usec()
 	AuthoredOverlayManager.apply_overlay_for_prefixes(_scene.dynamic_overlay(), prefixes, descriptors)
 	_scene.apply_geometry_distance_culling_to_overlay()
-	metrics["dynamic_overlay_apply_ms"] = BuildMetrics.elapsed_ms_since(apply_started_usec)
+	metrics["dynamic_overlay_apply_ms"] = _metrics.elapsed_ms_since(apply_started_usec)

@@ -9,9 +9,10 @@ var _host = null
 var _context = null
 var _scene = null
 var _async_state = null
-var _build = null
+var _chunk_build = null
+var _overlay_runtime = null
+var _metrics = null
 var _view_actions = null
-var _legacy_combined_port := false
 
 var is_building_3d := false
 var total_chunks := 0
@@ -42,28 +43,24 @@ var _async_chunk_authored_descriptors: Array = []
 var _overlay_pipeline := AsyncOverlayPipeline.new()
 
 
-func bind(host_port, context_port, scene_port, async_state_port, build_runtime_port = null, view_action_port = null) -> void:
+func bind(host_port, context_port, scene_port, async_state_port, chunk_build_port, overlay_runtime_port, metrics_port, view_action_port) -> void:
 	_host = host_port
 	_context = context_port
 	_scene = scene_port
 	_async_state = async_state_port
-	_build = build_runtime_port if build_runtime_port != null else async_state_port
-	_view_actions = view_action_port if view_action_port != null else async_state_port
-	_legacy_combined_port = build_runtime_port == null and view_action_port == null
-	_overlay_pipeline.bind(self, host_port, context_port, scene_port, _async_state, _build, _view_actions)
+	_chunk_build = chunk_build_port
+	_overlay_runtime = overlay_runtime_port
+	_metrics = metrics_port
+	_view_actions = view_action_port
+	_overlay_pipeline.bind(self, host_port, context_port, scene_port, _async_state, _chunk_build, _overlay_runtime, _metrics, _view_actions)
 
 
 func _is_async_pipeline_active() -> bool:
-	if _legacy_combined_port:
-		return _async_state.is_async_pipeline_active()
 	return _async_state.is_async_pipeline_active(_async_overlay_apply_active)
 
 
 func _cancel_async_pipeline() -> void:
-	if _legacy_combined_port:
-		_async_state.cancel_async_initial_build()
-	else:
-		_async_state.cancel_async_build(_async_overlay_apply_active)
+	_async_state.cancel_async_build(_async_overlay_apply_active)
 
 
 func get_build_state_snapshot() -> Dictionary:
@@ -206,7 +203,7 @@ func flush_pending_unit_changes() -> bool:
 
 
 func can_use_overlay_only_refresh() -> bool:
-	var chunk_runtime = _build.chunk_runtime()
+	var chunk_runtime = _chunk_build.chunk_runtime()
 	if chunk_runtime.initial_build_in_progress:
 		return false
 	if chunk_runtime.has_dirty_chunks():
@@ -240,7 +237,7 @@ func sync_async_overlay_state_from_current_map() -> bool:
 
 
 func try_start_async_initial_build(reframe_camera: bool) -> bool:
-	var chunk_runtime = _build.chunk_runtime()
+	var chunk_runtime = _chunk_build.chunk_runtime()
 	if not chunk_runtime.chunked_terrain_enabled:
 		return false
 	if not chunk_runtime.has_dirty_chunks():
@@ -259,19 +256,19 @@ func try_start_async_initial_build(reframe_camera: bool) -> bool:
 	if pre == null:
 		return false
 	var level_set := int(cmd.level_set)
-	var requires_full_rebuild: bool = _build.needs_full_rebuild(w, h, level_set)
+	var requires_full_rebuild: bool = _chunk_build.needs_full_rebuild(w, h, level_set)
 	if requires_full_rebuild:
 		_scene.clear_chunk_nodes()
 		chunk_runtime.clear_authored_caches()
 		chunk_runtime.prepare_chunked_full_rebuild(w, h, level_set)
 	if _scene.terrain_chunk_nodes().is_empty():
-		_build.invalidate_all_chunks(w, h)
-	var chunk_list: Array = _build.dirty_chunks_sorted_by_priority(w, h)
+		_chunk_build.invalidate_all_chunks(w, h)
+	var chunk_list: Array = _chunk_build.dirty_chunks_sorted_by_priority(w, h)
 	if chunk_list.is_empty():
 		return false
 	var game_data_type: String = _context.current_game_data_type()
 	UATerrainPieceLibrary.set_piece_game_data_type(game_data_type)
-	var effective_typ: PackedByteArray = _build.compute_effective_typ_for_map(cmd, w, h, typ, blg, game_data_type)
+	var effective_typ: PackedByteArray = _chunk_build.compute_effective_typ_for_map(cmd, w, h, typ, blg, game_data_type)
 	var snapshot := {
 		"w": w,
 		"h": h,
@@ -279,7 +276,7 @@ func try_start_async_initial_build(reframe_camera: bool) -> bool:
 		"effective_typ": effective_typ,
 		"level_set": level_set,
 		"chunk_list": chunk_list,
-		"edge_overlay_enabled": _build.edge_overlay_enabled(),
+		"edge_overlay_enabled": _chunk_build.edge_overlay_enabled(),
 		"surface_type_map": pre.surface_type_map,
 		"subsector_patterns": pre.subsector_patterns,
 		"tile_mapping": pre.tile_mapping,
@@ -370,11 +367,11 @@ func pump_async_initial_build() -> void:
 
 func apply_async_chunk_payload(payload: Dictionary) -> void:
 	var pre: Node = _context.preloads()
-	var apply_result := ChunkBuildExecutor.apply_chunk_result(_scene, _build.chunk_runtime(), payload, pre)
+	var apply_result := ChunkBuildExecutor.apply_chunk_result(_scene, _chunk_build.chunk_runtime(), payload, pre)
 	var chunk_coord := Vector2i(apply_result.get("chunk_coord", Vector2i.ZERO))
 	_async_processed_chunks.append(chunk_coord)
 	_async_chunk_authored_descriptors.append_array(apply_result.get("descriptors", []))
-	_build.chunk_runtime().erase_dirty_chunk(chunk_coord)
+	_chunk_build.chunk_runtime().erase_dirty_chunk(chunk_coord)
 	var done := completed_chunks + 1
 	update_build_progress(done, total_chunks, "Rendering map... %d / %d" % [done, total_chunks])
 	_scene.bump_3d_viewport_rendering()
@@ -403,12 +400,12 @@ func finish_async_initial_build() -> void:
 
 
 func try_finalize_async_localized_overlay_refresh() -> bool:
-	var chunk_runtime = _build.chunk_runtime()
+	var chunk_runtime = _chunk_build.chunk_runtime()
 	if chunk_runtime.initial_build_in_progress:
 		return false
 	if _async_processed_chunks.is_empty():
 		return false
-	var localized_overlay_sectors: Array[Vector2i] = _build.localized_overlay_sector_list()
+	var localized_overlay_sectors: Array[Vector2i] = _overlay_runtime.localized_overlay_sector_list()
 	if localized_overlay_sectors.is_empty():
 		return false
 	var cmd: Node = _context.current_map_data()
@@ -426,17 +423,17 @@ func try_finalize_async_localized_overlay_refresh() -> bool:
 	var level_set := int(cmd.level_set)
 	var game_data_type: String = _context.current_game_data_type()
 	UATerrainPieceLibrary.set_piece_game_data_type(game_data_type)
-	var effective_typ: PackedByteArray = _build.compute_effective_typ_for_map(cmd, w, h, typ, blg, game_data_type)
+	var effective_typ: PackedByteArray = _chunk_build.compute_effective_typ_for_map(cmd, w, h, typ, blg, game_data_type)
 	_async_state.set_async_map_snapshot(effective_typ, blg, w, h, level_set, game_data_type)
-	var metrics: Dictionary = _build.make_empty_build_metrics()
+	var metrics: Dictionary = _metrics.make_empty_build_metrics()
 	metrics["incremental_rebuild"] = true
 	metrics["chunks_rebuilt"] = _async_processed_chunks.size()
 	metrics["dirty_chunk_count"] = _async_processed_chunks.size()
 	metrics["dirty_sector_count"] = localized_overlay_sectors.size()
-	var localized_dynamic_sectors: Array[Vector2i] = _build.localized_dynamic_sector_list()
-	var rebuild_unit_index: bool = _build.unit_runtime_index().is_empty() or localized_dynamic_sectors.is_empty()
+	var localized_dynamic_sectors: Array[Vector2i] = _overlay_runtime.localized_dynamic_sector_list()
+	var rebuild_unit_index: bool = _overlay_runtime.unit_runtime_index().is_empty() or localized_dynamic_sectors.is_empty()
 	if rebuild_unit_index:
-		_build.unit_runtime_index().rebuild_from_map(cmd)
+		_overlay_runtime.unit_runtime_index().rebuild_from_map(cmd)
 	metrics["unit_index_rebuilt"] = rebuild_unit_index
 	var support_descriptors: Array = chunk_runtime.get_support_descriptors()
 	metrics["terrain_authored_descriptor_count"] = support_descriptors.size()
@@ -453,21 +450,21 @@ func try_finalize_async_localized_overlay_refresh() -> bool:
 		game_data_type,
 		metrics
 	)
-	metrics["static_overlay_descriptor_generation_ms"] = _build.elapsed_ms_since(overlay_descriptor_started_usec)
+	metrics["static_overlay_descriptor_generation_ms"] = _metrics.elapsed_ms_since(overlay_descriptor_started_usec)
 	metrics["overlay_descriptor_generation_ms"] = metrics["static_overlay_descriptor_generation_ms"]
 	metrics["overlay_descriptor_count"] = localized_static_descriptors.size()
 	UATerrainPieceLibrary.reset_piece_overlay_build_counters()
 	var overlay_node_started_usec := Time.get_ticks_usec()
-	_build.apply_localized_static_overlay_refresh(localized_static_descriptors, _async_processed_chunks, localized_overlay_sectors, level_set, w, h)
-	metrics["static_overlay_apply_ms"] = _build.elapsed_ms_since(overlay_node_started_usec)
-	_build.apply_localized_dynamic_overlay_refresh(cmd, level_set, hgt, w, h, support_descriptors, game_data_type, localized_dynamic_sectors, metrics)
+	_overlay_runtime.apply_localized_static_overlay_refresh(localized_static_descriptors, _async_processed_chunks, localized_overlay_sectors, level_set, w, h)
+	metrics["static_overlay_apply_ms"] = _metrics.elapsed_ms_since(overlay_node_started_usec)
+	_overlay_runtime.apply_localized_dynamic_overlay_refresh(cmd, level_set, hgt, w, h, support_descriptors, game_data_type, localized_dynamic_sectors, metrics)
 	metrics["overlay_node_creation_ms"] = float(metrics.get("static_overlay_apply_ms", 0.0)) + float(metrics.get("dynamic_overlay_apply_ms", 0.0))
 	metrics["overlay_descriptor_generation_ms"] = float(metrics.get("static_overlay_descriptor_generation_ms", 0.0)) + float(metrics.get("dynamic_overlay_descriptor_generation_ms", 0.0))
 	metrics["localized_overlay_refresh"] = true
 	var piece_counters: Dictionary = UATerrainPieceLibrary.get_piece_overlay_build_counters()
 	metrics["piece_overlay_fast_path"] = int(piece_counters.get("piece_overlay_fast_path", 0))
 	metrics["piece_overlay_slow_path"] = int(piece_counters.get("piece_overlay_slow_path", 0))
-	_build.finalize_build_metrics(metrics, _async_build_started_usec)
+	_metrics.finalize_build_metrics(metrics, _async_build_started_usec)
 	end_build_state(true, "3D map ready")
 	_scene.bump_3d_viewport_rendering()
 	if _async_pending_reframe_camera and _scene.is_inside_tree():
@@ -564,12 +561,12 @@ func apply_unit_change_batch(changes: Array) -> bool:
 	var cmd: Node = _context.current_map_data()
 	if cmd == null:
 		return false
-	_build.unit_runtime_index().apply_changes(cmd, changes)
-	var support_descriptors: Array = _build.chunk_runtime().get_support_descriptors()
+	_overlay_runtime.unit_runtime_index().apply_changes(cmd, changes)
+	var support_descriptors: Array = _chunk_build.chunk_runtime().get_support_descriptors()
 	_scene.ensure_overlay_nodes()
 	var game_data_type: String = _context.current_game_data_type()
 	UATerrainPieceLibrary.set_piece_game_data_type(game_data_type)
-	var applied := UnitOverlayController.apply_unit_changes(_scene.dynamic_overlay(), changes, cmd, support_descriptors, game_data_type, _build.unit_runtime_index())
+	var applied := UnitOverlayController.apply_unit_changes(_scene.dynamic_overlay(), changes, cmd, support_descriptors, game_data_type, _overlay_runtime.unit_runtime_index())
 	if not applied:
 		return false
 	_scene.apply_geometry_distance_culling_to_overlay()
