@@ -32,6 +32,7 @@ const UnitOverlayController := preload("res://map/3d/overlays/map_3d_unit_overla
 const InvalidationRouter := preload("res://map/3d/services/map_3d_invalidation_router.gd")
 const StaticOverlayIndex := preload("res://map/3d/services/map_3d_static_overlay_index.gd")
 const UnitRuntimeIndex := preload("res://map/3d/services/map_3d_unit_runtime_index.gd")
+const BuildInputPreparer := preload("res://map/3d/services/map_3d_build_input_preparer.gd")
 const BuildPipeline := preload("res://map/3d/services/map_3d_build_pipeline.gd")
 const MaterialService := preload("res://map/3d/runtime/map_3d_material_service.gd")
 
@@ -85,6 +86,7 @@ func _init() -> void:
 	)
 	_camera_controller.bind(_host_port, _render_context_port, _scene_port)
 	_scene_graph.bind(_scene_port, _render_context_port, _runtime_state, _chunk_rt, _overlay_refresh_scope)
+	_build_input_preparer.bind(_render_context_port, _async_map_snapshot, _effective_typ_service)
 	_renderer_event_controller.bind(
 		_event_action_port,
 		_render_context_port,
@@ -98,12 +100,10 @@ func _init() -> void:
 		_camera_controller
 	)
 	_build_pipeline.bind(
-		_render_context_port,
 		_scene_port,
-		_async_map_snapshot,
+		_build_input_preparer,
 		_overlay_refresh_scope,
 		_chunk_rt,
-		_effective_typ_service,
 		_unit_runtime_index,
 		_static_overlay_index,
 		_rebuild_policy,
@@ -448,6 +448,7 @@ var _unit_runtime_index:
 	get:
 		return _runtime_state.unit_runtime_index
 var _renderer_event_controller := RendererEventController.new()
+var _build_input_preparer := BuildInputPreparer.new()
 var _build_pipeline := BuildPipeline.new()
 var _async_refresh_driver := AsyncRefreshDriver.new()
 var _camera_controller := CameraController.new()

@@ -5,14 +5,11 @@ const OverlayPlanBuilder := preload("res://map/3d/services/map_3d_overlay_plan_b
 const TerrainBuilder := preload("res://map/3d/terrain/map_3d_terrain_builder.gd")
 const AuthoredOverlayManager := preload("res://map/3d/overlays/map_3d_authored_overlay_manager.gd")
 const StaticOverlayIndex := preload("res://map/3d/services/map_3d_static_overlay_index.gd")
-const EffectiveTypService := preload("res://map/3d/services/map_3d_effective_typ_service.gd")
 
-var _context = null
 var _scene = null
-var _async_map_snapshot = null
+var _input_preparer = null
 var _overlay_refresh_scope = null
 var _chunk_runtime = null
-var _effective_typ_service = null
 var _unit_runtime_index = null
 var _static_overlay_index = null
 var _rebuild_policy = null
@@ -21,13 +18,11 @@ var _view_actions = null
 var _chunk_build = null
 
 
-func bind(context_port, scene_port, async_map_snapshot, overlay_refresh_scope, chunk_runtime, effective_typ_service, unit_runtime_index, static_overlay_index, rebuild_policy, metrics_port, view_action_port, chunk_build_port) -> void:
-	_context = context_port
+func bind(scene_port, input_preparer, overlay_refresh_scope, chunk_runtime, unit_runtime_index, static_overlay_index, rebuild_policy, metrics_port, view_action_port, chunk_build_port) -> void:
 	_scene = scene_port
-	_async_map_snapshot = async_map_snapshot
+	_input_preparer = input_preparer
 	_overlay_refresh_scope = overlay_refresh_scope
 	_chunk_runtime = chunk_runtime
-	_effective_typ_service = effective_typ_service
 	_unit_runtime_index = unit_runtime_index
 	_static_overlay_index = static_overlay_index
 	_rebuild_policy = rebuild_policy
@@ -40,45 +35,34 @@ func build_from_current_map() -> void:
 	var build_started_usec = Time.get_ticks_usec()
 	var metrics = _metrics.make_empty_build_metrics()
 	_view_actions.sync_terrain_overlay_animation_mode_from_editor()
-	var current_map_data = _context.current_map_data()
+	var prepared: Dictionary = _input_preparer.prepare_current_map()
+	if not bool(prepared.get("valid", false)):
+		if bool(prepared.get("invalid_input", false)):
+			metrics["invalid_input"] = true
+			var clear_started_usec = Time.get_ticks_usec()
+			_scene.clear()
+			metrics["overlay_node_creation_ms"] = _metrics.elapsed_ms_since(clear_started_usec)
+		else:
+			_scene.clear()
+		_metrics.finalize_build_metrics(metrics, build_started_usec)
+		return
+
+	var current_map_data: Node = prepared.get("current_map_data", null) as Node
+	var w: int = int(prepared.get("w", 0))
+	var h: int = int(prepared.get("h", 0))
+	var hgt: PackedByteArray = prepared.get("hgt", PackedByteArray())
+	var blg: PackedByteArray = prepared.get("blg", PackedByteArray())
+	var effective_typ: PackedByteArray = prepared.get("effective_typ", PackedByteArray())
+	var game_data_type: String = String(prepared.get("game_data_type", "original"))
+	var level_set: int = int(prepared.get("level_set", 0))
+	var pre = prepared.get("preloads", null)
 	if current_map_data == null:
-		_scene.clear()
-		_metrics.finalize_build_metrics(metrics, build_started_usec)
-		return
-
-	var w: int = int(current_map_data.horizontal_sectors)
-	var h: int = int(current_map_data.vertical_sectors)
-	var hgt: PackedByteArray = current_map_data.hgt_map
-	var typ: PackedByteArray = current_map_data.typ_map
-	var blg: PackedByteArray = current_map_data.blg_map
-	var expected = (w + 2) * (h + 2)
-	if w <= 0 or h <= 0 or hgt.size() != expected or typ.size() != w * h:
 		metrics["invalid_input"] = true
-		var clear_started_usec = Time.get_ticks_usec()
+		var stale_map_clear_started_usec = Time.get_ticks_usec()
 		_scene.clear()
-		metrics["overlay_node_creation_ms"] = _metrics.elapsed_ms_since(clear_started_usec)
+		metrics["overlay_node_creation_ms"] = _metrics.elapsed_ms_since(stale_map_clear_started_usec)
 		_metrics.finalize_build_metrics(metrics, build_started_usec)
 		return
-
-	var game_data_type = _context.current_game_data_type()
-	UATerrainPieceLibrary.set_piece_game_data_type(game_data_type)
-	_async_map_snapshot.blg = blg
-	_async_map_snapshot.w = w
-	_async_map_snapshot.h = h
-	_async_map_snapshot.level_set = int(current_map_data.level_set)
-	_async_map_snapshot.game_data_type = game_data_type
-
-	var effective_typ: PackedByteArray
-	var typ_checksum = EffectiveTypService.checksum_packed_byte_array(typ)
-	var blg_checksum = EffectiveTypService.checksum_packed_byte_array(blg)
-	var can_reuse_effective_typ = _effective_typ_service.is_valid_cache(w, h, game_data_type, typ_checksum, blg_checksum)
-	if can_reuse_effective_typ:
-		effective_typ = _effective_typ_service.get_effective_typ()
-	else:
-		effective_typ = _effective_typ_service.compute_effective_typ_for_map(current_map_data, w, h, typ, blg, game_data_type)
-	_async_map_snapshot.effective_typ = effective_typ
-
-	var pre = _context.preloads()
 	if pre == null:
 		var fallback_started_usec = Time.get_ticks_usec()
 		var fallback_mesh = TerrainBuilder.build_mesh(hgt, w, h)
@@ -98,7 +82,6 @@ func build_from_current_map() -> void:
 		return
 
 	metrics["used_textured_preloads"] = true
-	var level_set = int(current_map_data.level_set)
 	var chunk_runtime = _chunk_runtime
 	var has_chunk_nodes: bool = not _scene.terrain_chunk_nodes().is_empty()
 	var requires_full_rebuild = _chunk_runtime.needs_full_rebuild(w, h, level_set, has_chunk_nodes)
@@ -222,7 +205,7 @@ func build_from_current_map() -> void:
 		var localized_static_descriptors := OverlayPlanBuilder.build_localized_static_descriptors(
 			blg,
 			effective_typ,
-			int(current_map_data.level_set),
+			level_set,
 			hgt,
 			w,
 			h,
@@ -235,9 +218,9 @@ func build_from_current_map() -> void:
 		metrics["overlay_descriptor_generation_ms"] = metrics["static_overlay_descriptor_generation_ms"]
 		metrics["overlay_descriptor_count"] = localized_static_descriptors.size()
 		var overlay_node_started_usec = Time.get_ticks_usec()
-		apply_localized_static_overlay_refresh(localized_static_descriptors, processed_chunks, localized_overlay_sectors, int(current_map_data.level_set), w, h)
+		apply_localized_static_overlay_refresh(localized_static_descriptors, processed_chunks, localized_overlay_sectors, level_set, w, h)
 		metrics["static_overlay_apply_ms"] = _metrics.elapsed_ms_since(overlay_node_started_usec)
-		apply_localized_dynamic_overlay_refresh(current_map_data, int(current_map_data.level_set), hgt, w, h, support_descriptors, game_data_type, localized_dynamic_sectors, metrics)
+		apply_localized_dynamic_overlay_refresh(current_map_data, level_set, hgt, w, h, support_descriptors, game_data_type, localized_dynamic_sectors, metrics)
 		metrics["overlay_node_creation_ms"] = float(metrics.get("static_overlay_apply_ms", 0.0)) + float(metrics.get("dynamic_overlay_apply_ms", 0.0))
 		metrics["overlay_descriptor_generation_ms"] = float(metrics.get("static_overlay_descriptor_generation_ms", 0.0)) + float(metrics.get("dynamic_overlay_descriptor_generation_ms", 0.0))
 		metrics["localized_overlay_refresh"] = true
@@ -246,7 +229,7 @@ func build_from_current_map() -> void:
 			current_map_data,
 			blg,
 			effective_typ,
-			int(current_map_data.level_set),
+			level_set,
 			hgt,
 			w,
 			h,
