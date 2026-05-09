@@ -1,4 +1,4 @@
-[gd_scene load_steps=55 format=3 uid="uid://ctgiwn3scteuk"]
+[gd_scene format=3 uid="uid://ctgiwn3scteuk"]
 
 [ext_resource type="Script" uid="uid://66b2147vfma0" path="res://main/main.gd" id="1_7pb5r"]
 [ext_resource type="Script" uid="uid://os5b5mds6770" path="res://modals/modals.gd" id="2_glk8b"]
@@ -42,7 +42,7 @@
 [ext_resource type="Texture2D" uid="uid://dpr45g77fuh7m" path="res://resources/img/ui_icons/warning-icon.png" id="34_wx03i"]
 [ext_resource type="Script" uid="uid://d1aadwj8xs7d3" path="res://map/map_3d_renderer.gd" id="35_cgvj2"]
 [ext_resource type="Texture2D" uid="uid://cqtiag6sfysm4" path="res://resources/img/ui_icons/no-warning-icon.png" id="36_qjqir"]
-[ext_resource type="Shader" uid="uid://b80jur7foaxae" path="res://shaders/sky.gdshader" id="36_t1yuj"]
+[ext_resource type="Shader" path="res://shaders/sky.gdshader" id="36_t1yuj"]
 [ext_resource type="Script" uid="uid://dcn3v7t2psqg5" path="res://map/sky/ua_sky_runtime.gd" id="37_skyrt"]
 
 [sub_resource type="GDScript" id="GDScript_a23yx"]
@@ -61,7 +61,7 @@ func _ready() -> void:
 	)
 "
 
-[sub_resource type="ButtonGroup" id="ButtonGroup_238se"]
+[sub_resource type="ButtonGroup" id="ButtonGroup_4pcu1"]
 
 [sub_resource type="GDScript" id="GDScript_pxw2i"]
 script/source = "extends ConfirmationDialog
@@ -73,7 +73,7 @@ func _ready() -> void:
 		)
 "
 
-[sub_resource type="ButtonGroup" id="ButtonGroup_0bwt3"]
+[sub_resource type="ButtonGroup" id="ButtonGroup_7eg6f"]
 
 [sub_resource type="GDScript" id="GDScript_j65sn"]
 script/source = "extends AcceptDialog
@@ -118,7 +118,7 @@ sky = SubResource("Sky_phifs")
 [sub_resource type="PlaneMesh" id="PlaneMesh_yjufm"]
 size = Vector2(20, 20)
 
-[node name="Main" type="Control"]
+[node name="Main" type="Control" unique_id=593550988]
 layout_mode = 3
 anchors_preset = 15
 anchor_right = 1.0
@@ -130,54 +130,54 @@ size_flags_vertical = 3
 focus_mode = 2
 script = ExtResource("1_7pb5r")
 
-[node name="Camera2D" type="Camera2D" parent="."]
+[node name="Camera2D" type="Camera2D" parent="." unique_id=817718209]
 anchor_mode = 0
 
-[node name="Modals" type="Node" parent="."]
+[node name="Modals" type="Node" parent="." unique_id=1389224260]
 script = ExtResource("2_glk8b")
 
-[node name="NewMapWindow" parent="Modals" instance=ExtResource("11_kalue")]
+[node name="NewMapWindow" parent="Modals" unique_id=996341384 instance=ExtResource("11_kalue")]
 unique_name_in_owner = true
 visible = false
 
-[node name="SectorsWarningConfirmationDialog" type="ConfirmationDialog" parent="Modals/NewMapWindow"]
+[node name="SectorsWarningConfirmationDialog" type="ConfirmationDialog" parent="Modals/NewMapWindow" unique_id=461108971]
 initial_position = 1
 dialog_text = "Warning: Playing on a level with more than 64 sectors may cause instability. Do you want to continue?"
 script = SubResource("GDScript_a23yx")
 
-[node name="SectorHeightWindow" parent="Modals" instance=ExtResource("12_wpowt")]
+[node name="SectorHeightWindow" parent="Modals" unique_id=2080694598 instance=ExtResource("12_wpowt")]
 unique_name_in_owner = true
 
-[node name="SectorBuildingWindow" parent="Modals" instance=ExtResource("13_kug0f")]
-unique_name_in_owner = true
-visible = false
-
-[node name="LevelParametersWindow" parent="Modals" instance=ExtResource("5_jupt5")]
+[node name="SectorBuildingWindow" parent="Modals" unique_id=1348224071 instance=ExtResource("13_kug0f")]
 unique_name_in_owner = true
 visible = false
 
-[node name="SquadEnablerWindow" parent="Modals" instance=ExtResource("6_cohuk")]
+[node name="LevelParametersWindow" parent="Modals" unique_id=1781711577 instance=ExtResource("5_jupt5")]
 unique_name_in_owner = true
 visible = false
 
-[node name="MissionBriefingMapsWindow" parent="Modals" instance=ExtResource("7_p7i0k")]
+[node name="SquadEnablerWindow" parent="Modals" unique_id=1644541899 instance=ExtResource("6_cohuk")]
 unique_name_in_owner = true
 visible = false
 
-[node name="PlayerHostStationWindow" parent="Modals" instance=ExtResource("8_ttnn6")]
-unique_name_in_owner = true
-visible = false
-button_group = SubResource("ButtonGroup_238se")
-
-[node name="LevelDescriptionWindow" parent="Modals" instance=ExtResource("9_kn1qm")]
+[node name="MissionBriefingMapsWindow" parent="Modals" unique_id=273233716 instance=ExtResource("7_p7i0k")]
 unique_name_in_owner = true
 visible = false
 
-[node name="PrototypeModificationsWindow" parent="Modals" instance=ExtResource("10_b73kt")]
+[node name="PlayerHostStationWindow" parent="Modals" unique_id=503932676 instance=ExtResource("8_ttnn6")]
+unique_name_in_owner = true
+visible = false
+button_group = SubResource("ButtonGroup_4pcu1")
+
+[node name="LevelDescriptionWindow" parent="Modals" unique_id=1514947278 instance=ExtResource("9_kn1qm")]
 unique_name_in_owner = true
 visible = false
 
-[node name="RandomizeTypMapConfirmationDialog" type="ConfirmationDialog" parent="Modals"]
+[node name="PrototypeModificationsWindow" parent="Modals" unique_id=158877019 instance=ExtResource("10_b73kt")]
+unique_name_in_owner = true
+visible = false
+
+[node name="RandomizeTypMapConfirmationDialog" type="ConfirmationDialog" parent="Modals" unique_id=1386357250]
 unique_name_in_owner = true
 initial_position = 1
 size = Vector2i(966, 100)
@@ -186,28 +186,28 @@ dialog_text = "This will change the building in every sector based on the select
 cancel_button_text = "No"
 script = SubResource("GDScript_pxw2i")
 
-[node name="ResizeMapWindow" parent="Modals" instance=ExtResource("12_xkl20")]
+[node name="ResizeMapWindow" parent="Modals" unique_id=1946887781 instance=ExtResource("12_xkl20")]
 unique_name_in_owner = true
 visible = false
 
-[node name="GameContentWindow" parent="Modals" instance=ExtResource("11_jobpe")]
+[node name="GameContentWindow" parent="Modals" unique_id=999439006 instance=ExtResource("11_jobpe")]
 unique_name_in_owner = true
 visible = false
-button_group = SubResource("ButtonGroup_0bwt3")
+button_group = SubResource("ButtonGroup_7eg6f")
 
-[node name="CampaignMapsWindow" parent="Modals" instance=ExtResource("12_4i7vk")]
-unique_name_in_owner = true
-visible = false
-
-[node name="KeyboardShortcutsWindow" parent="Modals" instance=ExtResource("13_pa8eg")]
+[node name="CampaignMapsWindow" parent="Modals" unique_id=1896905122 instance=ExtResource("12_4i7vk")]
 unique_name_in_owner = true
 visible = false
 
-[node name="AboutWindow" parent="Modals" instance=ExtResource("14_i2xml")]
+[node name="KeyboardShortcutsWindow" parent="Modals" unique_id=1936745670 instance=ExtResource("13_pa8eg")]
 unique_name_in_owner = true
 visible = false
 
-[node name="LoadBehaviorFileDialog" type="FileDialog" parent="Modals"]
+[node name="AboutWindow" parent="Modals" unique_id=14085397 instance=ExtResource("14_i2xml")]
+unique_name_in_owner = true
+visible = false
+
+[node name="LoadBehaviorFileDialog" type="FileDialog" parent="Modals" unique_id=1784536313]
 unique_name_in_owner = true
 title = "Open a File"
 initial_position = 2
@@ -218,7 +218,7 @@ access = 2
 filters = PackedStringArray("*.json;JavaScript object notation")
 script = ExtResource("15_oqmvu")
 
-[node name="SaveBehaviorFileDialog" type="FileDialog" parent="Modals"]
+[node name="SaveBehaviorFileDialog" type="FileDialog" parent="Modals" unique_id=450821038]
 unique_name_in_owner = true
 initial_position = 2
 size = Vector2i(810, 450)
@@ -226,7 +226,7 @@ access = 2
 filters = PackedStringArray("*.json;JavaScript object notation")
 script = ExtResource("16_defsv")
 
-[node name="SaveLevelFileDialog" type="FileDialog" parent="Modals"]
+[node name="SaveLevelFileDialog" type="FileDialog" parent="Modals" unique_id=1362778144]
 unique_name_in_owner = true
 initial_position = 1
 size = Vector2i(900, 600)
@@ -234,7 +234,7 @@ access = 2
 filters = PackedStringArray("*.ldf;Level definition file")
 script = ExtResource("17_tgjwx")
 
-[node name="OpenLevelFileDialog" type="FileDialog" parent="Modals"]
+[node name="OpenLevelFileDialog" type="FileDialog" parent="Modals" unique_id=627714860]
 unique_name_in_owner = true
 title = "Open a File"
 initial_position = 1
@@ -245,7 +245,7 @@ access = 2
 filters = PackedStringArray("*.ldf;Level definition file")
 script = ExtResource("17_g67l2")
 
-[node name="UnsavedMapConfirmationDialog" type="ConfirmationDialog" parent="Modals"]
+[node name="UnsavedMapConfirmationDialog" type="ConfirmationDialog" parent="Modals" unique_id=1790373612]
 unique_name_in_owner = true
 initial_position = 1
 ok_button_text = "Yes"
@@ -253,33 +253,33 @@ dialog_text = "The current map is not saved. Do you want to save it now?"
 cancel_button_text = "No"
 script = ExtResource("21_phvo0")
 
-[node name="OpenMapErrorAcceptDialog" type="AcceptDialog" parent="Modals"]
+[node name="OpenMapErrorAcceptDialog" type="AcceptDialog" parent="Modals" unique_id=1229597977]
 title = "Open map error"
 initial_position = 1
 size = Vector2i(300, 100)
 script = ExtResource("20_272kt")
 
-[node name="WarningAcceptDialog" type="AcceptDialog" parent="Modals"]
+[node name="WarningAcceptDialog" type="AcceptDialog" parent="Modals" unique_id=83789258]
 unique_name_in_owner = true
 initial_position = 1
 size = Vector2i(653, 100)
 script = SubResource("GDScript_j65sn")
 
-[node name="InvalidLevelSetAcceptDialog" type="AcceptDialog" parent="Modals"]
+[node name="InvalidLevelSetAcceptDialog" type="AcceptDialog" parent="Modals" unique_id=1540463755]
 title = "Error"
 initial_position = 1
 size = Vector2i(483, 100)
 dialog_text = "Error: The loaded level set (X) is not supported by the editor. Defaulting to set 1."
 script = SubResource("GDScript_r27t3")
 
-[node name="AdditionalInformationWindow" parent="Modals" instance=ExtResource("22_230yp")]
+[node name="AdditionalInformationWindow" parent="Modals" unique_id=627836987 instance=ExtResource("22_230yp")]
 unique_name_in_owner = true
 visible = false
 
-[node name="LogWindow" parent="Modals" instance=ExtResource("24_g6oem")]
+[node name="LogWindow" parent="Modals" unique_id=2003380641 instance=ExtResource("24_g6oem")]
 visible = false
 
-[node name="EditorErrorAcceptDialog" type="AcceptDialog" parent="Modals"]
+[node name="EditorErrorAcceptDialog" type="AcceptDialog" parent="Modals" unique_id=1910586330]
 title = "Editor fatal error"
 initial_position = 2
 size = Vector2i(340, 100)
@@ -287,12 +287,12 @@ dialog_text = "There was an error opening the editor:
 data.json is not a valid file"
 script = ExtResource("25_whwg4")
 
-[node name="ErrorAcceptDialog" type="AcceptDialog" parent="Modals"]
+[node name="ErrorAcceptDialog" type="AcceptDialog" parent="Modals" unique_id=1758637300]
 title = "Error occured"
 initial_position = 2
 script = ExtResource("26_ha6he")
 
-[node name="PanelContainer" type="PanelContainer" parent="."]
+[node name="PanelContainer" type="PanelContainer" parent="." unique_id=487236888]
 layout_mode = 1
 anchors_preset = 15
 anchor_right = 1.0
@@ -301,70 +301,95 @@ grow_horizontal = 2
 grow_vertical = 2
 mouse_filter = 1
 
-[node name="MarginContainer" type="MarginContainer" parent="PanelContainer"]
+[node name="MarginContainer" type="MarginContainer" parent="PanelContainer" unique_id=417098524]
 layout_mode = 2
 
-[node name="VBoxContainer" type="VBoxContainer" parent="PanelContainer/MarginContainer"]
+[node name="VBoxContainer" type="VBoxContainer" parent="PanelContainer/MarginContainer" unique_id=1979644531]
 layout_mode = 2
 
-[node name="MenuBar" type="MenuBar" parent="PanelContainer/MarginContainer/VBoxContainer"]
+[node name="MenuBar" type="MenuBar" parent="PanelContainer/MarginContainer/VBoxContainer" unique_id=252690504]
 custom_minimum_size = Vector2(0, 33)
 layout_mode = 2
 theme_override_fonts/font = ExtResource("22_hbtdp")
 
-[node name="File" type="PopupMenu" parent="PanelContainer/MarginContainer/VBoxContainer/MenuBar"]
+[node name="File" type="PopupMenu" parent="PanelContainer/MarginContainer/VBoxContainer/MenuBar" unique_id=1646249325]
 auto_translate_mode = 1
 theme_override_fonts/font = ExtResource("22_hbtdp")
 script = ExtResource("6_i86yq")
 
-[node name="Edit" type="PopupMenu" parent="PanelContainer/MarginContainer/VBoxContainer/MenuBar"]
+[node name="Edit" type="PopupMenu" parent="PanelContainer/MarginContainer/VBoxContainer/MenuBar" unique_id=1203442451]
 theme_override_fonts/font = ExtResource("22_hbtdp")
 submenu_popup_delay = 0.01
 script = ExtResource("29_rprwg")
 
-[node name="View" type="PopupMenu" parent="PanelContainer/MarginContainer/VBoxContainer/MenuBar"]
+[node name="View" type="PopupMenu" parent="PanelContainer/MarginContainer/VBoxContainer/MenuBar" unique_id=125779499]
 auto_translate_mode = 1
 theme_override_fonts/font = ExtResource("22_hbtdp")
 script = ExtResource("10_vou7b")
 
-[node name="Options" type="PopupMenu" parent="PanelContainer/MarginContainer/VBoxContainer/MenuBar"]
+[node name="Options" type="PopupMenu" parent="PanelContainer/MarginContainer/VBoxContainer/MenuBar" unique_id=1754006455]
 theme_override_fonts/font = ExtResource("22_hbtdp")
 script = ExtResource("16_eeds7")
 
-[node name="Tools" type="PopupMenu" parent="PanelContainer/MarginContainer/VBoxContainer/MenuBar"]
+[node name="Tools" type="PopupMenu" parent="PanelContainer/MarginContainer/VBoxContainer/MenuBar" unique_id=1816893197]
 theme_override_fonts/font = ExtResource("22_hbtdp")
 script = ExtResource("24_h3xa5")
 
-[node name="Help" type="PopupMenu" parent="PanelContainer/MarginContainer/VBoxContainer/MenuBar"]
+[node name="Help" type="PopupMenu" parent="PanelContainer/MarginContainer/VBoxContainer/MenuBar" unique_id=128640296]
 theme_override_fonts/font = ExtResource("22_hbtdp")
 script = ExtResource("17_0pxun")
 
-[node name="HSplitContainer" type="HSplitContainer" parent="PanelContainer/MarginContainer/VBoxContainer"]
+[node name="HSplitContainer" type="HSplitContainer" parent="PanelContainer/MarginContainer/VBoxContainer" unique_id=991898302]
 layout_mode = 2
 size_flags_vertical = 3
 theme_override_constants/separation = 1
 theme_override_constants/minimum_grab_thickness = 1
+split_offsets = PackedInt32Array(750)
 split_offset = 750
 script = ExtResource("34_t1yuj")
 
-[node name="MapContainer" parent="PanelContainer/MarginContainer/VBoxContainer/HSplitContainer" instance=ExtResource("19_hkn6c")]
-visible = true
+[node name="MapContainer" parent="PanelContainer/MarginContainer/VBoxContainer/HSplitContainer" unique_id=1083554206 instance=ExtResource("19_hkn6c")]
 layout_mode = 2
 focus_next = NodePath(".")
 focus_previous = NodePath(".")
 
-[node name="Map3DContainer" type="SubViewportContainer" parent="PanelContainer/MarginContainer/VBoxContainer/HSplitContainer"]
+[node name="Map3DContainer" type="SubViewportContainer" parent="PanelContainer/MarginContainer/VBoxContainer/HSplitContainer" unique_id=1518654250]
 visible = false
 layout_mode = 2
 stretch = true
 
-[node name="SubViewport" type="SubViewport" parent="PanelContainer/MarginContainer/VBoxContainer/HSplitContainer/Map3DContainer"]
+[node name="SubViewport" type="SubViewport" parent="PanelContainer/MarginContainer/VBoxContainer/HSplitContainer/Map3DContainer" unique_id=1052858125]
 handle_input_locally = false
-size = Vector2i(1200, 616)
-render_target_update_mode = 4
+size = Vector2i(442, 616)
+render_target_update_mode = 0
 
-[node name="LoadingOverlay" type="Control" parent="PanelContainer/MarginContainer/VBoxContainer/HSplitContainer/Map3DContainer"]
+[node name="Map3D" type="Node3D" parent="PanelContainer/MarginContainer/VBoxContainer/HSplitContainer/Map3DContainer/SubViewport" unique_id=2264134]
+script = ExtResource("35_cgvj2")
+
+[node name="Camera3D" type="Camera3D" parent="PanelContainer/MarginContainer/VBoxContainer/HSplitContainer/Map3DContainer/SubViewport/Map3D" unique_id=1757347583]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.1143, 0)
+
+[node name="DirectionalLight3D" type="DirectionalLight3D" parent="PanelContainer/MarginContainer/VBoxContainer/HSplitContainer/Map3DContainer/SubViewport/Map3D" unique_id=504408324]
+transform = Transform3D(1, 0, 0, 0, 0.414153, 0.910207, 0, -0.910207, 0.414153, 0, 8.94659, 2.87136)
 visible = false
+
+[node name="WorldEnvironment" type="WorldEnvironment" parent="PanelContainer/MarginContainer/VBoxContainer/HSplitContainer/Map3DContainer/SubViewport/Map3D" unique_id=1401102019]
+environment = SubResource("Environment_cgvj2")
+
+[node name="SkyRoot" type="Node3D" parent="PanelContainer/MarginContainer/VBoxContainer/HSplitContainer/Map3DContainer/SubViewport/Map3D" unique_id=1314710725]
+script = ExtResource("37_skyrt")
+
+[node name="SkyContainer" type="Node3D" parent="PanelContainer/MarginContainer/VBoxContainer/HSplitContainer/Map3DContainer/SubViewport/Map3D/SkyRoot" unique_id=2007011782]
+
+[node name="TerrainMesh" type="MeshInstance3D" parent="PanelContainer/MarginContainer/VBoxContainer/HSplitContainer/Map3DContainer/SubViewport/Map3D" unique_id=915380196]
+mesh = SubResource("PlaneMesh_yjufm")
+
+[node name="LoadingOverlay" type="Control" parent="PanelContainer/MarginContainer/VBoxContainer/HSplitContainer/Map3DContainer" unique_id=1490988869]
+visible = false
+layout_mode = 2
+mouse_filter = 2
+
+[node name="CenterContainer" type="CenterContainer" parent="PanelContainer/MarginContainer/VBoxContainer/HSplitContainer/Map3DContainer/LoadingOverlay" unique_id=17890533]
 layout_mode = 1
 anchors_preset = 15
 anchor_right = 1.0
@@ -373,101 +398,70 @@ grow_horizontal = 2
 grow_vertical = 2
 mouse_filter = 2
 
-[node name="CenterContainer" type="CenterContainer" parent="PanelContainer/MarginContainer/VBoxContainer/HSplitContainer/Map3DContainer/LoadingOverlay"]
-layout_mode = 1
-anchors_preset = 15
-anchor_right = 1.0
-anchor_bottom = 1.0
-grow_horizontal = 2
-grow_vertical = 2
-mouse_filter = 2
-
-[node name="PanelContainer" type="PanelContainer" parent="PanelContainer/MarginContainer/VBoxContainer/HSplitContainer/Map3DContainer/LoadingOverlay/CenterContainer"]
+[node name="PanelContainer" type="PanelContainer" parent="PanelContainer/MarginContainer/VBoxContainer/HSplitContainer/Map3DContainer/LoadingOverlay/CenterContainer" unique_id=2047622919]
 layout_mode = 2
 
-[node name="MarginContainer" type="MarginContainer" parent="PanelContainer/MarginContainer/VBoxContainer/HSplitContainer/Map3DContainer/LoadingOverlay/CenterContainer/PanelContainer"]
+[node name="MarginContainer" type="MarginContainer" parent="PanelContainer/MarginContainer/VBoxContainer/HSplitContainer/Map3DContainer/LoadingOverlay/CenterContainer/PanelContainer" unique_id=1995311951]
 layout_mode = 2
 theme_override_constants/margin_left = 14
 theme_override_constants/margin_top = 12
 theme_override_constants/margin_right = 14
 theme_override_constants/margin_bottom = 12
 
-[node name="VBoxContainer" type="VBoxContainer" parent="PanelContainer/MarginContainer/VBoxContainer/HSplitContainer/Map3DContainer/LoadingOverlay/CenterContainer/PanelContainer/MarginContainer"]
+[node name="VBoxContainer" type="VBoxContainer" parent="PanelContainer/MarginContainer/VBoxContainer/HSplitContainer/Map3DContainer/LoadingOverlay/CenterContainer/PanelContainer/MarginContainer" unique_id=1411811497]
 layout_mode = 2
 
-[node name="StatusLabel" type="Label" parent="PanelContainer/MarginContainer/VBoxContainer/HSplitContainer/Map3DContainer/LoadingOverlay/CenterContainer/PanelContainer/MarginContainer/VBoxContainer"]
+[node name="StatusLabel" type="Label" parent="PanelContainer/MarginContainer/VBoxContainer/HSplitContainer/Map3DContainer/LoadingOverlay/CenterContainer/PanelContainer/MarginContainer/VBoxContainer" unique_id=812700437]
 layout_mode = 2
 theme_override_font_sizes/font_size = 13
 text = "Rendering map..."
 horizontal_alignment = 1
 
-[node name="Map3D" type="Node3D" parent="PanelContainer/MarginContainer/VBoxContainer/HSplitContainer/Map3DContainer/SubViewport"]
-script = ExtResource("35_cgvj2")
-
-[node name="Camera3D" type="Camera3D" parent="PanelContainer/MarginContainer/VBoxContainer/HSplitContainer/Map3DContainer/SubViewport/Map3D"]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.1143, 0)
-
-[node name="DirectionalLight3D" type="DirectionalLight3D" parent="PanelContainer/MarginContainer/VBoxContainer/HSplitContainer/Map3DContainer/SubViewport/Map3D"]
-transform = Transform3D(1, 0, 0, 0, 0.414153, 0.910207, 0, -0.910207, 0.414153, 0, 8.94659, 2.87136)
-visible = false
-
-[node name="WorldEnvironment" type="WorldEnvironment" parent="PanelContainer/MarginContainer/VBoxContainer/HSplitContainer/Map3DContainer/SubViewport/Map3D"]
-environment = SubResource("Environment_cgvj2")
-
-[node name="SkyRoot" type="Node3D" parent="PanelContainer/MarginContainer/VBoxContainer/HSplitContainer/Map3DContainer/SubViewport/Map3D"]
-script = ExtResource("37_skyrt")
-
-[node name="SkyContainer" type="Node3D" parent="PanelContainer/MarginContainer/VBoxContainer/HSplitContainer/Map3DContainer/SubViewport/Map3D/SkyRoot"]
-
-[node name="TerrainMesh" type="MeshInstance3D" parent="PanelContainer/MarginContainer/VBoxContainer/HSplitContainer/Map3DContainer/SubViewport/Map3D"]
-mesh = SubResource("PlaneMesh_yjufm")
-
-[node name="PropertiesContainer" parent="PanelContainer/MarginContainer/VBoxContainer/HSplitContainer" instance=ExtResource("20_eh4tf")]
+[node name="PropertiesContainer" parent="PanelContainer/MarginContainer/VBoxContainer/HSplitContainer" unique_id=651184974 instance=ExtResource("20_eh4tf")]
 unique_name_in_owner = true
 visible = false
 layout_mode = 2
 
-[node name="TypMapDesignerContainer" parent="PanelContainer/MarginContainer/VBoxContainer/HSplitContainer" instance=ExtResource("27_45wxb")]
+[node name="TypMapDesignerContainer" parent="PanelContainer/MarginContainer/VBoxContainer/HSplitContainer" unique_id=2110923072 instance=ExtResource("27_45wxb")]
 unique_name_in_owner = true
 visible = false
 layout_mode = 2
 
-[node name="MarginContainer" type="MarginContainer" parent="PanelContainer/MarginContainer/VBoxContainer"]
+[node name="MarginContainer" type="MarginContainer" parent="PanelContainer/MarginContainer/VBoxContainer" unique_id=827887688]
 layout_mode = 2
 theme_override_constants/margin_left = 8
 theme_override_constants/margin_top = 0
 theme_override_constants/margin_right = 2
 theme_override_constants/margin_bottom = 2
 
-[node name="StatusBarContainerLeft" type="HBoxContainer" parent="PanelContainer/MarginContainer/VBoxContainer/MarginContainer"]
+[node name="StatusBarContainerLeft" type="HBoxContainer" parent="PanelContainer/MarginContainer/VBoxContainer/MarginContainer" unique_id=959502140]
 custom_minimum_size = Vector2(0, 20)
 layout_mode = 2
 size_flags_horizontal = 0
 theme_override_constants/separation = 5
 script = ExtResource("27_esd3e")
 
-[node name="EditorModeLabel" type="Label" parent="PanelContainer/MarginContainer/VBoxContainer/MarginContainer/StatusBarContainerLeft"]
+[node name="EditorModeLabel" type="Label" parent="PanelContainer/MarginContainer/VBoxContainer/MarginContainer/StatusBarContainerLeft" unique_id=1685167835]
 unique_name_in_owner = true
 layout_mode = 2
 theme_override_font_sizes/font_size = 12
 text = "Mode: Select"
 horizontal_alignment = 1
 
-[node name="Build3DStatusLabel" type="Label" parent="PanelContainer/MarginContainer/VBoxContainer/MarginContainer/StatusBarContainerLeft"]
+[node name="Build3DStatusLabel" type="Label" parent="PanelContainer/MarginContainer/VBoxContainer/MarginContainer/StatusBarContainerLeft" unique_id=1445180651]
 unique_name_in_owner = true
 layout_mode = 2
-theme_override_font_sizes/font_size = 12
 theme_override_colors/font_color = Color(0.7, 0.7, 0.7, 1)
-text = ""
+theme_override_font_sizes/font_size = 12
 
-[node name="StatusBarContainerRight" type="HBoxContainer" parent="PanelContainer/MarginContainer/VBoxContainer/MarginContainer"]
+[node name="StatusBarContainerRight" type="HBoxContainer" parent="PanelContainer/MarginContainer/VBoxContainer/MarginContainer" unique_id=1181862521]
 layout_mode = 2
 size_flags_horizontal = 8
 script = ExtResource("34_21ltw")
 warning_icon = ExtResource("34_wx03i")
 no_warning_icon = ExtResource("36_qjqir")
 
-[node name="LogsButton" type="Button" parent="PanelContainer/MarginContainer/VBoxContainer/MarginContainer/StatusBarContainerRight"]
+[node name="LogsButton" type="Button" parent="PanelContainer/MarginContainer/VBoxContainer/MarginContainer/StatusBarContainerRight" unique_id=1903778262]
 unique_name_in_owner = true
 custom_minimum_size = Vector2(80, 0)
 layout_mode = 2
