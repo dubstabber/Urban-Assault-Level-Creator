@@ -10,7 +10,7 @@ var item_name: String:
 @onready var add_shot_time_line_edit: LineEdit = %AddShotTimeLineEdit
 @onready var add_shot_time_user_line_edit: LineEdit = %AddShotTimeUserLineEdit
 @onready var remove_button: Button = %RemoveButton
-@onready var undo_redo_manager = get_node("/root/UndoRedoManager")
+@onready var undo_redo_manager = UndoRedoManager
 
 
 func _ready() -> void:

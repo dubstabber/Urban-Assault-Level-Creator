@@ -1,6 +1,6 @@
 extends Node
 
-@onready var undo_redo_manager = get_node("/root/UndoRedoManager")
+@onready var undo_redo_manager = UndoRedoManager
 
 var level_set := 1:
 	set(value):

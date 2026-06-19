@@ -7,7 +7,7 @@ var mykonian_swap: PopupMenu = PopupMenu.new()
 var sulgogar_swap: PopupMenu = PopupMenu.new()
 var blacksect_swap: PopupMenu = PopupMenu.new()
 var training_swap: PopupMenu = PopupMenu.new()
-@onready var undo_redo_manager = get_node("/root/UndoRedoManager")
+@onready var undo_redo_manager = UndoRedoManager
 
 
 func _ready() -> void:

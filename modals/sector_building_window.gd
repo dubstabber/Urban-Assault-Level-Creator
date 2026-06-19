@@ -1,7 +1,7 @@
 extends Window
 
 @onready var typ_map_spin_box: SpinBox = %TypMapSpinBox
-@onready var undo_redo_manager = get_node("/root/UndoRedoManager")
+@onready var undo_redo_manager = UndoRedoManager
 
 
 func _ready() -> void:

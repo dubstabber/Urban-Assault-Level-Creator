@@ -17,7 +17,7 @@ func update_menu() -> void:
 func _on_index_pressed(index: int) -> void:
 	var text = get_parent().get_item_text(index)
 	if not EditorState.selected_unit: return
-	var undo_redo_manager = get_node("/root/UndoRedoManager")
+	var undo_redo_manager = UndoRedoManager
 	undo_redo_manager.begin_group("Remove unit")
 	var unit_before: Dictionary = undo_redo_manager.create_unit_snapshot()
 	var selected_unit := EditorState.selected_unit

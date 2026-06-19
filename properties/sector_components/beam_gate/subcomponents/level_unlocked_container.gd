@@ -11,7 +11,7 @@ func create(_level_index: int) -> void:
 
 func _on_button_pressed() -> void:
 	if not EditorState.selected_beam_gate: return
-	var undo_redo_manager = get_node("/root/UndoRedoManager")
+	var undo_redo_manager = UndoRedoManager
 	undo_redo_manager.begin_group("Beam gate remove level")
 	var item_before: Dictionary = undo_redo_manager.create_item_snapshot()
 	EditorState.selected_beam_gate.target_levels.erase(level_index)

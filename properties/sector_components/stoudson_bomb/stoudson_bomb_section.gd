@@ -13,7 +13,7 @@ extends VBoxContainer
 
 @onready var bomb_key_sectors_label: Label = %BombKeySectorsLabel
 @onready var bomb_key_sectors_list_container: Container = %BombKeySectorsListContainer
-@onready var undo_redo_manager = get_node("/root/UndoRedoManager")
+@onready var undo_redo_manager = UndoRedoManager
 
 
 func _ready() -> void:

@@ -2,7 +2,7 @@ extends Node
 
 var add_bg_key_sector_submenu: PopupMenu
 var add_bomb_key_sector_submenu: PopupMenu
-@onready var undo_redo_manager = get_node("/root/UndoRedoManager")
+@onready var undo_redo_manager = UndoRedoManager
 
 
 func _ready() -> void:

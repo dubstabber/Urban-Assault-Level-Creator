@@ -12,7 +12,7 @@ extends VBoxContainer
 
 @onready var useable_check_box: CheckBox = %UseableCheckBox
 @onready var mb_status_squad_check_box: CheckBox = %MBstatusSquadCheckBox
-@onready var undo_redo_manager = get_node("/root/UndoRedoManager")
+@onready var undo_redo_manager = UndoRedoManager
 
 
 func _record_unit_snapshot(label: String, before_snapshot: Dictionary) -> void:

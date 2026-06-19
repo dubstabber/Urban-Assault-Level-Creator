@@ -101,7 +101,7 @@ func _process(_delta):
 
 
 func _on_button_button_down():
-	var undo_redo_manager = get_node("/root/UndoRedoManager")
+	var undo_redo_manager = UndoRedoManager
 	drag_before_snapshot = undo_redo_manager.create_unit_snapshot()
 	dragging = true
 	set_process(true)
@@ -114,7 +114,7 @@ func _on_button_button_up():
 	dragging = false
 	set_process(false)
 	if moved:
-		var undo_redo_manager = get_node("/root/UndoRedoManager")
+		var undo_redo_manager = UndoRedoManager
 		undo_redo_manager.begin_group("Move unit")
 		var unit_before: Dictionary = drag_before_snapshot
 		undo_redo_manager.record_unit_snapshot(unit_before, undo_redo_manager.create_unit_snapshot())

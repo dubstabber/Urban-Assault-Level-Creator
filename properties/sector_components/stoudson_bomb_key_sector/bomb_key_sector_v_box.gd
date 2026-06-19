@@ -7,7 +7,7 @@ extends VBoxContainer
 func _ready() -> void:
 	normal_key_sector_option_button.item_selected.connect(func(index: int):
 		if normal_key_sector_option_button.get_item_id(index) < 256:
-			var undo_redo_manager = get_node("/root/UndoRedoManager")
+			var undo_redo_manager = UndoRedoManager
 			undo_redo_manager.begin_group("Bomb key sector typ")
 			var typ_before := int(CurrentMapData.typ_map[EditorState.selected_sector_idx])
 			CurrentMapData.typ_map[EditorState.selected_sector_idx] = normal_key_sector_option_button.get_item_id(index)
@@ -24,7 +24,7 @@ func _ready() -> void:
 		)
 	parasite_key_sector_option_button.item_selected.connect(func(index: int):
 		if parasite_key_sector_option_button.get_item_id(index) < 256:
-			var undo_redo_manager = get_node("/root/UndoRedoManager")
+			var undo_redo_manager = UndoRedoManager
 			undo_redo_manager.begin_group("Bomb key sector typ")
 			var typ_before := int(CurrentMapData.typ_map[EditorState.selected_sector_idx])
 			CurrentMapData.typ_map[EditorState.selected_sector_idx] = parasite_key_sector_option_button.get_item_id(index)

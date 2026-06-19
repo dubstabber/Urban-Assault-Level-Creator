@@ -5,7 +5,7 @@ var is_number_pressed := false
 var is_left_pressed := false
 
 @onready var map: Node2D = %Map
-@onready var undo_redo_manager = get_node("/root/UndoRedoManager")
+@onready var undo_redo_manager = UndoRedoManager
 
 
 func _input(event):

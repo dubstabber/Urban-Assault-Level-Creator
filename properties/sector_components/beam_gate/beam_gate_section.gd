@@ -15,7 +15,7 @@ extends VBoxContainer
 @onready var sector_info_container_separator: HSeparator = %HSeparator
 @onready var sector_info_container_separator2: HSeparator = %HSeparator2
 @onready var beam_gate_info_label: Label = %BeamGateInfoLabel
-@onready var undo_redo_manager = get_node("/root/UndoRedoManager")
+@onready var undo_redo_manager = UndoRedoManager
 
 
 func _ready() -> void:

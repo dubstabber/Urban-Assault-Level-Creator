@@ -14,7 +14,7 @@ var item_name: String:
 @onready var enable_blacksect_checkbox: CheckBox = %EnableBlackSectCheckBox
 @onready var enable_training_checkbox: CheckBox = %EnableTrainingCheckBox
 @onready var remove_button: Button = %RemoveButton
-@onready var undo_redo_manager = get_node("/root/UndoRedoManager")
+@onready var undo_redo_manager = UndoRedoManager
 
 
 func _ready() -> void:

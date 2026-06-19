@@ -422,7 +422,7 @@ func _draw_height_differences(border_sector: int, x: int, y: int, h_grid: int, v
 
 
 func add_hoststation(owner_id: int, vehicle_id: int) -> void:
-	var undo_redo_manager = get_node("/root/UndoRedoManager")
+	var undo_redo_manager = UndoRedoManager
 	undo_redo_manager.begin_group("Add host station")
 	var unit_before: Dictionary = undo_redo_manager.create_unit_snapshot()
 	var hoststation = Preloads.HOSTSTATION.instantiate()
@@ -443,7 +443,7 @@ func add_hoststation(owner_id: int, vehicle_id: int) -> void:
 
 
 func add_squad(owner_id: int, vehicle_id: int) -> void:
-	var undo_redo_manager = get_node("/root/UndoRedoManager")
+	var undo_redo_manager = UndoRedoManager
 	undo_redo_manager.begin_group("Add squad")
 	var unit_before: Dictionary = undo_redo_manager.create_unit_snapshot()
 	var squad = Preloads.SQUAD.instantiate()

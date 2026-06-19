@@ -75,7 +75,7 @@ func randomize_whole_typ_map() -> void:
 	if CurrentMapData.typ_map.is_empty():
 		return
 
-	var undo_redo_manager = get_node("/root/UndoRedoManager")
+	var undo_redo_manager = UndoRedoManager
 	undo_redo_manager.begin_group("Randomize typ_map")
 	var edited_typ_indices: Array = []
 	for i in CurrentMapData.typ_map.size():
@@ -135,7 +135,7 @@ func copy_sector() -> void:
 
 func paste_sector() -> void:
 	if EditorState.selected_sector_idx >= 0 and CurrentMapData.horizontal_sectors > 0:
-		var undo_redo_manager = get_node("/root/UndoRedoManager")
+		var undo_redo_manager = UndoRedoManager
 		undo_redo_manager.begin_group("Paste sector")
 		var item_before: Dictionary = undo_redo_manager.create_item_snapshot()
 		var edited_typ_indices: Array = []

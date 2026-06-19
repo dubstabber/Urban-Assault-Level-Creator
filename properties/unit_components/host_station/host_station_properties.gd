@@ -47,7 +47,7 @@ extends VBoxContainer
 
 @onready var load_behavior_file_button: Button = %LoadBehaviorFileButton
 @onready var save_behavior_file_button: Button = %SaveBehaviorFileButton
-@onready var undo_redo_manager = get_node("/root/UndoRedoManager")
+@onready var undo_redo_manager = UndoRedoManager
 
 func _record_unit_snapshot(label: String, before_snapshot: Dictionary) -> void:
 	var coalesce_key := ""

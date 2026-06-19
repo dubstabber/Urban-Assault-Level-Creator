@@ -31,7 +31,7 @@ func _on_about_to_popup() -> void:
 
 
 func _update_host_station_for_player(button) -> void:
-	var undo_redo_manager = get_node("/root/UndoRedoManager")
+	var undo_redo_manager = UndoRedoManager
 	undo_redo_manager.begin_group("Set player host station")
 	var unit_before: Dictionary = undo_redo_manager.create_unit_snapshot()
 	for i in %HostStationContainer.get_child_count():

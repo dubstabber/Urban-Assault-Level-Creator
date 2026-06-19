@@ -11,7 +11,7 @@ extends VBoxContainer
 @onready var tech_upgrade_modifiers_container: Container = %TechUpgradeModifiersContainer
 @onready var tu_add_item_button: Button = %TUAddItemButton
 @onready var invalid_building_label: Label = %InvalidBuildingLabel
-@onready var undo_redo_manager = get_node("/root/UndoRedoManager")
+@onready var undo_redo_manager = UndoRedoManager
 
 
 func _ready() -> void:

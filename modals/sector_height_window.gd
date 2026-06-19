@@ -1,7 +1,7 @@
 extends Window
 
 @onready var height_value_spin_box: SpinBox = $PanelContainer/MarginContainer2/HeightSpinBox
-@onready var undo_redo_manager = get_node("/root/UndoRedoManager")
+@onready var undo_redo_manager = UndoRedoManager
 
 
 func _ready() -> void:

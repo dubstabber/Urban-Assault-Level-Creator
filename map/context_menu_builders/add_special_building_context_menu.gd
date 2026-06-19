@@ -1,7 +1,7 @@
 extends Node
 
 var special_buildings_submenu: PopupMenu = PopupMenu.new()
-@onready var undo_redo_manager = get_node("/root/UndoRedoManager")
+@onready var undo_redo_manager = UndoRedoManager
 
 
 func _ready() -> void:
