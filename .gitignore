@@ -35,6 +35,11 @@ Thumbs.db
 *.temp
 *.bak
 __pycache__/
+*.pyc
+
+# Throwaway investigation/debug scripts (not part of the test surface)
+tests/tmp_*
+tests/debug_*
 
 .usor/
 PLANNING.md
