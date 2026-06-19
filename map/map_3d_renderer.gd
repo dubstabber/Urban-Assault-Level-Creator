@@ -354,6 +354,13 @@ func _is_3d_view_visible() -> bool:
 
 func _apply_preview_activity_state() -> void:
 	var in_3d := _runtime_context.is_3d_view_visible()
+	# Pause the entire 3D subtree (animated surface meshes, particle emitters, sky,
+	# and the per-frame camera/async-apply pump in this node's _process) while the
+	# 2D editor is shown, so a loaded 3D preview costs nothing when hidden. Builds
+	# are already deferred until the preview is active (request_refresh /
+	# apply_pending_refresh early-return when not preview_refresh_active), and
+	# on_map_view_updated re-requests any pending refresh when switching back to 3D.
+	process_mode = Node.PROCESS_MODE_INHERIT if in_3d else Node.PROCESS_MODE_DISABLED
 	set_physics_process(in_3d)
 	set_process_unhandled_input(in_3d)
 
