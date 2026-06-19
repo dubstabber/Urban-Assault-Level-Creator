@@ -829,6 +829,9 @@ func _handle_tech_upgrades(file: FileAccess) -> void:
 						var add_shield := 0
 						var add_radar := 0
 						var num_weapons := 0
+						var fire_x := 30.0
+						var fire_y := 5.0
+						var fire_z := 15.0
 						var res_enabled := false
 						var ghor_enabled := false
 						var taer_enabled := false
@@ -869,7 +872,19 @@ func _handle_tech_upgrades(file: FileAccess) -> void:
 							if string_line.begins_with("num_weapons"):
 								string_line = string_line.replacen("num_weapons", "").replacen("=", "").strip_edges()
 								num_weapons = int(string_line)
-							
+
+							if string_line.begins_with("fire_x"):
+								string_line = string_line.replacen("fire_x", "").replacen("=", "").strip_edges()
+								fire_x = float(string_line)
+
+							if string_line.begins_with("fire_y"):
+								string_line = string_line.replacen("fire_y", "").replacen("=", "").strip_edges()
+								fire_y = float(string_line)
+
+							if string_line.begins_with("fire_z"):
+								string_line = string_line.replacen("fire_z", "").replacen("=", "").strip_edges()
+								fire_z = float(string_line)
+
 						var modifier = {}
 						modifier.vehicle_id = vehicle_id
 						modifier.res_enabled = res_enabled
@@ -883,6 +898,9 @@ func _handle_tech_upgrades(file: FileAccess) -> void:
 						modifier.shield = add_shield
 						modifier.radar = add_radar
 						modifier.num_weapons = num_weapons
+						modifier.fire_x = fire_x
+						modifier.fire_y = fire_y
+						modifier.fire_z = fire_z
 						vehicles.append(modifier)
 					
 					if string_line.begins_with("modify_weapon"):
@@ -973,6 +991,9 @@ func _handle_tech_upgrades(file: FileAccess) -> void:
 				new_modifier.shield = vehicle_modifier.shield
 				new_modifier.num_weapons = vehicle_modifier.num_weapons
 				new_modifier.radar = vehicle_modifier.radar
+				new_modifier.fire_x = vehicle_modifier.fire_x
+				new_modifier.fire_y = vehicle_modifier.fire_y
+				new_modifier.fire_z = vehicle_modifier.fire_z
 				tech_upgrade.vehicles.append(new_modifier)
 		for weapon_modifier: Dictionary in weapons:
 			var new_modifier = tech_upgrade.new_weapon_modifier(weapon_modifier.weapon_id)
