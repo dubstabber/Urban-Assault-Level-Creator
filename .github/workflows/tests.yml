@@ -1,0 +1,51 @@
+name: tests
+
+# Runs the headless GDScript suite (and the Python suite) on every push / PR so
+# regressions are caught automatically instead of only when someone remembers to
+# run the tests locally.
+#
+# NOTE: the pinned Godot binary is gitignored, so CI downloads it. Keep
+# GODOT_VERSION in sync with the binary committed at the repo root. The Python
+# suite depends on resources/ua/sky_import, which may be absent; that step is
+# therefore non-blocking (continue-on-error).
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+env:
+  GODOT_VERSION: "4.6.2"
+
+jobs:
+  gdscript:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Download Godot ${{ env.GODOT_VERSION }} (headless)
+        run: |
+          set -euo pipefail
+          base="https://github.com/godotengine/godot/releases/download/${GODOT_VERSION}-stable"
+          file="Godot_v${GODOT_VERSION}-stable_linux.x86_64"
+          curl -fsSL -o godot.zip "${base}/${file}.zip"
+          unzip -q godot.zip
+          chmod +x "${file}"
+          ln -s "${file}" godot
+
+      - name: Run headless GDScript suite
+        run: HOME=/tmp XDG_DATA_HOME=/tmp ./godot --headless --path . --script res://tests/test_runner.gd
+
+  python:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Install test deps
+        run: pip install pytest
+      - name: Run Python suite (asset-dependent; non-blocking)
+        continue-on-error: true
+        run: PYTHONPATH=. pytest tests/ -q
