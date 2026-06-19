@@ -36,6 +36,25 @@ func build_from_current_map() -> void:
 	var metrics = _metrics.make_empty_build_metrics()
 	_view_actions.sync_terrain_overlay_animation_mode_from_editor()
 	var prepared: Dictionary = _input_preparer.prepare_current_map()
+	if _render_invalid_or_fallback(prepared, metrics, build_started_usec):
+		return
+	var terrain := _build_terrain(prepared, metrics)
+	if bool(terrain.get("needs_more_batches", false)):
+		_metrics.finalize_build_metrics(metrics, build_started_usec)
+		_view_actions.request_refresh(false)
+		return
+	_apply_overlay_phase(prepared, terrain, metrics)
+	var piece_counters: Dictionary = UATerrainPieceLibrary.get_piece_overlay_build_counters()
+	metrics["piece_overlay_fast_path"] = int(piece_counters.get("piece_overlay_fast_path", 0))
+	metrics["piece_overlay_slow_path"] = int(piece_counters.get("piece_overlay_slow_path", 0))
+	_overlay_refresh_scope.clear()
+	_metrics.finalize_build_metrics(metrics, build_started_usec)
+
+
+# Renders the terminal cases (invalid input, stale/missing map, or no textured
+# preloads). Returns true when the build was fully handled and the caller should
+# stop; false when there is a valid, textured map to render.
+func _render_invalid_or_fallback(prepared: Dictionary, metrics: Dictionary, build_started_usec: int) -> bool:
 	if not bool(prepared.get("valid", false)):
 		if bool(prepared.get("invalid_input", false)):
 			metrics["invalid_input"] = true
@@ -45,41 +64,55 @@ func build_from_current_map() -> void:
 		else:
 			_scene.clear()
 		_metrics.finalize_build_metrics(metrics, build_started_usec)
-		return
-
-	var current_map_data: Node = prepared.get("current_map_data", null) as Node
-	var w: int = int(prepared.get("w", 0))
-	var h: int = int(prepared.get("h", 0))
-	var hgt: PackedByteArray = prepared.get("hgt", PackedByteArray())
-	var blg: PackedByteArray = prepared.get("blg", PackedByteArray())
-	var effective_typ: PackedByteArray = prepared.get("effective_typ", PackedByteArray())
-	var game_data_type: String = String(prepared.get("game_data_type", "original"))
-	var level_set: int = int(prepared.get("level_set", 0))
-	var pre = prepared.get("preloads", null)
-	if current_map_data == null:
+		return true
+	if prepared.get("current_map_data", null) == null:
 		metrics["invalid_input"] = true
 		var stale_map_clear_started_usec = Time.get_ticks_usec()
 		_scene.clear()
 		metrics["overlay_node_creation_ms"] = _metrics.elapsed_ms_since(stale_map_clear_started_usec)
 		_metrics.finalize_build_metrics(metrics, build_started_usec)
-		return
-	if pre == null:
-		var fallback_started_usec = Time.get_ticks_usec()
-		var fallback_mesh = TerrainBuilder.build_mesh(hgt, w, h)
-		metrics["terrain_build_ms"] = _metrics.elapsed_ms_since(fallback_started_usec)
-		if _scene.terrain_mesh() != null:
-			_scene.terrain_mesh().mesh = fallback_mesh
-			_scene.apply_untextured_materials(fallback_mesh)
-		var fallback_overlay_started_usec = Time.get_ticks_usec()
-		_scene.set_authored_overlay([])
-		var fallback_counters: Dictionary = UATerrainPieceLibrary.get_piece_overlay_build_counters()
-		metrics["piece_overlay_fast_path"] = int(fallback_counters.get("piece_overlay_fast_path", 0))
-		metrics["piece_overlay_slow_path"] = int(fallback_counters.get("piece_overlay_slow_path", 0))
-		metrics["overlay_node_creation_ms"] = _metrics.elapsed_ms_since(fallback_overlay_started_usec)
-		if _scene.edge_mesh() != null:
-			_scene.edge_mesh().mesh = null
-		_metrics.finalize_build_metrics(metrics, build_started_usec)
-		return
+		return true
+	if prepared.get("preloads", null) == null:
+		_render_untextured_fallback(prepared, metrics, build_started_usec)
+		return true
+	return false
+
+
+# Untextured fallback: build a plain heightmap mesh and clear overlays when the
+# texture/preload set is unavailable.
+func _render_untextured_fallback(prepared: Dictionary, metrics: Dictionary, build_started_usec: int) -> void:
+	var w: int = int(prepared.get("w", 0))
+	var h: int = int(prepared.get("h", 0))
+	var hgt: PackedByteArray = prepared.get("hgt", PackedByteArray())
+	var fallback_started_usec = Time.get_ticks_usec()
+	var fallback_mesh = TerrainBuilder.build_mesh(hgt, w, h)
+	metrics["terrain_build_ms"] = _metrics.elapsed_ms_since(fallback_started_usec)
+	if _scene.terrain_mesh() != null:
+		_scene.terrain_mesh().mesh = fallback_mesh
+		_scene.apply_untextured_materials(fallback_mesh)
+	var fallback_overlay_started_usec = Time.get_ticks_usec()
+	_scene.set_authored_overlay([])
+	var fallback_counters: Dictionary = UATerrainPieceLibrary.get_piece_overlay_build_counters()
+	metrics["piece_overlay_fast_path"] = int(fallback_counters.get("piece_overlay_fast_path", 0))
+	metrics["piece_overlay_slow_path"] = int(fallback_counters.get("piece_overlay_slow_path", 0))
+	metrics["overlay_node_creation_ms"] = _metrics.elapsed_ms_since(fallback_overlay_started_usec)
+	if _scene.edge_mesh() != null:
+		_scene.edge_mesh().mesh = null
+	_metrics.finalize_build_metrics(metrics, build_started_usec)
+
+
+# Builds terrain (a chunked incremental batch or a full non-chunked mesh) into
+# the scene and returns the descriptors + localized scope the overlay phase
+# needs. Sets needs_more_batches=true while an initial chunked build still has
+# queued chunks, so the caller can re-schedule another batch.
+func _build_terrain(prepared: Dictionary, metrics: Dictionary) -> Dictionary:
+	var current_map_data: Node = prepared.get("current_map_data", null) as Node
+	var w: int = int(prepared.get("w", 0))
+	var h: int = int(prepared.get("h", 0))
+	var hgt: PackedByteArray = prepared.get("hgt", PackedByteArray())
+	var effective_typ: PackedByteArray = prepared.get("effective_typ", PackedByteArray())
+	var level_set: int = int(prepared.get("level_set", 0))
+	var pre = prepared.get("preloads", null)
 
 	metrics["used_textured_preloads"] = true
 	var chunk_runtime = _chunk_runtime
@@ -95,7 +128,6 @@ func build_from_current_map() -> void:
 	var terrain_started_usec = Time.get_ticks_usec()
 	var authored_piece_descriptors: Array = []
 	var support_descriptors: Array = []
-	var overlay_descriptors: Array = []
 	var processed_chunks: Array = []
 	var localized_overlay_sectors = _overlay_refresh_scope.overlay_sector_list()
 	var localized_dynamic_sectors = _overlay_refresh_scope.dynamic_sector_list()
@@ -127,9 +159,7 @@ func build_from_current_map() -> void:
 				chunk_runtime.initial_build_accumulated_authored_descriptors.append_array(batch_authored_descriptors)
 				metrics["terrain_authored_descriptor_count"] = chunk_runtime.initial_build_accumulated_authored_descriptors.size()
 				if chunk_runtime.has_dirty_chunks():
-					_metrics.finalize_build_metrics(metrics, build_started_usec)
-					_view_actions.request_refresh(false)
-					return
+					return {"needs_more_batches": true}
 				authored_piece_descriptors = chunk_runtime.initial_build_accumulated_authored_descriptors
 				chunk_runtime.initial_build_in_progress = false
 				chunk_runtime.initial_build_accumulated_authored_descriptors.clear()
@@ -146,11 +176,9 @@ func build_from_current_map() -> void:
 			else:
 				cached_terrain_descriptors = cached_terrain_descriptors.duplicate()
 			support_descriptors = cached_terrain_descriptors
-			overlay_descriptors = cached_terrain_descriptors.duplicate()
 			metrics["terrain_authored_descriptor_count"] = support_descriptors.size()
 		else:
 			support_descriptors = chunk_runtime.get_support_descriptors().duplicate()
-			overlay_descriptors = support_descriptors.duplicate()
 			metrics["terrain_authored_descriptor_count"] = support_descriptors.size()
 	else:
 		_scene.clear_chunk_nodes()
@@ -178,7 +206,6 @@ func build_from_current_map() -> void:
 		metrics["terrain_authored_descriptor_count"] = authored_piece_descriptors.size()
 		metrics["incremental_rebuild"] = false
 		support_descriptors = authored_piece_descriptors.duplicate()
-		overlay_descriptors = authored_piece_descriptors.duplicate()
 		if _scene.terrain_mesh() != null:
 			_scene.terrain_mesh().mesh = mesh
 			_scene.apply_sector_top_materials(mesh, pre, surface_to_surface_type)
@@ -189,7 +216,6 @@ func build_from_current_map() -> void:
 			var edge_authored_descriptors: Array = edge_result.get("authored_piece_descriptors", [])
 			metrics["edge_authored_descriptor_count"] = edge_authored_descriptors.size()
 			support_descriptors.append_array(edge_authored_descriptors)
-			overlay_descriptors.append_array(edge_authored_descriptors)
 			_scene.ensure_edge_node()
 			_scene.edge_mesh().mesh = edge_result.get("mesh", null)
 		else:
@@ -199,7 +225,37 @@ func build_from_current_map() -> void:
 		chunk_runtime.clear_dirty_chunks()
 		_chunk_runtime.reset_terrain_authored_cache_from_descriptors(support_descriptors, w, h)
 
-	var can_use_localized_overlay_refresh = use_chunked and not chunk_runtime.initial_build_in_progress and not processed_chunks.is_empty() and not localized_overlay_sectors.is_empty()
+	return {
+		"current_map_data": current_map_data,
+		"use_chunked": use_chunked,
+		"support_descriptors": support_descriptors,
+		"processed_chunks": processed_chunks,
+		"authored_piece_descriptors": authored_piece_descriptors,
+		"localized_overlay_sectors": localized_overlay_sectors,
+		"localized_dynamic_sectors": localized_dynamic_sectors,
+		"needs_more_batches": false,
+	}
+
+
+# Applies overlays for the freshly built terrain: a localized prefix refresh when
+# only a few sectors changed, otherwise a full overlay-plan rebuild.
+func _apply_overlay_phase(prepared: Dictionary, terrain: Dictionary, metrics: Dictionary) -> void:
+	var current_map_data: Node = terrain.get("current_map_data", null) as Node
+	var w: int = int(prepared.get("w", 0))
+	var h: int = int(prepared.get("h", 0))
+	var hgt: PackedByteArray = prepared.get("hgt", PackedByteArray())
+	var blg: PackedByteArray = prepared.get("blg", PackedByteArray())
+	var effective_typ: PackedByteArray = prepared.get("effective_typ", PackedByteArray())
+	var game_data_type: String = String(prepared.get("game_data_type", "original"))
+	var level_set: int = int(prepared.get("level_set", 0))
+	var use_chunked: bool = bool(terrain.get("use_chunked", false))
+	var processed_chunks: Array = terrain.get("processed_chunks", [])
+	var localized_overlay_sectors: Array = terrain.get("localized_overlay_sectors", [])
+	var localized_dynamic_sectors: Array = terrain.get("localized_dynamic_sectors", [])
+	var support_descriptors: Array = terrain.get("support_descriptors", [])
+	var authored_piece_descriptors: Array = terrain.get("authored_piece_descriptors", [])
+
+	var can_use_localized_overlay_refresh = use_chunked and not _chunk_runtime.initial_build_in_progress and not processed_chunks.is_empty() and not localized_overlay_sectors.is_empty()
 	var overlay_descriptor_started_usec = Time.get_ticks_usec()
 	if can_use_localized_overlay_refresh:
 		var localized_static_descriptors := OverlayPlanBuilder.build_localized_static_descriptors(
@@ -239,8 +295,6 @@ func build_from_current_map() -> void:
 		)
 		var static_descriptors: Array = overlay_plan.get("static_descriptors", [])
 		var dynamic_descriptors: Array = overlay_plan.get("dynamic_descriptors", [])
-		overlay_descriptors = static_descriptors.duplicate()
-		overlay_descriptors.append_array(dynamic_descriptors)
 		_scene.ensure_overlay_nodes()
 		UATerrainPieceLibrary.reset_piece_overlay_build_counters()
 		_static_overlay_index.replace_all(static_descriptors)
@@ -251,12 +305,6 @@ func build_from_current_map() -> void:
 		_scene.apply_dynamic_overlay(dynamic_descriptors)
 		metrics["dynamic_overlay_apply_ms"] = _metrics.elapsed_ms_since(dynamic_apply_started_usec)
 		metrics["overlay_node_creation_ms"] = float(metrics.get("static_overlay_apply_ms", 0.0)) + float(metrics.get("dynamic_overlay_apply_ms", 0.0))
-
-	var piece_counters: Dictionary = UATerrainPieceLibrary.get_piece_overlay_build_counters()
-	metrics["piece_overlay_fast_path"] = int(piece_counters.get("piece_overlay_fast_path", 0))
-	metrics["piece_overlay_slow_path"] = int(piece_counters.get("piece_overlay_slow_path", 0))
-	_overlay_refresh_scope.clear()
-	_metrics.finalize_build_metrics(metrics, build_started_usec)
 
 
 func rebuild_dirty_chunks(hgt: PackedByteArray, effective_typ: PackedByteArray, w: int, h: int, pre: Node, level_set: int, metrics: Dictionary, max_chunks: int = -1) -> Dictionary:
