@@ -218,7 +218,7 @@ func pump_async_overlay_descriptor_build() -> void:
 	var stage: String = _async_state.get_async_overlay_descriptor_stage()
 	if not stage.is_empty():
 		_driver.update_build_progress(_driver.total_chunks, _driver.total_chunks, stage)
-	if _async_state.coordinator()._async_cancel_requested:
+	if _async_state.coordinator().read_async_cancel_requested():
 		_async_state.join_async_overlay_descriptor_thread()
 		var should_restart: bool = _driver._async_requested_restart
 		var restart_reframe: bool = _driver._async_requested_reframe
@@ -231,7 +231,7 @@ func pump_async_overlay_descriptor_build() -> void:
 	if not bool(state.get("done", false)):
 		return
 	_async_state.join_async_overlay_descriptor_thread()
-	if _async_state.coordinator()._async_cancel_requested:
+	if _async_state.coordinator().read_async_cancel_requested():
 		return
 	if bool(state.get("failed", false)):
 		_driver.end_build_state(false, "Overlay descriptor generation failed")
@@ -257,6 +257,8 @@ func start_async_overlay_apply(static_descriptors: Array, dynamic_descriptors: A
 	_driver._async_overlay_metrics = metrics.duplicate(true)
 	_overlay_runtime.static_overlay_index().replace_all(static_descriptors)
 	_driver._async_overlay_apply_state = _overlay_runtime.overlay_apply_manager().begin_apply_overlay_node(_scene.authored_overlay(), _driver._async_overlay_descriptors)
+	_driver._async_dynamic_overlay_apply_state = {}
+	_driver._async_overlay_apply_phase = "static"
 	_driver._async_overlay_apply_started_usec = Time.get_ticks_usec()
 	_driver._async_overlay_apply_active = true
 	UATerrainPieceLibrary.reset_piece_overlay_build_counters()
@@ -266,41 +268,71 @@ func start_async_overlay_apply(static_descriptors: Array, dynamic_descriptors: A
 func pump_async_overlay_apply() -> void:
 	if not _driver._async_overlay_apply_active:
 		return
-	if _async_state.coordinator()._async_cancel_requested:
+	if _async_state.coordinator().read_async_cancel_requested():
 		_driver._async_overlay_apply_active = false
 		_driver.end_build_state(false, "3D render cancelled")
 		_driver.reset_async_build_state()
 		if _driver._async_requested_restart:
 			_driver.request_refresh(_driver._async_requested_reframe)
 		return
+	if _driver._async_overlay_apply_phase == "dynamic":
+		_pump_dynamic_overlay_apply()
+		return
+	# Static authored-overlay (buildings / terrain pieces) apply phase.
 	var descriptor_count := int(_driver._async_overlay_apply_state.get("descriptor_count", _driver._async_overlay_descriptors.size()))
 	var apply_budget := maxi(int(_host.async_overlay_apply_budget(descriptor_count)), 1)
 	var done: bool = _overlay_runtime.overlay_apply_manager().apply_overlay_node_step(_scene.authored_overlay(), _driver._async_overlay_apply_state, apply_budget)
-	var progress: Dictionary = _overlay_runtime.overlay_apply_manager().overlay_apply_progress(_driver._async_overlay_apply_state)
-	var progress_done := int(progress.get("done", 0))
-	var progress_total := int(progress.get("total", 0))
-	var pct := 100
-	if progress_total > 0:
-		pct = int(round((float(progress_done) / float(progress_total)) * 100.0))
-	_driver.update_build_progress(_driver.total_chunks, _driver.total_chunks, "Applying 3D overlays... %d%%" % clampi(pct, 0, 100))
+	_report_overlay_apply_progress(_driver._async_overlay_apply_state, "Applying 3D overlays")
+	_scene.bump_3d_viewport_rendering()
+	if done:
+		_begin_dynamic_overlay_apply()
+
+
+func _begin_dynamic_overlay_apply() -> void:
+	# Hand off from the budgeted static apply to a budgeted dynamic (host/squad)
+	# apply so vehicle scene instantiation also spreads across frames instead of
+	# blocking the main thread in one apply_dynamic_overlay() call.
+	if _scene.authored_overlay() != null and is_instance_valid(_scene.authored_overlay()):
+		_overlay_runtime.overlay_apply_manager().finalize_apply_overlay_node(_scene.authored_overlay(), _driver._async_overlay_apply_state)
+	_scene.ensure_overlay_nodes()
+	_driver._async_dynamic_overlay_apply_started_usec = Time.get_ticks_usec()
+	_driver._async_dynamic_overlay_apply_state = _overlay_runtime.overlay_apply_manager().begin_apply_overlay_node(_scene.dynamic_overlay(), _driver._async_dynamic_overlay_descriptors)
+	_driver._async_overlay_apply_phase = "dynamic"
+	if _driver._async_dynamic_overlay_apply_state.is_empty():
+		finalize_async_overlay_apply()
+
+
+func _pump_dynamic_overlay_apply() -> void:
+	var descriptor_count := int(_driver._async_dynamic_overlay_apply_state.get("descriptor_count", _driver._async_dynamic_overlay_descriptors.size()))
+	var apply_budget := maxi(int(_host.async_overlay_apply_budget(descriptor_count)), 1)
+	var done: bool = _overlay_runtime.overlay_apply_manager().apply_overlay_node_step(_scene.dynamic_overlay(), _driver._async_dynamic_overlay_apply_state, apply_budget)
+	_report_overlay_apply_progress(_driver._async_dynamic_overlay_apply_state, "Applying vehicles")
 	_scene.bump_3d_viewport_rendering()
 	if done:
 		finalize_async_overlay_apply()
 
 
+func _report_overlay_apply_progress(apply_state: Dictionary, label: String) -> void:
+	var progress: Dictionary = _overlay_runtime.overlay_apply_manager().overlay_apply_progress(apply_state)
+	var progress_done := int(progress.get("done", 0))
+	var progress_total := int(progress.get("total", 0))
+	var pct := 100
+	if progress_total > 0:
+		pct = int(round((float(progress_done) / float(progress_total)) * 100.0))
+	_driver.update_build_progress(_driver.total_chunks, _driver.total_chunks, "%s... %d%%" % [label, clampi(pct, 0, 100)])
+
+
 func finalize_async_overlay_apply() -> void:
-	if _scene.authored_overlay() != null and is_instance_valid(_scene.authored_overlay()):
-		_overlay_runtime.overlay_apply_manager().finalize_apply_overlay_node(_scene.authored_overlay(), _driver._async_overlay_apply_state)
-	var dynamic_apply_started_usec := Time.get_ticks_usec()
-	_scene.apply_dynamic_overlay(_driver._async_dynamic_overlay_descriptors)
+	if _scene.dynamic_overlay() != null and is_instance_valid(_scene.dynamic_overlay()):
+		_overlay_runtime.overlay_apply_manager().finalize_apply_overlay_node(_scene.dynamic_overlay(), _driver._async_dynamic_overlay_apply_state)
 	var metrics: Dictionary = _driver._async_overlay_metrics
 	var defer_full_overlay_refresh := bool(metrics.get("defer_full_overlay_refresh", false))
 	var pc: Dictionary = UATerrainPieceLibrary.get_piece_overlay_build_counters()
 	metrics["piece_overlay_fast_path"] = int(pc.get("piece_overlay_fast_path", 0))
 	metrics["piece_overlay_slow_path"] = int(pc.get("piece_overlay_slow_path", 0))
 	metrics["overlay_node_creation_ms"] = _metrics.elapsed_ms_since(_driver._async_overlay_apply_started_usec)
-	metrics["static_overlay_apply_ms"] = metrics["overlay_node_creation_ms"]
-	metrics["dynamic_overlay_apply_ms"] = _metrics.elapsed_ms_since(dynamic_apply_started_usec)
+	metrics["static_overlay_apply_ms"] = maxf(0.0, float(_driver._async_dynamic_overlay_apply_started_usec - _driver._async_overlay_apply_started_usec) / 1000.0)
+	metrics["dynamic_overlay_apply_ms"] = _metrics.elapsed_ms_since(_driver._async_dynamic_overlay_apply_started_usec)
 	if _overlay_runtime.geometry_distance_culling_enabled():
 		_scene.apply_geometry_distance_culling_to_overlay()
 	_metrics.finalize_build_metrics(metrics, _driver._async_build_started_usec)
@@ -327,12 +359,11 @@ func finalize_async_overlay_apply() -> void:
 
 func _prepare_overlay_refresh(reframe_camera: bool) -> void:
 	var coordinator = _async_state.coordinator()
-	coordinator.build_generation_id += 1
-	coordinator.active_build_generation_id = coordinator.build_generation_id
-	coordinator.cancel_requested_generation_id = 0
+	# Atomically open a new generation (see Map3DRefreshCoordinator.begin_generation):
+	# bumps the generation id, resets cancel state, and clears any stale payloads.
+	coordinator.begin_generation()
 	_driver._async_pending_reframe_camera = reframe_camera
 	_driver._async_build_started_usec = Time.get_ticks_usec()
-	coordinator._async_cancel_requested = false
 	_driver._async_requested_restart = false
 	_driver._async_requested_reframe = false
 

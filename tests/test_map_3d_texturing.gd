@@ -738,7 +738,7 @@ func test_build_edges_mesh_without_preloads_falls_back_to_preview_material() -> 
 func test_edge_overlay_is_enabled_by_default_in_live_3d_renderer() -> bool:
 	_reset_errors()
 	var renderer = Map3DRendererScript.new()
-	_check(renderer._edge_overlay_enabled, "Live 3D renderer should enable the slurp/edge overlay by default")
+	_check(renderer.is_edge_overlay_enabled(), "Live 3D renderer should enable the slurp/edge overlay by default")
 	return _errors.is_empty()
 
 func test_build_edges_mesh_keeps_flat_same_surface_seams() -> bool:
@@ -2419,7 +2419,7 @@ func test_build_from_current_map_wires_host_stations_into_authored_overlay() -> 
 	preloads.surface_type_map = {12: 0}
 
 	var renderer := Map3DRendererScript.new()
-	renderer._edge_overlay_enabled = false
+	renderer.set_edge_overlay_enabled(false)
 	renderer.set_current_map_data_override(map_data)
 	renderer.set_editor_state_override(editor_state)
 	renderer.set_preloads_override(preloads)
@@ -2485,14 +2485,14 @@ func test_dynamic_overlay_keeps_md_squads_after_mixed_pool_refresh_events() -> b
 	preloads.surface_type_map = {12: 0}
 
 	var renderer := Map3DRendererScript.new()
-	renderer._edge_overlay_enabled = false
+	renderer.set_edge_overlay_enabled(false)
 	renderer.set_current_map_data_override(map_data)
 	renderer.set_editor_state_override(editor_state)
 	renderer.set_preloads_override(preloads)
 
 	_check(renderer._sync_async_overlay_state_from_current_map(), "Expected async overlay state to sync from current map for MD scenario")
 	var initial_payload := {
-		"generation_id": renderer.active_build_generation_id,
+		"generation_id": renderer._coordinator.active_build_generation_id,
 		"dynamic_only": true,
 		"support_descriptors": [],
 		"blg": map_data.blg_map,
@@ -2501,7 +2501,7 @@ func test_dynamic_overlay_keeps_md_squads_after_mixed_pool_refresh_events() -> b
 		"hgt": map_data.hgt_map,
 		"w": w,
 		"h": h,
-		"game_data_type": renderer._async_game_data_type,
+		"game_data_type": renderer._async_map_snapshot.game_data_type,
 		"host_station_snapshot": [],
 		"squad_snapshot": OverlayProducers.snapshot_squad_nodes([md_squad]),
 	}
@@ -2523,7 +2523,7 @@ func test_dynamic_overlay_keeps_md_squads_after_mixed_pool_refresh_events() -> b
 
 	_check(renderer._sync_async_overlay_state_from_current_map(), "Expected async overlay state to stay synced after mixed-pool refresh events")
 	var refreshed_payload := {
-		"generation_id": renderer.active_build_generation_id,
+		"generation_id": renderer._coordinator.active_build_generation_id,
 		"dynamic_only": true,
 		"support_descriptors": [],
 		"blg": map_data.blg_map,
@@ -2532,7 +2532,7 @@ func test_dynamic_overlay_keeps_md_squads_after_mixed_pool_refresh_events() -> b
 		"hgt": map_data.hgt_map,
 		"w": w,
 		"h": h,
-		"game_data_type": renderer._async_game_data_type,
+		"game_data_type": renderer._async_map_snapshot.game_data_type,
 		"host_station_snapshot": [],
 		"squad_snapshot": OverlayProducers.snapshot_squad_nodes(squads.get_children()),
 	}
@@ -2577,7 +2577,7 @@ func test_md_squad_incremental_refresh_uses_current_game_data_type() -> bool:
 	preloads.surface_type_map = {12: 0}
 
 	var renderer := Map3DRendererScript.new()
-	renderer._edge_overlay_enabled = false
+	renderer.set_edge_overlay_enabled(false)
 	renderer.set_current_map_data_override(map_data)
 	renderer.set_editor_state_override(editor_state)
 	renderer.set_preloads_override(preloads)
@@ -2586,7 +2586,7 @@ func test_md_squad_incremental_refresh_uses_current_game_data_type() -> bool:
 	var md_squad := SquadStub.new(63, 1200.0, 1200.0, 1)
 	squads.add_child(md_squad)
 
-	renderer._async_game_data_type = "original"
+	renderer._async_map_snapshot.game_data_type = "original"
 	renderer._on_units_changed([{
 		"kind": "squad",
 		"unit_id": int(md_squad.get_instance_id()),
@@ -2603,7 +2603,7 @@ func test_md_squad_incremental_refresh_uses_current_game_data_type() -> bool:
 		_check(found_created.has(expected_key), "DynamicOverlay missing MD squad key after targeted creation refresh: %s" % expected_key)
 
 	md_squad.quantity = 3
-	renderer._async_game_data_type = "original"
+	renderer._async_map_snapshot.game_data_type = "original"
 	renderer._on_units_changed([{
 		"kind": "squad",
 		"unit_id": int(md_squad.get_instance_id()),
@@ -2619,7 +2619,7 @@ func test_md_squad_incremental_refresh_uses_current_game_data_type() -> bool:
 		_check(found_visual.has(expected_key), "DynamicOverlay missing MD squad key after quantity refresh: %s" % expected_key)
 
 	md_squad.position = Vector2(1800.0, 1200.0)
-	renderer._async_game_data_type = "original"
+	renderer._async_map_snapshot.game_data_type = "original"
 	renderer._on_units_changed([{
 		"kind": "squad",
 		"unit_id": int(md_squad.get_instance_id()),
@@ -2665,17 +2665,17 @@ func test_unit_position_committed_uses_single_unit_dynamic_refresh_for_squads() 
 	preloads.surface_type_map = {12: 0}
 
 	var renderer := Map3DRendererScript.new()
-	renderer._edge_overlay_enabled = false
+	renderer.set_edge_overlay_enabled(false)
 	renderer.set_current_map_data_override(map_data)
 	renderer.set_editor_state_override(editor_state)
 	renderer.set_preloads_override(preloads)
 	renderer._chunk_rt.last_map_dimensions = Vector2i(w, h)
 	renderer._chunk_rt.last_level_set = map_data.level_set
-	renderer._terrain_chunk_nodes[Vector2i.ZERO] = MeshInstance3D.new()
+	renderer._get_or_create_terrain_chunk_node(Vector2i.ZERO)
 
 	renderer._on_unit_position_committed("squad", int(squad.get_instance_id()))
 
-	_check(not renderer._dynamic_overlay_refresh_requested, "Single-unit movement should not schedule a broad dynamic overlay refresh when the direct squad path succeeds")
+	_check(not renderer._async_refresh_driver._dynamic_overlay_refresh_requested, "Single-unit movement should not schedule a broad dynamic overlay refresh when the direct squad path succeeds")
 	var dynamic_overlay := renderer.get_node_or_null("DynamicOverlay") as Node3D
 	_check(dynamic_overlay != null, "Single-unit movement refresh should create a DynamicOverlay node")
 	var found_keys := _instance_keys_from_overlay(dynamic_overlay)
@@ -2719,13 +2719,13 @@ func test_units_changed_removed_squad_updates_only_dynamic_overlay() -> bool:
 	preloads.surface_type_map = {12: 0}
 
 	var renderer := Map3DRendererScript.new()
-	renderer._edge_overlay_enabled = false
+	renderer.set_edge_overlay_enabled(false)
 	renderer.set_current_map_data_override(map_data)
 	renderer.set_editor_state_override(editor_state)
 	renderer.set_preloads_override(preloads)
 	renderer._chunk_rt.last_map_dimensions = Vector2i(w, h)
 	renderer._chunk_rt.last_level_set = map_data.level_set
-	renderer._terrain_chunk_nodes[Vector2i.ZERO] = MeshInstance3D.new()
+	renderer._get_or_create_terrain_chunk_node(Vector2i.ZERO)
 
 	renderer.build_from_current_map()
 	var initial_overlay := renderer.get_node_or_null("DynamicOverlay") as Node3D
@@ -2745,7 +2745,7 @@ func test_units_changed_removed_squad_updates_only_dynamic_overlay() -> bool:
 		"action": "removed",
 	}])
 
-	_check(not renderer._dynamic_overlay_refresh_requested, "Targeted squad removal should not schedule a broad dynamic overlay refresh")
+	_check(not renderer._async_refresh_driver._dynamic_overlay_refresh_requested, "Targeted squad removal should not schedule a broad dynamic overlay refresh")
 	var updated_overlay := renderer.get_node_or_null("DynamicOverlay") as Node3D
 	var found_keys := _instance_keys_from_overlay(updated_overlay)
 	for removed_key in removed_keys_before:
@@ -2785,13 +2785,13 @@ func test_units_changed_host_move_queues_targeted_refresh_during_async_pipeline(
 	preloads.surface_type_map = {12: 0}
 
 	var renderer := Map3DRendererScript.new()
-	renderer._edge_overlay_enabled = false
+	renderer.set_edge_overlay_enabled(false)
 	renderer.set_current_map_data_override(map_data)
 	renderer.set_editor_state_override(editor_state)
 	renderer.set_preloads_override(preloads)
 	renderer._chunk_rt.last_map_dimensions = Vector2i(w, h)
 	renderer._chunk_rt.last_level_set = map_data.level_set
-	renderer._terrain_chunk_nodes[Vector2i.ZERO] = MeshInstance3D.new()
+	renderer._get_or_create_terrain_chunk_node(Vector2i.ZERO)
 
 	renderer.build_from_current_map()
 	var initial_overlay := renderer.get_node_or_null("DynamicOverlay") as Node3D
@@ -2804,25 +2804,25 @@ func test_units_changed_host_move_queues_targeted_refresh_during_async_pipeline(
 	var initial_position := initial_piece.position if initial_piece != null else Vector3.ZERO
 
 	moved_host.position = Vector2(1800.0, 1200.0)
-	renderer._async_overlay_apply_active = true
+	renderer._async_refresh_driver._async_overlay_apply_active = true
 	renderer._on_units_changed([{
 		"kind": "host",
 		"unit_id": int(moved_host.get_instance_id()),
 		"action": "moved",
 	}])
 
-	_check(not renderer._dynamic_overlay_refresh_requested, "Single host move during async overlay apply should queue a targeted refresh instead of scheduling a broad dynamic overlay rebuild")
-	_check(renderer._pending_unit_changes.size() == 1, "Expected a single queued host change while the async overlay apply is active")
+	_check(not renderer._async_refresh_driver._dynamic_overlay_refresh_requested, "Single host move during async overlay apply should queue a targeted refresh instead of scheduling a broad dynamic overlay rebuild")
+	_check(renderer._async_refresh_driver._pending_unit_changes.size() == 1, "Expected a single queued host change while the async overlay apply is active")
 
-	renderer._async_overlay_apply_active = false
+	renderer._async_refresh_driver._async_overlay_apply_active = false
 	var flushed := renderer._flush_pending_unit_changes()
 	_check(flushed, "Expected queued host change to flush once the async overlay apply becomes idle")
-	_check(renderer._pending_unit_changes.is_empty(), "Queued host changes should be cleared after a successful flush")
+	_check(renderer._async_refresh_driver._pending_unit_changes.is_empty(), "Queued host changes should be cleared after a successful flush")
 	var updated_overlay := renderer.get_node_or_null("DynamicOverlay") as Node3D
 	var updated_piece := _overlay_child_by_instance_key(updated_overlay, instance_key)
 	_check(updated_piece != null, "Expected moved host overlay node after queued refresh flush")
 	_check(updated_piece.position != initial_position, "Queued host refresh should update only the moved host overlay transform")
-	_check(not renderer._dynamic_overlay_refresh_requested, "Flushing a queued single host move should not leave a broad dynamic overlay refresh pending")
+	_check(not renderer._async_refresh_driver._dynamic_overlay_refresh_requested, "Flushing a queued single host move should not leave a broad dynamic overlay refresh pending")
 
 	renderer.free()
 	return _errors.is_empty()
@@ -2855,7 +2855,7 @@ func test_build_from_current_map_wires_squads_into_authored_overlay() -> bool:
 	preloads.surface_type_map = {12: 0}
 
 	var renderer := Map3DRendererScript.new()
-	renderer._edge_overlay_enabled = false
+	renderer.set_edge_overlay_enabled(false)
 	renderer.set_current_map_data_override(map_data)
 	renderer.set_editor_state_override(editor_state)
 	renderer.set_preloads_override(preloads)

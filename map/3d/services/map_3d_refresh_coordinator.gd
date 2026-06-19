@@ -28,11 +28,11 @@ var _async_worker_done := false
 var _async_worker_failed := false
 var _async_worker_error := ""
 
-# Cross-thread cancellation flag: set on the main thread, checked by workers
-# under `_async_state_mutex` via `is_async_cancel_requested()`.  Main-thread
-# pump methods read this directly without the mutex, which is safe because
-# only the main thread ever writes to it (and does so under the mutex when
-# the worker is still running).
+# Cross-thread cancellation flag. ALL access goes through `_async_state_mutex`:
+# workers read it via is_async_cancel_requested(); the main thread sets it via
+# cancel_async_build(), clears it via clear_async_cancel_requested(), and reads
+# it via read_async_cancel_requested(). Do not touch this field directly from
+# outside the coordinator, or the worker-side locked reads stop being safe.
 var _async_cancel_requested := false
 
 # ---- Async overlay descriptor thread ----
@@ -125,6 +125,40 @@ func is_async_cancel_requested(generation_id: int) -> bool:
 	return cancelled
 
 
+# Generation-agnostic locked read of the cancel flag, for main-thread pump code
+# that wants to know whether a cancel is in flight regardless of generation.
+func read_async_cancel_requested() -> bool:
+	_async_state_mutex.lock()
+	var requested := _async_cancel_requested
+	_async_state_mutex.unlock()
+	return requested
+
+
+func clear_async_cancel_requested() -> void:
+	_async_state_mutex.lock()
+	_async_cancel_requested = false
+	_async_state_mutex.unlock()
+
+
+# Atomically open a new async build generation: bump the generation id, make it
+# the active generation, clear the cancel-request generation + cancel flag, and
+# drain any stale chunk payloads left by a previous generation. Returns the new
+# active generation id. Precondition: no worker from a prior generation is still
+# running -- the apply-pending-refresh path guarantees this because a new build
+# only starts once the pipeline is inactive (the previous worker is joined in
+# finish_async_initial_build / the overlay pump before restarting).
+func begin_generation() -> int:
+	_async_state_mutex.lock()
+	build_generation_id += 1
+	active_build_generation_id = build_generation_id
+	cancel_requested_generation_id = 0
+	_async_cancel_requested = false
+	var generation_id := active_build_generation_id
+	_async_state_mutex.unlock()
+	clear_async_chunk_payloads()
+	return generation_id
+
+
 # ---- Chunk payload queue ----
 
 func push_async_chunk_payload(payload: Dictionary) -> void:
@@ -192,15 +226,18 @@ func join_async_overlay_descriptor_thread() -> void:
 # ---- Cancellation ----
 
 func cancel_async_build(overlay_apply_active: bool) -> void:
-	if is_async_build_active():
-		_async_state_mutex.lock()
+	# Capture activity flags first (each takes its own mutex), then set the cancel
+	# flag once under `_async_state_mutex`. Previously the descriptor/overlay-apply
+	# cases wrote the flag without the mutex, which raced with the worker-side
+	# locked reads in is_async_cancel_requested().
+	var build_active := is_async_build_active()
+	var descriptor_active := is_async_overlay_descriptor_active()
+	_async_state_mutex.lock()
+	if build_active:
 		cancel_requested_generation_id = active_build_generation_id
+	if build_active or descriptor_active or overlay_apply_active:
 		_async_cancel_requested = true
-		_async_state_mutex.unlock()
-	if is_async_overlay_descriptor_active():
-		_async_cancel_requested = true
-	if overlay_apply_active:
-		_async_cancel_requested = true
+	_async_state_mutex.unlock()
 
 
 # ---- State reset (coordinator-owned portion) ----

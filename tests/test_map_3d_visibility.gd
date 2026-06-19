@@ -269,6 +269,18 @@ func test_hidden_async_completion_queues_full_overlay_refresh_for_reactivation()
 	return _errors.is_empty()
 
 
+func test_ready_preloads_terrain_shaders_for_async_apply() -> bool:
+	_reset_errors()
+	# Regression for the per-frame chunk-apply hitch: both terrain shaders must be
+	# preloaded by _ready() so Map3DSceneGraph never calls load() inside the
+	# budgeted async apply loop while the 2D editor is interactive.
+	var fixture := _create_renderer_fixture(true)
+	var renderer: Map3DRenderer = fixture["renderer"]
+	_check(renderer.has_preloaded_terrain_shaders(), "Expected _ready() to preload both terrain shaders for the per-frame apply path")
+	_dispose_renderer_fixture(fixture)
+	return _errors.is_empty()
+
+
 func run() -> int:
 	var failures := 0
 	var tests := [
@@ -277,6 +289,7 @@ func run() -> int:
 		"test_apply_visibility_range_to_environment_handles_null_environment",
 		"test_hidden_preview_defers_mesh_refresh_until_reactivated",
 		"test_hidden_async_completion_queues_full_overlay_refresh_for_reactivation",
+		"test_ready_preloads_terrain_shaders_for_async_apply",
 	]
 	for name in tests:
 		print("RUN ", name)

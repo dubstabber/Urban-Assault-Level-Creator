@@ -82,6 +82,9 @@ func get_or_create_terrain_chunk_node(chunk_coord: Vector2i) -> MeshInstance3D:
 		var existing = terrain_chunk_nodes[chunk_coord]
 		if existing != null and is_instance_valid(existing):
 			return existing as MeshInstance3D
+		# Drop the freed/stale reference before replacing it so the dictionary
+		# never retains dangling chunk entries across rebuilds.
+		terrain_chunk_nodes.erase(chunk_coord)
 	var node := MeshInstance3D.new()
 	node.name = "TerrainChunk_%d_%d" % [chunk_coord.x, chunk_coord.y]
 	var terrain_mesh: MeshInstance3D = _scene.terrain_mesh()
@@ -98,6 +101,9 @@ func get_or_create_edge_chunk_node(chunk_coord: Vector2i) -> MeshInstance3D:
 		var existing = edge_chunk_nodes[chunk_coord]
 		if existing != null and is_instance_valid(existing):
 			return existing as MeshInstance3D
+		# Drop the freed/stale reference before replacing it so the dictionary
+		# never retains dangling chunk entries across rebuilds.
+		edge_chunk_nodes.erase(chunk_coord)
 	var node := MeshInstance3D.new()
 	node.name = "EdgeChunk_%d_%d" % [chunk_coord.x, chunk_coord.y]
 	ensure_edge_node()

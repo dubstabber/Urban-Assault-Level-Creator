@@ -127,9 +127,11 @@ func on_map_created() -> void:
 		var level_set = int(current_map_data.level_set)
 		_chunk_runtime.last_map_dimensions = Vector2i(w, h)
 		_chunk_runtime.last_level_set = level_set
-		_scene.clear_chunk_nodes()
-		_scene.set_authored_overlay([])
-		_overlay_refresh_scope.clear()
+		# Full clear (not just chunk nodes): also resets terrain/edge material
+		# caches, nulls the main terrain/edge meshes, and clears the unit index
+		# and overlay refresh scope. Otherwise a second map with a similar chunk
+		# layout can reuse stale cached materials and show wrong textures.
+		_scene.clear()
 		_chunk_runtime.clear_dirty_chunks()
 		_chunk_runtime.clear_authored_caches()
 		_chunk_runtime.invalidate_all_chunks(w, h)

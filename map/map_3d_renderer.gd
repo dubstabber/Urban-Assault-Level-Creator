@@ -64,8 +64,8 @@ func _init() -> void:
 		_runtime_state
 	)
 	_overlay_runtime_port.bind(
-		_unit_runtime_index,
-		_static_overlay_index,
+		_runtime_state.unit_runtime_index,
+		_runtime_state.static_overlay_index,
 		_overlay_refresh_scope,
 		_runtime_state,
 		_build_pipeline
@@ -104,51 +104,15 @@ func _init() -> void:
 		_build_input_preparer,
 		_overlay_refresh_scope,
 		_chunk_rt,
-		_unit_runtime_index,
-		_static_overlay_index,
+		_runtime_state.unit_runtime_index,
+		_runtime_state.static_overlay_index,
 		_rebuild_policy,
 		_build_metrics_port,
 		_view_action_port,
 		_chunk_build_port
 	)
-	_geometry_cull_distance = UA_NORMAL_GEOMETRY_CULL_DISTANCE
+	_runtime_state.geometry_cull_distance = UA_NORMAL_GEOMETRY_CULL_DISTANCE
 
-
-func _retain_collaborator_owned_state() -> void:
-	# These fields intentionally stay reachable on the renderer facade for
-	# compatibility while the real mutable storage lives in shared runtime state.
-	var retained_state := [
-		_runtime_state,
-		_runtime_context,
-		_terrain_mesh,
-		_authored_overlay,
-		_dynamic_overlay,
-		_edge_overlay_enabled,
-		_edge_chunk_nodes,
-		_geometry_distance_culling_enabled,
-		_geometry_cull_distance,
-		_sector_top_shader,
-		_edge_blend_shader,
-		_async_pending_reframe_camera,
-		_async_map_snapshot,
-		_overlay_refresh_scope,
-		_async_requested_restart,
-		_async_requested_reframe,
-		_async_overlay_apply_state,
-		_async_overlay_descriptors,
-		_async_dynamic_overlay_descriptors,
-		_async_overlay_metrics,
-		_async_build_started_usec,
-		_async_overlay_apply_started_usec,
-		_async_overlay_descriptor_dynamic_only,
-		_async_overlay_apply_active,
-		_overlay_only_refresh_requested,
-		_dynamic_overlay_refresh_requested,
-		_pending_unit_changes,
-		_overlay_apply_manager,
-	]
-	if retained_state.size() < 0:
-		push_error("unreachable collaborator state marker")
 
 static func visibility_range_fade_start(viz_limit: float = ViewController.UA_NORMAL_VIZ_LIMIT, fade_length: float = ViewController.UA_NORMAL_FADE_LENGTH) -> float:
 	return ViewController.visibility_range_fade_start(viz_limit, fade_length)
@@ -180,8 +144,13 @@ static func facade_contract() -> Dictionary:
 			"mark_sector_dirty",
 			"mark_sectors_dirty",
 			"get_dirty_chunk_count",
+			"get_terrain_chunk_node_count",
+			"get_edge_chunk_node_count",
 			"is_using_chunked_terrain",
 			"set_chunked_terrain_enabled",
+			"is_edge_overlay_enabled",
+			"set_edge_overlay_enabled",
+			"has_preloaded_terrain_shaders",
 		],
 		"static_api": [
 			"facade_contract",
@@ -217,74 +186,6 @@ var _view_action_port := ViewActionPort.new()
 var _async_map_snapshot := AsyncMapSnapshot.new()
 var _overlay_refresh_scope := OverlayRefreshScope.new()
 
-var _debug_shader_mode: int:
-	get:
-		return _runtime_state.debug_shader_mode
-	set(value):
-		_runtime_state.debug_shader_mode = int(value)
-
-var _last_build_metrics: Dictionary:
-	get:
-		return _runtime_state.last_build_metrics
-	set(value):
-		_runtime_state.last_build_metrics = Dictionary(value)
-
-var _terrain_chunk_nodes: Dictionary:
-	get:
-		return _runtime_state.terrain_chunk_nodes
-	set(value):
-		_runtime_state.terrain_chunk_nodes = Dictionary(value)
-
-var _edge_chunk_nodes: Dictionary:
-	get:
-		return _runtime_state.edge_chunk_nodes
-	set(value):
-		_runtime_state.edge_chunk_nodes = Dictionary(value)
-
-var _geometry_distance_culling_enabled:
-	get:
-		return _runtime_state.geometry_distance_culling_enabled
-	set(value):
-		_runtime_state.geometry_distance_culling_enabled = bool(value)
-
-var _geometry_cull_distance:
-	get:
-		return _runtime_state.geometry_cull_distance
-	set(value):
-		_runtime_state.geometry_cull_distance = float(value)
-
-var _sector_top_shader: Shader:
-	get:
-		return _runtime_state.sector_top_shader
-	set(value):
-		_runtime_state.sector_top_shader = value
-
-var _edge_blend_shader: Shader:
-	get:
-		return _runtime_state.edge_blend_shader
-	set(value):
-		_runtime_state.edge_blend_shader = value
-
-var _terrain_material_cache: Dictionary:
-	get:
-		return _runtime_state.terrain_material_cache
-	set(value):
-		_runtime_state.terrain_material_cache = Dictionary(value)
-
-var _edge_material_cache: Dictionary:
-	get:
-		return _runtime_state.edge_material_cache
-	set(value):
-		_runtime_state.edge_material_cache = Dictionary(value)
-
-# Keep seam/slurp strips visible in the live preview; redundant flat/same-surface
-# seams are filtered out in the builder to avoid needless overdraw.
-var _edge_overlay_enabled:
-	get:
-		return _runtime_state.edge_overlay_enabled
-	set(value):
-		_runtime_state.edge_overlay_enabled = bool(value)
-
 # Scheduling and async build coordination is delegated to the coordinator.
 # Thread-safe state, chunk payload queues, generation IDs, and map-signature
 # tracking live there; the renderer accesses them via `_coordinator`.
@@ -294,22 +195,6 @@ var _coordinator := RefreshCoordinator.new()
 var _chunk_rt := ChunkRuntime.new()
 var _effective_typ_service := EffectiveTypService.new()
 var _rebuild_policy := RebuildPolicy.new()
-
-var active_build_generation_id: int:
-	get:
-		return _coordinator.active_build_generation_id
-	set(value):
-		_coordinator.active_build_generation_id = value
-var build_generation_id: int:
-	get:
-		return _coordinator.build_generation_id
-	set(value):
-		_coordinator.build_generation_id = value
-var cancel_requested_generation_id: int:
-	get:
-		return _coordinator.cancel_requested_generation_id
-	set(value):
-		_coordinator.cancel_requested_generation_id = value
 
 # Async initial-build state (exposed for UI loading indicator and cancellation).
 var is_building_3d:
@@ -333,120 +218,6 @@ var status_text:
 	set(value):
 		_async_refresh_driver.status_text = String(value)
 
-var _async_pending_reframe_camera:
-	get:
-		return _async_refresh_driver._async_pending_reframe_camera
-	set(value):
-		_async_refresh_driver._async_pending_reframe_camera = bool(value)
-var _async_effective_typ: PackedByteArray:
-	get:
-		return _async_map_snapshot.effective_typ
-	set(value):
-		_async_map_snapshot.effective_typ = value
-var _async_blg: PackedByteArray:
-	get:
-		return _async_map_snapshot.blg
-	set(value):
-		_async_map_snapshot.blg = value
-var _async_w:
-	get:
-		return _async_map_snapshot.w
-	set(value):
-		_async_map_snapshot.w = int(value)
-var _async_h:
-	get:
-		return _async_map_snapshot.h
-	set(value):
-		_async_map_snapshot.h = int(value)
-var _async_level_set:
-	get:
-		return _async_map_snapshot.level_set
-	set(value):
-		_async_map_snapshot.level_set = int(value)
-var _async_game_data_type:
-	get:
-		return _async_map_snapshot.game_data_type
-	set(value):
-		_async_map_snapshot.game_data_type = String(value)
-var _async_requested_restart:
-	get:
-		return _async_refresh_driver._async_requested_restart
-	set(value):
-		_async_refresh_driver._async_requested_restart = bool(value)
-var _async_requested_reframe:
-	get:
-		return _async_refresh_driver._async_requested_reframe
-	set(value):
-		_async_refresh_driver._async_requested_reframe = bool(value)
-var _async_overlay_apply_active:
-	get:
-		return _async_refresh_driver.is_async_overlay_apply_active()
-	set(value):
-		_async_refresh_driver._async_overlay_apply_active = bool(value)
-var _async_overlay_apply_state: Dictionary:
-	get:
-		return _async_refresh_driver._async_overlay_apply_state
-	set(value):
-		_async_refresh_driver._async_overlay_apply_state = Dictionary(value)
-var _async_overlay_descriptors: Array:
-	get:
-		return _async_refresh_driver._async_overlay_descriptors
-	set(value):
-		_async_refresh_driver._async_overlay_descriptors = Array(value)
-var _async_dynamic_overlay_descriptors: Array:
-	get:
-		return _async_refresh_driver._async_dynamic_overlay_descriptors
-	set(value):
-		_async_refresh_driver._async_dynamic_overlay_descriptors = Array(value)
-var _async_overlay_metrics: Dictionary:
-	get:
-		return _async_refresh_driver._async_overlay_metrics
-	set(value):
-		_async_refresh_driver._async_overlay_metrics = Dictionary(value)
-var _async_build_started_usec:
-	get:
-		return _async_refresh_driver._async_build_started_usec
-	set(value):
-		_async_refresh_driver._async_build_started_usec = int(value)
-var _async_overlay_apply_started_usec:
-	get:
-		return _async_refresh_driver._async_overlay_apply_started_usec
-	set(value):
-		_async_refresh_driver._async_overlay_apply_started_usec = int(value)
-var _overlay_only_refresh_requested:
-	get:
-		return _async_refresh_driver._overlay_only_refresh_requested
-	set(value):
-		_async_refresh_driver._overlay_only_refresh_requested = bool(value)
-var _dynamic_overlay_refresh_requested:
-	get:
-		return _async_refresh_driver._dynamic_overlay_refresh_requested
-	set(value):
-		_async_refresh_driver._dynamic_overlay_refresh_requested = bool(value)
-var _async_overlay_descriptor_dynamic_only:
-	get:
-		return _async_refresh_driver._async_overlay_descriptor_dynamic_only
-	set(value):
-		_async_refresh_driver._async_overlay_descriptor_dynamic_only = bool(value)
-var _skip_next_map_changed_refresh:
-	get:
-		return _runtime_state.skip_next_map_changed_refresh
-	set(value):
-		_runtime_state.skip_next_map_changed_refresh = bool(value)
-var _pending_unit_changes:
-	get:
-		return _async_refresh_driver._pending_unit_changes
-	set(value):
-		_async_refresh_driver._pending_unit_changes = Array(value)
-var _overlay_apply_manager:
-	get:
-		return _runtime_state.overlay_apply_manager
-var _static_overlay_index:
-	get:
-		return _runtime_state.static_overlay_index
-var _unit_runtime_index:
-	get:
-		return _runtime_state.unit_runtime_index
 var _renderer_event_controller := RendererEventController.new()
 var _build_input_preparer := BuildInputPreparer.new()
 var _build_pipeline := BuildPipeline.new()
@@ -473,9 +244,9 @@ func has_pending_refresh() -> bool:
 	return _async_refresh_driver.has_pending_refresh()
 
 func get_last_build_metrics() -> Dictionary:
-	if _last_build_metrics.is_empty():
+	if _runtime_state.last_build_metrics.is_empty():
 		return _make_empty_build_metrics()
-	return _last_build_metrics.duplicate(true)
+	return _runtime_state.last_build_metrics.duplicate(true)
 
 func _make_empty_build_metrics() -> Dictionary:
 	return BuildMetrics.empty_metrics()
@@ -593,9 +364,17 @@ func _apply_pending_refresh() -> void:
 	_async_refresh_driver.apply_pending_refresh()
 
 func _ready() -> void:
-	_retain_collaborator_owned_state()
-	_sector_top_shader = load("res://resources/terrain/shaders/sector_top.gdshader")
+	# Preload terrain shaders up front so the per-frame async chunk-apply path
+	# (Map3DSceneGraph.apply_sector_top_materials / make_edge_blend_material) never
+	# triggers a synchronous load() that would hitch the 2D editor mid-build. The
+	# lazy load in Map3DSceneGraph remains as a defensive null fallback.
+	_runtime_state.sector_top_shader = load("res://resources/terrain/shaders/sector_top.gdshader")
+	_runtime_state.edge_blend_shader = load("res://resources/terrain/shaders/edge_blend.gdshader")
 	_renderer_event_controller.ready()
+
+
+func has_preloaded_terrain_shaders() -> bool:
+	return _runtime_state.sector_top_shader is Shader and _runtime_state.edge_blend_shader is Shader
 
 func _apply_visibility_range_from_editor_state() -> void:
 	var enabled := _runtime_context.visibility_range_enabled()
@@ -626,7 +405,7 @@ func _on_unit_overlay_refresh_requested(unit_kind: String, unit_id: int) -> void
 	if not _preview_refresh_active():
 		_request_dynamic_overlay_refresh()
 		return
-	_skip_next_map_changed_refresh = true
+	_runtime_state.skip_next_map_changed_refresh = true
 	_on_units_changed([{
 		"kind": unit_kind,
 		"unit_id": unit_id,
@@ -723,19 +502,19 @@ func _join_async_thread() -> void:
 
 func _reset_async_build_state() -> void:
 	_async_refresh_driver.reset_async_build_state()
-	_async_effective_typ = PackedByteArray()
-	_async_blg = PackedByteArray()
-	_async_w = 0
-	_async_h = 0
-	_async_level_set = 0
-	_async_game_data_type = "original"
-	_skip_next_map_changed_refresh = false
+	_async_map_snapshot.effective_typ = PackedByteArray()
+	_async_map_snapshot.blg = PackedByteArray()
+	_async_map_snapshot.w = 0
+	_async_map_snapshot.h = 0
+	_async_map_snapshot.level_set = 0
+	_async_map_snapshot.game_data_type = "original"
+	_runtime_state.skip_next_map_changed_refresh = false
 
 func _sync_terrain_overlay_animation_mode_from_editor() -> void:
 	UATerrainPieceLibrary.set_force_static_terrain_overlays(not _runtime_context.terrain_overlay_animations_enabled())
 
 func _apply_debug_mode_to_existing_materials() -> void:
-	MaterialService.apply_debug_mode_to_existing_materials(_terrain_material_cache, _terrain_chunk_nodes, _debug_shader_mode)
+	MaterialService.apply_debug_mode_to_existing_materials(_runtime_state.terrain_material_cache, _runtime_state.terrain_chunk_nodes, _runtime_state.debug_shader_mode)
 	_frame_if_needed()
 
 func _process(_delta: float) -> void:
@@ -841,11 +620,25 @@ func mark_sectors_dirty(sectors: Array, edit_type: String = "hgt") -> void:
 func get_dirty_chunk_count() -> int:
 	return _chunk_rt.get_dirty_chunk_count()
 
+func get_terrain_chunk_node_count() -> int:
+	return _runtime_state.terrain_chunk_nodes.size()
+
+func get_edge_chunk_node_count() -> int:
+	return _runtime_state.edge_chunk_nodes.size()
+
 func is_using_chunked_terrain() -> bool:
 	return _chunk_rt.chunked_terrain_enabled
 
 func set_chunked_terrain_enabled(enabled: bool) -> void:
 	_chunk_rt.chunked_terrain_enabled = enabled
+
+func is_edge_overlay_enabled() -> bool:
+	return _runtime_state.edge_overlay_enabled
+
+func set_edge_overlay_enabled(enabled: bool) -> void:
+	# Keep seam/slurp strips visible in the live preview; redundant flat/same-surface
+	# seams are filtered out in the builder to avoid needless overdraw.
+	_runtime_state.edge_overlay_enabled = enabled
 
 func _needs_full_rebuild(w: int, h: int, level_set: int) -> bool:
 	return _rebuild_policy.needs_full_rebuild(w, h, level_set)

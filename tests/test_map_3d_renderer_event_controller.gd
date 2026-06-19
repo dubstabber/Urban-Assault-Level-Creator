@@ -130,6 +130,7 @@ class ScenePortStub extends RefCounted:
 	var ensure_edge_node_calls := 0
 	var set_camera_current_values: Array = []
 	var clear_chunk_nodes_calls := 0
+	var clear_calls := 0
 	var set_authored_overlay_values: Array = []
 
 	func get_node_or_null(_path: NodePath) -> Node:
@@ -143,6 +144,9 @@ class ScenePortStub extends RefCounted:
 
 	func bump_3d_viewport_rendering() -> void:
 		pass
+
+	func clear() -> void:
+		clear_calls += 1
 
 	func clear_chunk_nodes() -> void:
 		clear_chunk_nodes_calls += 1
@@ -358,9 +362,12 @@ func test_on_map_created_resets_runtime_and_requests_refresh() -> bool:
 	_check(effective_typ_service.set_dirty_values == [true], "Expected map creation to mark the effective typ cache dirty")
 	_check(chunk_runtime.last_map_dimensions == Vector2i(8, 8), "Expected map creation to seed the last map dimensions")
 	_check(chunk_runtime.last_level_set == 2, "Expected map creation to seed the last level set")
-	_check(scene.clear_chunk_nodes_calls == 1, "Expected map creation to clear existing chunk nodes")
-	_check(scene.set_authored_overlay_values.size() == 1 and scene.set_authored_overlay_values[0].is_empty(), "Expected map creation to clear the authored overlay")
-	_check(overlay_scope.clear_calls == 1, "Expected map creation to clear localized overlay scope")
+	# Map creation now performs a full scene clear (chunk nodes + material caches +
+	# main meshes + unit index + overlay scope) via scene.clear() rather than the
+	# old granular clear_chunk_nodes()/set_authored_overlay([]) calls. The full-clear
+	# semantics are covered by the scene-graph's own tests.
+	_check(scene.clear_calls == 1, "Expected map creation to fully clear the scene")
+	_check(scene.clear_chunk_nodes_calls == 0, "Expected map creation to use the consolidated full clear, not granular clear_chunk_nodes")
 	_check(chunk_runtime.clear_dirty_chunks_calls == 1, "Expected map creation to clear dirty chunks")
 	_check(chunk_runtime.clear_authored_caches_calls == 1, "Expected map creation to clear authored caches")
 	_check(chunk_runtime.invalidate_all_chunks_calls == [Vector2i(8, 8)], "Expected map creation to invalidate every chunk for the new map")

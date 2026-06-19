@@ -212,6 +212,27 @@ func test_is_async_pipeline_active_with_overlay_apply() -> bool:
 	return _errors.is_empty()
 
 
+func test_begin_generation_advances_and_clears_stale_state() -> bool:
+	_reset_errors()
+	var c := CoordinatorScript.new()
+	# Simulate leftover state from a previous, now-cancelled generation.
+	c.push_async_chunk_payload({"stale": 1})
+	c._async_cancel_requested = true
+	c.cancel_requested_generation_id = 7
+	var first := c.begin_generation()
+	_check_eq(first, 1, "First generation should advance to 1")
+	_check_eq(c.active_build_generation_id, 1, "Active generation should equal the new generation")
+	_check_eq(c.cancel_requested_generation_id, 0, "begin_generation should reset the cancel-request generation")
+	_check_eq(c.read_async_cancel_requested(), false, "begin_generation should clear the cancel flag")
+	_check_eq(c.async_chunk_payload_count(), 0, "begin_generation should drain stale chunk payloads")
+	# A payload tagged with the prior generation is dropped by the pump's
+	# generation filter because active_build_generation_id has advanced.
+	var second := c.begin_generation()
+	_check_eq(second, 2, "Each begin_generation call should advance the generation id")
+	_check_eq(c.is_async_cancel_requested(first), false, "Cancel must not report for a superseded generation")
+	return _errors.is_empty()
+
+
 # ---- Runner ----
 
 func run() -> int:
@@ -232,6 +253,7 @@ func run() -> int:
 		"test_reset_async_state_clears_all",
 		"test_is_async_build_active_without_thread",
 		"test_is_async_pipeline_active_with_overlay_apply",
+		"test_begin_generation_advances_and_clears_stale_state",
 	]
 	var total_failures := 0
 	for test_name in tests:

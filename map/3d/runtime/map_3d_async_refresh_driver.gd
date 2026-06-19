@@ -34,6 +34,12 @@ var _async_dynamic_overlay_descriptors: Array = []
 var _async_overlay_metrics: Dictionary = {}
 var _async_build_started_usec := 0
 var _async_overlay_apply_started_usec := 0
+# Dynamic (host/squad) overlay apply is budgeted as a second phase after the
+# static authored-overlay apply, so unit scene instantiation also spreads across
+# frames instead of blocking the main thread in one apply_dynamic_overlay() call.
+var _async_dynamic_overlay_apply_state: Dictionary = {}
+var _async_dynamic_overlay_apply_started_usec := 0
+var _async_overlay_apply_phase := ""
 var _overlay_only_refresh_requested := false
 var _dynamic_overlay_refresh_requested := false
 var _async_overlay_descriptor_dynamic_only := false
@@ -285,23 +291,21 @@ func try_start_async_initial_build(reframe_camera: bool) -> bool:
 		"lego_defs": pre.lego_defs,
 	}
 	var coordinator = _async_state.coordinator()
-	coordinator.build_generation_id += 1
-	coordinator.active_build_generation_id = coordinator.build_generation_id
-	coordinator.cancel_requested_generation_id = 0
+	# Atomically open a new build generation (bumps generation id, resets cancel
+	# state, drains stale chunk payloads) under the coordinator mutex.
+	var generation_id: int = coordinator.begin_generation()
 	_async_pending_reframe_camera = reframe_camera
 	_async_build_started_usec = Time.get_ticks_usec()
 	_async_state.set_async_map_snapshot(effective_typ, blg, w, h, level_set, game_data_type)
-	coordinator._async_cancel_requested = false
 	_async_requested_restart = false
 	_async_requested_reframe = false
-	_async_state.clear_async_chunk_payloads()
 	_async_state.set_async_worker_state(false, false, "")
 	_async_processed_chunks.clear()
 	_async_chunk_authored_descriptors.clear()
 	var total: int = chunk_list.size()
 	begin_build_state(total, "Rendering map...")
 	var thread := Thread.new()
-	var err := thread.start(Callable(self, "_async_initial_build_worker").bind(snapshot, coordinator.active_build_generation_id))
+	var err := thread.start(Callable(self, "_async_initial_build_worker").bind(snapshot, generation_id))
 	if err != OK:
 		end_build_state(false, "3D render worker could not start")
 		return false
@@ -357,7 +361,7 @@ func pump_async_initial_build() -> void:
 			break
 		if int(payload.get("generation_id", -1)) != _async_state.coordinator().active_build_generation_id:
 			continue
-		if _async_state.coordinator()._async_cancel_requested:
+		if _async_state.coordinator().read_async_cancel_requested():
 			continue
 		apply_async_chunk_payload(payload)
 	var state: Dictionary = _async_state.get_async_worker_state()
@@ -379,7 +383,7 @@ func apply_async_chunk_payload(payload: Dictionary) -> void:
 
 func finish_async_initial_build() -> void:
 	_async_state.join_async_thread()
-	var cancelled: bool = _async_state.coordinator()._async_cancel_requested
+	var cancelled: bool = _async_state.coordinator().read_async_cancel_requested()
 	var failed := bool(_async_state.get_async_worker_state().get("failed", false))
 	var should_restart := _async_requested_restart
 	var restart_reframe := _async_requested_reframe
@@ -512,10 +516,13 @@ func reset_async_build_state() -> void:
 	_async_requested_reframe = false
 	_async_overlay_apply_active = false
 	_async_overlay_apply_state.clear()
+	_async_dynamic_overlay_apply_state.clear()
+	_async_overlay_apply_phase = ""
 	_async_overlay_descriptors.clear()
 	_async_dynamic_overlay_descriptors.clear()
 	_async_overlay_metrics.clear()
 	_async_overlay_apply_started_usec = 0
+	_async_dynamic_overlay_apply_started_usec = 0
 	_overlay_only_refresh_requested = false
 	_dynamic_overlay_refresh_requested = false
 	_async_overlay_descriptor_dynamic_only = false

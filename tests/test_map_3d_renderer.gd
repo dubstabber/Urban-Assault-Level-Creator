@@ -132,6 +132,8 @@ func test_facade_contract_exposes_expected_runtime_surface() -> bool:
 		"get_dirty_chunk_count",
 		"is_using_chunked_terrain",
 		"set_chunked_terrain_enabled",
+		"is_edge_overlay_enabled",
+		"set_edge_overlay_enabled",
 	]:
 		_check(instance_api.has(method_name), "Facade contract should list instance API %s" % method_name)
 		_check(renderer.has_method(method_name), "Renderer should expose instance API %s" % method_name)

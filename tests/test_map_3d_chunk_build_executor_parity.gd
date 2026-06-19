@@ -250,8 +250,8 @@ func test_sync_and_async_chunk_apply_match_when_edge_overlay_enabled() -> bool:
 	var async_renderer := async_fixture["renderer"] as Map3DRenderer
 	var sync_preloads := sync_fixture["preloads"] as PreloadsStub
 	var async_preloads := async_fixture["preloads"] as PreloadsStub
-	sync_renderer._edge_overlay_enabled = true
-	async_renderer._edge_overlay_enabled = true
+	sync_renderer.set_edge_overlay_enabled(true)
+	async_renderer.set_edge_overlay_enabled(true)
 
 	var sync_state := _run_sync_chunk_apply(sync_renderer, hgt, typ, w, h, sync_preloads, level_set)
 	var async_state := _run_async_chunk_apply(async_renderer, hgt, typ, w, h, async_preloads, level_set, true)
@@ -308,8 +308,8 @@ func test_sync_and_async_chunk_apply_match_when_edge_overlay_is_disabled() -> bo
 	var async_renderer := async_fixture["renderer"] as Map3DRenderer
 	var sync_preloads := sync_fixture["preloads"] as PreloadsStub
 	var async_preloads := async_fixture["preloads"] as PreloadsStub
-	sync_renderer._edge_overlay_enabled = false
-	async_renderer._edge_overlay_enabled = false
+	sync_renderer.set_edge_overlay_enabled(false)
+	async_renderer.set_edge_overlay_enabled(false)
 
 	var sync_state := _run_sync_chunk_apply(sync_renderer, hgt, typ, w, h, sync_preloads, level_set)
 	var async_state := _run_async_chunk_apply(async_renderer, hgt, typ, w, h, async_preloads, level_set, false)

@@ -75,11 +75,11 @@ func set_dynamic_overlay_node(node: Node3D) -> void:
 
 
 func terrain_chunk_nodes() -> Dictionary:
-	return _renderer._terrain_chunk_nodes
+	return _renderer._runtime_state.terrain_chunk_nodes
 
 
 func edge_chunk_nodes() -> Dictionary:
-	return _renderer._edge_chunk_nodes
+	return _renderer._runtime_state.edge_chunk_nodes
 
 
 func clear() -> void:

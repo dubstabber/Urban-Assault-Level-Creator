@@ -368,7 +368,7 @@ func test_needs_full_rebuild_dimension_change() -> bool:
 	var renderer := RendererScript.new()
 	renderer._chunk_rt.last_map_dimensions = Vector2i(8, 8)
 	renderer._chunk_rt.last_level_set = 1
-	renderer._terrain_chunk_nodes[Vector2i(0, 0)] = null
+	renderer._get_or_create_terrain_chunk_node(Vector2i(0, 0))
 	_check(renderer._needs_full_rebuild(16, 16, 1), "dimension change should require full rebuild")
 	_check(not renderer._needs_full_rebuild(8, 8, 1), "same dimensions should not require full rebuild")
 	renderer.free()
@@ -380,7 +380,7 @@ func test_needs_full_rebuild_level_set_change() -> bool:
 	var renderer := RendererScript.new()
 	renderer._chunk_rt.last_map_dimensions = Vector2i(8, 8)
 	renderer._chunk_rt.last_level_set = 1
-	renderer._terrain_chunk_nodes[Vector2i(0, 0)] = null
+	renderer._get_or_create_terrain_chunk_node(Vector2i(0, 0))
 	_check(renderer._needs_full_rebuild(8, 8, 2), "level set change should require full rebuild")
 	_check(not renderer._needs_full_rebuild(8, 8, 1), "same level set should not require full rebuild")
 	renderer.free()
@@ -432,12 +432,12 @@ func test_map_signature_change_invalidates_all_chunks_without_explicit_sector_si
 func test_clear_chunk_nodes_resets_state() -> bool:
 	_reset_errors()
 	var renderer := RendererScript.new()
-	renderer._terrain_chunk_nodes[Vector2i(0, 0)] = null
-	renderer._edge_chunk_nodes[Vector2i(0, 0)] = null
+	renderer._get_or_create_terrain_chunk_node(Vector2i(0, 0))
+	renderer._get_or_create_edge_chunk_node(Vector2i(0, 0))
 	renderer._chunk_rt.mark_chunk_dirty(Vector2i(0, 0))
 	renderer._clear_chunk_nodes()
-	_check(renderer._terrain_chunk_nodes.is_empty(), "terrain chunk nodes should be empty after clear")
-	_check(renderer._edge_chunk_nodes.is_empty(), "edge chunk nodes should be empty after clear")
+	_check(renderer.get_terrain_chunk_node_count() == 0, "terrain chunk nodes should be empty after clear")
+	_check(renderer.get_edge_chunk_node_count() == 0, "edge chunk nodes should be empty after clear")
 	_check(not renderer._chunk_rt.has_dirty_chunks(), "dirty chunks should be empty after clear")
 	renderer.free()
 	return _errors.is_empty()
