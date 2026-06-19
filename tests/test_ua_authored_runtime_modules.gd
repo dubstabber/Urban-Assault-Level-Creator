@@ -148,8 +148,45 @@ func test_particle_builder_skips_when_no_renderable_stages_exist() -> bool:
 	return _errors.is_empty()
 
 
+func _make_slurp_quad_mesh() -> ArrayMesh:
+	var mesh := ArrayMesh.new()
+	var arrays := []
+	arrays.resize(Mesh.ARRAY_MAX)
+	arrays[Mesh.ARRAY_VERTEX] = PackedVector3Array([
+		Vector3(-150.0, 0.0, -150.0),
+		Vector3(150.0, 0.0, -150.0),
+		Vector3(150.0, 0.0, 150.0),
+	])
+	mesh.add_surface_from_arrays(Mesh.PRIMITIVE_TRIANGLES, arrays)
+	return mesh
+
+
+func test_deformed_slurp_mesh_cache_keys_on_content_not_rid() -> bool:
+	_reset_errors()
+	# Same descriptor, two distinct source-mesh instances (different RIDs). The
+	# deformed result is fully determined by (set_id, base_name, raw_id, warp_sig,
+	# game_data_type), so both calls must return the first cached mesh -- proving
+	# the transient source-mesh RID is not part of the cache key (a reused RID
+	# could otherwise serve a stale deformed mesh over a long session).
+	var desc := {
+		"set_id": 1,
+		"base_name": "slurp_cache_probe",
+		"raw_id": 7,
+		"warp_mode": "vside",
+		"anchor_height": 1.0,
+		"left_height": 0.0,
+		"right_height": 2.0,
+	}
+	var out_a = AuthoredPieceLibrary._deformed_slurp_mesh(_make_slurp_quad_mesh(), desc)
+	var out_b = AuthoredPieceLibrary._deformed_slurp_mesh(_make_slurp_quad_mesh(), desc)
+	_check(out_a is ArrayMesh, "expected the deformed slurp result to be an ArrayMesh")
+	_check(out_a == out_b, "deformed slurp cache must key on content, not the source mesh RID")
+	return _errors.is_empty()
+
+
 func run() -> int:
 	var tests: Array[String] = [
+		"test_deformed_slurp_mesh_cache_keys_on_content_not_rid",
 		"test_material_factory_luminous_fx2_resolves_retail_hi_alpha_override",
 		"test_animation_builder_loads_area_animation_frames_from_anm",
 		"test_animation_builder_uses_bmpanim_u8_uv_scale",

@@ -28,6 +28,11 @@ const UA_LUMTRACY_ALPHA := 192.0 / 255.0
 const ILBM_MASK_HAS_MASK := 1
 const ILBM_MASK_TRANSPARENT_COLOR := 2
 const BMPANIM_UV_SCALE := 256.0
+# Backstop bound for the process-global deformed slurp mesh cache. Keys are
+# (set_id, base_name, raw_id, warp_sig, game_data_type); warp_sig varies per seam
+# so the working set can grow across many maps of the same data set. Cleared
+# wholesale when this limit is exceeded.
+const DEFORMED_SLURP_MESH_CACHE_LIMIT := 4096
 
 static var _piece_overlay_fast_path_count := 0
 static var _piece_overlay_slow_path_count := 0
@@ -352,8 +357,11 @@ static func _deformed_slurp_mesh(source_mesh: Mesh, desc: Dictionary) -> ArrayMe
 	var set_id := int(desc.get("set_id", 1))
 	var base_name := String(desc.get("base_name", "")).strip_edges().to_lower()
 	var raw_id := int(desc.get("raw_id", -1))
-	# Source mesh identity + warp params fully determines the deformed result.
-	var cache_key := "slurp_def:%s:%d:%s:%d:%s" % [str(source_mesh.get_rid()), set_id, base_name, raw_id, warp_sig]
+	# (set_id, base_name, raw_id) deterministically selects the source mesh and
+	# warp_sig captures the deformation, so this content key fully identifies the
+	# result. Keying on the source mesh's RID instead risked stale hits once a
+	# freed RID was reused; game_data_type keeps results separated across data sets.
+	var cache_key := "slurp_def:%d:%s:%d:%s:%s" % [set_id, base_name, raw_id, warp_sig, _piece_game_data_type.to_lower()]
 
 	if _deformed_slurp_mesh_cache.has(cache_key):
 		var cached := _deformed_slurp_mesh_cache[cache_key] as ArrayMesh
@@ -372,6 +380,8 @@ static func _deformed_slurp_mesh(source_mesh: Mesh, desc: Dictionary) -> ArrayMe
 		arrays[Mesh.ARRAY_VERTEX] = deformed
 		out.add_surface_from_arrays(Mesh.PRIMITIVE_TRIANGLES, arrays)
 		out.surface_set_material(out.get_surface_count() - 1, source_mesh.surface_get_material(surface_idx))
+	if _deformed_slurp_mesh_cache.size() >= DEFORMED_SLURP_MESH_CACHE_LIMIT:
+		_deformed_slurp_mesh_cache.clear()
 	_deformed_slurp_mesh_cache[cache_key] = out
 	return out
 
