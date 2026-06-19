@@ -43,7 +43,7 @@ func _handle_mouse_input(event: InputEventMouseButton):
 		if map.is_multi_selection:
 			handle_batch_multi_selection(map.selection_start_point, map.current_mouse_pos)
 			map.selection_start_point = Vector2.ZERO
-		map.queue_redraw()
+		map.request_redraw()
 
 	if event.is_action_pressed("context_menu"):
 		_handle_context_menu()
@@ -70,7 +70,7 @@ func _handle_keyboard_input(event: InputEventKey):
 	elif event.is_action_released("multi_selection"):
 		map.is_multi_selection = false
 		map.selection_start_point = Vector2.ZERO
-		map.queue_redraw()
+		map.request_redraw()
 	if event.pressed:
 		number_key = event.unicode - KEY_0
 		if number_key >= 0 and number_key <= 7:
@@ -118,7 +118,7 @@ func _handle_mouse_motion(_event: InputEventMouseMotion):
 	elif is_number_pressed and number_key >= 0 and number_key <= 7 and is_left_pressed:
 		_handle_single_selection()
 	elif map.is_multi_selection and is_left_pressed:
-		map.queue_redraw()
+		map.request_redraw()
 
 func _handle_typ_map_design():
 	_handle_single_selection()
@@ -135,7 +135,7 @@ func _handle_typ_map_design():
 		"after": after
 	})
 	CurrentMapData.is_saved = false
-	map.queue_redraw()
+	map.request_redraw()
 	var edited_typ_indices: Array = []
 	CurrentMapData.append_edited_map_index(edited_typ_indices, idx, before, after)
 	CurrentMapData.emit_map_edit_update([], edited_typ_indices, [])
@@ -197,7 +197,7 @@ func _handle_height_change(direction: int):
 			})
 	undo_redo_manager.commit_group()
 	CurrentMapData.is_saved = false
-	map.queue_redraw()
+	map.request_redraw()
 	EventSystem.map_updated.emit()
 
 
@@ -337,7 +337,7 @@ func handle_selection(clicked_x: int, clicked_y: int):
 	_find_clicked_sector(clicked_x, clicked_y)
 	_update_special_selections()
 	EventSystem.sector_selected.emit()
-	map.queue_redraw()
+	map.request_redraw()
 
 func _find_clicked_sector(clicked_x: int, clicked_y: int):
 	var sector_counter := 0
@@ -351,14 +351,14 @@ func _find_clicked_sector(clicked_x: int, clicked_y: int):
 				x_sector > 0 and x_sector < CurrentMapData.horizontal_sectors + 1 and
 				sector_counter < (CurrentMapData.vertical_sectors * CurrentMapData.horizontal_sectors)
 				)
-			if clicked_x > h_size and clicked_x < h_size + 1200 and clicked_y > v_size and clicked_y < v_size + 1200:
+			if clicked_x > h_size and clicked_x < h_size + Constants.SECTOR_SIZE and clicked_y > v_size and clicked_y < v_size + Constants.SECTOR_SIZE:
 				_update_sector_selection(sector_counter, border_sector_counter, x_sector, y_sector, is_within_bounds)
 				break
-			h_size += 1200
+			h_size += Constants.SECTOR_SIZE
 			if is_within_bounds: sector_counter += 1
 			border_sector_counter += 1
 
-		v_size += 1200
+		v_size += Constants.SECTOR_SIZE
 		h_size = 0
 
 func _update_sector_selection(sector_idx: int, border_sector_idx: int, x: int, y: int, is_within_bounds: bool):
@@ -433,7 +433,7 @@ func handle_batch_multi_selection(start_pos: Vector2, end_pos: Vector2) -> void:
 				x_sector > 0 and x_sector < CurrentMapData.horizontal_sectors + 1 and
 				sector_counter < (CurrentMapData.vertical_sectors * CurrentMapData.horizontal_sectors)
 				)
-			if (start_pos.x > h_size or end_pos.x > h_size) and (start_pos.x < h_size + 1200 or end_pos.x < h_size + 1200) and (start_pos.y > v_size or end_pos.y > v_size) and (start_pos.y < v_size + 1200 or end_pos.y < v_size + 1200):
+			if (start_pos.x > h_size or end_pos.x > h_size) and (start_pos.x < h_size + Constants.SECTOR_SIZE or end_pos.x < h_size + Constants.SECTOR_SIZE) and (start_pos.y > v_size or end_pos.y > v_size) and (start_pos.y < v_size + Constants.SECTOR_SIZE or end_pos.y < v_size + Constants.SECTOR_SIZE):
 				var is_already_selected = EditorState.selected_sectors.any(func(dict): return dict.border_idx == border_sector_counter)
 				if not is_already_selected:
 					EditorState.selected_sectors.append(
@@ -443,12 +443,12 @@ func handle_batch_multi_selection(start_pos: Vector2, end_pos: Vector2) -> void:
 							"y": y_sector
 						})
 					if is_within_bounds: EditorState.selected_sectors[-1].idx = sector_counter
-			h_size += 1200
+			h_size += Constants.SECTOR_SIZE
 			if is_within_bounds: sector_counter += 1
 			border_sector_counter += 1
 
-		v_size += 1200
+		v_size += Constants.SECTOR_SIZE
 		h_size = 0
 
 	EventSystem.sector_selected.emit()
-	map.queue_redraw()
+	map.request_redraw()

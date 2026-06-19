@@ -1,6 +1,6 @@
 extends HSplitContainer
 
-@onready var map_container: ScrollContainer = $MapContainer
+@onready var map_container: Control = $MapContainer
 @onready var map_3d_container: SubViewportContainer = $Map3DContainer
 @onready var map_3d_viewport: SubViewport = $Map3DContainer/SubViewport
 @onready var map_3d_renderer: Map3DRenderer = $Map3DContainer/SubViewport/Map3D

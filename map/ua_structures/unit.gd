@@ -80,6 +80,8 @@ func _ready() -> void:
 	var event_system := _event_system()
 	if event_system != null and event_system.has_signal("game_type_changed"):
 		event_system.game_type_changed.connect(check_player_vehicle)
+	# Idle by default: _process only runs while this unit is being dragged.
+	set_process(false)
 
 
 func _process(_delta):
@@ -94,12 +96,15 @@ func _process(_delta):
 			position.y = pos_to_move.y
 
 		position_changed.emit()
+	else:
+		set_process(false)
 
 
 func _on_button_button_down():
 	var undo_redo_manager = get_node("/root/UndoRedoManager")
 	drag_before_snapshot = undo_redo_manager.create_unit_snapshot()
 	dragging = true
+	set_process(true)
 	of = get_global_mouse_position() - position
 	init_pos = position
 
@@ -107,6 +112,7 @@ func _on_button_button_down():
 func _on_button_button_up():
 	var moved := init_pos != position
 	dragging = false
+	set_process(false)
 	if moved:
 		var undo_redo_manager = get_node("/root/UndoRedoManager")
 		undo_redo_manager.begin_group("Move unit")
