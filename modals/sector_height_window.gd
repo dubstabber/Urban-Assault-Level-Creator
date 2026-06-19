@@ -6,6 +6,17 @@ extends Window
 
 func _ready() -> void:
 	EventSystem.sector_height_window_requested.connect(popup)
+	# Pressing Enter in the height field applies the value, same as clicking OK.
+	height_value_spin_box.get_line_edit().text_submitted.connect(_on_height_submitted)
+
+
+func _on_height_submitted(text: String) -> void:
+	# Pressing Enter keeps focus in the field, so the SpinBox hasn't committed the
+	# typed text to its value yet. Apply it ourselves before running the OK logic,
+	# otherwise the stale (pre-filled) value would be used.
+	if text.is_valid_float():
+		height_value_spin_box.value = text.to_float()
+	_on_ok_button_pressed()
 
 
 func _on_ok_button_pressed() -> void:
@@ -51,3 +62,12 @@ func close() -> void:
 
 func _on_about_to_popup() -> void:
 	height_value_spin_box.value = CurrentMapData.hgt_map[EditorState.border_selected_sector_idx]
+	# Focus the field and select its value so it can be replaced by typing immediately.
+	# Deferred so it runs once the window is actually shown.
+	_focus_and_select_value.call_deferred()
+
+
+func _focus_and_select_value() -> void:
+	var line_edit := height_value_spin_box.get_line_edit()
+	line_edit.grab_focus()
+	line_edit.select_all()
