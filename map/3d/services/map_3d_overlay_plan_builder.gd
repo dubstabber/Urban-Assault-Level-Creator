@@ -38,7 +38,9 @@ static func build_overlay_plan_from_snapshots(
 		metrics: Dictionary,
 		dynamic_only: bool = false
 	) -> Dictionary:
-	UATerrainPieceLibrary.set_piece_game_data_type(game_data_type)
+	# game_data_type is set on the main thread before any build (input preparer,
+	# overlay-descriptor worker spawn, or async finalization), so this function --
+	# which can run on a worker thread -- never mutates the piece-library global.
 	var started_usec := Time.get_ticks_usec()
 	var static_descriptors: Array = support_descriptors.duplicate()
 	var dynamic_descriptors: Array = []
@@ -140,7 +142,7 @@ static func build_localized_static_descriptors(
 		game_data_type: String,
 		metrics = null
 	) -> Array:
-	UATerrainPieceLibrary.set_piece_game_data_type(game_data_type)
+	# game_data_type is pinned on the main thread by the caller (see above).
 	var descriptors: Array = chunk_support_descriptors.duplicate()
 	var building_started_usec := Time.get_ticks_usec()
 	descriptors.append_array(OverlayProducers.build_blg_attachment_descriptors_for_sectors(
@@ -170,7 +172,7 @@ static func build_localized_dynamic_descriptors(
 		game_data_type: String,
 		metrics: Dictionary
 	) -> Array:
-	UATerrainPieceLibrary.set_piece_game_data_type(game_data_type)
+	# game_data_type is pinned on the main thread by the caller (see above).
 	var descriptors: Array = []
 	if current_map_data == null or affected_sectors.is_empty():
 		return descriptors

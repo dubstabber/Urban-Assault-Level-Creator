@@ -78,6 +78,9 @@ class PreloadsStub extends Node:
 
 func _reset_errors() -> void:
 	_errors.clear()
+	# OverlayPlanBuilder no longer pins the piece-library game_data_type itself;
+	# set it here so direct-call profiling tests resolve the expected data set.
+	UATerrainPieceLibrary.set_piece_game_data_type("original")
 
 
 func _check(cond: bool, msg: String) -> void:

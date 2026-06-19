@@ -51,6 +51,10 @@ var _errors: Array[String] = []
 
 func _reset_errors() -> void:
 	_errors.clear()
+	# The builders no longer set the piece-library game_data_type themselves
+	# (that is pinned on the main thread before each real build); set it here so
+	# these direct-call tests resolve pieces against the expected data set.
+	UATerrainPieceLibrary.set_piece_game_data_type("original")
 
 
 func _check(cond: bool, msg: String) -> void:

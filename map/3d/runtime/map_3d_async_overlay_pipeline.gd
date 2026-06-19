@@ -103,6 +103,10 @@ func start_async_overlay_descriptor_build(dynamic_only: bool = false) -> void:
 	_driver._async_overlay_descriptor_dynamic_only = dynamic_only
 	_async_state.set_async_overlay_descriptor_stage("Preparing overlays: queued")
 	_async_state.set_async_overlay_descriptor_state(false, false, {}, {})
+	# Pin the piece library's game_data_type on the MAIN thread before the worker
+	# spawns. The descriptor worker only reads source-backed pieces and must never
+	# mutate this process-global cache state from a background thread.
+	UATerrainPieceLibrary.set_piece_game_data_type(_async_state.async_game_data_type())
 	var thread := Thread.new()
 	var err := thread.start(Callable(self, "_async_overlay_descriptor_worker").bind(payload))
 	if err != OK:
