@@ -35,6 +35,7 @@ Utils="*res://globals/Utils.gd"
 EditorState="*res://globals/EditorState.gd"
 MapLoadService="*res://globals/MapLoadService.gd"
 UndoRedoManager="*res://globals/UndoRedoManager.gd"
+SubwindowPopupFix="*res://globals/SubwindowPopupFix.gd"
 
 [debug]
 

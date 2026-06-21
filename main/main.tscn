@@ -360,7 +360,7 @@ stretch = true
 
 [node name="SubViewport" type="SubViewport" parent="PanelContainer/MarginContainer/VBoxContainer/HSplitContainer/Map3DContainer" unique_id=1052858125]
 handle_input_locally = false
-size = Vector2i(442, 616)
+size = Vector2i(2, 2)
 render_target_update_mode = 0
 
 [node name="Map3D" type="Node3D" parent="PanelContainer/MarginContainer/VBoxContainer/HSplitContainer/Map3DContainer/SubViewport" unique_id=2264134]
