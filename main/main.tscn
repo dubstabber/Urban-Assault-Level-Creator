@@ -105,6 +105,72 @@ func _ready() -> void:
 	)
 "
 
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_menubar_disabled"]
+content_margin_left = 4.0
+content_margin_top = 6.5
+content_margin_right = 4.0
+content_margin_bottom = 6.5
+bg_color = Color(0.1, 0.1, 0.1, 0.3)
+corner_radius_top_left = 3
+corner_radius_top_right = 3
+corner_radius_bottom_right = 3
+corner_radius_bottom_left = 3
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_menubar_hover"]
+content_margin_left = 4.0
+content_margin_top = 6.5
+content_margin_right = 4.0
+content_margin_bottom = 6.5
+bg_color = Color(0.225, 0.225, 0.225, 0.6)
+corner_radius_top_left = 3
+corner_radius_top_right = 3
+corner_radius_bottom_right = 3
+corner_radius_bottom_left = 3
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_menubar_hover_pressed"]
+content_margin_left = 4.0
+content_margin_top = 6.5
+content_margin_right = 4.0
+content_margin_bottom = 6.5
+border_width_left = 2
+border_width_top = 2
+border_width_right = 2
+border_width_bottom = 2
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_menubar_normal"]
+content_margin_left = 4.0
+content_margin_top = 6.5
+content_margin_right = 4.0
+content_margin_bottom = 6.5
+bg_color = Color(0.1, 0.1, 0.1, 0.6)
+corner_radius_top_left = 3
+corner_radius_top_right = 3
+corner_radius_bottom_right = 3
+corner_radius_bottom_left = 3
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_menubar_pressed"]
+content_margin_left = 4.0
+content_margin_top = 6.5
+content_margin_right = 4.0
+content_margin_bottom = 6.5
+bg_color = Color(0, 0, 0, 0.6)
+corner_radius_top_left = 3
+corner_radius_top_right = 3
+corner_radius_bottom_right = 3
+corner_radius_bottom_left = 3
+
+[sub_resource type="Theme" id="Theme_4pcu1"]
+MenuBar/styles/disabled = SubResource("StyleBoxFlat_menubar_disabled")
+MenuBar/styles/disabled_mirrored = SubResource("StyleBoxFlat_menubar_disabled")
+MenuBar/styles/hover = SubResource("StyleBoxFlat_menubar_hover")
+MenuBar/styles/hover_mirrored = SubResource("StyleBoxFlat_menubar_hover")
+MenuBar/styles/hover_pressed = SubResource("StyleBoxFlat_menubar_hover_pressed")
+MenuBar/styles/hover_pressed_mirrored = SubResource("StyleBoxFlat_menubar_hover_pressed")
+MenuBar/styles/normal = SubResource("StyleBoxFlat_menubar_normal")
+MenuBar/styles/normal_mirrored = SubResource("StyleBoxFlat_menubar_normal")
+MenuBar/styles/pressed = SubResource("StyleBoxFlat_menubar_pressed")
+MenuBar/styles/pressed_mirrored = SubResource("StyleBoxFlat_menubar_pressed")
+
 [sub_resource type="ShaderMaterial" id="ShaderMaterial_yjufm"]
 shader = ExtResource("36_t1yuj")
 
@@ -310,6 +376,7 @@ layout_mode = 2
 [node name="MenuBar" type="MenuBar" parent="PanelContainer/MarginContainer/VBoxContainer" unique_id=252690504]
 custom_minimum_size = Vector2(0, 33)
 layout_mode = 2
+theme = SubResource("Theme_4pcu1")
 theme_override_fonts/font = ExtResource("22_hbtdp")
 
 [node name="File" type="PopupMenu" parent="PanelContainer/MarginContainer/VBoxContainer/MenuBar" unique_id=1646249325]
