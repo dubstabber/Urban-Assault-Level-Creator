@@ -6,7 +6,9 @@ signal position_changed
 signal visual_changed
 
 var dragging := false
+var drag_pending := false
 var of := Vector2(0, 0)
+var drag_start_mouse_position := Vector2.ZERO
 var unit_name: String
 var init_pos := Vector2.ZERO
 var editor_unit_id := 0:
@@ -83,37 +85,34 @@ func _ready() -> void:
 	var event_system := _event_system()
 	if event_system != null and event_system.has_signal("game_type_changed"):
 		event_system.game_type_changed.connect(check_player_vehicle)
+	if event_system != null and event_system.has_signal("left_double_clicked"):
+		event_system.left_double_clicked.connect(_on_left_double_clicked)
 	# Idle by default: _process only runs while this unit is being dragged.
 	set_process(false)
 
 
 func _process(_delta):
-	if dragging:
-		pos_to_move = get_global_mouse_position() - of
-		var current_map_data := _current_map_data()
-		if init_pos != position and current_map_data != null:
-			current_map_data.is_saved = false
-		if pos_to_move.x > left_limit and pos_to_move.x < right_limit:
-			position.x = pos_to_move.x
-		if pos_to_move.y > top_limit and pos_to_move.y < bottom_limit:
-			position.y = pos_to_move.y
+	if drag_pending and not dragging:
+		var drag_distance := drag_start_mouse_position.distance_to(get_viewport().get_mouse_position())
+		if drag_distance >= float(ProjectSettings.get_setting("gui/common/default_drag_threshold", 10)):
+			_start_drag()
 
-		position_changed.emit()
-	else:
+	if dragging:
+		_update_drag_position()
+	elif not drag_pending:
 		set_process(false)
 
 
 func _on_button_button_down():
-	var undo_redo_manager = UndoRedoManager
-	drag_before_snapshot = undo_redo_manager.create_unit_snapshot()
-	dragging = true
+	drag_pending = true
 	set_process(true)
-	of = get_global_mouse_position() - position
+	drag_start_mouse_position = get_viewport().get_mouse_position()
 	init_pos = position
 
 
 func _on_button_button_up():
 	var moved := init_pos != position
+	drag_pending = false
 	dragging = false
 	set_process(false)
 	if moved:
@@ -123,6 +122,36 @@ func _on_button_button_up():
 		undo_redo_manager.record_unit_snapshot(unit_before, undo_redo_manager.create_unit_snapshot())
 		undo_redo_manager.commit_group()
 		UnitChangeDispatcher.emit_for_unit(self, "moved")
+
+
+func _start_drag() -> void:
+	var undo_redo_manager = UndoRedoManager
+	drag_before_snapshot = undo_redo_manager.create_unit_snapshot()
+	drag_pending = false
+	dragging = true
+	of = get_global_mouse_position() - position
+	init_pos = position
+
+
+func _update_drag_position() -> void:
+	pos_to_move = get_global_mouse_position() - of
+	var current_map_data := _current_map_data()
+	if init_pos != position and current_map_data != null:
+		current_map_data.is_saved = false
+	if pos_to_move.x > left_limit and pos_to_move.x < right_limit:
+		position.x = pos_to_move.x
+	if pos_to_move.y > top_limit and pos_to_move.y < bottom_limit:
+		position.y = pos_to_move.y
+
+	position_changed.emit()
+
+
+func _on_left_double_clicked() -> void:
+	var editor_state := _editor_state()
+	if editor_state != null and editor_state.selected_unit == self:
+		drag_pending = false
+		dragging = false
+		set_process(false)
 
 
 func ensure_editor_unit_id() -> int:

@@ -8,6 +8,13 @@ extends HSplitContainer
 @onready var map_3d_loading_label: Label = $Map3DContainer/LoadingOverlay/CenterContainer/PanelContainer/MarginContainer/VBoxContainer/StatusLabel
 @onready var _build_3d_status_label: Label = %Build3DStatusLabel
 
+# Width of the left (map) pane as a fraction of the container, so the split keeps
+# the same proportion when the window is resized / maximized / restored instead of
+# holding a fixed pixel offset. -1.0 means "not captured yet".
+var _split_ratio: float = -1.0
+const _MIN_SPLIT_RATIO: float = 0.1
+const _MAX_SPLIT_RATIO: float = 0.9
+
 func _ready() -> void:
 	EventSystem.map_view_updated.connect(_apply_view_mode)
 	if map_3d_renderer != null and is_instance_valid(map_3d_renderer):
@@ -15,9 +22,92 @@ func _ready() -> void:
 		map_3d_renderer.build_finished.connect(_on_3d_build_finished)
 	map_3d_container.resized.connect(_sync_map_3d_loading_overlay_layout)
 	map_3d_loading_overlay.visibility_changed.connect(_sync_map_3d_loading_overlay_layout)
+	_setup_proportional_split()
 	_apply_view_mode()
 	call_deferred("_sync_map_3d_loading_overlay_layout")
 	_refresh_loading_overlay()
+
+
+# --- Proportional split ------------------------------------------------------
+# HSplitContainer stores a fixed pixel split_offset, so resizing the window changes
+# the left/right proportion. We instead remember the split as a ratio of the total
+# width, re-applying it on resize and whenever the visible pane set changes, and
+# updating it whenever the user drags the splitter.
+
+func _setup_proportional_split() -> void:
+	resized.connect(_on_split_resized)
+	dragged.connect(_on_split_dragged)
+	for child in get_children():
+		var pane := child as Control
+		if pane != null:
+			pane.visibility_changed.connect(_on_pane_visibility_changed)
+	# Capture the designed proportion once the first real layout has happened.
+	_sync_split.call_deferred()
+
+
+func _on_split_resized() -> void:
+	_sync_split()
+
+
+func _on_split_dragged(_offset: int = 0) -> void:
+	# The user moved the splitter: remember the new proportion.
+	_capture_split_ratio()
+
+
+func _on_pane_visibility_changed() -> void:
+	# The visible pane set changed (2D/3D toggle, properties / building-design
+	# panel shown or hidden); re-establish the proportion once the layout settles.
+	_sync_split.call_deferred()
+
+
+func _sync_split() -> void:
+	if _split_ratio < 0.0:
+		_capture_split_ratio()
+	else:
+		_apply_split_ratio()
+
+
+func _first_visible_pane() -> Control:
+	for child in get_children():
+		var pane := child as Control
+		if pane != null and pane.visible:
+			return pane
+	return null
+
+
+func _visible_pane_count() -> int:
+	var count := 0
+	for child in get_children():
+		var pane := child as Control
+		if pane != null and pane.visible:
+			count += 1
+	return count
+
+
+func _capture_split_ratio() -> void:
+	# Only meaningful when there are two panes to split between.
+	if _visible_pane_count() < 2:
+		return
+	var available := size.x
+	var left := _first_visible_pane()
+	if available <= 0.0 or left == null or left.size.x <= 0.0:
+		return
+	_split_ratio = clampf(left.size.x / available, _MIN_SPLIT_RATIO, _MAX_SPLIT_RATIO)
+
+
+func _apply_split_ratio() -> void:
+	if _split_ratio < 0.0 or _visible_pane_count() < 2:
+		return
+	var available := size.x
+	if available <= 0.0:
+		return
+	# The map pane never uses SIZE_EXPAND, so the split's default (zero-offset)
+	# position is the start of the container; that makes split_offset equal to the
+	# left pane's width. The proportional width is therefore just ratio * total.
+	# Setting it absolutely (instead of nudging by a delta) keeps the proportion
+	# exact even when the offset was clamped against a min size at a previous size.
+	split_offset = int(round(_split_ratio * available))
+	clamp_split_offset()
 
 func _apply_view_mode() -> void:
 	map_3d_container.visible = EditorState.view_mode_3d

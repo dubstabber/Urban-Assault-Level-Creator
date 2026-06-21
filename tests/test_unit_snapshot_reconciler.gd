@@ -66,6 +66,10 @@ func _undo_redo_manager() -> Node:
 	return _autoload("UndoRedoManager")
 
 
+func _event_system() -> Node:
+	return _autoload("EventSystem")
+
+
 func _preloads() -> Node:
 	return _autoload("Preloads")
 
@@ -243,11 +247,31 @@ func test_squad_ready_initializes_editor_unit_id_and_limits() -> bool:
 	return _errors.is_empty()
 
 
+func test_double_click_cancels_pending_unit_drag() -> bool:
+	_reset_errors()
+	var fixture := _make_fixture()
+	var event_system := _event_system()
+	var editor_state := _editor_state()
+	var squad := _create_squad(1, 1, Vector2(1200.0, 1200.0), 1)
+
+	editor_state.selected_unit = squad
+	squad._on_button_button_down()
+	event_system.left_double_clicked.emit()
+
+	_check(not squad.drag_pending, "Double-clicking a selected unit should cancel the pending drag")
+	_check(not squad.dragging, "Double-clicking a selected unit should not leave active dragging")
+	_check(squad.position == Vector2(1200.0, 1200.0), "Opening unit properties via double-click should not move the unit")
+
+	_dispose_fixture(fixture)
+	return _errors.is_empty()
+
+
 func run() -> int:
 	var failures := 0
 	for test_name in [
 		"test_apply_unit_snapshot_reconciles_in_place",
 		"test_squad_ready_initializes_editor_unit_id_and_limits",
+		"test_double_click_cancels_pending_unit_drag",
 	]:
 		print("RUN ", test_name)
 		var ok: bool = bool(call(test_name))
