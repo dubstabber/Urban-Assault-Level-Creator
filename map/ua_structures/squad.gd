@@ -87,3 +87,6 @@ func change_faction(_owner_id: int = owner_id) -> void:
 	if texture != null:
 		button.position = - Vector2(texture.get_width() / 2.0, texture.get_height() / 2.0)
 	button.tooltip_text = "%sx %s" % [quantity, unit_name]
+	# Tell the on-demand 2D renderer to re-composite; the new texture lives inside
+	# its SubViewport, which otherwise stays on UPDATE_DISABLED until something asks.
+	visual_changed.emit()

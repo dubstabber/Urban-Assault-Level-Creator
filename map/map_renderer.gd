@@ -135,6 +135,10 @@ func _on_unit_entered(node: Node) -> void:
 	if node is Unit:
 		if not node.position_changed.is_connected(request_viewport_update):
 			node.position_changed.connect(request_viewport_update)
+		# Faction/texture changes repaint the unit's sprite inside the SubViewport;
+		# re-composite so the change shows without waiting for another redraw.
+		if not node.visual_changed.is_connected(request_viewport_update):
+			node.visual_changed.connect(request_viewport_update)
 		# create()/positioning runs synchronously after add_child this same frame,
 		# so the scheduled render shows the finished unit.
 		request_viewport_update()

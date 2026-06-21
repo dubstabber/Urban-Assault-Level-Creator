@@ -44,8 +44,14 @@ func _ready() -> void:
 		faction_option_button.add_item(hs, Preloads.ua_data.data[EditorState.game_data_type].hoststations[hs].owner)
 	faction_option_button.item_selected.connect(func(index: int):
 		var unit_before: Dictionary = undo_redo_manager.create_unit_snapshot()
-		EditorState.selected_unit.change_faction(faction_option_button.get_item_id(index))
-		CurrentMapData.is_saved = false
+		var new_owner_id := faction_option_button.get_item_id(index)
+		var changed: bool = EditorState.selected_unit is Squad and int(EditorState.selected_unit.owner_id) != new_owner_id
+		EditorState.selected_unit.change_faction(new_owner_id)
+		if changed:
+			CurrentMapData.is_saved = false
+			# change_faction() refreshes the 2D sprite (via visual_changed); also
+			# refresh the 3D overlay, mirroring the quantity handler above.
+			UnitChangeDispatcher.emit_for_unit(EditorState.selected_unit, "visual")
 		_record_unit_snapshot("Edit squad properties", unit_before)
 	)
 	xpos_squad_line_edit.text_submitted.connect(func(text_value: String):

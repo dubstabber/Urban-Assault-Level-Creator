@@ -1,6 +1,9 @@
 class_name Unit extends Sprite2D
 
 signal position_changed
+# Emitted when the unit's on-map sprite (texture/faction colour) changes, so the
+# on-demand 2D renderer re-composites its SubViewport (see map_renderer.gd).
+signal visual_changed
 
 var dragging := false
 var of := Vector2(0, 0)
