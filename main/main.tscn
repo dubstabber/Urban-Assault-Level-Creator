@@ -127,15 +127,28 @@ corner_radius_top_right = 3
 corner_radius_bottom_right = 3
 corner_radius_bottom_left = 3
 
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_4pcu1"]
+content_margin_left = 4.0
+content_margin_top = 6.5
+content_margin_right = 4.0
+content_margin_bottom = 6.5
+bg_color = Color(0, 0, 0, 0.6)
+corner_radius_top_left = 3
+corner_radius_top_right = 3
+corner_radius_bottom_right = 3
+corner_radius_bottom_left = 3
+
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_menubar_hover_pressed"]
 content_margin_left = 4.0
 content_margin_top = 6.5
 content_margin_right = 4.0
 content_margin_bottom = 6.5
+draw_center = false
 border_width_left = 2
 border_width_top = 2
 border_width_right = 2
 border_width_bottom = 2
+border_color = Color(0.8, 0.8, 0.8, 0)
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_menubar_normal"]
 content_margin_left = 4.0
@@ -143,6 +156,7 @@ content_margin_top = 6.5
 content_margin_right = 4.0
 content_margin_bottom = 6.5
 bg_color = Color(0.1, 0.1, 0.1, 0.6)
+border_color = Color(0.8, 0.8, 0.8, 0)
 corner_radius_top_left = 3
 corner_radius_top_right = 3
 corner_radius_bottom_right = 3
@@ -164,7 +178,7 @@ MenuBar/styles/disabled = SubResource("StyleBoxFlat_menubar_disabled")
 MenuBar/styles/disabled_mirrored = SubResource("StyleBoxFlat_menubar_disabled")
 MenuBar/styles/hover = SubResource("StyleBoxFlat_menubar_hover")
 MenuBar/styles/hover_mirrored = SubResource("StyleBoxFlat_menubar_hover")
-MenuBar/styles/hover_pressed = SubResource("StyleBoxFlat_menubar_hover_pressed")
+MenuBar/styles/hover_pressed = SubResource("StyleBoxFlat_4pcu1")
 MenuBar/styles/hover_pressed_mirrored = SubResource("StyleBoxFlat_menubar_hover_pressed")
 MenuBar/styles/normal = SubResource("StyleBoxFlat_menubar_normal")
 MenuBar/styles/normal_mirrored = SubResource("StyleBoxFlat_menubar_normal")
@@ -381,6 +395,7 @@ theme_override_fonts/font = ExtResource("22_hbtdp")
 
 [node name="File" type="PopupMenu" parent="PanelContainer/MarginContainer/VBoxContainer/MenuBar" unique_id=1646249325]
 auto_translate_mode = 1
+oversampling_override = 1.0
 theme_override_fonts/font = ExtResource("22_hbtdp")
 script = ExtResource("6_i86yq")
 
