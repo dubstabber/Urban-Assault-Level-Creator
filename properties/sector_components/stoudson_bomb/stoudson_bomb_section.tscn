@@ -1,4 +1,4 @@
-[gd_scene load_steps=3 format=3 uid="uid://deva3qdr8h12x"]
+[gd_scene format=3 uid="uid://deva3qdr8h12x"]
 
 [ext_resource type="Script" uid="uid://cv4dq13hfqux" path="res://properties/sector_components/stoudson_bomb/stoudson_bomb_section.gd" id="1_gtxed"]
 
@@ -7,20 +7,41 @@ default_font_size = 12
 LineEdit/constants/minimum_character_width = 2
 SpinBox/constants/field_and_buttons_separation = 0
 
-[node name="StoudsonBombSection" type="VBoxContainer"]
+[node name="StoudsonBombSection" type="VBoxContainer" unique_id=1500639112]
 alignment = 1
 script = ExtResource("1_gtxed")
 
-[node name="HSeparator" type="HSeparator" parent="."]
+[node name="HSeparator" type="HSeparator" parent="." unique_id=1156904211]
 layout_mode = 2
 
-[node name="BombInfoLabel" type="Label" parent="."]
+[node name="BombInfoLabel" type="Label" parent="." unique_id=1297908134]
 unique_name_in_owner = true
 layout_mode = 2
 text = "Stoudson bomb N"
 horizontal_alignment = 1
 
-[node name="InvalidBuildingLabel" type="Label" parent="."]
+[node name="HBoxContainer" type="HBoxContainer" parent="." unique_id=1761967485]
+layout_mode = 2
+alignment = 1
+
+[node name="Label" type="Label" parent="HBoxContainer" unique_id=64928584]
+layout_mode = 2
+theme_override_font_sizes/font_size = 12
+text = "Bomb building:"
+
+[node name="BombBuildingOptionButton" type="OptionButton" parent="HBoxContainer" unique_id=404559936]
+unique_name_in_owner = true
+layout_mode = 2
+theme_override_font_sizes/font_size = 12
+alignment = 1
+selected = 0
+item_count = 2
+popup/item_0/text = "Standard"
+popup/item_0/id = 0
+popup/item_1/text = "Parasite(set 6 only)"
+popup/item_1/id = 1
+
+[node name="InvalidBuildingLabel" type="Label" parent="." unique_id=1327361057]
 unique_name_in_owner = true
 visible = false
 custom_minimum_size = Vector2(20, 20)
@@ -31,7 +52,7 @@ text = "The building for this bomb is invalid, which will cause the game to cras
 horizontal_alignment = 1
 autowrap_mode = 3
 
-[node name="WarningBuildingLabel" type="Label" parent="."]
+[node name="WarningBuildingLabel" type="Label" parent="." unique_id=1553572664]
 unique_name_in_owner = true
 visible = false
 custom_minimum_size = Vector2(10, 10)
@@ -42,90 +63,69 @@ text = "This bomb building is not designed for the current level set"
 horizontal_alignment = 1
 autowrap_mode = 3
 
-[node name="HBoxContainer" type="HBoxContainer" parent="."]
-layout_mode = 2
-alignment = 1
-
-[node name="Label" type="Label" parent="HBoxContainer"]
-layout_mode = 2
-theme_override_font_sizes/font_size = 12
-text = "Bomb building:"
-
-[node name="BombBuildingOptionButton" type="OptionButton" parent="HBoxContainer"]
-unique_name_in_owner = true
-layout_mode = 2
-theme_override_font_sizes/font_size = 12
-alignment = 1
-selected = 0
-item_count = 2
-popup/item_0/text = "Normal"
-popup/item_0/id = 0
-popup/item_1/text = "Parasite(set 6 only)"
-popup/item_1/id = 1
-
-[node name="Label" type="Label" parent="."]
+[node name="Label" type="Label" parent="." unique_id=272775880]
 layout_mode = 2
 theme_override_font_sizes/font_size = 12
 text = "Bomb countdown:"
 horizontal_alignment = 1
 
-[node name="HBoxContainer2" type="HBoxContainer" parent="."]
+[node name="HBoxContainer2" type="HBoxContainer" parent="." unique_id=892578453]
 layout_mode = 2
 theme = SubResource("Theme_q18i8")
 alignment = 1
 
-[node name="HoursSpinBox" type="SpinBox" parent="HBoxContainer2"]
+[node name="HoursSpinBox" type="SpinBox" parent="HBoxContainer2" unique_id=1046193029]
 unique_name_in_owner = true
 layout_mode = 2
 max_value = 24.0
 alignment = 1
 
-[node name="Label2" type="Label" parent="HBoxContainer2"]
+[node name="Label2" type="Label" parent="HBoxContainer2" unique_id=301013844]
 layout_mode = 2
 theme_override_font_sizes/font_size = 12
 text = "hours "
 
-[node name="MinutesSpinBox" type="SpinBox" parent="HBoxContainer2"]
+[node name="MinutesSpinBox" type="SpinBox" parent="HBoxContainer2" unique_id=629631602]
 unique_name_in_owner = true
 layout_mode = 2
 max_value = 999999.0
 alignment = 1
 
-[node name="Label3" type="Label" parent="HBoxContainer2"]
+[node name="Label3" type="Label" parent="HBoxContainer2" unique_id=1528231199]
 layout_mode = 2
 theme_override_font_sizes/font_size = 12
 text = "minutes "
 
-[node name="SecondsSpinBox" type="SpinBox" parent="HBoxContainer2"]
+[node name="SecondsSpinBox" type="SpinBox" parent="HBoxContainer2" unique_id=1411388731]
 unique_name_in_owner = true
 layout_mode = 2
 max_value = 999999.0
 alignment = 1
 
-[node name="Label4" type="Label" parent="HBoxContainer2"]
+[node name="Label4" type="Label" parent="HBoxContainer2" unique_id=1914225475]
 layout_mode = 2
 theme_override_font_sizes/font_size = 12
 text = "seconds"
 
-[node name="BombKeySectorsLabel" type="Label" parent="."]
+[node name="BombKeySectorsLabel" type="Label" parent="." unique_id=1151074460]
 unique_name_in_owner = true
 layout_mode = 2
 theme_override_font_sizes/font_size = 14
 text = "This bomb contains key sectors:"
 horizontal_alignment = 1
 
-[node name="BombKeySectorsListContainer" type="VBoxContainer" parent="."]
+[node name="BombKeySectorsListContainer" type="VBoxContainer" parent="." unique_id=2135417787]
 unique_name_in_owner = true
 layout_mode = 2
 alignment = 1
 
-[node name="TestLabel" type="Label" parent="BombKeySectorsListContainer"]
+[node name="TestLabel" type="Label" parent="BombKeySectorsListContainer" unique_id=379150305]
 layout_mode = 2
 theme_override_font_sizes/font_size = 12
 text = "Key sector 1 at X: x Y: y"
 horizontal_alignment = 1
 
-[node name="TestLabel2" type="Label" parent="BombKeySectorsListContainer"]
+[node name="TestLabel2" type="Label" parent="BombKeySectorsListContainer" unique_id=278143411]
 layout_mode = 2
 theme_override_font_sizes/font_size = 12
 text = "Key sector 2 at X: x Y: y"
