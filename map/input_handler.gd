@@ -1,5 +1,7 @@
 extends Node
 
+const ContextMenuPlacement := preload("res://map/context_menu_placement.gd")
+
 var number_key: int
 var is_number_pressed := false
 var is_left_pressed := false
@@ -316,19 +318,26 @@ func _handle_context_menu():
 	map.right_clicked_y = round(map.get_local_mouse_position().y)
 
 	if EditorState.selected_sectors.size() > 1:
-		%MultiSectorMapContextMenu.position = Vector2(map.right_clicked_x_global, map.right_clicked_y_global)
-		%MultiSectorMapContextMenu.popup.call_deferred()
+		_popup_context_menu(%MultiSectorMapContextMenu)
 		return
 
 	_handle_single_selection()
 	EditorState.selected_unit = EditorState.mouse_over_unit
 
 	if EditorState.selected_unit:
-		%UnitContextMenu.position = Vector2(map.right_clicked_x_global, map.right_clicked_y_global)
-		%UnitContextMenu.popup.call_deferred()
+		_popup_context_menu(%UnitContextMenu)
 	else:
-		%MapContextMenu.position = Vector2(map.right_clicked_x_global, map.right_clicked_y_global)
-		%MapContextMenu.popup.call_deferred()
+		_popup_context_menu(%MapContextMenu)
+
+
+func _popup_context_menu(menu: PopupMenu) -> void:
+	var desired := Vector2i(map.right_clicked_x_global, map.right_clicked_y_global)
+	# Keep the menu (and room for its submenus) inside the screen it pops up on,
+	# so submenus open beside it instead of flipping on top of it.
+	var screen := DisplayServer.get_screen_from_rect(Rect2i(desired, Vector2i.ONE))
+	var usable := DisplayServer.screen_get_usable_rect(screen)
+	menu.position = ContextMenuPlacement.clamped_position(menu, desired, usable)
+	menu.popup.call_deferred()
 
 func handle_selection(clicked_x: int, clicked_y: int):
 	if not map.is_selection_kept:
