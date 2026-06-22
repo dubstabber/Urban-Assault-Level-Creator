@@ -7,7 +7,7 @@ const HOST_STATION_LIMIT := 8
 
 const ZOOM_MINIMUM := Vector2(0.03, 0.03)
 const ZOOM_MAXIMUM := Vector2(0.3, 0.3)
-const ZOOM_SPEED := Vector2(0.06, 0.06)
+const ZOOM_SPEED := Vector2(0.12, 0.12)
 const DEFAULT_ZOOM := Vector2(0.056, 0.056)
 
 const SECTOR_FONT_SIZE := 260

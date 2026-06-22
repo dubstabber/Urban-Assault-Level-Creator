@@ -38,40 +38,39 @@ func add_child(node: Node) -> void:
 
 
 func camera() -> Camera3D:
-	return _renderer._camera
+	return _renderer.scene_camera()
 
 
 func set_camera_current(current: bool) -> void:
-	if _renderer._camera != null and is_instance_valid(_renderer._camera):
-		_renderer._camera.current = current
+	_renderer.set_scene_camera_current(current)
 
 
 func terrain_mesh() -> MeshInstance3D:
-	return _renderer._terrain_mesh
+	return _renderer.scene_terrain_mesh()
 
 
 func edge_mesh() -> MeshInstance3D:
-	return _renderer._edge_mesh
+	return _renderer.scene_edge_mesh()
 
 
 func set_edge_mesh_node(node: MeshInstance3D) -> void:
-	_renderer._edge_mesh = node
+	_renderer.set_scene_edge_mesh(node)
 
 
 func authored_overlay() -> Node3D:
-	return _renderer._authored_overlay
+	return _renderer.scene_authored_overlay()
 
 
 func set_authored_overlay_node(node: Node3D) -> void:
-	_renderer._authored_overlay = node
+	_renderer.set_scene_authored_overlay(node)
 
 
 func dynamic_overlay() -> Node3D:
-	return _renderer._dynamic_overlay
+	return _renderer.scene_dynamic_overlay()
 
 
 func set_dynamic_overlay_node(node: Node3D) -> void:
-	_renderer._dynamic_overlay = node
+	_renderer.set_scene_dynamic_overlay(node)
 
 
 func terrain_chunk_nodes() -> Dictionary:

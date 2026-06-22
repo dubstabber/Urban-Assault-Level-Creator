@@ -7,9 +7,9 @@ var _rebuild_policy = null
 var _runtime_state = null
 
 
-func bind(chunk_runtime, effective_typ_service, rebuild_policy, runtime_state) -> void:
-	_chunk_runtime = chunk_runtime
-	_effective_typ_service = effective_typ_service
+func bind(chunk_runtime_ref, effective_typ_service_ref, rebuild_policy, runtime_state) -> void:
+	_chunk_runtime = chunk_runtime_ref
+	_effective_typ_service = effective_typ_service_ref
 	_rebuild_policy = rebuild_policy
 	_runtime_state = runtime_state
 

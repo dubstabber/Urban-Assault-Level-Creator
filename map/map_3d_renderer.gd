@@ -225,6 +225,34 @@ var _async_refresh_driver := AsyncRefreshDriver.new()
 var _camera_controller := CameraController.new()
 var _scene_graph := SceneGraph.new()
 
+func scene_camera() -> Camera3D:
+	return _camera
+
+func set_scene_camera_current(current: bool) -> void:
+	if _camera != null and is_instance_valid(_camera):
+		_camera.current = current
+
+func scene_terrain_mesh() -> MeshInstance3D:
+	return _terrain_mesh
+
+func scene_edge_mesh() -> MeshInstance3D:
+	return _edge_mesh
+
+func set_scene_edge_mesh(node: MeshInstance3D) -> void:
+	_edge_mesh = node
+
+func scene_authored_overlay() -> Node3D:
+	return _authored_overlay
+
+func set_scene_authored_overlay(node: Node3D) -> void:
+	_authored_overlay = node
+
+func scene_dynamic_overlay() -> Node3D:
+	return _dynamic_overlay
+
+func set_scene_dynamic_overlay(node: Node3D) -> void:
+	_dynamic_overlay = node
+
 func set_event_system_override(event_system: Node) -> void:
 	_runtime_context.set_event_system_override(event_system)
 

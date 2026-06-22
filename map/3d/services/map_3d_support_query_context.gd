@@ -2,7 +2,6 @@ extends RefCounted
 class_name Map3DSupportQueryContext
 
 const SupportSampler := preload("res://map/terrain/ua_authored_support_sampler.gd")
-const UATerrainPieceLibrary := preload("res://map/terrain/ua_authored_piece_library.gd")
 
 const BUCKET_CELL_SIZE := SupportSampler.SUPPORT_BUCKET_CELL_SIZE
 

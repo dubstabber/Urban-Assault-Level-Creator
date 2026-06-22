@@ -6,8 +6,8 @@ var _async_map_snapshot = null
 var _async_refresh_driver = null
 
 
-func bind(coordinator, async_map_snapshot, async_refresh_driver = null) -> void:
-	_coordinator = coordinator
+func bind(coordinator_ref, async_map_snapshot, async_refresh_driver = null) -> void:
+	_coordinator = coordinator_ref
 	_async_map_snapshot = async_map_snapshot
 	_async_refresh_driver = async_refresh_driver
 

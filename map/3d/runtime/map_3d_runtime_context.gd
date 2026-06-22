@@ -12,20 +12,20 @@ func bind(renderer) -> void:
 	_renderer = renderer
 
 
-func set_event_system_override(event_system: Node) -> void:
-	_event_system_override = event_system
+func set_event_system_override(event_system_ref: Node) -> void:
+	_event_system_override = event_system_ref
 
 
-func set_current_map_data_override(current_map_data: Node) -> void:
-	_current_map_data_override = current_map_data
+func set_current_map_data_override(current_map_data_ref: Node) -> void:
+	_current_map_data_override = current_map_data_ref
 
 
-func set_editor_state_override(editor_state: Node) -> void:
-	_editor_state_override = editor_state
+func set_editor_state_override(editor_state_ref: Node) -> void:
+	_editor_state_override = editor_state_ref
 
 
-func set_preloads_override(preloads: Node) -> void:
-	_preloads_override = preloads
+func set_preloads_override(preloads_ref: Node) -> void:
+	_preloads_override = preloads_ref
 	_preloads_override_set = true
 
 
@@ -56,9 +56,9 @@ func preloads() -> Node:
 
 
 func is_3d_view_visible() -> bool:
-	var editor_state := editor_state()
-	if editor_state != null:
-		return bool(editor_state.get("view_mode_3d"))
+	var state := editor_state()
+	if state != null:
+		return bool(state.get("view_mode_3d"))
 	return true
 
 
@@ -69,29 +69,29 @@ func preview_refresh_active(is_async_pipeline_active: bool) -> bool:
 
 
 func current_game_data_type() -> String:
-	var editor_state := editor_state()
+	var state := editor_state()
 	var game_data_type := "original"
-	if editor_state != null:
-		var editor_game_data_type = editor_state.get("game_data_type")
+	if state != null:
+		var editor_game_data_type = state.get("game_data_type")
 		if editor_game_data_type != null:
 			game_data_type = String(editor_game_data_type)
 	return "original" if game_data_type.is_empty() else game_data_type
 
 
 func terrain_overlay_animations_enabled() -> bool:
-	var editor_state := editor_state()
-	if editor_state == null:
+	var state := editor_state()
+	if state == null:
 		return true
-	var raw: Variant = editor_state.get("map_3d_terrain_overlay_animations_enabled")
+	var raw: Variant = state.get("map_3d_terrain_overlay_animations_enabled")
 	if typeof(raw) == TYPE_BOOL:
 		return bool(raw)
 	return true
 
 
 func visibility_range_enabled() -> bool:
-	var editor_state := editor_state()
-	if editor_state != null:
-		return bool(editor_state.get("map_3d_visibility_range_enabled"))
+	var state := editor_state()
+	if state != null:
+		return bool(state.get("map_3d_visibility_range_enabled"))
 	return false
 
 

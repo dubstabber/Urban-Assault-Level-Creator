@@ -10,9 +10,9 @@ func _ready() -> void:
 	add_check_item("Toggle hgt_map values")
 	add_check_item("Toggle blg_map values")
 	add_separator()
-	add_check_item("Show 3D Preview")
-	add_check_item("Toggle 3D visibility range")
-	add_check_item("3D terrain overlay animations")
+	add_check_item("Show 3D Preview (beta)")
+	add_check_item("Toggle 3D visibility range (beta)")
+	add_check_item("3D terrain overlay animations (beta)")
 	set_default_values()
 	index_pressed.connect(_on_index_pressed)
 	EventSystem.map_view_updated.connect(set_default_values)
@@ -22,9 +22,9 @@ func _ready() -> void:
 func set_default_values() -> void:
 	for i in range(get_item_count()):
 		match get_item_text(i):
-			"Show 3D Preview": set_item_checked(i, EditorState.view_mode_3d)
-			"Toggle 3D visibility range": set_item_checked(i, EditorState.map_3d_visibility_range_enabled)
-			"3D terrain overlay animations": set_item_checked(i, EditorState.map_3d_terrain_overlay_animations_enabled)
+			"Show 3D Preview (beta)": set_item_checked(i, EditorState.view_mode_3d)
+			"Toggle 3D visibility range (beta)": set_item_checked(i, EditorState.map_3d_visibility_range_enabled)
+			"3D terrain overlay animations (beta)": set_item_checked(i, EditorState.map_3d_terrain_overlay_animations_enabled)
 			"Toggle typ_map images": set_item_checked(i, EditorState.typ_map_images_visible)
 			"Toggle typ_map values": set_item_checked(i, EditorState.typ_map_values_visible)
 			"Toggle own_map values": set_item_checked(i, EditorState.own_map_values_visible)
@@ -36,13 +36,13 @@ func _on_index_pressed(index: int) -> void:
 	match get_item_text(index):
 		"Show map properties panel":
 			%PropertiesContainer.show.call_deferred()
-		"Show 3D Preview":
+		"Show 3D Preview (beta)":
 			EditorState.view_mode_3d = not EditorState.view_mode_3d
 			set_item_checked(index, EditorState.view_mode_3d)
-		"Toggle 3D visibility range":
+		"Toggle 3D visibility range (beta)":
 			EditorState.map_3d_visibility_range_enabled = not EditorState.map_3d_visibility_range_enabled
 			set_item_checked(index, EditorState.map_3d_visibility_range_enabled)
-		"3D terrain overlay animations":
+		"3D terrain overlay animations (beta)":
 			EditorState.map_3d_terrain_overlay_animations_enabled = not EditorState.map_3d_terrain_overlay_animations_enabled
 			set_item_checked(index, EditorState.map_3d_terrain_overlay_animations_enabled)
 		"Toggle typ_map images":

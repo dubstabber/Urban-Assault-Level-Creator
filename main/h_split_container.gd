@@ -175,5 +175,3 @@ func _sync_map_3d_loading_overlay_layout() -> void:
 	if map_3d_container == null or not is_instance_valid(map_3d_container):
 		return
 	map_3d_loading_overlay.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
-	map_3d_loading_overlay.position = Vector2.ZERO
-	map_3d_loading_overlay.size = map_3d_container.size

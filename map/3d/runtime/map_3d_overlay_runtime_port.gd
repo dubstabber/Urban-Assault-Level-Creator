@@ -8,9 +8,9 @@ var _runtime_state = null
 var _build_pipeline = null
 
 
-func bind(unit_runtime_index, static_overlay_index, overlay_refresh_scope, runtime_state, build_pipeline = null) -> void:
-	_unit_runtime_index = unit_runtime_index
-	_static_overlay_index = static_overlay_index
+func bind(unit_runtime_index_ref, static_overlay_index_ref, overlay_refresh_scope, runtime_state, build_pipeline = null) -> void:
+	_unit_runtime_index = unit_runtime_index_ref
+	_static_overlay_index = static_overlay_index_ref
 	_overlay_refresh_scope = overlay_refresh_scope
 	_runtime_state = runtime_state
 	_build_pipeline = build_pipeline
